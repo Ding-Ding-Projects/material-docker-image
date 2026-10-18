@@ -13,8 +13,7 @@ $started = [DateTime]::UtcNow.ToString('o')
 $exitCode = $LASTEXITCODE
 if ($exitCode -ne 0) { exit $exitCode }
 if (-not (Test-Path out/publish/MaterialDockerImage.exe)) { throw 'Published executable missing.' }
-& .tools/squirrel/tools/rcedit.exe out/publish/MaterialDockerImage.exe --set-version-string SquirrelAwareVersion 1
-if ($LASTEXITCODE -ne 0) { throw 'Native apphost Squirrel lifecycle marker could not be applied.' }
+& "$PSScriptRoot/set-native-version.ps1" -Executable out/publish/MaterialDockerImage.exe -Version $Version
 Assert-SourceBinding $binding
 $files = Get-ChildItem out/publish -File -Recurse | ForEach-Object { @{path=$_.FullName.Substring((Resolve-Path out/publish).Path.Length+1); sha256=(Get-Sha256 $_.FullName); bytes=$_.Length} }
 @{source=$source; sourceBinding=$binding; version=$Version; startedUtc=$started; completedUtc=[DateTime]::UtcNow.ToString('o'); sdk=(& $dotnet --version); runtime='win-x64'; selfContained=$true; files=@($files)} | ConvertTo-Json -Depth 7 | Set-Content out/receipts/build.json
