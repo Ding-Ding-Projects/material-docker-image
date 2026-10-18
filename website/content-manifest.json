@@ -1,10 +1,14 @@
 {
-  "generatedAt": "2026-10-18T07:32:46.327Z",
+  "generatedAt": "2026-10-18T08:43:22.825Z",
   "meaning": "Documentation generation time, not application release provenance",
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "8e0a93ad1a9e1714456bad7f18d6658c81855638abf5387ac169058f347e92b1"
+      "sha256": "a5b6d8b2627396c337c6fb97f89db312160354b4f86aa979c5c20bce10a2b5cf"
+    },
+    {
+      "path": "docs/features/advanced-build.md",
+      "sha256": "ba406f3a4ca2eda62f33a4c4c7032790947be75d6b416c9693fc3718afd76d54"
     },
     {
       "path": "docs/features/build-and-run.md",
@@ -16,7 +20,11 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "04b33863354f66e202018228594d24815a012c36116b0d00069262dcbcb7ccbe"
+      "sha256": "a202d98b33e4a78478b313a34a5a4a4b855af805fc98c56acfc2d92ea6caaf8b"
+    },
+    {
+      "path": "docs/features/container-configuration.md",
+      "sha256": "76350cdee9f44c74661a27c213fd55c85bd6d51d6a58958b8bd958d4db41cd9a"
     },
     {
       "path": "docs/features/diagnostics.md",
@@ -28,19 +36,42 @@
     },
     {
       "path": "README.md",
-      "sha256": "0288124ba2df19139d0fbd467e038b2657c5991d003cc68ce22ed886a6e6bb5c"
+      "sha256": "b43c39f05c13827c1ebe9c097718a3e2b4efb34b254b31dd6cb85994c832f0b8"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "94c0c65a91d55707690815912fe004b6a3058c09d323abfbf6b3315b43cc87bf"
+      "sha256": "c1209fe9e7c41257cc8eec72d9d7999bc098b11e22903e66c4b4621912ec3ab3"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "1f5c0280df9216ef45de6ca1bd953f549e443136df42da7e338e23aaf0906ff9"
+      "sha256": "89bb3c9a3af8db200aaa39d673b47096cb8d3400cc21c1f86ce465267f7dc84a"
     },
     {
       "path": "wiki/Home.md",
-      "sha256": "1c9c1308d9823a55e4fc5b0cc8e8c0ceb725dd9e72ebc626cbcf54395318018f"
+      "sha256": "bf9346c257db0ecacc9d73861751e9c403b7257d6eaec13d02223b446da06bc5"
+    }
+  ],
+  "images": [
+    {
+      "path": "evidence/build-workspace.png",
+      "destination": "assets/17b3b1916f74e3535769e068b8696cb3904d97445bd7855065fae73ae8d65ea2.png",
+      "sha256": "17b3b1916f74e3535769e068b8696cb3904d97445bd7855065fae73ae8d65ea2",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/dockerfile-canvas.png",
+      "destination": "assets/3e0090c548786a96240a0a473a3a25d10afcb0ed96251e026a638e8fdddcb799.png",
+      "sha256": "3e0090c548786a96240a0a473a3a25d10afcb0ed96251e026a638e8fdddcb799",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/dockerfile-canvas-minimum.png",
+      "destination": "assets/0c92a65d3d4846da8ae18e3cae1f8c24c2a67632f07513cf1e41bfe2ca002d32.png",
+      "sha256": "0c92a65d3d4846da8ae18e3cae1f8c24c2a67632f07513cf1e41bfe2ca002d32",
+      "width": 960,
+      "height": 720
     }
   ]
 }

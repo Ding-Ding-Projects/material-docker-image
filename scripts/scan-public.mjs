@@ -11,7 +11,14 @@ let count=0;
 for(const file of new Set(files)) {
   const bytes=readFileSync(file); if(bytes.includes(0))continue;
   let content=bytes.toString('utf8').replace(/Ding[- ]Ding[- ]Projects/g,'');
-  // Literal technical spans are retained unchanged, not interpreted as private prose.
+  // Published labels can hide inside code spans or hyphenated identifiers.
+  // Review distinctive multiword phrases there too, without rewriting any source.
+  const identifierText=content.replace(/https?:\/\/[^\s<>"')]+/g,'').replace(/[-_]+/g,' ');
+  for(const term of terms.filter(t=>t.includes(' '))) {
+    const escaped=term.replace(/[.*+?^$\{\}()|[\]\\]/g,'\\$&');
+    if(new RegExp('(?<![A-Za-z0-9])'+escaped+'(?![A-Za-z0-9])','iu').test(identifierText)) { console.error('Publication identifier requires review: '+file);count++;break; }
+  }
+  // Literal technical spans remain unchanged, never automatically translated.
   content=content.replace(/```[\s\S]*?```/g,'').replace(/`[^`\n]+`/g,'').replace(/https?:\/\/[^\s<>"')]+/g,'');
   for(const term of terms) {
     // Single common words need human context review; this scan enforces distinctive phrases.

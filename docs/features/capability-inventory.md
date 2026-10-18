@@ -1,17 +1,20 @@
 # Capability inventory
 
-This is an initial implementation. A source route is not runtime proof. Unverified and missing capabilities remain open.
+Implemented controls, focused checks, real native execution and complete acceptance are separate states. The productive application is native WPF. All 109 required identifiers below remain retained. No row claims complete acceptance from a partial workflow.
 
 ## Product workflows
 
-| Workflow | Current evidence |
+| Workflow | Implemented behavior and bounded evidence |
 | --- | --- |
-| Structured Docker execution | 23 focused checks passed; exact argument separation, output bounds, cancellation and parsing. |
-| Real image build and run | Controlled local-engine smoke passed with exact output and owned cleanup. |
-| Native build editor, inventories and Compose | Implemented; native interaction pending. |
-| Interactive stage and runtime canvas | Implemented bounded parser and visual controls; native interaction pending. |
-| Genuine Squirrel.Windows package | Packaging route implemented; production and installation pending. |
-| Documentation and website | Articles written; deployment pending. |
+| Structured Docker execution | 23 core checks passed for argument separation, output bounds, cancellation and parsing. |
+| Build workspace | Multiple tags, labels, target/platform selection, local load, registry push, OCI archive, cache import/export and secret-file rows implemented. Real native build at f370d66 verified exact label whitespace. OCI/cache/secret and registry runtime combinations are not all exercised. |
+| Run editor | Explicit JSON argv, non-secret environment, entrypoint/user/workdir, CPU/memory, restart policy and additional port/mount rows implemented. Real native run at f370d66 verified exact environment whitespace. GPU, devices, health-check configuration and interactive terminals remain gaps. |
+| Native Canvas | Stage graph/object selection, inspector, supported alias/base edits, target selection, source navigation, zoom/pan/fit and inspected runtime memberships implemented. 51 UI-state/parser checks passed. Graph rendering is not proof of every interaction or Dockerfile construct. |
+| Images, resources and Compose | Image/container/volume/network operations and loaded Compose save-path/context protection implemented. Complete workflow acceptance remains open. |
+| Restart restoration | Source 3ce1ed7 local 0.5.0 build/installer production succeeded. Actual native restart from another working directory restored the saved absolute example folder and exact source after line-ending normalization; public release proof remains pending. |
+| Package and release | Normal v0.4.1 for f370d66133ffc3fe5f80967f5bafb33c28bc74f2 was published by successful run 39111325684. This does not verify the newer candidate or every installed lifecycle/update route. |
+| Current native captures | English, dark, 100% scaling at normal/minimum sizes only. README captures are retained and inspected for 3ce1ed7 local 0.5.0: Build 1440x960, populated Canvas 1440x960 and 960x720. Minimum graph panning and inspector scrolling are intentional. Full matrix is incomplete. |
+| Documentation and companions | Articles exist. Complete interactive documentation/wiki acceptance and portable documentation/build companions remain incomplete. |
 
 ## Required-feature inventory
 
@@ -21,7 +24,7 @@ The identifiers below retain every required capability in the acceptance invento
 | --- | --- |
 | `accessibility-sizing` | Unverified |
 | `adhd-modes` | Unverified |
-| `agents-md-vocabulary-block` | Unverified |
+| `private-conversation-discipline` | Unverified |
 | `app-icon` | Unverified |
 | `appearance-editor` | Unverified |
 | `authenticator` | Unverified |
@@ -31,7 +34,7 @@ The identifiers below retain every required capability in the acceptance invento
 | `bulk-actions` | Unverified |
 | `bundled-dependencies` | Unverified |
 | `changelog` | Unverified |
-| `cheap-jor-matrix` | Unverified |
+| `layout-overflow-matrix` | Unverified |
 | `ci-bootstrap` | Unverified |
 | `closeout-prompt` | Unverified |
 | `collapse-filters` | Unverified |
@@ -39,7 +42,7 @@ The identifiers below retain every required capability in the acceptance invento
 | `command-palette` | Unverified |
 | `completeness-parity` | Unverified |
 | `context-menus` | Unverified |
-| `deen-wah-site` | Unverified |
+| `mobile-website` | Unverified |
 | `dependency-fetcher` | Unverified |
 | `design-folder` | Unverified |
 | `design-reference-parity` | Unverified |
@@ -87,12 +90,12 @@ The identifiers below retain every required capability in the acceptance invento
 | `panic-webhooks` | Unverified |
 | `personal-vocabulary` | Unverified |
 | `postman-collections` | Unverified |
-| `private-day-teet-hui-app` | Unverified |
+| `offline-documentation-companion` | Unverified |
 | `product-evidence` | Unverified |
 | `progress-recovery` | Unverified |
 | `project-board` | Unverified |
 | `project-profile` | Unverified |
-| `public-huishot-gallery` | Unverified |
+| `public-screenshot-gallery` | Unverified |
 | `qr-pairing` | Unverified |
 | `readme-prompt-banner` | Unverified |
 | `regex-search` | Unverified |
@@ -120,18 +123,20 @@ The identifiers below retain every required capability in the acceptance invento
 | `tabbed-readme` | Unverified |
 | `tabs` | Unverified |
 | `tidbyt-displays` | Unverified |
-| `uh-single-file-editions` | Unverified |
+| `shared-instruction-portable-editions` | Unverified |
 | `unlock-ladder` | Unverified |
 | `vendored-fonts` | Unverified |
 | `vocabulary-drop-apply` | Unverified |
 | `vocabulary-hash-lock` | Unverified |
 | `vocabulary-unlock-boundary` | Unverified |
-| `wiki-day-teet-hui-sync` | Unverified |
+| `wiki-documentation-sync` | Unverified |
 | `workflow-navigation` | Unverified |
 
 
 ## Known limits
 
-Complete RegexBuddy parity, full localization, protected local wording import, shared school mode, narration, advanced appearance controls, server-management integration, portable documentation/build companions and complete display-scale acceptance are not established. They must not be described as shipped behavior.
+Complete RegexBuddy parity, full localization, protected local wording import, shared school mode, narration, advanced appearance controls, server-management integration, portable documentation/build companions and complete display-scale acceptance are not established. They must not be described as fully delivered behavior. All 109 required rows remain unverified for complete acceptance even where bounded implementation evidence exists above.
 
-Remote engines and architectures require independent runtime acceptance. A local-engine smoke does not verify them.
+Remote engines, alternative architectures, GPU/device/health-check controls and interactive terminals need additional implementation or independent runtime acceptance. A successful local native build/run does not verify these routes. OCI export, registry push, supported cache backends and secret-file builds need their own runtime evidence.
+
+Current visual scope does not establish Cantonese/bilingual modes, light theme, 125%, 150% or 200% scaling. Local 3ce1ed7 version 0.5.0 build, installer production and native restart restoration are verified. Its public release remains pending, separate from verified v0.4.1 publication.

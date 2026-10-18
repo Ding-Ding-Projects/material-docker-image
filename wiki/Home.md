@@ -3,6 +3,8 @@
 This source wiki is bundled with the documentation website. It documents the native Windows application and remains separate from evidence of runtime behavior.
 
 - [Build and run](../docs/features/build-and-run.md)
+- [Advanced builds](../docs/features/advanced-build.md)
+- [Container configuration](../docs/features/container-configuration.md)
 - [Canvas workflows](../docs/features/canvas.md)
 - [Resources](../docs/features/resources.md)
 - [Diagnostics and safety](../docs/features/diagnostics.md)

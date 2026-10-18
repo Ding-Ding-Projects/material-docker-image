@@ -1,28 +1,58 @@
 # Material Docker Image
 
-A native Windows workspace for building Docker images, running containers, inspecting resources, and understanding build stages on an interactive canvas.
+A native Windows WPF workspace for building Docker images, running containers, managing resources, and exploring Dockerfile stages and container relationships on an interactive native canvas.
 
-Development is in progress. The core engine and canvas-state checks pass; complete capability acceptance remains open.
-
-## Workflows
-
-- Build local Dockerfiles with target stages, tags, platforms, build arguments and cache choices.
-- Pull, inspect, run, tag, import, export and remove images.
-- Start, stop, restart, inspect and view container logs and statistics.
-- Edit and operate Compose projects with save-path protection.
-- Inspect and manage volumes and networks on an explicitly selected engine.
-- Explore Dockerfile stages and real container relationships on a selectable, pannable, zoomable canvas.
+Advanced Build and Run controls are implemented. Focused checks pass, and a real native build/run workflow has been exercised. Complete required-feature acceptance remains open.
 
 [Documentation](https://ding-ding-projects.github.io/material-docker-image/) · [Downloads](https://github.com/Ding-Ding-Projects/material-docker-image/releases) · [Capability inventory](docs/features/capability-inventory.md) · [Progress](https://github.com/Ding-Ding-Projects/material-docker-image/discussions/2)
 
+## Build and run workflows
+
+- Build local Dockerfiles with multiple tags, target stages, platforms, build arguments, image labels, pull/no-cache choices, and explicit local-load, registry-push or OCI-archive destinations.
+- Configure BuildKit cache import/export and selected local secret files. Registry publication, cache export and existing OCI-file replacement require confirmation. Secret file contents are not read, logged or persisted by the application.
+- Run images with explicit JSON argument arrays, non-secret environment rows, entrypoint, user, working directory, CPU/memory limits and restart policy.
+- Add port and mount rows with explicit addresses, protocols and read-only choices. Ports default to loopback; additional mounts default to read-only. Remote bind paths refer to the selected engine host.
+- Pull, inspect, tag, import, export and remove images; start, stop, restart, inspect and read logs/statistics for containers.
+- Edit and operate Compose projects with loaded-save-path protection, and inspect volumes and networks on the selected engine.
+
+OCI export, registry publication, cache backends and secret-file builds are implemented controls with focused input checks. Their complete runtime combinations have not been exercised. Health-check configuration, devices, GPU controls and interactive terminals remain gaps.
+
+## Native canvas
+
+Parse the current Dockerfile into selectable stages and dependency edges. Inspect stage source, change a supported stage alias/base, select an aliased build target, or jump back to its source line. Pan with middle-drag, scroll with arrow keys, zoom with Ctrl+wheel or buttons, and select through the keyboard-accessible object list. A compact header and separately scrolling inspector preserve graph space at the minimum supported window size.
+
+Runtime topology reads actual container inspections and network/volume memberships. It is a bounded snapshot, not a live service-health guarantee. Unsupported Dockerfile constructs remain source-only without being rewritten or truncated. A parsed graph never claims the build ran.
+
+## Current visual evidence
+
+The retained and inspected native captures below belong to source `3ce1ed7895253edf8e0ccf99e6aaaca8a70ef22a`, local version 0.5.0. Build shows the restored example Dockerfile; advanced controls remain below the visible scroll position. The populated Canvas has two stages and one relationship. At minimum size, the graph supports intentional panning and the inspector scrolls.
+
+![Native WPF Build workspace with the restored example Dockerfile](evidence/build-workspace.png)
+
+![Native WPF Dockerfile Canvas with stage graph, object list and inspector at normal window size](evidence/dockerfile-canvas.png)
+
+![Native WPF Dockerfile Canvas at the minimum supported window size](evidence/dockerfile-canvas-minimum.png)
+
+Actual visual scope is English, dark theme and 100% display scaling at normal and minimum sizes. The complete language, theme and scale matrix remains incomplete.
+
+## Verification and release state
+
+- 23 core checks and 51 UI-state/parser checks passed through the exact build entrypoint.
+- Source [f370d66](https://github.com/Ding-Ding-Projects/material-docker-image/commit/f370d66133ffc3fe5f80967f5bafb33c28bc74f2) completed a real native build/run workflow, including exact image-label and environment-value whitespace preservation.
+- Normal release [v0.4.1](https://github.com/Ding-Ding-Projects/material-docker-image/releases/tag/v0.4.1) belongs to that source. Its [Windows build and release run](https://github.com/Ding-Ding-Projects/material-docker-image/actions/runs/39111325684) succeeded. This is build/publication evidence, not exhaustive runtime acceptance.
+- Source [3ce1ed7](https://github.com/Ding-Ding-Projects/material-docker-image/commit/3ce1ed7895253edf8e0ccf99e6aaaca8a70ef22a) restores the saved Build workspace after restart. Its local 0.5.0 build and genuine installer production succeeded. A real native Build resolved the relative example folder, and restart from another working directory without an open-file argument restored the saved folder and exact example source (normalizing line endings). Public release verification for this candidate remains pending.
+
+All 109 required identifiers remain in the [capability inventory](docs/features/capability-inventory.md). Portable documentation/build companions, complete RegexBuddy parity and the full required-feature set remain incomplete.
+
 ## Build
 
-Run `build.bat`. The application requires Docker CLI and a reachable engine for Docker operations. Its editors and saved workspaces remain usable offline.
+Run `build.bat`. Docker operations require Docker CLI and a reachable selected engine. Editors and saved workspaces remain usable offline.
 
-Run `build.bat -Tests` for focused engine and canvas/state checks, `build.bat -DockerSmoke` for an explicitly mutating, uniquely owned local-engine smoke, and `build-installer.bat` for the genuine unsigned Squirrel.Windows package. The smoke currently targets the local `desktop-linux` context and uses the cached `debian:bookworm-slim` base image.
+Run `build.bat -Tests` for focused engine and UI-state/parser checks, `build.bat -DockerSmoke` for an explicitly mutating, uniquely owned local-engine smoke, and `build-installer.bat` for the genuine unsigned Squirrel.Windows package. The smoke uses the local `desktop-linux` context and cached `debian:bookworm-slim` base image.
 
-Native hidden-desktop verification can use `MaterialDockerImage.exe --software-rendering`. This selects WPF's supported software-rendering route; it changes rendering, not Docker behavior.
+Native hidden-desktop verification can use `MaterialDockerImage.exe --software-rendering`. This selects WPF's supported software-rendering route and does not change Docker behavior.
 
 ## Safety
 
-Commands use structured arguments without a command shell. Existing Docker contexts and credential helpers remain owned by Docker. Destructive actions require explicit confirmation in the application.
+Commands use structured arguments without a host command shell. Existing Docker contexts and credential helpers remain owned by Docker. Destructive operations require explicit confirmation. Review Dockerfiles, writable mounts and registry destinations, and keep credentials out of ordinary environment rows and build arguments.
+

@@ -1,6 +1,8 @@
 # User guides
 
 - [Build and run](build-and-run.md)
+- [Advanced builds](advanced-build.md)
+- [Container configuration](container-configuration.md)
 - [Canvas](canvas.md)
 - [Resource management](resources.md)
 - [Diagnostics and safety](diagnostics.md)
