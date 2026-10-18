@@ -17,6 +17,7 @@ public static class DockerfileGraph
         var lines = source.Replace("\r\n", "\n").Split('\n');
         var stages = new List<DockerStage>(); var edges = new List<GraphEdge>(); var warnings = new List<string>();
         var bodies = new List<List<string>>();
+        var references = new List<(int Target, string Source, string Kind)>();
         for (int i = 0; i < lines.Length; i++)
         {
             var line = lines[i].Trim();
@@ -27,8 +28,7 @@ public static class DockerfileGraph
                 var index = stages.Count;
                 stages.Add(new(index, i, from.Groups[3].Success ? from.Groups[3].Value : index.ToString(), from.Groups[2].Value, from.Groups[1].Value, Array.Empty<string>()));
                 bodies.Add(new());
-                var parent = stages.Take(index).FirstOrDefault(x => string.Equals(x.Name, from.Groups[2].Value, StringComparison.OrdinalIgnoreCase));
-                if (parent != null) edges.Add(new(parent.Index, index, "FROM"));
+                references.Add((index, from.Groups[2].Value, "FROM"));
             }
             else if (line.StartsWith("FROM ", StringComparison.OrdinalIgnoreCase)) warnings.Add($"Line {i + 1}: complex FROM syntax is preserved but cannot be edited visually.");
             else if (stages.Count > 0)
@@ -37,13 +37,18 @@ public static class DockerfileGraph
                 var copy = Regex.Match(line, @"^(?:COPY|ADD)\s+.*?--from=(\S+)", RegexOptions.IgnoreCase, Timeout);
                 if (copy.Success)
                 {
-                    var name = copy.Groups[1].Value;
-                    var parent = stages.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.OrdinalIgnoreCase) || x.Index.ToString() == name);
-                    if (parent != null && parent.Index != stages.Count - 1) edges.Add(new(parent.Index, stages.Count - 1, "COPY"));
+                    references.Add((stages.Count - 1, copy.Groups[1].Value, "COPY"));
                 }
             }
         }
         for (int i = 0; i < stages.Count; i++) stages[i] = stages[i] with { Instructions = bodies[i] };
+        // Resolve only after collecting every stage: COPY may refer to a later stage.
+        foreach (var reference in references)
+        {
+            var parent = stages.FirstOrDefault(x => string.Equals(x.Name, reference.Source, StringComparison.OrdinalIgnoreCase) ||
+                (reference.Kind == "COPY" && x.Index.ToString() == reference.Source));
+            if (parent != null) edges.Add(new(parent.Index, reference.Target, reference.Kind));
+        }
         if (stages.Count == 0) warnings.Add("No supported FROM stage found. Load or write a Dockerfile in Build, then parse it here.");
         if (lines.Any(x => x.TrimEnd().EndsWith('\\'))) warnings.Add("Continued instructions are shown as source lines. Visual edits are limited to single-line FROM declarations.");
         return new(stages, edges, warnings);
