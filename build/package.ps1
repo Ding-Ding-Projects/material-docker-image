@@ -8,7 +8,15 @@ if ($receipt.version -ne $Version) { throw 'Build version does not match package
 if (-not $receipt.sourceBinding) { throw 'Rebuild required: source binding is absent from the build receipt.' }
 Assert-SourceBinding $receipt.sourceBinding
 Assert-PayloadBinding $receipt 'out/publish'
-New-Item -ItemType Directory -Force out/packages,out/releases | Out-Null
+New-Item -ItemType Directory -Force out/packages,out/retained-releases | Out-Null
+if (Test-Path out/releases) {
+    $previous = [IO.Path]::GetFullPath((Join-Path $root 'out/releases'))
+    $retained = [IO.Path]::GetFullPath((Join-Path $root ('out/retained-releases/' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '-' + [guid]::NewGuid().ToString('N'))))
+    $outputBoundary = [IO.Path]::GetFullPath((Join-Path $root 'out')) + [IO.Path]::DirectorySeparatorChar
+    if (-not $previous.StartsWith($outputBoundary,[StringComparison]::OrdinalIgnoreCase) -or -not $retained.StartsWith($outputBoundary,[StringComparison]::OrdinalIgnoreCase)) { throw 'Release output boundary mismatch.' }
+    Move-Item -LiteralPath $previous -Destination $retained
+}
+New-Item -ItemType Directory -Force out/releases | Out-Null
 $payload = (Resolve-Path out/publish).Path
 $escaped = [Security.SecurityElement]::Escape($payload)
 $spec = @"

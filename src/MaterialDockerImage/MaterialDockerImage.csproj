@@ -12,5 +12,6 @@
   </PropertyGroup>
   <ItemGroup>
     <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
+    <AssemblyMetadata Include="SquirrelAwareVersion" Value="1" />
   </ItemGroup>
 </Project>
