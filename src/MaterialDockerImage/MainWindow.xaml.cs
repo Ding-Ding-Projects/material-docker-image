@@ -35,6 +35,7 @@ public partial class MainWindow : Window
     private string loadedComposePath = "";
     private bool resettingContexts;
     private long contextGeneration;
+    private bool? outputExpanded;
     private readonly string[] destinations = ["Build", "Images", "Containers", "Compose", "Canvas", "Volumes", "Networks", "Diagnostics", "Settings", "Setup"];
     private string T(string text) => UiText.Get(text, settings.Language);
     private string? Context => Contexts.SelectedItem as string;
@@ -63,6 +64,7 @@ public partial class MainWindow : Window
         };
         CancelOperation.Click += (_, _) => { operation?.Cancel(); Notice.Text = "Cancellation requested. Engine-side work may continue; reconcile before retrying."; };
         ClearOutput.Click += (_, _) => Output.Clear();
+        ToggleOutput.Click += (_, _) => { outputExpanded = OutputRow.Height.Value == 0; AdaptShell(); };
         NewTab.Click += (_, _) => ShowCatalog();
         Closing += WindowClosing;
         PreviewKeyDown += (_, e) =>
@@ -97,7 +99,11 @@ public partial class MainWindow : Window
         Grid.SetColumnSpan(EngineControls, narrow ? 2 : 1);
         Grid.SetColumnSpan(ProductIdentity, narrow ? 2 : 1);
         EngineControls.Margin = narrow ? new Thickness(0, 12, 0, 0) : new Thickness(0);
-        OutputRow.Height = new GridLength((ActualHeight > 0 ? ActualHeight : Height) < 820 ? 105 : 150);
+        var shortWindow = (ActualHeight > 0 ? ActualHeight : Height) < 820;
+        var showOutput = outputExpanded ?? !shortWindow;
+        OutputRow.Height = new GridLength(showOutput ? (shortWindow ? 105 : 150) : 0);
+        Output.Visibility = showOutput ? Visibility.Visible : Visibility.Collapsed;
+        ToggleOutput.Content = showOutput ? "Hide output" : "Show output";
     }
     private Button Button(string label, Action action, bool primary = false)
     {
@@ -191,10 +197,11 @@ public partial class MainWindow : Window
         var grid = new Grid(); grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(330) }); grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         var p = Page("Build", "Create an image from your own Dockerfile and local context."); Field(p, "Build context", folder);
         p.Children.Add(Button("Browse", () => { var dialog = new OpenFolderDialog { Title = "Choose build context" }; if (dialog.ShowDialog(this) == true) { folder.Text = dialog.FolderName; settings.BuildFolder = folder.Text; WorkspaceName.Text = Path.GetFileName(folder.Text); SaveSettings(); var path = Path.Combine(folder.Text, "Dockerfile"); if (File.Exists(path)) LoadDockerfile(path); } }));
-        Field(p, "Image tag", tag); Field(p, "Target stage", target); Field(p, "Platforms", platforms); platforms.ToolTip = "Comma-separated platforms, for example linux/amd64. A local load supports a single platform.";
+        tag.AcceptsReturn = true; tag.MinHeight = 50; Field(p, "Image tag", tag); Field(p, "Target stage", target); Field(p, "Platforms", platforms); platforms.ToolTip = "Comma-separated platforms, for example linux/amd64. A local load supports a single platform.";
         Field(p, "Build arguments", buildArgs); buildArgs.AcceptsReturn = true; buildArgs.Height = 80; buildArgs.ToolTip = "One NAME=value per line. Do not put secrets in build arguments.";
         p.Children.Add(noCache); p.Children.Add(pullBase);
         p.Children.Add(AsyncButton("Build image", BuildImage, true)); p.Children.Add(Button("Canvas", () => OpenPage("Canvas")));
+        ConfigureBuildExtras(p);
         grid.Children.Add(new ScrollViewer { Content = p, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
         var editor = new DockPanel { Margin = new Thickness(18, 10, 0, 0) }; Grid.SetColumn(editor, 1); var tools = new WrapPanel(); DockPanel.SetDock(tools, Dock.Top);
         tools.Children.Add(Button("Load Dockerfile", () => { var d = new OpenFileDialog { Filter = "Dockerfile|Dockerfile;*.dockerfile|All files|*.*" }; if (d.ShowDialog(this) == true) LoadDockerfile(d.FileName); }));
@@ -217,10 +224,7 @@ public partial class MainWindow : Window
     {
         if (!Directory.Exists(folder.Text)) throw new ArgumentException("Choose an existing build context folder.");
         if (dirtyDockerfile || !File.Exists(dockerfilePath)) { SaveDockerfile(); if (dirtyDockerfile || !File.Exists(dockerfilePath)) return; }
-        var args = new List<string> { "buildx", "build", "--progress", "plain", "--load", "--file", dockerfilePath };
-        AddOption(args, "--tag", tag.Text); AddOption(args, "--target", target.Text); AddOption(args, "--platform", platforms.Text);
-        foreach (var value in buildArgs.Text.Split(['\r','\n'], StringSplitOptions.RemoveEmptyEntries)) { if (!value.Contains('=')) throw new ArgumentException("Build arguments use NAME=value, one per line."); args.AddRange(["--build-arg", value]); }
-        if (noCache.IsChecked == true) args.Add("--no-cache"); if (pullBase.IsChecked == true) args.Add("--pull"); args.Add(Path.GetFullPath(folder.Text));
+        var args = AdvancedBuildArguments(); if(args == null) return;
         settings.BuildFolder = folder.Text; settings.ImageTag = tag.Text; SaveSettings(); await Execute("Build image", args);
     }
     private static void AddOption(List<string> args, string option, string value) { if (!string.IsNullOrWhiteSpace(value)) { if (value.Trim().StartsWith('-')) throw new ArgumentException("Option values cannot begin with a hyphen."); args.Add(option); args.Add(value.Trim()); } }
@@ -249,14 +253,6 @@ public partial class MainWindow : Window
         page.Actions.Children.Add(AsyncButton("Save archive", async () => { if (Selected() is { } image) { var d = new SaveFileDialog { Filter = "Tar archive|*.tar" }; if (d.ShowDialog(this) == true) await Run("Save image archive", ["image","save","--output",d.FileName,image.ID]); } }));
         page.Actions.Children.Add(AsyncButton("Load archive", async () => { var d = new OpenFileDialog { Filter = "Image archive|*.tar;*.tar.gz;*.tgz|All files|*.*" }; if (d.ShowDialog(this) == true) { await Run("Load image archive", ["image","load","--input",d.FileName]); await Refresh(); } }));
         page.Actions.Children.Add(AsyncButton("Remove", async () => { if (Selected() is { } image && Confirm("Remove image", image.ID)) { await Run("Remove image", ["image","rm",image.ID]); await Refresh(); } })); return page.Root;
-    }
-    private void RunDialog(string image, string? snapshotContext, long snapshotGeneration)
-    {
-        var p = Page("Run container", "Create a detached container from " + image + ". Ports bind to loopback by default. No privileged mode is enabled.");
-        var name = new TextBox(); var port = new TextBox(); var network = new TextBox(); var mount = new TextBox(); var readOnly = new CheckBox { Content = "Read-only root filesystem" };
-        Field(p,"Container name",name); Field(p,"Published port (host:container)",port); Field(p,"Network (optional)",network); Field(p,"Mount (source:destination:ro)",mount); p.Children.Add(readOnly);
-        var d = Dialog("Run container", p);
-        p.Children.Add(AsyncButton("Run", async () => { var args = new List<string> { "container","run","--detach" }; AddOption(args,"--name",name.Text); AddOption(args,"--network",network.Text); AddOption(args,"--volume",mount.Text); if (port.Text.Length > 0) { if (!System.Text.RegularExpressions.Regex.IsMatch(port.Text, @"^\d{1,5}:\d{1,5}(?:/(?:tcp|udp))?$")) throw new ArgumentException("Use host:container port numbers, optionally /tcp or /udp."); AddOption(args,"--publish","127.0.0.1:"+port.Text); } if (readOnly.IsChecked == true) args.Add("--read-only"); args.Add(image); if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) throw new InvalidOperationException("The engine changed. Close this dialog and refresh the image inventory."); var result = await Execute("Run container",args,boundContext:snapshotContext); if (result?.Success == true) d.Close(); }, true)); d.ShowDialog();
     }
     private FrameworkElement ContainersPage()
     {

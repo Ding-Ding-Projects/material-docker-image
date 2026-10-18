@@ -13,6 +13,7 @@ public static class DockerfileGraph
     private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
     public static DockerGraph Parse(string source)
     {
+        if (System.Text.Encoding.UTF8.GetByteCount(source) > 1024 * 1024) return new(Array.Empty<DockerStage>(), Array.Empty<GraphEdge>(), new[] { "Source-only mode: this Dockerfile exceeds the 1 MiB Canvas analysis limit. The complete source remains in the editor and can still be saved and built; no content was truncated." });
         if (HasUnsupportedSyntax(source)) return new(Array.Empty<DockerStage>(), Array.Empty<GraphEdge>(), new[] { "Source-only mode: continuations, heredocs or escape directives require the text editor. Original source is retained unchanged." });
         var lines = source.Replace("\r\n", "\n").Split('\n');
         var stages = new List<DockerStage>(); var edges = new List<GraphEdge>(); var warnings = new List<string>();

@@ -29,7 +29,10 @@ public partial class MainWindow
     private FrameworkElement CanvasPage()
     {
         var root = new Grid(); root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto }); root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1,GridUnitType.Star) });
-        var header = Page("Canvas","A real native graph of your Dockerfile or inspected runtime relationships. Drag with the middle mouse button to pan; arrow keys scroll. Select objects in the list for keyboard access.");
+        var header = Page("Canvas", "");
+        header.Children.RemoveAt(1);
+        var help = new Expander { Header = "Canvas controls and source limits", Margin = new Thickness(0,4,0,4), Foreground = (Brush)FindResource("Ink"), Content = new TextBlock { Text = "A native graph of your Dockerfile or inspected runtime relationships. Middle-drag pans; arrows scroll; Ctrl+wheel zooms. Use the object list for keyboard selection. Unsupported source stays in the editor.", TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0,8,0,8) } };
+        header.Children.Add(help);
         var actions = Actions(header); actions.Children.Add(Button("Parse Dockerfile",DrawDockerfile,true)); actions.Children.Add(AsyncButton("Container topology",DrawRuntime));
         actions.Children.Add(Button("Zoom in",()=>Zoom(1.2))); actions.Children.Add(Button("Zoom out",()=>Zoom(1/1.2))); actions.Children.Add(Button("Fit graph",FitGraph));
         graphState = new TextBlock { Text = "No source parsed. Open a Dockerfile in Build, or load a real runtime snapshot.", Opacity = .7 }; header.Children.Add(graphState); root.Children.Add(header);
@@ -65,9 +68,9 @@ public partial class MainWindow
     private void DrawDockerfile()
     {
         graphSource=dockerfile.Text; currentGraph=DockerfileGraph.Parse(graphSource);
-        ResetGraph(Math.Max(700,currentGraph.Stages.Count*270+60),500);
-        foreach(var edge in currentGraph.Edges) Edge(50+edge.From*270+220,150,50+edge.To*270,150,edge.Label);
-        foreach(var stage in currentGraph.Stages) Node(50+stage.Index*270,95,stage.Name,$"Base: {stage.Base}\n{stage.Instructions.Count} source lines",()=>SelectStage(stage));
+        ResetGraph(Math.Max(700,currentGraph.Stages.Count*270+60),320);
+        foreach(var edge in currentGraph.Edges) Edge(30+edge.From*270+220,96,30+edge.To*270,96,edge.Label);
+        foreach(var stage in currentGraph.Stages) Node(30+stage.Index*270,40,stage.Name,$"Base: {stage.Base}\n{stage.Instructions.Count} source lines",()=>SelectStage(stage));
         graphState!.Text = $"{currentGraph.Stages.Count} stages · {currentGraph.Edges.Count} relationships. " + (currentGraph.Warnings.Count > 0 ? string.Join(" ",currentGraph.Warnings) : "Parsed from the current unsaved editor source; not executed.");
         if(currentGraph.Stages.Count > 0) SelectStage(currentGraph.Stages[0]);
     }
