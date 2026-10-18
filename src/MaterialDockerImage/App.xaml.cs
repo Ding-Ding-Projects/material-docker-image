@@ -37,5 +37,12 @@ public partial class App : Application
         var window = new MainWindow();
         MainWindow = window;
         window.Show();
+        var openIndex = Array.IndexOf(e.Args, "--open-dockerfile");
+        if (openIndex >= 0 && openIndex + 1 < e.Args.Length)
+        {
+            try { window.OpenDockerfile(e.Args[openIndex + 1]); }
+            catch (Exception exception) when (exception is IOException or UnauthorizedAccessException or ArgumentException)
+            { MessageBox.Show(window, "The requested Dockerfile could not be opened. " + exception.Message, "Open Dockerfile", MessageBoxButton.OK, MessageBoxImage.Warning); }
+        }
     }
 }

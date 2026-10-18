@@ -42,6 +42,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); ApplyTheme(); FontSize = Math.Clamp(settings.FontSize, 12, 22);
+        System.Windows.Automation.AutomationProperties.SetName(dockerfile, "Dockerfile source");
+        System.Windows.Automation.AutomationProperties.SetName(composeSource, "Compose source");
         SizeChanged += (_, _) => AdaptShell();
         AdaptShell();
         folder.Text = settings.BuildFolder; tag.Text = settings.ImageTag;
@@ -77,6 +79,16 @@ public partial class MainWindow : Window
         Loaded += async (_, _) => await RefreshContexts();
     }
     private void SaveSettings() { try { settings.Save(); } catch (Exception e) { Notice.Text = "Settings could not be saved: " + e.Message; } }
+    public void OpenDockerfile(string path)
+    {
+        var absolute = Path.GetFullPath(path);
+        LoadDockerfile(absolute);
+        folder.Text = Path.GetDirectoryName(absolute) ?? "";
+        settings.BuildFolder = folder.Text;
+        WorkspaceName.Text = Path.GetFileName(folder.Text);
+        SaveSettings();
+        OpenPage("Build");
+    }
     private void AdaptShell()
     {
         var narrow = (ActualWidth > 0 ? ActualWidth : Width) < 1200;
