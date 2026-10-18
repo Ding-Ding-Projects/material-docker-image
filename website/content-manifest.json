@@ -1,0 +1,46 @@
+{
+  "generatedAt": "2026-10-18T07:32:46.327Z",
+  "meaning": "Documentation generation time, not application release provenance",
+  "sources": [
+    {
+      "path": "docs/features/README.md",
+      "sha256": "8e0a93ad1a9e1714456bad7f18d6658c81855638abf5387ac169058f347e92b1"
+    },
+    {
+      "path": "docs/features/build-and-run.md",
+      "sha256": "065d2f1193be50d0c9ce079eaf08fceacf60cdc2eaae9bce13982fa024065c98"
+    },
+    {
+      "path": "docs/features/canvas.md",
+      "sha256": "6d532f005505e2c1582d0126eee9fe345662c0089315a1586aed602a643d9c2a"
+    },
+    {
+      "path": "docs/features/capability-inventory.md",
+      "sha256": "04b33863354f66e202018228594d24815a012c36116b0d00069262dcbcb7ccbe"
+    },
+    {
+      "path": "docs/features/diagnostics.md",
+      "sha256": "3f1d495469f3e661fca6dd182acd4b2d945bb835b1557f701b75a887f7227b44"
+    },
+    {
+      "path": "docs/features/resources.md",
+      "sha256": "73b0d6058ef327326050426ffc84a7dcff2f7ef7642ee2bc18bce046b12a208f"
+    },
+    {
+      "path": "README.md",
+      "sha256": "0288124ba2df19139d0fbd467e038b2657c5991d003cc68ce22ed886a6e6bb5c"
+    },
+    {
+      "path": "ROADMAP.md",
+      "sha256": "94c0c65a91d55707690815912fe004b6a3058c09d323abfbf6b3315b43cc87bf"
+    },
+    {
+      "path": "HANDOFF.md",
+      "sha256": "1f5c0280df9216ef45de6ca1bd953f549e443136df42da7e338e23aaf0906ff9"
+    },
+    {
+      "path": "wiki/Home.md",
+      "sha256": "1c9c1308d9823a55e4fc5b0cc8e8c0ceb725dd9e72ebc626cbcf54395318018f"
+    }
+  ]
+}

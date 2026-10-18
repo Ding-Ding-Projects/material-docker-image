@@ -42,6 +42,8 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent(); ApplyTheme(); FontSize = Math.Clamp(settings.FontSize, 12, 22);
+        SizeChanged += (_, _) => AdaptShell();
+        AdaptShell();
         folder.Text = settings.BuildFolder; tag.Text = settings.ImageTag;
         noCache.Content = T("No cache"); pullBase.Content = T("Pull base images");
         dockerfile.TextChanged += (_, _) => { if (!loading) dirtyDockerfile = true; };
@@ -75,6 +77,16 @@ public partial class MainWindow : Window
         Loaded += async (_, _) => await RefreshContexts();
     }
     private void SaveSettings() { try { settings.Save(); } catch (Exception e) { Notice.Text = "Settings could not be saved: " + e.Message; } }
+    private void AdaptShell()
+    {
+        var narrow = (ActualWidth > 0 ? ActualWidth : Width) < 1200;
+        Grid.SetRow(EngineControls, narrow ? 1 : 0);
+        Grid.SetColumn(EngineControls, narrow ? 0 : 1);
+        Grid.SetColumnSpan(EngineControls, narrow ? 2 : 1);
+        Grid.SetColumnSpan(ProductIdentity, narrow ? 2 : 1);
+        EngineControls.Margin = narrow ? new Thickness(0, 12, 0, 0) : new Thickness(0);
+        OutputRow.Height = new GridLength((ActualHeight > 0 ? ActualHeight : Height) < 820 ? 105 : 150);
+    }
     private Button Button(string label, Action action, bool primary = false)
     {
         var b = new Button { Content = T(label), HorizontalContentAlignment = HorizontalAlignment.Center };

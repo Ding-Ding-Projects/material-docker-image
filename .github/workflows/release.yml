@@ -28,6 +28,15 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $head = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $head -ne $env:GITHUB_SHA) { throw 'Checkout does not match the workflow source SHA.' }
+          git fetch origin main
+          if ($LASTEXITCODE -ne 0) { throw 'Main lineage could not be fetched.' }
+          git merge-base --is-ancestor origin/main $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) { throw 'Release source is outside the current main lineage.' }
+          $buildReceipt = Get-Content out/receipts/build.json -Raw | ConvertFrom-Json
+          $packageReceipt = Get-Content out/receipts/package.json -Raw | ConvertFrom-Json
+          if ($buildReceipt.source -ne $env:GITHUB_SHA -or $packageReceipt.source -ne $env:GITHUB_SHA) { throw 'Delivery receipts do not bind to the workflow source.' }
           $completed = [DateTime]::UtcNow
           $run = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0 -or -not $run.run_started_at) { throw 'Workflow start timestamp unavailable.' }
@@ -57,6 +66,16 @@ jobs:
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $release = gh release view $env:RELEASE_TAG --json isDraft,isPrerelease,tagName,targetCommitish,assets,url | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0 -or $release.isDraft -or $release.isPrerelease) { throw 'Normal release readback failed.' }
+          if ($release.tagName -ne $env:RELEASE_TAG) { throw 'Release tag readback mismatch.' }
+          $tag = gh api "repos/$env:GITHUB_REPOSITORY/git/ref/tags/$env:RELEASE_TAG" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Published tag ref readback failed.' }
+          $object = $tag.object
+          for ($depth = 0; $object.type -eq 'tag' -and $depth -lt 4; $depth++) {
+            $annotated = gh api "repos/$env:GITHUB_REPOSITORY/git/tags/$($object.sha)" | ConvertFrom-Json
+            if ($LASTEXITCODE -ne 0) { throw 'Annotated tag resolution failed.' }
+            $object = $annotated.object
+          }
+          if ($object.type -ne 'commit' -or $object.sha -ne $env:GITHUB_SHA) { throw 'Published tag does not resolve to the exact workflow source SHA.' }
           foreach ($name in @('Setup.exe','RELEASES',"MaterialDockerImage-$env:BUILD_VERSION-full.nupkg",'build.json','package.json')) {
             if ($name -notin $release.assets.name) { throw "Release asset missing: $name" }
           }
