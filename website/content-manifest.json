@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-18T08:51:45.114Z",
+  "generatedAt": "2026-10-18T08:55:22.966Z",
   "meaning": "Documentation generation time, not application release provenance",
   "sources": [
     {
@@ -20,7 +20,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "5bb407bdbbbf7d1f495bc587359c71ef03ef50e8f54f722c0f2647b726602fbe"
+      "sha256": "3bb01a604e4154785150af69b92ab583237b4165f1fa877b4f939056ef271668"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -36,15 +36,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "f1f7c561e970ebf9135798969f81b78959e173019de37ba938f3a5e5e2d47903"
+      "sha256": "42dfe94e5da37f085ec4828db1d0e9cf0faea88f609e3f22db1afe58a12592b8"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "690249c23f12e5748fe4de28802feb56f37419051af36b800a69a2d0eed6f578"
+      "sha256": "87ea593465e5f0d556fe6acd67b5c11dcef0bee78cbccdf7ae23cf21baa3b1e4"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "2c5cc52ae8f24b2825f1f87270dc353e635fb8682276a494eeecf91dc9225d1e"
+      "sha256": "15167090ed2d75a9323858d5d27a9eb38e0631d8203d57c93c2ce2d5e217d32a"
     },
     {
       "path": "wiki/Home.md",

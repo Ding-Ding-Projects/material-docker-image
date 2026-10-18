@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.dirname(here);
+const sourceText=file=>fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const files=fs.readdirSync(path.join(root,'docs/features')).filter(f=>f.endsWith('.md')).sort().map(f=>'docs/features/'+f);
 for(const f of ['README.md','ROADMAP.md','HANDOFF.md'])if(fs.existsSync(path.join(root,f)))files.push(f);
@@ -37,10 +38,10 @@ function inline(s,source){
   for(const match of s.matchAll(pattern)){output+=prose(s.slice(at,match.index));output+=match[1]!==undefined?'<code>'+esc(match[1])+'</code>':localImage(match[3],match[2],source);at=match.index+match[0].length;}return output+prose(s.slice(at));
 }
 function markdown(s,source){let code=false,buf=[],out=[];for(const line of s.split(/\r?\n/)){if(line.startsWith('```')){if(code){out.push('<pre><code>'+esc(buf.join('\n'))+'</code></pre>');buf=[];}code=!code;continue;}if(code){buf.push(line);continue;}if(!line.trim())continue;let m=line.match(/^(#{1,6}) (.+)/);if(m){const n=Math.min(6,m[1].length+2);out.push('<h'+n+'>'+inline(m[2],source)+'</h'+n+'>');}else if((m=line.match(/^- \[([ x])\] (.+)/)))out.push('<p class="source-item">'+(m[1]==='x'?'Completed: ':'Pending: ')+inline(m[2],source)+'</p>');else if((m=line.match(/^- (.+)/)))out.push('<p class="source-item">• '+inline(m[1],source)+'</p>');else out.push('<p>'+inline(line,source)+'</p>');}if(buf.length)out.push('<pre><code>'+esc(buf.join('\n'))+'</code></pre>');return out.join('\n');}
-const entries=files.map(f=>({path:f,sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(root,f))).digest('hex')}));
-const articles=files.map(f=>{const s=fs.readFileSync(path.join(root,f),'utf8');const title=s.match(/^# (.+)/m)?.[1]||f;return '<article id="'+id(f)+'" class="article" data-search="'+esc((title+' '+s).toLowerCase())+'"><h3>'+esc(title)+'</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/'+f+'">'+esc(f)+'</a></p>'+markdown(s,f)+'</article>';}).join('\n');
+const entries=files.map(f=>({path:f,sha256:crypto.createHash('sha256').update(sourceText(path.join(root,f))).digest('hex')}));
+const articles=files.map(f=>{const s=sourceText(path.join(root,f));const title=s.match(/^# (.+)/m)?.[1]||f;return '<article id="'+id(f)+'" class="article" data-search="'+esc((title+' '+s).toLowerCase())+'"><h3>'+esc(title)+'</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/'+f+'">'+esc(f)+'</a></p>'+markdown(s,f)+'</article>';}).join('\n');
 const nav=files.map(f=>'<a href="#'+id(f)+'">'+esc(f.replace('docs/features/',''))+'</a>').join('');
-const template=fs.readFileSync(path.join(here,'template.html'),'utf8');
+const template=sourceText(path.join(here,'template.html'));
 if(process.argv.includes('--check')){
   console.log('Validated '+files.length+' complete Markdown sources and '+imageAssets.size+' evidence PNGs; no output written.');
 }else{
