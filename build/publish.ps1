@@ -1,7 +1,7 @@
 param([string]$Version = '0.1.0')
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot/common.ps1"
-if ($Version -notmatch '^\d+\.\d+\.\d+(\.\d+)?$') { throw 'Version must contain three or four numeric components.' }
+if ($Version -notmatch '^\d+\.\d+\.\d+$') { throw 'Squirrel requires a semantic version with exactly three numeric components.' }
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 New-Item -ItemType Directory -Force out/logs,out/receipts | Out-Null

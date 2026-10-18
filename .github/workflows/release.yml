@@ -17,7 +17,7 @@ jobs:
       - name: Record run identity
         shell: pwsh
         run: |
-          $version = "0.1.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
+          $version = "0.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
           "BUILD_VERSION=$version" >> $env:GITHUB_ENV
           "RELEASE_TAG=v$version" >> $env:GITHUB_ENV
           "STARTED_UTC=$([DateTime]::UtcNow.ToString('o'))" >> $env:GITHUB_ENV
