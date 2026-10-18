@@ -26,8 +26,8 @@ public partial class MainWindow : Window
     private readonly UserSettings settings = UserSettings.Load();
     private readonly Dictionary<string, TabItem> tabs = new();
     private readonly TextBox folder = new(), tag = new(), target = new(), platforms = new(), buildArgs = new();
-    private readonly TextBox dockerfile = new() { AcceptsReturn = true, AcceptsTab = true, FontFamily = new FontFamily("Cascadia Mono, Consolas"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, TextWrapping = TextWrapping.NoWrap, MinHeight = 280 };
-    private readonly TextBox composeFile = new(), composeSource = new() { AcceptsReturn = true, AcceptsTab = true, FontFamily = new FontFamily("Consolas"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 250 };
+    private readonly TextBox dockerfile = new() { AcceptsReturn = true, AcceptsTab = true, VerticalContentAlignment = VerticalAlignment.Top, FontFamily = new FontFamily("Cascadia Mono, Consolas"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, TextWrapping = TextWrapping.NoWrap, MinHeight = 280 };
+    private readonly TextBox composeFile = new(), composeSource = new() { AcceptsReturn = true, AcceptsTab = true, VerticalContentAlignment = VerticalAlignment.Top, FontFamily = new FontFamily("Consolas"), VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MinHeight = 250 };
     private readonly CheckBox noCache = new(), pullBase = new();
     private CancellationTokenSource? operation;
     private bool dirtyDockerfile, dirtyCompose, loading;
@@ -78,7 +78,25 @@ public partial class MainWindow : Window
         var metadata = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(x => x.Key == "BuildTimestamp")?.Value;
         Provenance.Text = $"{T("Version")} {version}  ·  {T("Updated")}: " + (DateTimeOffset.TryParse(metadata, out var timestamp) ? timestamp.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz") : "provenance unavailable");
         OpenPage(settings.SetupComplete ? "Build" : "Setup");
+        ResumeBuildFolder();
         Loaded += async (_, _) => await RefreshContexts();
+    }
+    private void ResumeBuildFolder()
+    {
+        if (string.IsNullOrWhiteSpace(settings.BuildFolder)) return;
+        try
+        {
+            var storedFolder = Path.GetFullPath(settings.BuildFolder);
+            folder.Text = storedFolder;
+            WorkspaceName.Text = Path.GetFileName(Path.TrimEndingDirectorySeparator(storedFolder));
+            if (!Directory.Exists(storedFolder)) { Notify("The saved build folder is unavailable. Browse to an existing folder to resume."); return; }
+            var sourcePath = Path.Combine(storedFolder, "Dockerfile");
+            if (File.Exists(sourcePath)) LoadDockerfile(sourcePath);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or InvalidOperationException or System.Security.SecurityException)
+        {
+            Notify("The saved Dockerfile could not be resumed: " + e.Message + " Choose another file to continue.");
+        }
     }
     private void SaveSettings() { try { settings.Save(); } catch (Exception e) { Notice.Text = "Settings could not be saved: " + e.Message; } }
     public void OpenDockerfile(string path)
@@ -212,7 +230,10 @@ public partial class MainWindow : Window
     {
         if (dirtyDockerfile && !Confirm("Discard unsaved Dockerfile edits", dockerfilePath.Length > 0 ? dockerfilePath : "current draft")) return;
         if (new FileInfo(path).Length > 1024 * 1024) throw new InvalidOperationException("Dockerfile is larger than the 1 MiB editor limit.");
-        loading = true; dockerfile.Text = File.ReadAllText(path); loading = false; dirtyDockerfile = false; dockerfilePath = path;
+        var source = File.ReadAllText(path);
+        loading = true;
+        try { dockerfile.Text = source; } finally { loading = false; }
+        dirtyDockerfile = false; dockerfilePath = path;
         Notify("Loaded Dockerfile. Source has not been executed.");
     }
     private void SaveDockerfile()
@@ -225,7 +246,7 @@ public partial class MainWindow : Window
         if (!Directory.Exists(folder.Text)) throw new ArgumentException("Choose an existing build context folder.");
         if (dirtyDockerfile || !File.Exists(dockerfilePath)) { SaveDockerfile(); if (dirtyDockerfile || !File.Exists(dockerfilePath)) return; }
         var args = AdvancedBuildArguments(); if(args == null) return;
-        settings.BuildFolder = folder.Text; settings.ImageTag = tag.Text; SaveSettings(); await Execute("Build image", args);
+        settings.BuildFolder = Path.GetFullPath(folder.Text); folder.Text = settings.BuildFolder; settings.ImageTag = tag.Text; SaveSettings(); await Execute("Build image", args);
     }
     private static void AddOption(List<string> args, string option, string value) { if (!string.IsNullOrWhiteSpace(value)) { if (value.Trim().StartsWith('-')) throw new ArgumentException("Option values cannot begin with a hyphen."); args.Add(option); args.Add(value.Trim()); } }
     private (Grid Root, StackPanel Header, WrapPanel Actions, DataGrid Table, TextBlock Empty, SearchFilter Search) CollectionPage(string title, string subtitle)
