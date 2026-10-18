@@ -58,9 +58,12 @@ public static class DockerfileGraph
         var current = Parse(source).Stages.FirstOrDefault(x => x.Index == stage.Index);
         if (current == null || current.Line != stage.Line || current.Base != stage.Base || current.Name != stage.Name)
             throw new InvalidOperationException("The Dockerfile changed. Parse it again before applying stage edits.");
-        if (Parse(source).Stages.Any(x => x.Index != stage.Index && string.Equals(x.Name, newName, StringComparison.OrdinalIgnoreCase)))
+        var graph = Parse(source);
+        if (graph.Stages.Any(x => x.Index != stage.Index && string.Equals(x.Name, newName, StringComparison.OrdinalIgnoreCase)))
             throw new ArgumentException("Each stage alias must be unique.");
-        if (newName != stage.Name && Regex.IsMatch(source, @"(?:--from=|FROM\s+)" + Regex.Escape(stage.Name) + @"(?:\s|$)", RegexOptions.IgnoreCase, Timeout))
+        if (graph.Stages.Any(x => x.Index >= stage.Index && string.Equals(x.Name, newBase, StringComparison.OrdinalIgnoreCase)))
+            throw new InvalidOperationException("A stage cannot use itself or a later local stage as its base.");
+        if (newName != stage.Name && graph.Edges.Any(x => x.From == stage.Index))
             throw new InvalidOperationException("This alias is referenced by another stage. Rename it in the text editor so every reference can be reviewed together.");
         var lineStart = 0;
         for (int i = 0; i < stage.Line; i++) lineStart = source.IndexOf('\n', lineStart) + 1;

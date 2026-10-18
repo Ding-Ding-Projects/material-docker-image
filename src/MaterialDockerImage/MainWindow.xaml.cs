@@ -32,6 +32,9 @@ public partial class MainWindow : Window
     private CancellationTokenSource? operation;
     private bool dirtyDockerfile, dirtyCompose, loading;
     private string dockerfilePath = "";
+    private string loadedComposePath = "";
+    private bool resettingContexts;
+    private long contextGeneration;
     private readonly string[] destinations = ["Build", "Images", "Containers", "Compose", "Canvas", "Volumes", "Networks", "Diagnostics", "Settings", "Setup"];
     private string T(string text) => UiText.Get(text, settings.Language);
     private string? Context => Contexts.SelectedItem as string;
@@ -45,7 +48,15 @@ public partial class MainWindow : Window
         composeSource.TextChanged += (_, _) => { if (!loading) dirtyCompose = true; };
         foreach (var name in destinations) Navigation.Children.Add(Button(name, () => OpenPage(name)));
         RefreshContext.Click += async (_, _) => await RefreshContexts();
-        Contexts.SelectionChanged += (_, _) => { settings.Context = Context ?? ""; SaveSettings(); EngineState.Text = T("Not checked"); };
+        Contexts.SelectionChanged += (_, _) =>
+        {
+            if (resettingContexts) return;
+            settings.Context = Context ?? ""; SaveSettings(); EngineState.Text = T("Not checked"); contextGeneration++;
+            foreach (var key in new[] { "Images", "Containers", "Volumes", "Networks", "Canvas" })
+                if (tabs.Remove(key, out var stale)) Workspaces.Items.Remove(stale);
+            graphCanvas = null; graphObjects = null; graphInspector = null; graphState = null;
+            Notify("Engine context changed. Resource views were invalidated; reopen and refresh before acting.");
+        };
         CancelOperation.Click += (_, _) => { operation?.Cancel(); Notice.Text = "Cancellation requested. Engine-side work may continue; reconcile before retrying."; };
         ClearOutput.Click += (_, _) => Output.Clear();
         NewTab.Click += (_, _) => ShowCatalog();
@@ -117,31 +128,39 @@ public partial class MainWindow : Window
         row.Children.Add(Button("Cancel", d.Close)); d.ShowDialog(); return result;
     }
     private bool Confirm(string operationName, string reference) => MessageBox.Show(this, $"{operationName}\n\nResource: {reference}\nEngine context: {Context ?? "current"}\n\nThis changes the selected resource. Continue?", operationName, MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) == MessageBoxResult.Yes;
-    private async Task<CommandResult?> Execute(string label, IReadOnlyList<string> args, bool displayOutput = true)
+    private async Task<CommandResult?> Execute(string label, IReadOnlyList<string> args, bool displayOutput = true, string? boundContext = null)
     {
         if (operation != null) { Notify("Another operation is active. Cancel it or wait for its actual result."); return null; }
-        operation = new CancellationTokenSource(); CancelOperation.IsEnabled = true; Notice.Text = T("Working") + ": " + label;
+        operation = new CancellationTokenSource(); CancelOperation.IsEnabled = true; Contexts.IsEnabled = false; RefreshContext.IsEnabled = false; Notice.Text = T("Working") + ": " + label;
         var watch = Stopwatch.StartNew(); Output.AppendText($"\n[{DateTimeOffset.Now:HH:mm:ss}] {label}\n");
         var progress = displayOutput ? new Progress<DockerOutput>(line => { if (Output.Text.Length > 300000) Output.Text = Output.Text[^200000..]; Output.AppendText(line.Text + Environment.NewLine); Output.ScrollToEnd(); }) : null;
         try
         {
-            var result = await docker.ExecuteAsync(args, Context, progress, operation.Token);
+            var result = await docker.ExecuteAsync(args, boundContext ?? Context, progress, operation.Token);
             Notice.Text = result.Cancelled ? $"Canceled after {watch.Elapsed.TotalSeconds:F1}s. Engine-side outcome requires refresh." : result.Success ? $"{label}: completed in {watch.Elapsed.TotalSeconds:F1}s (exit 0)." : $"{label}: failed (exit {result.ExitCode}). Review output and engine connection.";
             if (!displayOutput && !result.Success) Output.AppendText(result.StandardError + Environment.NewLine);
             return result;
         }
         catch (Exception e) { Notify(label + ": " + e.Message); return null; }
-        finally { operation.Dispose(); operation = null; CancelOperation.IsEnabled = false; }
+        finally { operation.Dispose(); operation = null; CancelOperation.IsEnabled = false; Contexts.IsEnabled = true; RefreshContext.IsEnabled = true; }
     }
     private async Task RefreshContexts()
     {
         try
         {
-            var values = await docker.ListContextsAsync(); Contexts.ItemsSource = values.Select(x => x.Name).ToArray();
-            Contexts.SelectedItem = values.Any(x => x.Name == settings.Context) ? settings.Context : values.FirstOrDefault(x => x.Current)?.Name ?? values.FirstOrDefault()?.Name;
+            var savedContext = Context ?? settings.Context;
+            var requestedGeneration = contextGeneration;
+            var values = await docker.ListContextsAsync();
+            if (operation != null || contextGeneration != requestedGeneration) return;
+            resettingContexts = true;
+            Contexts.ItemsSource = values.Select(x => x.Name).ToArray();
+            Contexts.SelectedItem = values.Any(x => x.Name == savedContext) ? savedContext : values.FirstOrDefault(x => x.Current)?.Name ?? values.FirstOrDefault()?.Name;
+            resettingContexts = false;
+            if (savedContext != Context) { contextGeneration++; foreach (var key in new[] { "Images", "Containers", "Volumes", "Networks", "Canvas" }) if (tabs.Remove(key,out var stale)) Workspaces.Items.Remove(stale); }
+            settings.Context = Context ?? ""; SaveSettings();
             EngineState.Text = values.Count > 0 ? "Context available · connection unchecked" : "No contexts";
         }
-        catch (Exception e) { EngineState.Text = "Docker unavailable"; Notify("Docker discovery: " + e.Message); }
+        catch (Exception e) { resettingContexts = false; EngineState.Text = "Docker unavailable"; Notify("Docker discovery: " + e.Message); }
     }
     private FrameworkElement BuildPage()
     {
@@ -192,57 +211,79 @@ public partial class MainWindow : Window
     }
     private FrameworkElement ImagesPage()
     {
+        var snapshotContext = Context; var snapshotGeneration = contextGeneration;
+        async Task<CommandResult?> Run(string label, IReadOnlyList<string> args) { if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) { Notify("This resource snapshot is stale. Refresh it in the selected engine."); return null; } return await Execute(label,args,boundContext:snapshotContext); }
+
         var page = CollectionPage("Images", "Local image inventory for the selected engine. Select a row to act on its immutable ID.");
-        async Task Refresh() { try { var rows = await docker.ListImagesAsync(Context); page.Table.ItemsSource = rows; page.Empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No images in this engine."; } catch (Exception e) { Notify(e.Message); } }
+        async Task Refresh() { try { var rows = await docker.ListImagesAsync(snapshotContext); if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) return; page.Table.ItemsSource = rows; page.Empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No images in this engine."; } catch (Exception e) { Notify(e.Message); } }
         DockerImage? Selected() => page.Table.SelectedItem as DockerImage;
         page.Actions.Children.Add(AsyncButton("Refresh", Refresh));
-        page.Actions.Children.Add(AsyncButton("Pull image", async () => { var value = Prompt("Pull image", "Image reference"); if (value != null) { await Execute("Pull image", ["image","pull",value]); await Refresh(); } }));
-        page.Actions.Children.Add(Button("Run", () => { if (Selected() is { } image) RunDialog(image.ID); else Notify("Select an image first."); }, true));
-        page.Actions.Children.Add(AsyncButton("Tag", async () => { if (Selected() is { } image) { var value = Prompt("Tag image", "New image tag"); if (value != null) { await Execute("Tag image", ["image","tag",image.ID,value]); await Refresh(); } } }));
-        page.Actions.Children.Add(AsyncButton("Inspect", async () => { if (Selected() is { } image) await Inspect("image", image.ID); }));
-        page.Actions.Children.Add(AsyncButton("Save archive", async () => { if (Selected() is { } image) { var d = new SaveFileDialog { Filter = "Tar archive|*.tar" }; if (d.ShowDialog(this) == true) await Execute("Save image archive", ["image","save","--output",d.FileName,image.ID]); } }));
-        page.Actions.Children.Add(AsyncButton("Load archive", async () => { var d = new OpenFileDialog { Filter = "Image archive|*.tar;*.tar.gz;*.tgz|All files|*.*" }; if (d.ShowDialog(this) == true) { await Execute("Load image archive", ["image","load","--input",d.FileName]); await Refresh(); } }));
-        page.Actions.Children.Add(AsyncButton("Remove", async () => { if (Selected() is { } image && Confirm("Remove image", image.ID)) { await Execute("Remove image", ["image","rm",image.ID]); await Refresh(); } })); return page.Root;
+        page.Actions.Children.Add(AsyncButton("Pull image", async () => { var value = Prompt("Pull image", "Image reference"); if (value != null) { await Run("Pull image", ["image","pull",value]); await Refresh(); } }));
+        page.Actions.Children.Add(Button("Run", () => { if (Selected() is { } image) RunDialog(image.ID,snapshotContext,snapshotGeneration); else Notify("Select an image first."); }, true));
+        page.Actions.Children.Add(AsyncButton("Tag", async () => { if (Selected() is { } image) { var value = Prompt("Tag image", "New image tag"); if (value != null) { await Run("Tag image", ["image","tag",image.ID,value]); await Refresh(); } } }));
+        page.Actions.Children.Add(AsyncButton("Inspect", async () => { if (Selected() is { } image) await Inspect("image", image.ID,snapshotContext,snapshotGeneration); }));
+        page.Actions.Children.Add(AsyncButton("Save archive", async () => { if (Selected() is { } image) { var d = new SaveFileDialog { Filter = "Tar archive|*.tar" }; if (d.ShowDialog(this) == true) await Run("Save image archive", ["image","save","--output",d.FileName,image.ID]); } }));
+        page.Actions.Children.Add(AsyncButton("Load archive", async () => { var d = new OpenFileDialog { Filter = "Image archive|*.tar;*.tar.gz;*.tgz|All files|*.*" }; if (d.ShowDialog(this) == true) { await Run("Load image archive", ["image","load","--input",d.FileName]); await Refresh(); } }));
+        page.Actions.Children.Add(AsyncButton("Remove", async () => { if (Selected() is { } image && Confirm("Remove image", image.ID)) { await Run("Remove image", ["image","rm",image.ID]); await Refresh(); } })); return page.Root;
     }
-    private void RunDialog(string image)
+    private void RunDialog(string image, string? snapshotContext, long snapshotGeneration)
     {
         var p = Page("Run container", "Create a detached container from " + image + ". Ports bind to loopback by default. No privileged mode is enabled.");
         var name = new TextBox(); var port = new TextBox(); var network = new TextBox(); var mount = new TextBox(); var readOnly = new CheckBox { Content = "Read-only root filesystem" };
         Field(p,"Container name",name); Field(p,"Published port (host:container)",port); Field(p,"Network (optional)",network); Field(p,"Mount (source:destination:ro)",mount); p.Children.Add(readOnly);
         var d = Dialog("Run container", p);
-        p.Children.Add(AsyncButton("Run", async () => { var args = new List<string> { "container","run","--detach" }; AddOption(args,"--name",name.Text); AddOption(args,"--network",network.Text); AddOption(args,"--volume",mount.Text); if (port.Text.Length > 0) { if (!System.Text.RegularExpressions.Regex.IsMatch(port.Text, @"^\d{1,5}:\d{1,5}(?:/(?:tcp|udp))?$")) throw new ArgumentException("Use host:container port numbers, optionally /tcp or /udp."); AddOption(args,"--publish","127.0.0.1:"+port.Text); } if (readOnly.IsChecked == true) args.Add("--read-only"); args.Add(image); var result = await Execute("Run container",args); if (result?.Success == true) d.Close(); }, true)); d.ShowDialog();
+        p.Children.Add(AsyncButton("Run", async () => { var args = new List<string> { "container","run","--detach" }; AddOption(args,"--name",name.Text); AddOption(args,"--network",network.Text); AddOption(args,"--volume",mount.Text); if (port.Text.Length > 0) { if (!System.Text.RegularExpressions.Regex.IsMatch(port.Text, @"^\d{1,5}:\d{1,5}(?:/(?:tcp|udp))?$")) throw new ArgumentException("Use host:container port numbers, optionally /tcp or /udp."); AddOption(args,"--publish","127.0.0.1:"+port.Text); } if (readOnly.IsChecked == true) args.Add("--read-only"); args.Add(image); if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) throw new InvalidOperationException("The engine changed. Close this dialog and refresh the image inventory."); var result = await Execute("Run container",args,boundContext:snapshotContext); if (result?.Success == true) d.Close(); }, true)); d.ShowDialog();
     }
     private FrameworkElement ContainersPage()
     {
+        var snapshotContext = Context; var snapshotGeneration = contextGeneration;
+        async Task<CommandResult?> Run(string label, IReadOnlyList<string> args) { if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) { Notify("This resource snapshot is stale. Refresh it in the selected engine."); return null; } return await Execute(label,args,boundContext:snapshotContext); }
+
         var page = CollectionPage("Containers", "Observed lifecycle and published ports. Actions affect only the selected container.");
-        async Task Refresh() { try { var rows = await docker.ListContainersAsync(Context); page.Table.ItemsSource = rows; page.Empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No containers in this engine."; } catch (Exception e) { Notify(e.Message); } }
+        async Task Refresh() { try { var rows = await docker.ListContainersAsync(snapshotContext); if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) return; page.Table.ItemsSource = rows; page.Empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No containers in this engine."; } catch (Exception e) { Notify(e.Message); } }
         page.Actions.Children.Add(AsyncButton("Refresh",Refresh));
         foreach (var pair in new[] { ("Start","start"), ("Stop","stop"), ("Restart","restart"), ("Remove","rm") })
-            page.Actions.Children.Add(AsyncButton(pair.Item1, async () => { if (page.Table.SelectedItem is DockerContainer c && (pair.Item2 == "start" || Confirm(pair.Item1 + " container",c.ID))) { await Execute(pair.Item1 + " container",["container",pair.Item2,c.ID]); await Refresh(); } }));
-        page.Actions.Children.Add(AsyncButton("Inspect", async () => { if (page.Table.SelectedItem is DockerContainer c) await Inspect("container",c.ID); }));
-        page.Actions.Children.Add(AsyncButton("Logs", async () => { if (page.Table.SelectedItem is DockerContainer c) await Execute("Container logs (last 500 lines)",["container","logs","--tail","500",c.ID]); }));
-        page.Actions.Children.Add(AsyncButton("Statistics", async () => { if (page.Table.SelectedItem is DockerContainer c) await Execute("Container statistics",["container","stats","--no-stream",c.ID]); })); return page.Root;
+            page.Actions.Children.Add(AsyncButton(pair.Item1, async () => { if (page.Table.SelectedItem is DockerContainer c && (pair.Item2 == "start" || Confirm(pair.Item1 + " container",c.ID))) { await Run(pair.Item1 + " container",["container",pair.Item2,c.ID]); await Refresh(); } }));
+        page.Actions.Children.Add(AsyncButton("Inspect", async () => { if (page.Table.SelectedItem is DockerContainer c) await Inspect("container",c.ID,snapshotContext,snapshotGeneration); }));
+        page.Actions.Children.Add(AsyncButton("Logs", async () => { if (page.Table.SelectedItem is DockerContainer c) await Run("Container logs (last 500 lines)",["container","logs","--tail","500",c.ID]); }));
+        page.Actions.Children.Add(AsyncButton("Statistics", async () => { if (page.Table.SelectedItem is DockerContainer c) await Run("Container statistics",["container","stats","--no-stream",c.ID]); })); return page.Root;
     }
-    private async Task Inspect(string kind, string id)
+    private async Task Inspect(string kind, string id, string? snapshotContext = null, long? snapshotGeneration = null)
     {
-        var result = await Execute("Inspect " + kind,[kind,"inspect",id],false);
+        if(snapshotGeneration.HasValue && !SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration.Value,Context,contextGeneration)) { Notify("Stale resource snapshot. Refresh before inspection."); return; }
+        var result = await Execute("Inspect " + kind,[kind,"inspect",id],false,snapshotContext);
         if (result?.Success == true) { var p = Page("Inspect", kind + " " + id); var source = new TextBox { Text = result.StandardOutput, IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Height = 380, FontFamily = new FontFamily("Consolas") }; p.Children.Add(source); Dialog("Inspect",p).ShowDialog(); }
     }
     private FrameworkElement ResourcesPage(string kind)
     {
+        var snapshotContext = Context; var snapshotGeneration = contextGeneration;
+        async Task<CommandResult?> Run(string label, IReadOnlyList<string> args) { if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) { Notify("This resource snapshot is stale. Refresh it in the selected engine."); return null; } return await Execute(label,args,boundContext:snapshotContext); }
+
         var page = CollectionPage(kind == "volume" ? "Volumes" : "Networks", "Create, inspect and remove resources on the selected engine. Removal never uses force.");
-        async Task Refresh() { try { if (kind == "volume") page.Table.ItemsSource = await docker.ListVolumesAsync(Context); else page.Table.ItemsSource = await docker.ListNetworksAsync(Context); page.Empty.Visibility = page.Table.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No resources reported."; } catch (Exception e) { Notify(e.Message); } }
+        async Task Refresh() { try { System.Collections.IEnumerable rows; if (kind == "volume") rows = await docker.ListVolumesAsync(snapshotContext); else rows = await docker.ListNetworksAsync(snapshotContext); if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration)) return; page.Table.ItemsSource = rows; page.Empty.Visibility = page.Table.Items.Count == 0 ? Visibility.Visible : Visibility.Collapsed; page.Empty.Text = "No resources reported."; } catch (Exception e) { Notify(e.Message); } }
         string? Selected() => page.Table.SelectedItem switch { DockerVolume v => v.Name, DockerNetwork n => n.ID, _ => null };
-        page.Actions.Children.Add(AsyncButton("Refresh",Refresh)); page.Actions.Children.Add(AsyncButton("Create",async () => { var name = Prompt("Create " + kind,"Name"); if (name != null) { await Execute("Create " + kind,[kind,"create",name]); await Refresh(); } },true));
-        page.Actions.Children.Add(AsyncButton("Inspect",async () => { if (Selected() is { } id) await Inspect(kind,id); }));
-        page.Actions.Children.Add(AsyncButton("Remove",async () => { if (Selected() is { } id && Confirm("Remove " + kind + (kind == "volume" ? " and its stored data" : ""),id)) { await Execute("Remove " + kind,[kind,"rm",id]); await Refresh(); } })); return page.Root;
+        page.Actions.Children.Add(AsyncButton("Refresh",Refresh)); page.Actions.Children.Add(AsyncButton("Create",async () => { var name = Prompt("Create " + kind,"Name"); if (name != null) { await Run("Create " + kind,[kind,"create",name]); await Refresh(); } },true));
+        page.Actions.Children.Add(AsyncButton("Inspect",async () => { if (Selected() is { } id) await Inspect(kind,id,snapshotContext,snapshotGeneration); }));
+        page.Actions.Children.Add(AsyncButton("Remove",async () => { if (Selected() is { } id && Confirm("Remove " + kind + (kind == "volume" ? " and its stored data" : ""),id)) { await Run("Remove " + kind,[kind,"rm",id]); await Refresh(); } })); return page.Root;
     }
     private FrameworkElement ComposePage()
     {
-        var p = Page("Compose","Edit an existing Compose file, save it explicitly, then run project-scoped actions. Down does not remove volumes."); Field(p,"Compose file",composeFile);
-        var row = Actions(p); row.Children.Add(Button("Browse",() => { var d = new OpenFileDialog { Filter = "Compose YAML|*.yaml;*.yml|All files|*.*" }; if (d.ShowDialog(this) == true) { if (dirtyCompose && !Confirm("Discard unsaved Compose edits","current draft")) return; if (new FileInfo(d.FileName).Length > 1024*1024) throw new ArgumentException("Compose editor limit is 1 MiB."); composeFile.Text = d.FileName; loading = true; composeSource.Text = File.ReadAllText(d.FileName); loading = false; dirtyCompose = false; } }));
-        row.Children.Add(Button("Save",() => { if (!File.Exists(composeFile.Text)) throw new ArgumentException("Choose an existing Compose file first."); File.WriteAllText(composeFile.Text,composeSource.Text); dirtyCompose = false; Notify("Compose file saved."); }));
-        foreach (var action in new[] { "config","up","down","ps","logs","build" }) row.Children.Add(AsyncButton(action,async () => { if (!File.Exists(composeFile.Text)) throw new ArgumentException("Choose an existing Compose file."); if (dirtyCompose) throw new InvalidOperationException("Save Compose edits before executing."); if (action == "down" && !Confirm("Stop and remove Compose project containers",composeFile.Text)) return; var args = new List<string> { "compose","--file",Path.GetFullPath(composeFile.Text),action }; if(action == "up") args.Add("--detach"); if(action == "logs") args.AddRange(["--tail","500"]); await Execute("Compose " + action,args); }));
+        var p = Page("Compose","Edit a loaded Compose file, save it explicitly, then run project-scoped actions. Changing a path never redirects a save. Down does not remove volumes."); Field(p,"Compose file",composeFile);
+        void LoadSource(string path)
+        {
+            if (dirtyCompose && !Confirm("Discard unsaved Compose edits","current draft")) return;
+            var resolved = Path.GetFullPath(path);
+            if (!File.Exists(resolved) || new FileInfo(resolved).Length > 1024*1024) throw new ArgumentException("Choose an existing Compose file within the 1 MiB editor limit.");
+            var content = File.ReadAllText(resolved);
+            loadedComposePath = resolved; composeFile.Text = resolved; loading = true; composeSource.Text = content; loading = false; dirtyCompose = false;
+            Notify("Compose source loaded from the exact selected file.");
+        }
+        var row = Actions(p);
+        row.Children.Add(Button("Browse",() => { var d = new OpenFileDialog { Filter = "Compose YAML|*.yaml;*.yml|All files|*.*" }; if(d.ShowDialog(this)==true) LoadSource(d.FileName); }));
+        row.Children.Add(Button("Load",() => LoadSource(composeFile.Text)));
+        row.Children.Add(Button("Save",() => { var path = SourceSafety.RequireLoadedPath(loadedComposePath,composeFile.Text); File.WriteAllText(path,composeSource.Text); dirtyCompose=false; Notify("Compose file saved to its loaded path."); }));
+        row.Children.Add(Button("Save As",() => { var d = new SaveFileDialog { Filter="Compose YAML|*.yaml;*.yml",FileName="compose.yaml",OverwritePrompt=true }; if(d.ShowDialog(this)!=true)return; if(!Confirm("Save Compose source to this exact destination",d.FileName))return; File.WriteAllText(d.FileName,composeSource.Text);loadedComposePath=Path.GetFullPath(d.FileName);composeFile.Text=loadedComposePath;dirtyCompose=false;Notify("Compose source saved to the reviewed destination."); }));
+        foreach (var action in new[] { "config","up","down","ps","logs","build" }) row.Children.Add(AsyncButton(action,async () => { var path=SourceSafety.RequireLoadedPath(loadedComposePath,composeFile.Text); if(!File.Exists(path))throw new ArgumentException("The loaded Compose file is unavailable."); if (dirtyCompose) throw new InvalidOperationException("Save Compose edits before executing."); if (action == "down" && !Confirm("Stop and remove Compose project containers",path)) return; var args = new List<string> { "compose","--file",path,action }; if(action == "up") args.Add("--detach"); if(action == "logs") args.AddRange(["--tail","500"]); await Execute("Compose " + action,args); }));
         p.Children.Add(composeSource); return p;
     }
     private FrameworkElement DiagnosticsPage()

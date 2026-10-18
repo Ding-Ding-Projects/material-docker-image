@@ -1,0 +1,4 @@
+#!/bin/sh
+set -e
+node scripts/check-vocabulary.mjs
+node scripts/scan-public.mjs

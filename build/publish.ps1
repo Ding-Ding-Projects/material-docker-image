@@ -10,7 +10,7 @@ $source = (& git rev-parse HEAD 2>$null)
 if ($LASTEXITCODE -ne 0) { $source = 'uncommitted-initial-tree' }
 $before = & git diff HEAD -- src global.json 2>$null | Out-String
 $started = [DateTime]::UtcNow.ToString('o')
-& $dotnet publish src/MaterialDockerImage/MaterialDockerImage.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false "-p:Version=$Version" "-p:InformationalVersion=$Version+$source" -o out/publish 2>&1 | Tee-Object out/logs/publish.log
+& $dotnet publish src/MaterialDockerImage/MaterialDockerImage.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false "-p:Version=$Version" "-p:BuildTimestamp=$started" "-p:InformationalVersion=$Version+$source" -o out/publish 2>&1 | Tee-Object out/logs/publish.log
 $exitCode = $LASTEXITCODE
 if ($exitCode -ne 0) { exit $exitCode }
 if (-not (Test-Path out/publish/MaterialDockerImage.exe)) { throw 'Published executable missing.' }

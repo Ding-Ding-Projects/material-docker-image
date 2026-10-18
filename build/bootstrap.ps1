@@ -19,6 +19,16 @@ function Get-Verified($Url, $Path, $Hash, $Algorithm = 'SHA256') {
     if ((Digest $partial) -ne $Hash) { throw "Download digest mismatch: $Url" }
     Move-Item -LiteralPath $partial -Destination $Path -Force
 }
+$node = Get-Command node.exe -ErrorAction SilentlyContinue
+if (-not $node) {
+    $nodeExe = Join-Path $tools "node-v$($manifest.nodeVersion)-win-x64/node.exe"
+    if (-not (Test-Path $nodeExe)) {
+        Get-Verified $manifest.nodeUrl "$tools/node.zip" $manifest.nodeSha256
+        Expand-Archive "$tools/node.zip" $tools -Force
+    }
+} else { $nodeExe = $node.Source }
+if (-not (& $nodeExe --version)) { throw 'Node.js bootstrap did not provide a working runtime.' }
+$nodeExe | Set-Content "$tools/node-path.txt"
 $dotnet = Get-Command dotnet.exe -ErrorAction SilentlyContinue
 if (-not $dotnet -or -not ((& $dotnet.Source --list-sdks) -match "^$([regex]::Escape($manifest.sdkVersion)) ")) {
     $dotnetPath = Join-Path $tools 'dotnet/dotnet.exe'

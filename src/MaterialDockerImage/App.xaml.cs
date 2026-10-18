@@ -3,12 +3,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using System.Windows.Interop;
+using System.Windows.Media;
 namespace MaterialDockerImage;
 public partial class App : Application
 {
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        if (e.Args.Contains("--software-rendering", StringComparer.Ordinal))
+            RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
         var lifecycle = e.Args.FirstOrDefault(x => x.StartsWith("--squirrel-", StringComparison.Ordinal));
         if (lifecycle is "--squirrel-install" or "--squirrel-updated" or "--squirrel-uninstall" or "--squirrel-obsolete")
         {

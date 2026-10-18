@@ -23,7 +23,6 @@ public partial class MainWindow
     private readonly ScaleTransform graphScale = new(1,1);
     private DockerGraph? currentGraph;
     private string graphSource = "";
-    private bool runtimeGraph;
     private Point? panPoint;
     private double panHorizontal, panVertical;
 
@@ -65,7 +64,7 @@ public partial class MainWindow
     }
     private void DrawDockerfile()
     {
-        runtimeGraph=false; graphSource=dockerfile.Text; currentGraph=DockerfileGraph.Parse(graphSource);
+        graphSource=dockerfile.Text; currentGraph=DockerfileGraph.Parse(graphSource);
         ResetGraph(Math.Max(700,currentGraph.Stages.Count*270+60),500);
         foreach(var edge in currentGraph.Edges) Edge(50+edge.From*270+220,150,50+edge.To*270,150,edge.Label);
         foreach(var stage in currentGraph.Stages) Node(50+stage.Index*270,95,stage.Name,$"Base: {stage.Base}\n{stage.Instructions.Count} source lines",()=>SelectStage(stage));
@@ -77,17 +76,24 @@ public partial class MainWindow
         graphInspector!.Children.Clear(); graphInspector.Children.Add(new TextBlock { Text="Stage "+stage.Name,FontSize=22,Margin=new Thickness(0,0,0,12) });
         var alias=new TextBox { Text=stage.Name }; var baseImage=new TextBox { Text=stage.Base }; Field(graphInspector,"Stage alias",alias); Field(graphInspector,"Base image",baseImage);
         graphInspector.Children.Add(Button("Apply stage changes",()=> { if(dockerfile.Text!=graphSource) throw new InvalidOperationException("Source changed. Parse the current Dockerfile before applying changes."); var updated=DockerfileGraph.EditStage(dockerfile.Text,stage,baseImage.Text.Trim(),alias.Text.Trim()); dockerfile.BeginChange(); dockerfile.Text=updated; dockerfile.EndChange(); DrawDockerfile(); Notify("Stage source updated in the editor. Save explicitly before building."); }));
-        graphInspector.Children.Add(Button("Select build target",()=> { target.Text=stage.Name; Notify("Build target set to "+stage.Name); }));
+        var targetButton = Button("Select build target",()=> { target.Text=stage.Name; Notify("Build target set to "+stage.Name); });
+        targetButton.IsEnabled = !int.TryParse(stage.Name,out _);
+        if(!targetButton.IsEnabled) targetButton.ToolTip="This unnamed stage has no target alias. Add an alias before selecting a build target.";
+        graphInspector.Children.Add(targetButton);
         graphInspector.Children.Add(Button("Open source",()=> { OpenPage("Build"); dockerfile.Focus(); dockerfile.ScrollToLine(stage.Line); var start=dockerfile.GetCharacterIndexFromLineIndex(stage.Line); if(start>=0) { dockerfile.Select(start,dockerfile.GetLineLength(stage.Line)); } }));
         graphInspector.Children.Add(new TextBlock { Text=string.Join(Environment.NewLine,stage.Instructions),FontFamily=new FontFamily("Consolas"),FontSize=12,Margin=new Thickness(0,16,0,0) });
     }
     private async Task DrawRuntime()
     {
-        var list=await Execute("Read container topology",["container","ls","--all","--format","{{json .}}"],false);
+        var snapshotContext=Context; var snapshotGeneration=contextGeneration;
+        var list=await Execute("Read container topology",["container","ls","--all","--format","{{json .}}"],false,snapshotContext);
+        if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration))return;
         if(list?.Success!=true) { if(graphState!=null) graphState.Text="Snapshot unavailable. Any previous graph is stale."; return; }
         var rows=DockerJson.ParseRows(list.StandardOutput); var ids=rows.Select(x=>DockerJson.Text(x,"ID")).Where(x=>x.Length>0).Take(100).ToArray();
         if(ids.Length==0) { ResetGraph(700,500); graphState!.Text="No containers reported by the selected engine."; return; }
-        var args=new List<string>{"container","inspect"}; args.AddRange(ids); var result=await Execute("Inspect topology relationships",args,false); if(result?.Success!=true) { graphState!.Text="Topology inspection failed. Previous graph is stale."; return; }
+        var args=new List<string>{"container","inspect"}; args.AddRange(ids); var result=await Execute("Inspect topology relationships",args,false,snapshotContext);
+        if(!SourceSafety.IsCurrentSnapshot(snapshotContext,snapshotGeneration,Context,contextGeneration))return;
+        if(result?.Success!=true) { graphState!.Text="Topology inspection failed. Previous graph is stale."; return; }
         using var document=JsonDocument.Parse(result.StandardOutput); var containers=document.RootElement.EnumerateArray().Select(x=>x.Clone()).ToArray();
         var networks=new Dictionary<string,List<int>>(); var volumes=new Dictionary<string,List<int>>();
         for(int i=0;i<containers.Length;i++)
@@ -95,7 +101,7 @@ public partial class MainWindow
             var c=containers[i]; if(c.TryGetProperty("NetworkSettings",out var ns)&&ns.TryGetProperty("Networks",out var nets)) foreach(var n in nets.EnumerateObject()) { if(!networks.ContainsKey(n.Name))networks[n.Name]=new(); networks[n.Name].Add(i); }
             if(c.TryGetProperty("Mounts",out var mounts)) foreach(var m in mounts.EnumerateArray()) if(DockerJson.Text(m,"Type")=="volume") { var name=DockerJson.Text(m,"Name"); if(!volumes.ContainsKey(name))volumes[name]=new(); volumes[name].Add(i); }
         }
-        runtimeGraph=true; ResetGraph(900,Math.Max(520,Math.Max(containers.Length,networks.Count+volumes.Count)*150+80));
+        ResetGraph(900,Math.Max(520,Math.Max(containers.Length,networks.Count+volumes.Count)*150+80));
         int resource=0; foreach(var group in networks.Concat(volumes)) { var y=50+resource*150; foreach(var index in group.Value)Edge(290,106+index*150,560,y+56,networks.ContainsKey(group.Key)?"network":"volume"); resource++; }
         for(int i=0;i<containers.Length;i++) { var c=containers[i]; var id=DockerJson.Text(c,"Id"); var name=DockerJson.Text(c,"Name").TrimStart('/'); var state=c.TryGetProperty("State",out var s)?DockerJson.Text(s,"Status"):"unknown"; Node(60,50+i*150,name,"Container · "+state,()=>RuntimeDetails("container",id,name,c),true); }
         resource=0; foreach(var group in networks) { var name=group.Key; Node(560,50+resource++*150,name,"Network · "+group.Value.Count+" observed attachments",()=>RuntimeResource("network",name),true); }
