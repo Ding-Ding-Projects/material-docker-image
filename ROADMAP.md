@@ -12,13 +12,16 @@
 
 ## Current candidate and evidence
 
-- [ ] Verify public release publication for source 3ce1ed7. Local build evidence does not replace public release proof.
+- [x] Verify normal release v0.5.1 at ad5d3ac, including the 3ce1ed7 restart fix, successful run 39112649034, exact tag source and five asset sizes/digests.
+- [x] Update the matching existing installation to 0.5.1.0, verify its executable against the published package and preserve settings.
+- [x] Exercise installed Docker detection, Setup Back/Next/Finish, persisted completion and productive Build visibility on the current host.
+- [x] Verify documentation deployment 39112649029, 12 articles, 109 neutral identifiers, three original capture bytes, 1440/320 layouts, interactive persistence and exact About homepage.
 
 - [x] Verify the local 0.5.0 build, genuine installer production and actual saved-workspace restart restoration from 3ce1ed7.
 - [x] Retain and inspect source-bound 0.5.0 Build and populated Canvas captures at normal 1440x960 and minimum 960x720 sizes.
 - [ ] Extend English/dark/100% normal/minimum evidence to the full supported language, theme and display-scale matrix.
 - [ ] Exercise OCI export, registry push, supported cache backends and secret-file builds beyond implemented controls and focused checks.
-- [ ] Complete installer lifecycle and accepted installed-update evidence for the final candidate.
+- [ ] Extend the verified current-host update/launch/setup proof to fresh install, automatic ready-banner behavior, cancellation and uninstall acceptance.
 
 ## Extended capabilities and complete acceptance
 
@@ -29,4 +32,3 @@
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.
 - [ ] Verify remote engines, alternative architectures and supported workflow combinations.
 - [ ] Complete interactive documentation/wiki content, route acceptance and deployed-homepage evidence.
-

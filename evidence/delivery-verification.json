@@ -1,0 +1,63 @@
+{
+  "completeRequiredCapabilityAcceptance": false,
+  "release": {
+    "tagSourceVerified": true,
+    "source": "ad5d3ac5c02588e8efcc926715119b87a9c7c6d5",
+    "runId": 39112649034,
+    "normal": true,
+    "tag": "v0.5.1",
+    "expectedAssets": [
+      "Setup.exe",
+      "MaterialDockerImage-0.5.1-full.nupkg",
+      "RELEASES",
+      "build.json",
+      "package.json"
+    ],
+    "assetDigestsAndSizesVerified": true,
+    "runConclusion": "success"
+  },
+  "recordedUtc": "2026-10-18T08:51:45.0332423Z",
+  "checks": {
+    "uiStatePassed": 51,
+    "corePassed": 23,
+    "source": "f370d66133ffc3fe5f80967f5bafb33c28bc74f2",
+    "scope": "Focused local entrypoint checks, not tests executed by release CI."
+  },
+  "installed": {
+    "version": "0.5.1.0",
+    "ownedProcessClosed": true,
+    "matchesPublishedPackage": true,
+    "settingsPreservedDuringUpdate": true,
+    "productiveWorkspaceInspected": true,
+    "setupCompleted": true,
+    "setupBackNextFinishExercised": true,
+    "actualLaunch": true,
+    "executableSha256": "4429ED021FF6F95D49A3CD1CF2B0C3F4DECABEDDA44554ACB35C991056FED0B9",
+    "scope": "Existing installation on the supported current Windows host. Not fresh-environment, cancellation, rollback, uninstall, or full updater-banner acceptance.",
+    "engineDetectionSucceeded": true
+  },
+  "documentation": {
+    "runId": 39112649029,
+    "originalPngAssets": 3,
+    "checklistThemeLanguagePersistence": true,
+    "liveBytesMatched": true,
+    "source": "ad5d3ac5c02588e8efcc926715119b87a9c7c6d5",
+    "runConclusion": "success",
+    "viewports": [
+      "1440x1000",
+      "320x844"
+    ],
+    "homepageReadbackMatched": true,
+    "completeMarkdownSources": 12,
+    "guideInteraction": true,
+    "url": "https://ding-ding-projects.github.io/material-docker-image/",
+    "scope": "Focused deployed browser pass. Full accessibility and entire language/theme/scale matrix remain unverified."
+  },
+  "version": 1,
+  "nativeCaptures": {
+    "version": "0.5.0",
+    "source": "3ce1ed7895253edf8e0ccf99e6aaaca8a70ef22a",
+    "inventory": "evidence/inventory.json",
+    "sourceUnchangedSinceCapture": "Application source inputs remain unchanged; subsequent changes are documentation and publication scanning."
+  }
+}
