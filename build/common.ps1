@@ -17,8 +17,8 @@ function Get-SourceBinding {
 }
 function Assert-SourceBinding($Expected) {
     $actual = Get-SourceBinding
-    $expectedRows = @($Expected.inputs | Sort-Object path | ForEach-Object { "$($_.path)`t$($_.sha256)" })
-    $actualRows = @($actual.inputs | Sort-Object path | ForEach-Object { "$($_.path)`t$($_.sha256)" })
+    $expectedRows = @($Expected.inputs | Sort-Object { $_.path } | ForEach-Object { "$($_.path)`t$($_.sha256)" })
+    $actualRows = @($actual.inputs | Sort-Object { $_.path } | ForEach-Object { "$($_.path)`t$($_.sha256)" })
     if ($Expected.source -ne $actual.source -or ($expectedRows -join "`n") -ne ($actualRows -join "`n")) {
         throw 'Source candidate or build inputs changed; retain evidence and rebuild the pinned candidate.'
     }
