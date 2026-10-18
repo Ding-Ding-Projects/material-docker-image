@@ -1,0 +1,82 @@
+name: Windows build and release
+on:
+  push:
+    branches: ['**']
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: windows-2025
+    env:
+      GH_TOKEN: ${{ secrets.RELEASE_TOKEN || secrets.ORG_TOKEN || github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Record run identity
+        shell: pwsh
+        run: |
+          $version = "0.1.$env:GITHUB_RUN_NUMBER.$env:GITHUB_RUN_ATTEMPT"
+          "BUILD_VERSION=$version" >> $env:GITHUB_ENV
+          "RELEASE_TAG=v$version" >> $env:GITHUB_ENV
+          "STARTED_UTC=$([DateTime]::UtcNow.ToString('o'))" >> $env:GITHUB_ENV
+      - name: Build genuine unsigned Squirrel installer
+        shell: cmd
+        run: build-installer.bat -Version %BUILD_VERSION%
+      - name: Publish unique normal release
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $completed = [DateTime]::UtcNow
+          $run = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $run.run_started_at) { throw 'Workflow start timestamp unavailable.' }
+          $started = [DateTime]::Parse($run.run_started_at).ToUniversalTime()
+          $duration = ($completed - $started).ToString('hh\:mm\:ss')
+          $notes = @"
+          Source: $env:GITHUB_SHA
+          Version: $env:BUILD_VERSION
+          Target: Windows x64, self-contained .NET 10.
+          
+          The genuine Squirrel.Windows installer is unsigned and may trigger an unknown-publisher or SmartScreen warning.
+          This workflow builds and packages only. It runs no tests or lint; a published release does not imply those checks passed.
+          No verified unused dim-sum catalogue entry was selected for this automated build, so this release uses its version alone.
+          
+          Workflow started: $($started.ToString('o'))
+          Workflow completed: $($completed.ToString('o'))
+          Workflow duration: $duration
+          "@
+          $notes | Set-Content out/release-notes.md
+          gh release create $env:RELEASE_TAG --target $env:GITHUB_SHA --title "Material Docker Image $env:BUILD_VERSION" --notes-file out/release-notes.md out/releases/*
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $published = [DateTime]::UtcNow
+          $finalDuration = ($published - $started).ToString('hh\:mm\:ss')
+          $notes = $notes.Replace($completed.ToString('o'), $published.ToString('o')).Replace("Workflow duration: $duration", "Workflow duration: $finalDuration")
+          $notes | Set-Content out/release-notes.md
+          gh release edit $env:RELEASE_TAG --notes-file out/release-notes.md
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $release = gh release view $env:RELEASE_TAG --json isDraft,isPrerelease,tagName,targetCommitish,assets,url | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $release.isDraft -or $release.isPrerelease) { throw 'Normal release readback failed.' }
+          foreach ($name in @('Setup.exe','RELEASES',"MaterialDockerImage-$env:BUILD_VERSION-full.nupkg",'build.json','package.json')) {
+            if ($name -notin $release.assets.name) { throw "Release asset missing: $name" }
+          }
+          $release | ConvertTo-Json -Depth 8 | Set-Content out/receipts/release.json
+      - name: Collect safe build evidence
+        if: ${{ always() }}
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force out/receipts | Out-Null
+          @{runId=$env:GITHUB_RUN_ID; source=$env:GITHUB_SHA; jobStatus='${{ job.status }}'; runnerOS=$env:RUNNER_OS; runnerArch=$env:RUNNER_ARCH} | ConvertTo-Json | Set-Content out/receipts/workflow.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() }}
+        continue-on-error: true
+        with:
+          name: windows-delivery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            out/releases/*
+            out/receipts/*
+            out/logs/*
+          if-no-files-found: warn
+          retention-days: 14
+
