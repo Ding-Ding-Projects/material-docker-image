@@ -4,11 +4,15 @@
 
 Deliver a native Windows WPF workspace for building and running Docker images, resource management, diagnostics and an interactive native canvas. The productive application remains WPF.
 
-## Feature checklist candidate
+## Feature checklist continuation
 
 The documentation now generates a prominent maintainer-owned completion section from `website/feature-inventory.json`. It preserves 109 required IDs, 10 product workflows and four milestones. All required rows remain unverified; implemented workflow/checklist rows retain open acceptance actions and health/device/GPU milestones remain planned. Category/status filters, native keyboard disclosure, localized details and responsive styles are separate modules. The original preparation checklist and `mdi-guide-v1` state are unchanged.
 
-The same inventory generates the capability summary and manifest counts. Generation is deterministic and `--check` rejects stale output. Local positive/negative checks cover missing IDs, status/evidence restrictions, public links and filter behavior. Real-browser interaction, pixels, deployed content and independent review remain pending until separately recorded. No new screenshot or release claim is made by this implementation.
+The same inventory generates the capability summary and manifest counts. Generation is deterministic and `--check` rejects stale output. Review found unescaped optional source-reference metadata; `89c9154b27862323d6512615778bc11a6b615609` rejects that metadata and escapes every binding. The new regression was observed failing before repair, then passing. Independent review confirmed the repair and unchanged rendering for the saved inventory. The exact build entrypoint passed 23 core, 51 UI-state and 13 checklist checks, including all 123 omissions.
+
+The original candidate `ca1a09752b262288422236db22375baa83db5b05` passed a real hidden-browser matrix of 1440/320 widths, three languages and two themes, plus native Tab/Space/Enter disclosure, filter intersection, empty/reset states and unchanged preparation storage across filtering/reload. Fifteen captures were inspected. The browser and server exited, ports disappeared and native OpenDesktopW proved the exact desktop absent. Automatic execution review rejected isolated-profile removal, so that profile remains retained and full cleanup/promotion validation remains incomplete. Captures were not promoted into public source. See `evidence/checklist-verification.json` for the bounded public summary.
+
+The checklist and repair reached main at `89c9154`. Documentation run 39182655177 succeeded and the actual live HTML matched the committed blob; the stored homepage matched the deployed URL. Native release run 39182655186 succeeded and published normal v0.10.1 at that source. Release download/install verification and final documentation-revision verification are separate follow-up verdicts. Existing native evidence below keeps its original source binding.
 
 ## Implemented behavior
 

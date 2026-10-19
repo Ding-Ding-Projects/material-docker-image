@@ -31,7 +31,11 @@ Only HTTPS references within this public project's repository or documentation h
 
 ## Verification limits
 
-The checklist implementation requires independent hidden-browser interaction, keyboard, language/theme, narrow-layout and deployed-content verification. Until those receipts exist, the feature-checklist milestone remains implemented with verification pending. The checklist does not implement the native container health/device/GPU milestones or establish complete product acceptance.
+The original candidate `ca1a09752b262288422236db22375baa83db5b05` passed 12 hidden-browser tuples: 1440/320 widths, English/Cantonese/bilingual and light/dark, with reduced motion active and no horizontal body overflow. Native Tab, Space and Enter operated disclosure controls. Category/status intersection, empty results, Reset focus and preparation progress across reload passed. The inspected accessibility tree contained 217 named controls in the reviewed roles and no unnamed controls. Fifteen genuine captures were inspected. These are bounded observations, not complete accessibility or physical-device certification.
+
+Review also found that optional source-reference metadata could render unescaped HTML. Source references now reject verification-only fields; binding output is limited to verification evidence and escaped. The saved inventory contained no injected content. The exact local build entrypoint passed 23 core, 51 UI-state and 13 checklist checks, including 123 independent omission cases and the observed failing-then-passing metadata regression. Independent review confirmed that current inventory rendering is unchanged by this repair.
+
+The browser/server processes, ports and exact hidden desktop were verified absent. Automatic execution review rejected deletion of the isolated profile. It remains retained, the complete cleanup/promotion receipt is pending, and new captures are not published as accepted evidence. The milestone therefore remains implemented with verification pending. The checklist does not implement the native container health/device/GPU milestones or establish complete product acceptance. The public bounded summary is `evidence/checklist-verification.json`.
 
 ## 廣東話指南
 
@@ -41,4 +45,6 @@ The checklist implementation requires independent hidden-browser interaction, ke
 
 呢份清單唔會俾訪客剔選完成。下面嘅準備清單仍然只儲存你自己嘅進度，原有儲存資料同重設功能保留。功能篩選只維持本次瀏覽，唔會寫入準備清單資料。
 
-維護者修改 JSON 來源清單，再執行產生指令，同步首頁、功能摘要同內容雜湊。來源連結只係參考，完整驗證需要同一版本嘅檢查、實際操作同畫面證據。格式檢查唔能夠證明證據內容屬實，仍然要獨立檢查。真實瀏覽器、鍵盤、所有語言與主題、窄版面同部署驗證尚待完成。
+維護者修改 JSON 來源清單，再執行產生指令，同步首頁、功能摘要同內容雜湊。來源連結只係參考，完整驗證需要同一版本嘅檢查、實際操作同畫面證據。格式檢查唔能夠證明證據內容屬實，仍然要獨立檢查。
+
+原候選版本已通過 12 組寬度、語言同主題組合，以及真實鍵盤展開、篩選、空白結果、重設焦點同準備進度保留。15 張畫面已檢查。來源參考嘅額外驗證資料曾有 HTML 轉義缺口，已修正並以先失敗後成功嘅測試確認。瀏覽器、伺服器、連接埠同指定隱藏桌面已確認結束；隔離設定目錄刪除被自動審核拒絕，所以完整清理同畫面正式採納仍未完成，唔會將有限驗證當成全產品驗收。

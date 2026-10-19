@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "scope": "Feature completion checklist only",
+  "sourceCommit": "ca1a09752b262288422236db22375baa83db5b05",
+  "repairCommit": "89c9154b27862323d6512615778bc11a6b615609",
+  "servedHtmlSha256": "72f07309f4083196e27268ad120049779a0ec0f134d11291f23ba89f7157a77a",
+  "route": "Isolated Edge app/guest profile launched through the hidden-desktop native automation route; page-only CDP captures and separate native-window capture",
+  "observations": {
+    "entries": 123,
+    "requiredEntries": 109,
+    "workflowEntries": 10,
+    "milestones": 4,
+    "fullyVerifiedEntries": 0,
+    "filterIntersectionCount": 38,
+    "emptyState": "passed",
+    "resetAndCategoryFocus": "passed",
+    "nativeKeyboardDisclosure": "Tab, Space and Enter passed",
+    "preparationStorageUnchangedByFilters": true,
+    "preparationReloadPersistence": true,
+    "namedAccessibilityControls": 217,
+    "unnamedReviewedControls": 0,
+    "widths": [1440, 320],
+    "height": 1000,
+    "languages": ["en", "zh", "both"],
+    "themes": ["light", "dark"],
+    "scale": 1,
+    "reducedMotion": true,
+    "matrixTuples": 12,
+    "horizontalBodyOverflowCases": 0,
+    "inspectedCaptures": 15,
+    "observedConsoleErrors": 0,
+    "observedUnhandledExceptions": 0,
+    "observedResourceFailures": 0,
+    "observedThirdPartyRequests": 0
+  },
+  "localChecks": {
+    "entrypoint": "build.bat -Tests",
+    "core": 23,
+    "uiState": 51,
+    "checklist": 13,
+    "independentOmissionCases": 123,
+    "metadataRegressionObservedFailingBeforeRepair": true,
+    "independentRepairReview": "passed",
+    "savedInventoryRenderingUnchangedByRepair": true
+  },
+  "capturePublication": {
+    "state": "pending",
+    "reason": "The complete promotion receipt requires profile cleanup. Automatic execution review rejected removal of the isolated verification profile. The genuine captures remain retained privately and are not represented as promoted evidence.",
+    "normalEnglishLightSha256": "2c863b42da852097db298177e39a269cbc6bb080a7fe4021c8fe608469b9dc4f",
+    "narrowBilingualDarkSha256": "b43d383c17f46b5ec6acab0b2758eadae5877b9729eb7bddbfb9f2ad3d355051"
+  },
+  "lifecycle": {
+    "ownedBrowserAndServerProcessesAbsent": true,
+    "ownedPortsAbsent": true,
+    "exactDesktopAbsence": "OpenDesktopW returned ERROR_FILE_NOT_FOUND on the original window station",
+    "desktopAbsenceVerifiedUtc": "2026-10-19T00:50:50.0052352Z",
+    "isolatedProfileRetained": true,
+    "completeCleanupReceipt": false
+  },
+  "deploymentBaseline": {
+    "sourceCommit": "89c9154b27862323d6512615778bc11a6b615609",
+    "run": "https://github.com/Ding-Ding-Projects/material-docker-image/actions/runs/39182655177",
+    "result": "success",
+    "url": "https://ding-ding-projects.github.io/material-docker-image/",
+    "liveHtmlMatchesCommittedBlob": true,
+    "storedHomepageMatches": true
+  },
+  "limits": [
+    "No full promotion or cleanup validator pass is claimed.",
+    "The 320px evidence is emulated and does not prove physical touch hardware.",
+    "Physical scales above 100% and complete screen-reader behavior were not exercised.",
+    "Below-fold lazy images were outside the observed checklist network interval.",
+    "This summary does not establish complete product or required-feature acceptance."
+  ]
+}

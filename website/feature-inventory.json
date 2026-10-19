@@ -3401,12 +3401,12 @@
       },
       "status": "implemented",
       "summary": {
-        "en": "Source-controlled status, category filters, bilingual details and generated summaries are implemented. Runtime and deployment verification are pending.",
-        "zh": "已實作來源控制狀態、分類篩選、雙語詳情同產生摘要。執行同部署驗證仍待完成。"
+        "en": "Source-controlled status, filters, bilingual details and generated summaries are implemented. Twelve browser width/language/theme tuples, keyboard disclosure and preparation persistence passed at the recorded candidate.",
+        "zh": "已實作來源控制狀態、篩選、雙語詳情同產生摘要。記錄版本已通過十二組寬度、語言同主題組合，以及鍵盤展開同準備進度保留。"
       },
       "remaining": {
-        "en": "Verify the generated interface through hidden-browser interaction, keyboard use, all language/theme modes and narrow layouts, then verify deployed content.",
-        "zh": "透過隱藏瀏覽器驗證操作、鍵盤、全部語言與主題同窄版面，再驗證部署內容。"
+        "en": "Complete the capture-promotion and cleanup receipt. Isolated profile removal was rejected, so captures remain retained privately. Verify each later deployment separately; full accessibility and higher physical scales remain outside the bounded evidence.",
+        "zh": "完成畫面採納同清理紀錄。隔離設定目錄刪除被拒絕，所以畫面仍私人保留。後續部署要分開驗證；完整無障礙同更高實體縮放仍未包含喺有限證據內。"
       },
       "evidence": [
         {
@@ -3415,6 +3415,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/evidence/checklist-verification.json",
+          "label": {
+            "en": "Bounded verification summary and remaining limits",
+            "zh": "有限驗證摘要同未完成範圍"
           }
         }
       ]

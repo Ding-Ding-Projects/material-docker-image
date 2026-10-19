@@ -11,7 +11,7 @@
       "implemented": 11,
       "verified": 0
     },
-    "sha256": "1709a2e15569abb8d00e816e65a06980262cd10f85b617748bd9cd56a9450cb7"
+    "sha256": "63c01512571553b10c6bad8d8bc42253f7fea95761a1292e0d91df7a523869ea"
   },
   "sources": [
     {
@@ -32,7 +32,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "6004a3c516a8f1bf7436a1c332e2adbce67806d7b6ab3c2588064c59b9da2385"
+      "sha256": "99170b3879a07c918a5ead8e4cd1cd01d69bcdefb44e1fb509b6b350cd3bc661"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -44,7 +44,7 @@
     },
     {
       "path": "docs/features/feature-checklist.md",
-      "sha256": "8a2ca236c240680f35183ec98639eb0bb847a8eb8c705e369546e97de87791d2"
+      "sha256": "c89e6da947d791b0e3aec19c077a7f47ad627e54fd536f3fb07eaada3e629ccb"
     },
     {
       "path": "docs/features/resources.md",
@@ -52,19 +52,19 @@
     },
     {
       "path": "README.md",
-      "sha256": "baeac8cd9768524936b70eb52780a041975eb3436001035d8f7744f4e185575a"
+      "sha256": "6ebb5bdd933f5a550ff28b806bd9fff286c1208a21e0289e2f584c479482ca49"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "f9325202bc70500c8abc99255033e702699fe0e4a632dbca5f8b8fbb9a07a2ef"
+      "sha256": "8c4ecf6e8075a485dcd304c8a45500faeebf8dc1ec71ee7f2740bb65c77b4f1b"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "c1233ee172fe5b772f1fd0c0a463f60319c13f2c31316abfc154f3f2e4dc6234"
+      "sha256": "52368bf8d9a15b63025cfb445624035f3b267ccc5a56d24de76789069bade6d6"
     },
     {
       "path": "wiki/Home.md",
-      "sha256": "bf9346c257db0ecacc9d73861751e9c403b7257d6eaec13d02223b446da06bc5"
+      "sha256": "ac5e2c9a34435ee6d41421de58a9f844ef2dfd2093e6035fa5591c1a842959f1"
     }
   ],
   "images": [

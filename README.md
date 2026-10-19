@@ -8,6 +8,8 @@ Advanced Build and Run controls are implemented. Focused checks pass, and a real
 
 The documentation includes a [feature completion checklist](docs/features/feature-checklist.md) with category/status filters, bilingual evidence details and maintainer-owned state. Its 123 entries preserve 109 required capabilities, 10 existing workflows and four milestones. Implementation and full verification are distinct; no row currently claims full verification. The separate visitor preparation checklist retains its existing browser-local progress.
 
+The checklist passed 12 hidden-browser width/language/theme combinations, native keyboard disclosure, filtering, reset focus and preparation-state persistence. The exact build entrypoint passes 23 core, 51 UI-state and 13 checklist checks. A reviewed metadata-escaping repair protects future inventory edits. [Bounded verification details](evidence/checklist-verification.json) retain the original source bindings and explicit limits. New checklist captures remain private pending the complete cleanup/promotion receipt; no new image acceptance is implied.
+
 ## Build and run workflows
 
 - Build local Dockerfiles with multiple tags, target stages, platforms, build arguments, image labels, pull/no-cache choices, and explicit local-load, registry-push or OCI-archive destinations.

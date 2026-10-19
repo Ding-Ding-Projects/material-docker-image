@@ -181,7 +181,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 | Identifier | Capability | Status | Remaining actions |
 | --- | --- | --- | --- |
-| `feature-checklist` | Feature completion checklist | Implemented, verification pending | Verify the generated interface through hidden-browser interaction, keyboard use, all language/theme modes and narrow layouts, then verify deployed content. |
+| `feature-checklist` | Feature completion checklist | Implemented, verification pending | Complete the capture-promotion and cleanup receipt. Isolated profile removal was rejected, so captures remain retained privately. Verify each later deployment separately; full accessibility and higher physical scales remain outside the bounded evidence. |
 | `container-health-checks` | Container health checks | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |
 | `container-device-mappings` | Container device mappings | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |
 | `container-gpu-access` | Container GPU access | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |

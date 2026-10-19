@@ -25,7 +25,10 @@
 
 ## Extended capabilities and complete acceptance
 
-- [ ] Verify and deploy the source-controlled feature completion checklist: 123 entries implemented, focused checks and real-browser acceptance recorded separately.
+- [x] Implement and deploy the 123-entry feature checklist with category/status filters and separate visitor progress.
+- [x] Verify checklist keyboard disclosure, filter/reset behavior, preparation persistence and 12 width/language/theme combinations; retain bounded source-specific evidence.
+- [x] Reject source-reference verification metadata and escape rendered bindings, with an observed failing-then-passing regression and independent review.
+- [ ] Complete checklist capture promotion and the full cleanup receipt; isolated profile removal was rejected and the profile remains retained.
 - [ ] Implement and verify container health-check configuration (`container-health-checks`).
 - [ ] Implement and verify container device mapping controls (`container-device-mappings`).
 - [ ] Implement and verify container GPU access controls (`container-gpu-access`).

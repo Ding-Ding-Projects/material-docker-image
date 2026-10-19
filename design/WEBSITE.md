@@ -6,7 +6,7 @@ Use a restrained blue/slate visual language, strong reading hierarchy, task navi
 
 Walkthrough controls change the explanation; checklist progress persists only in visitor storage. A structured command example changes in response to safe bounded inputs and is explicitly never executed. Search filters article sections; its adjacent local regex editor supports a deliberately restricted linear subset, with an explicit RegexBuddy parity gap rather than a misleading completeness claim.
 
-The dependency-free renderer embeds every Markdown article present under docs/features plus README, ROADMAP and HANDOFF as the available wiki/reference corpus. Internal article links resolve locally. Unavailable articles are identified visibly. Source links are optional supplements, never substitutes for embedded content. A content manifest records source hashes and generation time; generation time is not represented as build/release provenance.
+The dependency-free renderer embeds every Markdown article present under docs/features plus README, ROADMAP and HANDOFF as the available wiki/reference corpus. Internal article links resolve locally. Unavailable articles are identified visibly. Source links are optional supplements, never substitutes for embedded content. A deterministic content manifest records source hashes without claiming application release provenance.
 
 Independent design review, browser interaction, responsive capture and deployed-route verification remain pending until separately evidenced. The initial website is not full shared-feature acceptance: complete regex parity, the complete universal feature inventory and registered Material component provenance remain explicit gaps.
 
