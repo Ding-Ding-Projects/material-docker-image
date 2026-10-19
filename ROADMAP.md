@@ -28,6 +28,7 @@
 - [x] Implement and deploy the 123-entry feature checklist with category/status filters and separate visitor progress.
 - [x] Verify checklist keyboard disclosure, filter/reset behavior, preparation persistence and 12 width/language/theme combinations; retain bounded source-specific evidence.
 - [x] Reject source-reference verification metadata and escape rendered bindings, with an observed failing-then-passing regression and independent review.
+- [x] Declare a local browser icon and include its hash in the documentation manifest.
 - [ ] Complete checklist capture promotion and the full cleanup receipt; isolated profile removal was rejected and the profile remains retained.
 - [ ] Implement and verify container health-check configuration (`container-health-checks`).
 - [ ] Implement and verify container device mapping controls (`container-device-mappings`).

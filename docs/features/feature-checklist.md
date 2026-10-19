@@ -37,6 +37,8 @@ Review also found that optional source-reference metadata could render unescaped
 
 The browser/server processes, ports and exact hidden desktop were verified absent. Automatic execution review rejected deletion of the isolated profile. It remains retained, the complete cleanup/promotion receipt is pending, and new captures are not published as accepted evidence. The milestone therefore remains implemented with verification pending. The checklist does not implement the native container health/device/GPU milestones or establish complete product acceptance. The public bounded summary is `evidence/checklist-verification.json`.
 
+A later live check at `5d96573` verified all 41 internal anchors, 13 complete articles, three published PNGs and the exact source/manifest bytes. It found an implicit root favicon request returning 404. The documentation now declares a local `favicon.svg` matching the existing grid mark, with its hash in the content manifest. Fresh deployed resource verification is separate from the earlier checklist behavior evidence.
+
 ## 廣東話指南
 
 文件首頁嘅功能完成清單由維護者管理，保留 109 項必需功能、10 項產品流程同四項里程碑。健康檢查、裝置對應同 GPU 控制仍然係計劃項目。已實作唔代表完整驗證，現時冇項目標示為完整驗證。

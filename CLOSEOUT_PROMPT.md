@@ -2,6 +2,8 @@
 
 ## Objective and source
 
+Latest continuation: actual live verification of `5d96573` passed checklist behavior, 41 internal anchors, 13 articles and all explicit manifest assets, but observed an implicit root favicon 404. The subsequent repair adds an explicit local SVG icon and manifest hash. Verify its next deployment and normal release separately, then apply the final matching existing-installation update. Retain the earlier live receipt and its observed 404; do not relabel it as repaired evidence.
+
 Continue the bounded feature-completion checklist for the public native Windows WPF Material Docker Image project. The saved implementation at `ca1a09752b262288422236db22375baa83db5b05` and reviewed escaping repair at `89c9154b27862323d6512615778bc11a6b615609` are integrated into main, with exact remote readback. Product application source is unchanged by this continuation.
 
 ## Implemented and verified

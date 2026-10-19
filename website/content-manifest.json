@@ -44,7 +44,7 @@
     },
     {
       "path": "docs/features/feature-checklist.md",
-      "sha256": "c89e6da947d791b0e3aec19c077a7f47ad627e54fd536f3fb07eaada3e629ccb"
+      "sha256": "8defafd166e8de5bb9c63b53717f69e4f3f5d62c693544d86ad39c673135f092"
     },
     {
       "path": "docs/features/resources.md",
@@ -52,19 +52,25 @@
     },
     {
       "path": "README.md",
-      "sha256": "6ebb5bdd933f5a550ff28b806bd9fff286c1208a21e0289e2f584c479482ca49"
+      "sha256": "53847d25f4bba9a5b83835fba3245bac62d25c54752960b4ee074c870fe4d515"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "8c4ecf6e8075a485dcd304c8a45500faeebf8dc1ec71ee7f2740bb65c77b4f1b"
+      "sha256": "5aebe8169e5200afe8184c985c44f8818c906fc784969cdd7a702ce47955b177"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "52368bf8d9a15b63025cfb445624035f3b267ccc5a56d24de76789069bade6d6"
+      "sha256": "e150bd015f3bf2e094c751d110827a40c1a7f244fe22c3a113d0df4ceb54c47b"
     },
     {
       "path": "wiki/Home.md",
       "sha256": "ac5e2c9a34435ee6d41421de58a9f844ef2dfd2093e6035fa5591c1a842959f1"
+    }
+  ],
+  "staticAssets": [
+    {
+      "path": "favicon.svg",
+      "sha256": "e099f8d504adf721deef3d0356f17191f3e931f06cd012cbc5b3f79433ff8604"
     }
   ],
   "images": [

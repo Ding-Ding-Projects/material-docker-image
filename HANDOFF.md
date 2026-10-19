@@ -16,6 +16,8 @@ The checklist and repair reached main at `89c9154`. Documentation run 3918265517
 
 ## Implemented behavior
 
+The final live check of `5d96573` confirmed 41 internal anchors, 13 articles and exact HTML/manifest/assets. It also observed an implicit root favicon 404. The subsequent documentation repair declares a local SVG icon matching the existing grid mark and records its hash in the manifest. The next source/deployment must be checked independently for the repaired resource; original interaction evidence is not relabelled.
+
 Build includes multiple tags, labels, target/platform choices, local loading, registry push, OCI archive selection, cache import/export and local BuildKit secret-file rows. Publication/cache writes and existing archive replacement require confirmation. Secret selections are not persisted, and secret file bytes are not read or logged by the application.
 
 Run includes explicit JSON command arguments, non-secret environment pairs, entrypoint, user, working directory, CPU/memory limits, restart policy, additional ports and bind/volume mounts. Ports default to loopback, additional mounts default to read-only, and no-new-privileges is enabled by default. Container creation reports the real process result without claiming service health.
