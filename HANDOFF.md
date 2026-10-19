@@ -4,6 +4,12 @@
 
 Deliver a native Windows WPF workspace for building and running Docker images, resource management, diagnostics and an interactive native canvas. The productive application remains WPF.
 
+## Feature checklist candidate
+
+The documentation now generates a prominent maintainer-owned completion section from `website/feature-inventory.json`. It preserves 109 required IDs, 10 product workflows and four milestones. All required rows remain unverified; implemented workflow/checklist rows retain open acceptance actions and health/device/GPU milestones remain planned. Category/status filters, native keyboard disclosure, localized details and responsive styles are separate modules. The original preparation checklist and `mdi-guide-v1` state are unchanged.
+
+The same inventory generates the capability summary and manifest counts. Generation is deterministic and `--check` rejects stale output. Local positive/negative checks cover missing IDs, status/evidence restrictions, public links and filter behavior. Real-browser interaction, pixels, deployed content and independent review remain pending until separately recorded. No new screenshot or release claim is made by this implementation.
+
 ## Implemented behavior
 
 Build includes multiple tags, labels, target/platform choices, local loading, registry push, OCI archive selection, cache import/export and local BuildKit secret-file rows. Publication/cache writes and existing archive replacement require confirmation. Secret selections are not persisted, and secret file bytes are not read or logged by the application.

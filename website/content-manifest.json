@@ -1,10 +1,22 @@
 {
-  "generatedAt": "2026-10-18T08:55:22.966Z",
-  "meaning": "Documentation generation time, not application release provenance",
+  "meaning": "Deterministic source inventory, not application release provenance",
+  "features": {
+    "total": 123,
+    "required": 109,
+    "workflows": 10,
+    "milestones": 4,
+    "counts": {
+      "unverified": 109,
+      "planned": 3,
+      "implemented": 11,
+      "verified": 0
+    },
+    "sha256": "1709a2e15569abb8d00e816e65a06980262cd10f85b617748bd9cd56a9450cb7"
+  },
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "a5b6d8b2627396c337c6fb97f89db312160354b4f86aa979c5c20bce10a2b5cf"
+      "sha256": "0d33e2472a29c4bc5a08a1880307800832e3497c1c8a2c9f1625d0cb134bcd14"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -20,7 +32,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "3bb01a604e4154785150af69b92ab583237b4165f1fa877b4f939056ef271668"
+      "sha256": "6004a3c516a8f1bf7436a1c332e2adbce67806d7b6ab3c2588064c59b9da2385"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -31,20 +43,24 @@
       "sha256": "3f1d495469f3e661fca6dd182acd4b2d945bb835b1557f701b75a887f7227b44"
     },
     {
+      "path": "docs/features/feature-checklist.md",
+      "sha256": "8a2ca236c240680f35183ec98639eb0bb847a8eb8c705e369546e97de87791d2"
+    },
+    {
       "path": "docs/features/resources.md",
       "sha256": "73b0d6058ef327326050426ffc84a7dcff2f7ef7642ee2bc18bce046b12a208f"
     },
     {
       "path": "README.md",
-      "sha256": "42dfe94e5da37f085ec4828db1d0e9cf0faea88f609e3f22db1afe58a12592b8"
+      "sha256": "baeac8cd9768524936b70eb52780a041975eb3436001035d8f7744f4e185575a"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "87ea593465e5f0d556fe6acd67b5c11dcef0bee78cbccdf7ae23cf21baa3b1e4"
+      "sha256": "f9325202bc70500c8abc99255033e702699fe0e4a632dbca5f8b8fbb9a07a2ef"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "15167090ed2d75a9323858d5d27a9eb38e0631d8203d57c93c2ce2d5e217d32a"
+      "sha256": "c1233ee172fe5b772f1fd0c0a463f60319c13f2c31316abfc154f3f2e4dc6234"
     },
     {
       "path": "wiki/Home.md",

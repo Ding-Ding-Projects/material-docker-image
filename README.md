@@ -6,6 +6,8 @@ Advanced Build and Run controls are implemented. Focused checks pass, and a real
 
 [Documentation](https://ding-ding-projects.github.io/material-docker-image/) · [Downloads](https://github.com/Ding-Ding-Projects/material-docker-image/releases) · [Capability inventory](docs/features/capability-inventory.md) · [Progress](https://github.com/Ding-Ding-Projects/material-docker-image/discussions/2)
 
+The documentation includes a [feature completion checklist](docs/features/feature-checklist.md) with category/status filters, bilingual evidence details and maintainer-owned state. Its 123 entries preserve 109 required capabilities, 10 existing workflows and four milestones. Implementation and full verification are distinct; no row currently claims full verification. The separate visitor preparation checklist retains its existing browser-local progress.
+
 ## Build and run workflows
 
 - Build local Dockerfiles with multiple tags, target stages, platforms, build arguments, image labels, pull/no-cache choices, and explicit local-load, registry-push or OCI-archive destinations.

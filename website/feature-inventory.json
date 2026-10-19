@@ -1,0 +1,3507 @@
+{
+  "schemaVersion": 1,
+  "categories": [
+    {
+      "id": "experience",
+      "name": {
+        "en": "Interface and personalization",
+        "zh": "介面與個人設定"
+      }
+    },
+    {
+      "id": "navigation",
+      "name": {
+        "en": "Navigation and workflow",
+        "zh": "導覽與工作流程"
+      }
+    },
+    {
+      "id": "safety",
+      "name": {
+        "en": "Safety and privacy",
+        "zh": "安全與私隱"
+      }
+    },
+    {
+      "id": "delivery",
+      "name": {
+        "en": "Build and delivery",
+        "zh": "建置與交付"
+      }
+    },
+    {
+      "id": "documentation",
+      "name": {
+        "en": "Documentation and evidence",
+        "zh": "文件與證據"
+      }
+    },
+    {
+      "id": "integrations",
+      "name": {
+        "en": "Tools and integrations",
+        "zh": "工具與整合"
+      }
+    },
+    {
+      "id": "product",
+      "name": {
+        "en": "Product workflows",
+        "zh": "產品工作流程"
+      }
+    },
+    {
+      "id": "milestones",
+      "name": {
+        "en": "Planned milestones",
+        "zh": "計劃里程碑"
+      }
+    }
+  ],
+  "entries": [
+    {
+      "id": "accessibility-sizing",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Accessibility Sizing",
+        "zh": "無障礙與尺寸"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for accessibility-sizing.",
+        "zh": "確認「無障礙與尺寸」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "adhd-modes",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Adhd Modes",
+        "zh": "專注模式"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for adhd-modes.",
+        "zh": "確認「專注模式」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "private-conversation-discipline",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Private Conversation Discipline",
+        "zh": "私人對話規範"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for private-conversation-discipline.",
+        "zh": "確認「私人對話規範」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "app-icon",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "App Icon",
+        "zh": "程式圖示"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for app-icon.",
+        "zh": "確認「程式圖示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "appearance-editor",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Appearance Editor",
+        "zh": "外觀編輯器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for appearance-editor.",
+        "zh": "確認「外觀編輯器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "authenticator",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Authenticator",
+        "zh": "驗證工具"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for authenticator.",
+        "zh": "確認「驗證工具」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "auto-updates",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Auto Updates",
+        "zh": "自動更新"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for auto-updates.",
+        "zh": "確認「自動更新」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "blank-editors",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Blank Editors",
+        "zh": "空白編輯器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for blank-editors.",
+        "zh": "確認「空白編輯器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "build-entrypoints",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Build Entrypoints",
+        "zh": "建置入口"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for build-entrypoints.",
+        "zh": "確認「建置入口」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bulk-actions",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Bulk Actions",
+        "zh": "批次操作"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for bulk-actions.",
+        "zh": "確認「批次操作」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "bundled-dependencies",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Bundled Dependencies",
+        "zh": "附帶相依套件"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for bundled-dependencies.",
+        "zh": "確認「附帶相依套件」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "changelog",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Changelog",
+        "zh": "更新記錄"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for changelog.",
+        "zh": "確認「更新記錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "layout-overflow-matrix",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Layout Overflow Matrix",
+        "zh": "版面溢出矩陣"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for layout-overflow-matrix.",
+        "zh": "確認「版面溢出矩陣」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ci-bootstrap",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Ci Bootstrap",
+        "zh": "持續整合準備"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for ci-bootstrap.",
+        "zh": "確認「持續整合準備」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "closeout-prompt",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Closeout Prompt",
+        "zh": "交接提示"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for closeout-prompt.",
+        "zh": "確認「交接提示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "collapse-filters",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Collapse Filters",
+        "zh": "可收合篩選"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for collapse-filters.",
+        "zh": "確認「可收合篩選」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "color-picker",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Color Picker",
+        "zh": "顏色選擇器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for color-picker.",
+        "zh": "確認「顏色選擇器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "command-palette",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Command Palette",
+        "zh": "指令面板"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for command-palette.",
+        "zh": "確認「指令面板」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "completeness-parity",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Completeness Parity",
+        "zh": "完整度一致性"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for completeness-parity.",
+        "zh": "確認「完整度一致性」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "context-menus",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Context Menus",
+        "zh": "右鍵選單"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for context-menus.",
+        "zh": "確認「右鍵選單」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "mobile-website",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Mobile Website",
+        "zh": "流動裝置網站"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for mobile-website.",
+        "zh": "確認「流動裝置網站」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dependency-fetcher",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Dependency Fetcher",
+        "zh": "相依套件下載"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dependency-fetcher.",
+        "zh": "確認「相依套件下載」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "design-folder",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Design Folder",
+        "zh": "設計資料夾"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for design-folder.",
+        "zh": "確認「設計資料夾」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "design-reference-parity",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Design Reference Parity",
+        "zh": "設計參考一致性"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for design-reference-parity.",
+        "zh": "確認「設計參考一致性」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dim-sum",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Dim Sum",
+        "zh": "點心目錄"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum.",
+        "zh": "確認「點心目錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dim-sum-code-names",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Dim Sum Code Names",
+        "zh": "點心代號"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-code-names.",
+        "zh": "確認「點心代號」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "dim-sum-photo-source",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Dim Sum Photo Source",
+        "zh": "點心相片來源"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-photo-source.",
+        "zh": "確認「點心相片來源」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "discord-status-bridge",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Discord Status Bridge",
+        "zh": "Discord 狀態橋接"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for discord-status-bridge.",
+        "zh": "確認「Discord 狀態橋接」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "discussion-records",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Discussion Records",
+        "zh": "討論記錄"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for discussion-records.",
+        "zh": "確認「討論記錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "display-name",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Display Name",
+        "zh": "顯示名稱"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for display-name.",
+        "zh": "確認「顯示名稱」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "download-handoff",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Download Handoff",
+        "zh": "下載交接"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for download-handoff.",
+        "zh": "確認「下載交接」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "element-locks",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Element Locks",
+        "zh": "元素鎖定"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for element-locks.",
+        "zh": "確認「元素鎖定」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "encrypted-public-builder",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Encrypted Public Builder",
+        "zh": "加密公開建置"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for encrypted-public-builder.",
+        "zh": "確認「加密公開建置」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "exports",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Exports",
+        "zh": "匯出"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for exports.",
+        "zh": "確認「匯出」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "external-editor",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "External Editor",
+        "zh": "外部編輯器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for external-editor.",
+        "zh": "確認「外部編輯器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "feature-articles",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Feature Articles",
+        "zh": "功能文章"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for feature-articles.",
+        "zh": "確認「功能文章」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "feature-docs",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Feature Docs",
+        "zh": "功能文件"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for feature-docs.",
+        "zh": "確認「功能文件」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "file-converter",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "File Converter",
+        "zh": "檔案轉換器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for file-converter.",
+        "zh": "確認「檔案轉換器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "forge-publishing",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Forge Publishing",
+        "zh": "平台發佈"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for forge-publishing.",
+        "zh": "確認「平台發佈」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "fresh-build-run-command",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Fresh Build Run Command",
+        "zh": "全新建置執行指令"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for fresh-build-run-command.",
+        "zh": "確認「全新建置執行指令」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "front-provenance",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Front Provenance",
+        "zh": "首頁來源資料"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for front-provenance.",
+        "zh": "確認「首頁來源資料」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "functional-ui",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Functional Ui",
+        "zh": "實用介面"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for functional-ui.",
+        "zh": "確認「實用介面」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "funny-emoji",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Funny Emoji",
+        "zh": "趣味文字與表情"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for funny-emoji.",
+        "zh": "確認「趣味文字與表情」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "guided-forms",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Guided Forms",
+        "zh": "引導表單"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for guided-forms.",
+        "zh": "確認「引導表單」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "handoff-record",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Handoff Record",
+        "zh": "交接記錄"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for handoff-record.",
+        "zh": "確認「交接記錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "homepage-link",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Homepage Link",
+        "zh": "首頁連結"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for homepage-link.",
+        "zh": "確認「首頁連結」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "honest-monetization",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Honest Monetization",
+        "zh": "誠實收費說明"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for honest-monetization.",
+        "zh": "確認「誠實收費說明」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "human-time-estimate",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Human Time Estimate",
+        "zh": "人工時間估算"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for human-time-estimate.",
+        "zh": "確認「人工時間估算」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "info-icon-guidance",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Info Icon Guidance",
+        "zh": "資訊提示"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for info-icon-guidance.",
+        "zh": "確認「資訊提示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "installer-download-button",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Installer Download Button",
+        "zh": "安裝程式下載按鈕"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for installer-download-button.",
+        "zh": "確認「安裝程式下載按鈕」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "landing-site",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Landing Site",
+        "zh": "文件網站"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for landing-site.",
+        "zh": "確認「文件網站」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "language",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Language",
+        "zh": "語言"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for language.",
+        "zh": "確認「語言」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "local-history",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Local History",
+        "zh": "本機歷史"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for local-history.",
+        "zh": "確認「本機歷史」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "logo-customization",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Logo Customization",
+        "zh": "標誌自訂"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for logo-customization.",
+        "zh": "確認「標誌自訂」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "material-design",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Material Design",
+        "zh": "Material Design"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for material-design.",
+        "zh": "確認「Material Design」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "menu-shortcuts",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Menu Shortcuts",
+        "zh": "選單快捷鍵"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for menu-shortcuts.",
+        "zh": "確認「選單快捷鍵」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "minecraft-server-manager",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Minecraft Server Manager",
+        "zh": "Minecraft 伺服器管理"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for minecraft-server-manager.",
+        "zh": "確認「Minecraft 伺服器管理」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "motion",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Motion",
+        "zh": "動態效果"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for motion.",
+        "zh": "確認「動態效果」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "narration",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Narration",
+        "zh": "語音導覽"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for narration.",
+        "zh": "確認「語音導覽」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "notifications",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Notifications",
+        "zh": "通知"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for notifications.",
+        "zh": "確認「通知」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "offline-docs",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Offline Docs",
+        "zh": "離線文件"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for offline-docs.",
+        "zh": "確認「離線文件」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "ollama-suite",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Ollama Suite",
+        "zh": "Ollama 套件"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for ollama-suite.",
+        "zh": "確認「Ollama 套件」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "onboarding-wizard",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Onboarding Wizard",
+        "zh": "初次設定精靈"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for onboarding-wizard.",
+        "zh": "確認「初次設定精靈」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "operational-skill",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Operational Skill",
+        "zh": "操作技能"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for operational-skill.",
+        "zh": "確認「操作技能」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "overlay-panels",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Overlay Panels",
+        "zh": "覆蓋面板"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for overlay-panels.",
+        "zh": "確認「覆蓋面板」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "panic-webhooks",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Panic Webhooks",
+        "zh": "緊急通知"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for panic-webhooks.",
+        "zh": "確認「緊急通知」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "personal-vocabulary",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Personal Vocabulary",
+        "zh": "個人用語"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for personal-vocabulary.",
+        "zh": "確認「個人用語」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "postman-collections",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Postman Collections",
+        "zh": "Postman 集合"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for postman-collections.",
+        "zh": "確認「Postman 集合」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "offline-documentation-companion",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Offline Documentation Companion",
+        "zh": "離線文件工具"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for offline-documentation-companion.",
+        "zh": "確認「離線文件工具」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "product-evidence",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Product Evidence",
+        "zh": "產品證據"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for product-evidence.",
+        "zh": "確認「產品證據」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "progress-recovery",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Progress Recovery",
+        "zh": "進度復原"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for progress-recovery.",
+        "zh": "確認「進度復原」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "project-board",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Project Board",
+        "zh": "專案看板"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for project-board.",
+        "zh": "確認「專案看板」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "project-profile",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Project Profile",
+        "zh": "專案資料"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for project-profile.",
+        "zh": "確認「專案資料」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "public-screenshot-gallery",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Public Screenshot Gallery",
+        "zh": "公開畫面圖庫"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for public-screenshot-gallery.",
+        "zh": "確認「公開畫面圖庫」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "qr-pairing",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Qr Pairing",
+        "zh": "QR 配對"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for qr-pairing.",
+        "zh": "確認「QR 配對」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "readme-prompt-banner",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Readme Prompt Banner",
+        "zh": "README 提示橫額"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for readme-prompt-banner.",
+        "zh": "確認「README 提示橫額」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "regex-search",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Regex Search",
+        "zh": "正則搜尋"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for regex-search.",
+        "zh": "確認「正則搜尋」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "release-dim-sum-photo",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Release Dim Sum Photo",
+        "zh": "發行點心相片"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-dim-sum-photo.",
+        "zh": "確認「發行點心相片」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "release-line-counts",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Release Line Counts",
+        "zh": "發行程式碼行數"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-line-counts.",
+        "zh": "確認「發行程式碼行數」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "release-timing",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Release Timing",
+        "zh": "發行時間"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-timing.",
+        "zh": "確認「發行時間」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "release-workflow",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Release Workflow",
+        "zh": "發行流程"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-workflow.",
+        "zh": "確認「發行流程」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rendered-provider-text",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Rendered Provider Text",
+        "zh": "供應商文字顯示"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rendered-provider-text.",
+        "zh": "確認「供應商文字顯示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "rich-controls",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Rich Controls",
+        "zh": "豐富控制項"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rich-controls.",
+        "zh": "確認「豐富控制項」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "roadmap-checklist",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Roadmap Checklist",
+        "zh": "路線圖清單"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for roadmap-checklist.",
+        "zh": "確認「路線圖清單」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "roblox-model-catalogue",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Roblox Model Catalogue",
+        "zh": "Roblox 模型目錄"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for roblox-model-catalogue.",
+        "zh": "確認「Roblox 模型目錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "roblox-visual-realism",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Roblox Visual Realism",
+        "zh": "Roblox 視覺真實度"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for roblox-visual-realism.",
+        "zh": "確認「Roblox 視覺真實度」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "runner-selection",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Runner Selection",
+        "zh": "執行環境選擇"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for runner-selection.",
+        "zh": "確認「執行環境選擇」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "sanitized-instruction-copy",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Sanitized Instruction Copy",
+        "zh": "經整理指引副本"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for sanitized-instruction-copy.",
+        "zh": "確認「經整理指引副本」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "scheduled-settings",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Scheduled Settings",
+        "zh": "排程設定"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for scheduled-settings.",
+        "zh": "確認「排程設定」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "school-mode",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "School Mode",
+        "zh": "學校模式"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for school-mode.",
+        "zh": "確認「學校模式」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "screen-recording",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Screen Recording",
+        "zh": "畫面錄製"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for screen-recording.",
+        "zh": "確認「畫面錄製」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "self-signing",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Self Signing",
+        "zh": "自行簽署"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for self-signing.",
+        "zh": "確認「自行簽署」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "settings-explanations",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Settings Explanations",
+        "zh": "設定解說"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for settings-explanations.",
+        "zh": "確認「設定解說」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared-link-embed",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Shared Link Embed",
+        "zh": "分享連結預覽"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for shared-link-embed.",
+        "zh": "確認「分享連結預覽」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "squirrel-installer",
+      "kind": "required",
+      "category": "delivery",
+      "name": {
+        "en": "Squirrel Installer",
+        "zh": "Squirrel 安裝程式"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for squirrel-installer.",
+        "zh": "確認「Squirrel 安裝程式」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "status-hub",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Status Hub",
+        "zh": "共用狀態"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for status-hub.",
+        "zh": "確認「共用狀態」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "super-confirmation",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Super Confirmation",
+        "zh": "加強確認"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for super-confirmation.",
+        "zh": "確認「加強確認」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "support-tickets",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Support Tickets",
+        "zh": "支援單"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for support-tickets.",
+        "zh": "確認「支援單」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tabbed-readme",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Tabbed Readme",
+        "zh": "README 分頁"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for tabbed-readme.",
+        "zh": "確認「README 分頁」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tabs",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Tabs",
+        "zh": "分頁"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for tabs.",
+        "zh": "確認「分頁」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tidbyt-displays",
+      "kind": "required",
+      "category": "integrations",
+      "name": {
+        "en": "Tidbyt Displays",
+        "zh": "Tidbyt 顯示器"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for tidbyt-displays.",
+        "zh": "確認「Tidbyt 顯示器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "shared-instruction-portable-editions",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Shared Instruction Portable Editions",
+        "zh": "可攜式指引"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for shared-instruction-portable-editions.",
+        "zh": "確認「可攜式指引」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "unlock-ladder",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Unlock Ladder",
+        "zh": "解鎖流程"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for unlock-ladder.",
+        "zh": "確認「解鎖流程」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vendored-fonts",
+      "kind": "required",
+      "category": "experience",
+      "name": {
+        "en": "Vendored Fonts",
+        "zh": "本機字型"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vendored-fonts.",
+        "zh": "確認「本機字型」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vocabulary-drop-apply",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Vocabulary Drop Apply",
+        "zh": "拖放個人用語"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vocabulary-drop-apply.",
+        "zh": "確認「拖放個人用語」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vocabulary-hash-lock",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Vocabulary Hash Lock",
+        "zh": "用語版本檢查"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vocabulary-hash-lock.",
+        "zh": "確認「用語版本檢查」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "vocabulary-unlock-boundary",
+      "kind": "required",
+      "category": "safety",
+      "name": {
+        "en": "Vocabulary Unlock Boundary",
+        "zh": "用語驗證界線"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vocabulary-unlock-boundary.",
+        "zh": "確認「用語驗證界線」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "wiki-documentation-sync",
+      "kind": "required",
+      "category": "documentation",
+      "name": {
+        "en": "Wiki Documentation Sync",
+        "zh": "百科同步"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for wiki-documentation-sync.",
+        "zh": "確認「百科同步」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-navigation",
+      "kind": "required",
+      "category": "navigation",
+      "name": {
+        "en": "Workflow Navigation",
+        "zh": "工作流程導覽"
+      },
+      "status": "unverified",
+      "summary": {
+        "en": "Complete acceptance has not been established for this required capability.",
+        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+      },
+      "remaining": {
+        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for workflow-navigation.",
+        "zh": "確認「工作流程導覽」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-structured-execution",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Structured Docker execution",
+        "zh": "結構化指令執行"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "23 core checks passed for argument separation, output bounds, cancellation and parsing.",
+        "zh": "已有 23 項核心檢查，涵蓋參數分隔、輸出上限、取消同解析。完整工作流程驗收仍待完成。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-build-workspace",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Build workspace",
+        "zh": "建置工作區"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Multiple tags, labels, target/platform selection, local load, registry push, OCI archive, cache import/export and secret-file rows implemented. Real native build at f370d66 verified exact label whitespace. OCI/cache/secret and registry runtime combinations are not all exercised.",
+        "zh": "已實作多標籤、映像標籤、目標與平台、本機載入、登錄庫發佈、OCI、快取同機密檔案控制。來源 f370d66 嘅實際建置保留標籤空白；其餘組合未全部驗證。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-run-editor",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Run editor",
+        "zh": "容器執行編輯器"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Explicit JSON argv, non-secret environment, entrypoint/user/workdir, CPU/memory, restart policy and additional port/mount rows implemented. Real native run at f370d66 verified exact environment whitespace. GPU, devices, health-check configuration and interactive terminals remain gaps.",
+        "zh": "已實作 JSON 參數、環境變數、入口、使用者、工作目錄、資源同額外連接埠及掛載。來源 f370d66 嘅實際執行保留環境值空白；GPU、裝置、健康檢查同互動終端仍有缺口。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-native-canvas",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Native Canvas",
+        "zh": "原生畫布"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Stage graph/object selection, inspector, supported alias/base edits, target selection, source navigation, zoom/pan/fit and inspected runtime memberships implemented. 51 UI-state/parser checks passed. Graph rendering is not proof of every interaction or Dockerfile construct.",
+        "zh": "已實作階段圖、選擇、檢查、支援嘅來源修改、目標、導覽、縮放同執行關係。51 項介面狀態與解析檢查通過，唔代表每種操作同語法都已驗證。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-resource-management",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Images, resources and Compose",
+        "zh": "資源與 Compose"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Image/container/volume/network operations and loaded Compose save-path/context protection implemented. Complete workflow acceptance remains open.",
+        "zh": "已實作映像、容器、磁碟區、網絡操作，同 Compose 已載入儲存路徑及內容保護。完整流程驗收仍待完成。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-restart-restoration",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Restart restoration",
+        "zh": "重新啟動復原"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Source 3ce1ed7 local 0.5.0 build/installer production and actual restart restoration passed, preserving the absolute example folder and exact source after line-ending normalization. Included in verified normal v0.5.1 at ad5d3ac. Original capture provenance remains 3ce1ed7/0.5.0.",
+        "zh": "來源 3ce1ed7 嘅本機 0.5.0 建置、安裝套件同實際重新啟動復原已通過，保留絕對範例路徑同來源。修正包含於 ad5d3ac 嘅 v0.5.1，原有畫面證據仍屬 3ce1ed7/0.5.0。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-package-release",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Package and release",
+        "zh": "套件與發行"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Normal v0.5.1 at ad5d3ac5c02588e8efcc926715119b87a9c7c6d5 was verified through successful run 39112649034, exact tag source and five asset sizes/digests.",
+        "zh": "已驗證 ad5d3ac5c02588e8efcc926715119b87a9c7c6d5 嘅正式 v0.5.1，包括成功執行 39112649034、確切標籤來源同五個下載檔案嘅大小與雜湊。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-installed-setup",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Installed update and setup",
+        "zh": "已安裝更新與設定"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Existing installation updated through Update.exe to 0.5.1.0; executable matched the published package and settings were preserved. Installed hidden launch detected Docker, exercised Setup Back/Next/Finish, persisted completion at step 2 and displayed productive Build. Fresh install, update-ready banner, cancellation and uninstall acceptance remain open.",
+        "zh": "現有安裝已透過 Update.exe 更新至 0.5.1.0，程式同公開套件一致並保留設定。已驗證偵測引擎、設定精靈同建置工作區；全新安裝、更新提示、取消同移除仍待驗證。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-native-captures",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Current native captures",
+        "zh": "原生畫面證據"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "English, dark, 100% scaling at normal/minimum sizes only. README captures are retained and inspected for 3ce1ed7 local 0.5.0: Build 1440x960, populated Canvas 1440x960 and 960x720. Minimum graph panning and inspector scrolling are intentional. Full matrix is incomplete.",
+        "zh": "只涵蓋英文、深色、100% 縮放同一般及最小尺寸。現有畫面屬 3ce1ed7/0.5.0：建置 1440x960，畫布 1440x960 同 960x720；完整矩陣未完成。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "workflow-documentation-companions",
+      "kind": "workflow",
+      "category": "product",
+      "name": {
+        "en": "Documentation and companions",
+        "zh": "文件與配套工具"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Deployment 39112649029 for ad5d3ac delivered 12 articles, 109 neutral identifiers and three byte-identical PNGs. 1440/320 widths had no horizontal overflow; guide/checklist/theme/bilingual persistence and exact About homepage passed. Complete documentation/wiki acceptance and portable documentation/build companions remain incomplete.",
+        "zh": "ad5d3ac 嘅部署 39112649029 提供 12 篇文章、109 個識別碼同三張原始圖片。1440/320 闊度、指南與準備清單、主題、雙語儲存同首頁連結曾通過；完整文件與配套工具仍待完成。"
+      },
+      "remaining": {
+        "en": "Complete the remaining workflow combinations and independent acceptance described in the source reference. Existing bounded evidence does not establish full verification.",
+        "zh": "完成來源列出嘅其餘流程組合同獨立驗收。已有有限證據唔代表完整驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "feature-checklist",
+      "kind": "milestone",
+      "category": "milestones",
+      "name": {
+        "en": "Feature completion checklist",
+        "zh": "功能完成清單"
+      },
+      "status": "implemented",
+      "summary": {
+        "en": "Source-controlled status, category filters, bilingual details and generated summaries are implemented. Runtime and deployment verification are pending.",
+        "zh": "已實作來源控制狀態、分類篩選、雙語詳情同產生摘要。執行同部署驗證仍待完成。"
+      },
+      "remaining": {
+        "en": "Verify the generated interface through hidden-browser interaction, keyboard use, all language/theme modes and narrow layouts, then verify deployed content.",
+        "zh": "透過隱藏瀏覽器驗證操作、鍵盤、全部語言與主題同窄版面，再驗證部署內容。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/website/feature-inventory.json",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "container-health-checks",
+      "kind": "milestone",
+      "category": "milestones",
+      "name": {
+        "en": "Container health checks",
+        "zh": "容器健康檢查"
+      },
+      "status": "planned",
+      "summary": {
+        "en": "Health-check configuration is planned; existing container creation does not establish service health.",
+        "zh": "健康檢查設定仍在計劃中；成功建立容器唔代表服務健康。"
+      },
+      "remaining": {
+        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
+        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/container-configuration.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "container-device-mappings",
+      "kind": "milestone",
+      "category": "milestones",
+      "name": {
+        "en": "Container device mappings",
+        "zh": "容器裝置對應"
+      },
+      "status": "planned",
+      "summary": {
+        "en": "Host device mapping controls and runtime acceptance are planned.",
+        "zh": "主機裝置對應控制同執行驗收仍在計劃中。"
+      },
+      "remaining": {
+        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
+        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/container-configuration.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    },
+    {
+      "id": "container-gpu-access",
+      "kind": "milestone",
+      "category": "milestones",
+      "name": {
+        "en": "Container GPU access",
+        "zh": "容器 GPU 存取"
+      },
+      "status": "planned",
+      "summary": {
+        "en": "GPU access controls and supported-host runtime acceptance are planned.",
+        "zh": "GPU 存取控制同支援主機嘅執行驗收仍在計劃中。"
+      },
+      "remaining": {
+        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
+        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+      },
+      "evidence": [
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/container-configuration.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        }
+      ]
+    }
+  ]
+}

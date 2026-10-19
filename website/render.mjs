@@ -2,9 +2,18 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
+import {loadInventory, renderChecklist, renderInventoryMarkdown, inventorySummary} from './checklist.mjs';
 const here=path.dirname(fileURLToPath(import.meta.url));
 const root=path.dirname(here);
 const sourceText=file=>fs.readFileSync(file,'utf8').replace(/\r\n/g,'\n');
+const inventory=loadInventory(here);
+const inventoryFile=path.join(root,'docs/features/capability-inventory.md');
+const existingInventory=sourceText(inventoryFile);
+const inventoryDocument=existingInventory.replace(/(## Required-feature inventory\n)[\s\S]*?(\n## Known limits)/,'$1\n'+renderInventoryMarkdown(inventory)+'\n\n$2');
+if(inventoryDocument===existingInventory&&!existingInventory.includes('<!-- Generated from website/feature-inventory.json'))throw new Error('Required-feature inventory section is missing');
+const check=process.argv.includes('--check');
+if(check&&inventoryDocument!==existingInventory)throw new Error('Generated capability inventory is stale; run node website/render.mjs');
+if(!check&&inventoryDocument!==existingInventory)fs.writeFileSync(inventoryFile,inventoryDocument);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const files=fs.readdirSync(path.join(root,'docs/features')).filter(f=>f.endsWith('.md')).sort().map(f=>'docs/features/'+f);
 for(const f of ['README.md','ROADMAP.md','HANDOFF.md'])if(fs.existsSync(path.join(root,f)))files.push(f);
@@ -42,8 +51,12 @@ const entries=files.map(f=>({path:f,sha256:crypto.createHash('sha256').update(so
 const articles=files.map(f=>{const s=sourceText(path.join(root,f));const title=s.match(/^# (.+)/m)?.[1]||f;return '<article id="'+id(f)+'" class="article" data-search="'+esc((title+' '+s).toLowerCase())+'"><h3>'+esc(title)+'</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/'+f+'">'+esc(f)+'</a></p>'+markdown(s,f)+'</article>';}).join('\n');
 const nav=files.map(f=>'<a href="#'+id(f)+'">'+esc(f.replace('docs/features/',''))+'</a>').join('');
 const template=sourceText(path.join(here,'template.html'));
-if(process.argv.includes('--check')){
-  console.log('Validated '+files.length+' complete Markdown sources and '+imageAssets.size+' evidence PNGs; no output written.');
+const output=template.replace('<!--ARTICLE_LINKS-->',nav).replace('<!--ARTICLES-->',articles).replace('<!--FEATURE_CHECKLIST-->',renderChecklist(inventory)).replace('/* FEATURE_CHECKLIST_CSS */',sourceText(path.join(here,'checklist.css'))).replace('/* FEATURE_CHECKLIST_CLIENT */',sourceText(path.join(here,'checklist-client.js')));
+const manifest=JSON.stringify({meaning:'Deterministic source inventory, not application release provenance',features:{...inventorySummary(inventory),sha256:crypto.createHash('sha256').update(sourceText(path.join(here,'feature-inventory.json'))).digest('hex')},sources:entries,images:[...imageAssets.values()].map(({bytes,...entry})=>entry)},null,2)+'\n';
+if(check){
+  for(const [file,expected] of [['index.html',output],['content-manifest.json',manifest]])if(sourceText(path.join(here,file))!==expected)throw new Error('Generated '+file+' is stale; run node website/render.mjs');
+  for(const image of imageAssets.values())if(!fs.existsSync(path.join(here,image.destination))||!fs.readFileSync(path.join(here,image.destination)).equals(image.bytes))throw new Error('Generated evidence image is missing or differs from source');
+  console.log('Validated deterministic output, '+inventory.entries.length+' feature entries, '+files.length+' complete Markdown sources and '+imageAssets.size+' evidence PNGs; no output written.');
 }else{
   if(imageAssets.size){
     const assets=path.join(here,'assets');
@@ -58,7 +71,7 @@ if(process.argv.includes('--check')){
       if(!fs.readFileSync(destination).equals(image.bytes))throw new Error('Evidence PNG copy verification failed');
     }
   }
-  fs.writeFileSync(path.join(here,'index.html'),template.replace('<!--ARTICLE_LINKS-->',nav).replace('<!--ARTICLES-->',articles));
-  fs.writeFileSync(path.join(here,'content-manifest.json'),JSON.stringify({generatedAt:new Date().toISOString(),meaning:'Documentation generation time, not application release provenance',sources:entries,images:[...imageAssets.values()].map(({bytes,...entry})=>entry)},null,2)+'\n');
+  fs.writeFileSync(path.join(here,'index.html'),output);
+  fs.writeFileSync(path.join(here,'content-manifest.json'),manifest);
   console.log('Embedded '+files.length+' complete Markdown sources and '+imageAssets.size+' evidence PNGs.');
 }

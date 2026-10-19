@@ -11,5 +11,8 @@ if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 if (-not $DockerSmoke) {
     & $dotnet run --project tests/UiState/UiState.csproj -c Release 2>&1 | Tee-Object out/logs/ui-state-tests.log
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+    $node = (Get-Content .tools/node-path.txt -Raw).Trim()
+    & $node scripts/test-feature-checklist.mjs 2>&1 | Tee-Object out/logs/feature-checklist-tests.log
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 exit 0

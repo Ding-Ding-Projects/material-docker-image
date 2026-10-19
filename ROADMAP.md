@@ -25,6 +25,11 @@
 
 ## Extended capabilities and complete acceptance
 
+- [ ] Verify and deploy the source-controlled feature completion checklist: 123 entries implemented, focused checks and real-browser acceptance recorded separately.
+- [ ] Implement and verify container health-check configuration (`container-health-checks`).
+- [ ] Implement and verify container device mapping controls (`container-device-mappings`).
+- [ ] Implement and verify container GPU access controls (`container-gpu-access`).
+
 - [ ] Complete all 109 required-feature acceptance rows without removing unfinished identifiers.
 - [ ] Deliver portable documentation and dedicated build companions.
 - [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
