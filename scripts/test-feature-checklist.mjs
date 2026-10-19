@@ -40,6 +40,21 @@ test('Source references cannot establish full verification',()=>{
   reject(v=>v.entries[0].evidence=[],/missing evidence/);
   reject(v=>v.entries[0].evidence[0].kind='checks',/exact source and artifact/);
 });
+
+test('Source references reject verification metadata instead of rendering unvalidated bindings',()=>{
+  for(const field of ['scope','sourceCommit','artifactSha256','recordedAt','result']) {
+    reject(v=>v.entries[0].evidence[0][field]=field==='scope'?{en:'Reference scope',zh:'參考範圍'}:'<img src=x onerror=alert(1)>',/source reference.*verification metadata/);
+  }
+});
+
+test('Evidence rendering escapes binding metadata even when called without validation',()=>{
+  const candidate=structuredClone(inventory),evidence=candidate.entries[0].evidence[0];
+  evidence.kind='checks';evidence.scope={en:'Renderer boundary fixture',zh:'顯示邊界測試'};
+  for(const field of ['sourceCommit','artifactSha256','recordedAt'])evidence[field]='<img src=x onerror=alert(1)>';
+  const rendered=renderChecklist(candidate);
+  assert.doesNotMatch(rendered,/<img src=x/);
+  assert.equal((rendered.match(/&lt;img src=x onerror=alert\(1\)&gt;/g)||[]).length,3);
+});
 test('Private, credential-bearing, unrelated and unsafe evidence links are rejected',()=>{
   for(const url of ['http://localhost/proof','file:///C:/proof','javascript:alert(1)','https://example.com/proof','https://github.com/another/project/blob/main/proof','https://user:pass@github.com/Ding-Ding-Projects/material-docker-image/blob/main/proof','https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/proof?token=secret','https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/%2e%2e/proof','https://ding-ding-projects.github.io/other-project/'])reject(v=>v.entries[0].evidence[0].url=url,/public.*URL/);
 });

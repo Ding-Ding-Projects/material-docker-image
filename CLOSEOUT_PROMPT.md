@@ -1,5 +1,15 @@
 # Feature checklist continuation
 
+## Continuation on 2026-10-18
+
+The saved checklist candidate is `ca1a09752b262288422236db22375baa83db5b05`, derived from `8f24b80d1bc81b4fd1696ea8c5cdaae52a9882b5`. Continue its bounded review, browser verification, default-branch integration and deployment. The productive application has no source changes in this continuation.
+
+Independent review found that optional source-reference metadata could render unescaped HTML. A separate in-memory reproduction confirmed the path; the saved inventory contains no injected content. The repair rejects verification metadata on source references, renders bindings only for verification evidence, and escapes all binding text. The new regression was observed failing before repair. The exact `build.bat -Tests` entrypoint now passes 23 core, 51 UI-state and 13 checklist checks, including 123 omission cases. Independent review accepted the repair and confirmed unchanged rendered output for the saved inventory.
+
+The repair is being preserved on `ai/fix/20261018-checklist-evidence`. Hidden-browser verification of the original candidate is running separately with its original source binding. Runtime, release and deployment evidence must be recorded independently before completion. Existing preparation progress, historical native evidence, other tasks and retained browser profiles are preserved.
+
+Next: finish and inspect the browser receipts, preserve publishable evidence, merge the reviewed candidate and repair into main, verify deployment and normal release, apply the matching existing-installation update safely, and record final source/remote proof. No complete-product acceptance is claimed.
+
 Continue the approved documentation feature-completion checklist in the public Ding-Ding-Projects/material-docker-image repository. The productive application remains native Windows WPF; this task changes only documentation, its renderer and focused local verification.
 
 ## Candidate
