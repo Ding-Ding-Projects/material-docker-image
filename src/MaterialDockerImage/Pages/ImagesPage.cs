@@ -19,6 +19,13 @@ public sealed partial class ImagesPage : PageBase
     private readonly TextBlock subtitle;
     private readonly ContentControl errorHost = new();
     private bool reloading;
+    private readonly ImageStatTile totalTile = new("Images", Icons.Layers);
+    private readonly ImageStatTile sizeTile = new("Total size", Icons.Storage);
+    private readonly ImageStatTile danglingTile = new("Dangling", Icons.LayersClear);
+    private readonly ImageStatTile unusedTile = new("Unused", Icons.Inventory2);
+
+    /// <summary>Every image row from the last refresh (for pickers such as Compare).</summary>
+    internal IReadOnlyList<ImageRow> AllImages => table.Items;
 
     /// <summary>The engine context the current list was loaded from.</summary>
     internal string? Context => SnapshotContext;
@@ -50,8 +57,11 @@ public sealed partial class ImagesPage : PageBase
              .BulkAction("Remove selected", Icons.Delete, RemoveManyAsync, true)
              .RowAction("Run…", Icons.PlayArrow, i => { OpenRun(i); return Task.CompletedTask; }, "Enter")
              .RowAction("Tag…", Icons.Sell, TagAsync)
+             .RowAction("Retag to multiple…", Icons.Tag, RetagManyAsync)
              .RowAction("Push to registry…", Icons.CloudUpload, i => PushAsync([i]))
+             .RowAction("Push all tags of repository…", Icons.CloudSync, PushRepositoryAsync)
              .RowAction("Save archive…", Icons.Download, i => SaveAsync([i]))
+             .RowAction("Copy pull command", Icons.ContentCopy, i => { CopyPullCommand(i); return Task.CompletedTask; })
              .RowAction("Copy image ID", Icons.ContentCopy, i => { PageKit.Copy(i.Id, "the image ID"); return Task.CompletedTask; })
              .RowAction("Remove…", Icons.Delete, RemoveOneAsync, "Del", true);
         table.FocusedChanged += i => { if (!reloading) inspector.Show(i); };
@@ -61,13 +71,16 @@ public sealed partial class ImagesPage : PageBase
         prune.HorizontalAlignment = HorizontalAlignment.Right;
         var left = new Grid();
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.Children.Add(errorHost);
-        left.Children.Add(table.At(1));
-        left.Children.Add(prune.At(2));
+        left.Children.Add(ImageStatTile.Strip(totalTile, sizeTile, danglingTile, unusedTile).At(1));
+        left.Children.Add(table.At(2));
+        left.Children.Add(prune.At(3));
 
-        var body = Ui.SplitInspector(left, inspector, 1100, 400);
+        // The detail needs room for its tabs: beside the list from 1300 px, otherwise stacked below it.
+        var body = Ui.SplitInspector(left, inspector, 1300, 520);
         Layout(header, body);
     }
 
@@ -86,6 +99,7 @@ public sealed partial class ImagesPage : PageBase
             errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text("Images could not be listed: " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
             subtitle.Text = "Could not reach the engine on context " + (context ?? "default") + ".";
             table.SetItems([]);
+            UpdateStats([]);
             return;
         }
         errorHost.Content = null;
@@ -102,6 +116,19 @@ public sealed partial class ImagesPage : PageBase
         var unique = rows.GroupBy(r => r.Id).Select(g => g.First()).ToList();
         var total = unique.Sum(r => ImageRow.ParseSize(r.Size));
         subtitle.Text = $"{rows.Count} {(rows.Count == 1 ? "image" : "images")} · {unique.Count} unique IDs · {Ui.FormatBytes(total)} · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
+        UpdateStats(rows);
+    }
+
+    private void UpdateStats(IReadOnlyList<ImageRow> rows)
+    {
+        var unique = rows.GroupBy(r => r.Id).Select(g => g.First()).ToList();
+        var total = unique.Sum(r => ImageRow.ParseSize(r.Size));
+        var dangling = unique.Where(r => r.Dangling).ToList();
+        var unused = unique.Where(r => r.Total == 0).ToList();
+        totalTile.Set(rows.Count.ToString("N0", CultureInfo.CurrentCulture), $"{unique.Count} unique IDs");
+        sizeTile.Set(Ui.FormatBytes(total), "unique image data");
+        danglingTile.Set(dangling.Count.ToString("N0", CultureInfo.CurrentCulture), dangling.Count == 0 ? "nothing to prune" : Ui.FormatBytes(dangling.Sum(r => ImageRow.ParseSize(r.Size))) + " untagged");
+        unusedTile.Set(unused.Count.ToString("N0", CultureInfo.CurrentCulture), "no container uses them");
     }
 
     public override void OnShown()
@@ -122,8 +149,17 @@ public sealed partial class ImagesPage : PageBase
         new AppCommand { Id = "images.load", Title = "Load image archive…", Group = "Images", Icon = Icons.Upload, Keywords = "tar load", Run = () => _ = Guarded(LoadArchiveAsync) },
         new AppCommand { Id = "images.import", Title = "Import tarball as image…", Group = "Images", Icon = Icons.Input, Keywords = "filesystem import", Run = () => _ = Guarded(ImportAsync) },
         new AppCommand { Id = "images.prune", Title = "Prune dangling images…", Group = "Images", Icon = Icons.CleaningServices, Keywords = "cleanup remove untagged", Run = () => _ = Guarded(PruneAsync) },
+        new AppCommand { Id = "images.retag", Title = "Retag selected image to multiple tags…", Group = "Images", Icon = Icons.Tag, Keywords = "tag many names", Run = () => _ = Guarded(() => table.Focused is { } i ? RetagManyAsync(i) : NoSelection()) },
+        new AppCommand { Id = "images.pushRepository", Title = "Push all tags of selected repository…", Group = "Images", Icon = Icons.CloudSync, Keywords = "upload all-tags registry", Run = () => _ = Guarded(() => table.Focused is { } i ? PushRepositoryAsync(i) : NoSelection()) },
+        new AppCommand { Id = "images.copyPull", Title = "Copy pull command of selected image", Group = "Images", Icon = Icons.ContentCopy, Keywords = "clipboard docker pull", Run = () => { if (table.Focused is { } i) CopyPullCommand(i); else _ = NoSelection(); } },
         new AppCommand { Id = "images.refresh", Title = "Refresh images", Group = "Images", Icon = Icons.Refresh, Run = () => _ = SafeRefresh() },
     ];
+
+    private static Task NoSelection()
+    {
+        Host.Notify.Info("Select an image in Images first.");
+        return Task.CompletedTask;
+    }
 
     private static async Task Guarded(Func<Task> action)
     {
@@ -131,7 +167,7 @@ public sealed partial class ImagesPage : PageBase
         catch (Exception e) when (e is not OutOfMemoryException) { Host.Notify.Error(e.Message); }
     }
 
-    private bool EnsureCurrent()
+    internal bool EnsureCurrent()
     {
         if (IsCurrent) return true;
         Host.Notify.Error(PageKit.StaleMessage(SnapshotContext));
