@@ -120,7 +120,7 @@ public sealed class ResourceTextViewer : Grid
     }
 
     /// <summary>Opens a streaming viewer (for example logs with --follow). The process is canceled when the viewer closes.</summary>
-    public static void ShowStream(string title, string subtitle, IReadOnlyList<string> args, string? context)
+    public static void ShowStream(string title, string subtitle, IReadOnlyList<string> args, string? context, string stopLabel = "Stop following", string runningText = "Following. New lines appear as the engine sends them.", string endedText = "The log stream ended.", string stoppedText = "Stopped following. The lines above were received before stopping.")
     {
         var host = AppHost.Current;
         var viewer = new ResourceTextViewer(title, true, 20000, 200);
@@ -132,7 +132,7 @@ public sealed class ResourceTextViewer : Grid
         flush.Tick += (_, _) => { if (pending.Length == 0) return; var text = pending.ToString(); pending.Clear(); viewer.Append(text); };
         flush.Start();
         var progress = new Progress<DockerOutput>(o => pending.Append(o.Text));
-        var stop = Ui.Button("Stop following", Icons.Stop, ButtonKind.Tonal, () => cts.Cancel());
+        var stop = Ui.Button(stopLabel, Icons.Stop, ButtonKind.Tonal, () => cts.Cancel());
         var closeButton = Ui.Button("Close", null, ButtonKind.Filled, () => close?.Invoke());
         var actions = Ui.Columns(8, [1, 0, 0], state, stop, closeButton);
         var body = Ui.Rows(12, [0, 1, 0], Ui.VStack(2, Ui.Title(title, 20), Ui.Caption(subtitle)), viewer, actions);
@@ -143,18 +143,18 @@ public sealed class ResourceTextViewer : Grid
         _ = Run();
         async Task Run()
         {
-            state.Text = Loc.T("Following. New lines appear as the engine sends them.");
+            state.Text = Loc.T(runningText);
             try
             {
                 var result = await host.Docker.ExecuteAsync(args, context, progress, cts.Token);
                 await Task.Delay(250);
                 if (pending.Length > 0) { viewer.Append(pending.ToString()); pending.Clear(); }
-                state.Text = result.Cancelled ? Loc.T("Stopped following. The lines above were received before stopping.") : result.Success ? Loc.T("The log stream ended.") : $"The log command failed with exit code {result.ExitCode}.";
+                state.Text = result.Cancelled ? Loc.T(stoppedText) : result.Success ? Loc.T(endedText) : $"The command failed with exit code {result.ExitCode}.";
                 if (!result.Success && !result.Cancelled && result.StandardError.Trim().Length > 0) viewer.Append(result.StandardError);
             }
             catch (Exception e) when (e is System.ComponentModel.Win32Exception or ArgumentException or InvalidOperationException or IOException)
             {
-                state.Text = "Could not start the log stream: " + e.Message;
+                state.Text = "Could not start the command: " + e.Message;
             }
             finally { stop.IsEnabled = false; }
         }

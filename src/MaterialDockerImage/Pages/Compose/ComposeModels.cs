@@ -36,6 +36,10 @@ public sealed record ComposeTarget(string? ProjectName, IReadOnlyList<string> Fi
 {
     public bool HasFiles => Files.Count > 0;
     public string? Directory => HasFiles ? Path.GetDirectoryName(Files[0]) : null;
+    /// <summary>Explicit --env-file values. Empty means Compose reads the project directory's .env by default.</summary>
+    public IReadOnlyList<string> EnvFiles { get; init; } = [];
+    /// <summary>The project directory's .env file when it exists and no explicit env file replaces it.</summary>
+    public string? DefaultEnvFile => HasFiles && EnvFiles.Count == 0 && Directory is { } d && File.Exists(Path.Combine(d, ".env")) ? Path.Combine(d, ".env") : null;
 
     /// <summary>Builds <c>compose [--project-directory D --file F…] [--project-name N] [--profile P…] tail…</c>.</summary>
     public List<string> Args(IEnumerable<string> profiles, params string[] tail)
@@ -51,6 +55,11 @@ public sealed record ComposeTarget(string? ProjectName, IReadOnlyList<string> Fi
                 if (!File.Exists(f)) throw new FileNotFoundException("A Compose file of this project no longer exists.", f);
                 args.AddRange(["--file", Path.GetFullPath(f)]);
             }
+        }
+        foreach (var e in EnvFiles)
+        {
+            if (!File.Exists(e)) throw new FileNotFoundException("An env file chosen for this project no longer exists.", e);
+            args.AddRange(["--env-file", Path.GetFullPath(e)]);
         }
         if (!string.IsNullOrWhiteSpace(ProjectName)) { DockerService.ValidateOperand(ProjectName, "project name"); args.AddRange(["--project-name", ProjectName]); }
         else if (!HasFiles) throw new InvalidOperationException("This project has neither files nor a name.");
