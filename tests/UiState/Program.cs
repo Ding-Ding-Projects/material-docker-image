@@ -137,4 +137,143 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     fixable.Fix!.Apply!(bad);
     Check(MaterialDockerImage.UI.DockerfileLint.CountProblems(MaterialDockerImage.UI.DockerfileLint.Check(bad))<before,"an automatic lint fix removes its finding");
 }
+
+// Advanced Dockerfile syntax: mounts, network, security, heredocs, COPY/ADD flags, global ARGs, directives.
+{
+    string RoundTrip(string text)=>MaterialDockerImage.UI.DockerfileModel.Render(MaterialDockerImage.UI.DockerfileModel.Parse(text).Document);
+    bool NoRaw(string text)=>MaterialDockerImage.UI.DockerfileModel.Parse(text).Document.Stages.SelectMany(s=>s.Instructions).All(i=>i.Kind!=MaterialDockerImage.UI.InstructionKind.Raw);
+    var mounts=new Dictionary<string,string>
+    {
+        ["cache"]="RUN --mount=type=cache,target=/root/.npm,id=npm,sharing=locked,from=deps,source=/cache,mode=0755,uid=1000,gid=1000,readonly npm ci",
+        ["bind"]="RUN --mount=type=bind,target=/src,source=app,from=build,rw make",
+        ["tmpfs"]="RUN --mount=type=tmpfs,target=/tmp,size=64m ls /tmp",
+        ["secret"]="RUN --mount=type=secret,id=npmrc,target=/root/.npmrc,env=NPM_TOKEN,required=true,mode=0400,uid=1000,gid=1000 npm ci",
+        ["ssh"]="RUN --mount=type=ssh,id=default,target=/run/ssh,required=true git clone git@github.com:org/repo.git",
+    };
+    foreach(var (type,line) in mounts)
+    {
+        var text="# syntax=docker/dockerfile:1\n\nFROM alpine:3.21\n"+line+"\n";
+        var parsed=MaterialDockerImage.UI.DockerfileModel.Parse(text).Document;
+        var run=parsed.Stages[0].Instructions[0];
+        Check(run.Kind==MaterialDockerImage.UI.InstructionKind.Run&&run.Mounts.Count==1&&run.Mounts[0].Type==type,$"{type} mount parses into the model");
+        Check(RoundTrip(text)==text,$"{type} mount round trips exactly");
+        Check(MaterialDockerImage.UI.DockerfileModel.Validate(run).Count==0,$"{type} mount validates");
+        Check(MaterialDockerImage.UI.DockerfileModel.Render(MaterialDockerImage.UI.DockerfileModel.Deserialize(MaterialDockerImage.UI.DockerfileModel.Serialize(parsed)))==text,$"{type} mount survives draft JSON");
+    }
+    Check(RoundTrip("FROM alpine\nRUN --mount=type=cache,dst=/x,ro true\n")=="FROM alpine\nRUN --mount=type=cache,target=/x,readonly true\n","mount aliases are normalised");
+    Check(!NoRaw("FROM alpine\nRUN --mount=type=cache,target=/x,bogus=1 true\n"),"unknown mount option stays raw");
+    var flags="FROM alpine\nRUN --network=none --security=insecure make\n";
+    Check(RoundTrip(flags)==flags&&NoRaw(flags),"RUN network and security flags round trip");
+    var heredoc="# syntax=docker/dockerfile:1\n\nFROM debian:bookworm-slim\nRUN --mount=type=cache,target=/var/cache/apt,sharing=locked <<EOF bash\nset -ex\napt-get update\nEOF\nRUN <<'SCRIPT'\n#!/usr/bin/env python3\nprint(\"$HOME\")\nSCRIPT\nCOPY --chmod=755 <<-EOT /usr/local/bin/start.sh\n\techo hello\nEOT\n";
+    var hd=MaterialDockerImage.UI.DockerfileModel.Parse(heredoc).Document.Stages[0].Instructions;
+    Check(hd.Count==3&&hd.All(i=>i.Heredoc)&&hd[0].Interpreter=="bash"&&hd[0].HeredocBody=="set -ex\napt-get update","RUN heredoc with interpreter is structured");
+    Check(hd[1].HeredocQuoted&&hd[1].HeredocDelimiter=="SCRIPT"&&hd[1].HeredocBody.StartsWith("#!/usr/bin/env python3"),"quoted heredoc with shebang is structured");
+    Check(hd[2].Kind==MaterialDockerImage.UI.InstructionKind.Copy&&hd[2].HeredocStripTabs&&hd[2].Destination=="/usr/local/bin/start.sh","COPY heredoc is structured");
+    Check(RoundTrip(heredoc)==heredoc.Replace("<<'SCRIPT'","<<\"SCRIPT\""),"heredocs round trip (quoted delimiter normalised to double quotes)");
+    Check(RoundTrip(RoundTrip(heredoc))==RoundTrip(heredoc),"heredoc rendering is stable");
+    var python=RoundTrip("FROM python\nRUN python3 <<EOF\nprint(1)\nEOF\n");
+    Check(python=="FROM python\nRUN <<EOF python3\nprint(1)\nEOF\n","command before the heredoc is kept as the interpreter");
+    Check(!NoRaw("FROM alpine\nRUN <<A cat > a && <<B cat > b\n1\nA\n2\nB\n"),"multiple heredocs stay raw");
+    var copy="FROM alpine\nCOPY --from=build --chown=app:app --link --parents --exclude=*.md --exclude=**/*.test ./src/**/*.go /out/\n";
+    var cp=MaterialDockerImage.UI.DockerfileModel.Parse(copy).Document.Stages[0].Instructions[0];
+    Check(cp.Parents&&cp.Excludes.Count==2&&cp.Link&&cp.From=="build","COPY --parents and --exclude parse");
+    Check(RoundTrip(copy)==copy,"COPY --parents and --exclude round trip");
+    var add="FROM alpine\nADD --checksum=be1f38e --keep-git-dir=true git@github.com:org/repo.git#v1.2.3 /src\nADD --checksum=sha256:24454f830cdb571e2c4ad15481119c43b3cafd48dd869a9b2945d1036d1dc68d https://example.com/tool.tar.gz /tmp/\n";
+    var adds=MaterialDockerImage.UI.DockerfileModel.Parse(add).Document.Stages[0].Instructions;
+    Check(adds[0].KeepGitDir&&adds[0].Checksum=="be1f38e"&&MaterialDockerImage.UI.AddSourceKinds.Of(adds[0].Sources[0])==MaterialDockerImage.UI.AddSourceKind.Git,"ADD Git source with checksum and keep-git-dir parses");
+    Check(MaterialDockerImage.UI.AddSourceKinds.Of(adds[1].Sources[0])==MaterialDockerImage.UI.AddSourceKind.Url&&adds.All(a=>MaterialDockerImage.UI.DockerfileModel.Validate(a).Count==0),"ADD URL with checksum validates");
+    Check(RoundTrip(add)==add,"ADD Git and URL with checksum round trip");
+    Check(!NoRaw("FROM alpine\nADD --unpack=true a.tar.gz /x\n"),"undocumented-by-the-Creator ADD --unpack stays raw");
+    var global="# syntax=docker/dockerfile:1\n# check=skip=JSONArgsRecommended;error=true\nARG TARGETPLATFORM\nARG BUILDPLATFORM\nARG GO_VERSION=1.24\n\nFROM --platform=$BUILDPLATFORM golang:${GO_VERSION}-alpine AS build\nARG TARGETOS\nARG TARGETARCH\nRUN GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/app .\n";
+    var g=MaterialDockerImage.UI.DockerfileModel.Parse(global).Document;
+    Check(g.Preamble.Count==3&&g.Preamble.All(i=>i.Kind==MaterialDockerImage.UI.InstructionKind.Arg)&&g.CheckDirective=="skip=JSONArgsRecommended;error=true"&&g.Stages[0].Platform=="$BUILDPLATFORM","global ARG preamble, check directive and BUILDPLATFORM parse");
+    Check(RoundTrip(global)==global,"global ARG preamble round trips");
+    var fresh=MaterialDockerImage.UI.DockerfileStarters.Go();
+    Check(MaterialDockerImage.UI.DockerfilePlatform.AddGlobalArgs(fresh,"TARGETPLATFORM","BUILDPLATFORM").Count==2&&MaterialDockerImage.UI.DockerfilePlatform.AddGlobalArgs(fresh,"TARGETPLATFORM").Count==0,"platform ARG helper adds each ARG once");
+    MaterialDockerImage.UI.DockerfilePlatform.UseBuildPlatform(fresh,0);
+    Check(fresh.Stages[0].Platform=="$BUILDPLATFORM"&&fresh.Stages[0].Instructions.Take(2).All(i=>i.Kind==MaterialDockerImage.UI.InstructionKind.Arg),"cross-compilation helper sets BUILDPLATFORM and target ARGs");
+    var onbuild=MaterialDockerImage.UI.DockerfileModel.Parse("FROM alpine\nONBUILD RUN --mount=type=cache,target=/root/.npm npm ci\n").Document.Stages[0].Instructions[0];
+    Check(onbuild.Inner?.Kind==MaterialDockerImage.UI.InstructionKind.Run&&onbuild.Inner.Mounts.Count==1,"ONBUILD wraps a structured instruction");
+    var maint=MaterialDockerImage.UI.DockerfileModel.Parse("FROM alpine:3.21\nMAINTAINER Jane <jane@example.com>\n").Document;
+    var deprecated=MaterialDockerImage.UI.DockerfileLint.Check(maint).First(r=>r.Id=="DF114");
+    deprecated.Fix!.Apply!(maint);
+    Check(maint.Stages[0].Instructions[0].Kind==MaterialDockerImage.UI.InstructionKind.Label&&maint.Stages[0].Instructions[0].Pairs[0].Value=="Jane <jane@example.com>","MAINTAINER fix converts to an authors LABEL");
+    var npm=MaterialDockerImage.UI.DockerfileModel.Parse("FROM node:22-alpine\nWORKDIR /app\nCOPY .npmrc package.json ./\nRUN npm ci\nRUN pip install flask\nRUN curl -fsSL https://example.com/install.sh | sh\nENV PATH=/opt/bin\n").Document;
+    var advanced=MaterialDockerImage.UI.DockerfileLint.Check(npm).Select(r=>r.Id).ToHashSet();
+    Check(new[]{"DF100","DF101","DF102","DF104","DF106","DF111"}.All(advanced.Contains),"advanced lint rules report cache, secret, pipe, pip and PATH findings");
+    var cacheFix=MaterialDockerImage.UI.DockerfileLint.Check(npm).First(r=>r.Id=="DF101"&&r.Title.StartsWith("npm"));
+    cacheFix.Fix!.Apply!(npm);
+    Check(npm.Stages[0].Instructions.Any(i=>i.Mounts.Any(m=>m.Target=="/root/.npm")),"cache mount fix adds the npm cache");
+    var command=MaterialDockerImage.UI.DockerfilePlatform.BuildCommand(MaterialDockerImage.UI.DockerfileModel.Parse("FROM alpine\nRUN --mount=type=secret,id=tok --security=insecure true\n").Document,"Dockerfile",".","demo:dev");
+    Check(command.Command=="docker buildx build -f Dockerfile -t demo:dev --allow security.insecure --secret id=tok .","build command lists entitlements and secrets without values");
+    var tokens=MaterialDockerImage.UI.DockerfileHighlighter.Tokenize(heredoc);
+    Check(tokens.Sum(t=>t.Length)==heredoc.Length&&tokens.Any(t=>t.Kind==MaterialDockerImage.UI.DockerfileTokenKind.HeredocBody)&&tokens.Any(t=>t.Kind==MaterialDockerImage.UI.DockerfileTokenKind.Flag),"highlighter covers every character and finds flags and heredoc bodies");
+}
+
+// Render and parse line maps used for two-way selection between the preview and the cards.
+{
+    var doc=MaterialDockerImage.UI.DockerfileStarters.Node();
+    doc.Preamble.Add(new MaterialDockerImage.UI.DockerInstruction{Kind=MaterialDockerImage.UI.InstructionKind.Arg,Name="NODE_VERSION",HasValue=true,Value="22"});
+    var rendered=MaterialDockerImage.UI.DockerfileModel.RenderWithMap(doc);
+    var lines=rendered.Text.Split('\n');
+    Check(rendered.Text==MaterialDockerImage.UI.DockerfileModel.Render(doc),"render with map produces the same text");
+    Check(rendered.Lines.All(s=>s.InstructionIndex<0?lines[s.StartLine].StartsWith("FROM "):s.StageIndex<0?lines[s.StartLine].StartsWith("ARG"):lines[s.StartLine].StartsWith(MaterialDockerImage.UI.DockerfileModel.RenderInstruction(doc.Stages[s.StageIndex].Instructions[s.InstructionIndex]).Split('\n')[0])),"every mapped span starts on its own rendered line");
+    Check(MaterialDockerImage.UI.DockerfileModel.SpanAt(rendered.Lines,3)?.StageIndex==0&&MaterialDockerImage.UI.DockerfileModel.SpanAt(rendered.Lines,3)?.InstructionIndex==-1&&MaterialDockerImage.UI.DockerfileModel.SpanAt(rendered.Lines,2)==null,"line of the first FROM maps to stage 0");
+    var reparsed=MaterialDockerImage.UI.DockerfileModel.Parse(rendered.Text);
+    Check(reparsed.LineMap.Count==rendered.Lines.Count&&reparsed.LineMap.Zip(rendered.Lines).All(p=>p.First==p.Second),"parse line map equals the render line map");
+    var multi=MaterialDockerImage.UI.DockerfileModel.Parse("FROM alpine\n\n# two\n# lines\nRUN a && \\\n    b\nRUN <<EOF\nx\nEOF\nBOGUS thing\n");
+    Check(multi.LineMap.Select(s=>(s.StartLine,s.EndLine)).SequenceEqual(new[]{(0,0),(2,3),(4,5),(6,8),(9,9)}),"comments, continuations and heredocs map to their full line ranges");
+    Check(multi.Warnings.Any(w=>MaterialDockerImage.UI.DockerfileParseResult.WarningLine(w)==10),"parse warnings carry their line number");
+}
+
+// .dockerignore matching follows Docker's pattern rules.
+{
+    var rules=MaterialDockerImage.UI.Dockerignore.Compile(new[]{"# comment","**/*.log","!keep.log","node_modules/","/build","docs/*.md","!docs/README.md","te?t.txt"});
+    bool Ex(string p)=>MaterialDockerImage.UI.Dockerignore.IsExcluded(rules,p);
+    Check(Ex("a.log")&&Ex("deep/nested/b.log"),"**/*.log matches at any depth including the root");
+    Check(!Ex("keep.log")&&Ex("sub/keep.log"),"!keep.log re-includes only the root file");
+    Check(Ex("node_modules")&&Ex("node_modules/pkg/index.js")&&!Ex("src/node_modules/x.js"),"node_modules/ matches the root folder and its contents only");
+    Check(Ex("build")&&Ex("build/out.bin")&&!Ex("src/build"),"/build is anchored to the context root");
+    Check(Ex("docs/a.md")&&!Ex("docs/README.md")&&!Ex("docs/sub/a.md"),"single star stays within one segment and exceptions win when later");
+    Check(Ex("test.txt")&&Ex("text.txt")&&!Ex("teest.txt"),"? matches exactly one character");
+    Check(MaterialDockerImage.UI.Dockerignore.Clean("./a//b/../c/")=="a/c","paths are cleaned like Docker");
+    var root=Path.Combine(Path.GetTempPath(),"mdi-ignore-"+Guid.NewGuid().ToString("N"));
+    try
+    {
+        Directory.CreateDirectory(Path.Combine(root,"node_modules","pkg")); Directory.CreateDirectory(Path.Combine(root,"src"));
+        File.WriteAllText(Path.Combine(root,"node_modules","pkg","index.js"),"x"); File.WriteAllText(Path.Combine(root,"src","app.js"),"x"); File.WriteAllText(Path.Combine(root,"debug.log"),"x"); File.WriteAllText(Path.Combine(root,"keep.log"),"x");
+        var check=MaterialDockerImage.UI.Dockerignore.Evaluate(root,new[]{"**/*.log","!keep.log","node_modules/"});
+        Check(check.Entries.Any(e=>e.Path=="node_modules"&&e.Excluded)&&check.Entries.Any(e=>e.Path=="src/app.js"&&!e.Excluded)&&check.Entries.Any(e=>e.Path=="debug.log"&&e.Excluded)&&check.Entries.Any(e=>e.Path=="keep.log"&&!e.Excluded),"context check reports included and excluded entries");
+        Check(MaterialDockerImage.UI.Dockerignore.Evaluate(root,new string[0],2).Truncated,"context check is bounded");
+    }
+    finally { try { Directory.Delete(root,true); } catch(IOException) { } }
+}
+
+// Project detection on temporary folders.
+{
+    var node=Path.Combine(Path.GetTempPath(),"mdi-node-"+Guid.NewGuid().ToString("N"));
+    var go=Path.Combine(Path.GetTempPath(),"mdi-go-"+Guid.NewGuid().ToString("N"));
+    try
+    {
+        Directory.CreateDirectory(node);
+        File.WriteAllText(Path.Combine(node,"package.json"),"{\"name\":\"@acme/Web-App\",\"main\":\"server.js\",\"scripts\":{\"start\":\"node server.js\",\"build\":\"tsc\"},\"engines\":{\"node\":\">=20.10\"},\"dependencies\":{\"express\":\"^4\"}}");
+        File.WriteAllText(Path.Combine(node,"package-lock.json"),"{}");
+        var d=MaterialDockerImage.UI.ProjectDetector.Detect(node);
+        Check(d.Language=="node"&&d.PackageManager=="npm"&&d.Version=="20"&&d.HasStartScript&&d.HasBuildScript&&d.Framework=="Express"&&d.Name=="acme-web-app","Node.js project detected with npm lockfile, engines and scripts");
+        Check(d.Findings.Any(f=>f.Evidence.Contains("package-lock.json")),"findings name their evidence files");
+        var suggestion=MaterialDockerImage.UI.ProjectDetector.Suggest(d);
+        var text=MaterialDockerImage.UI.DockerfileModel.Render(suggestion);
+        Check(text.Contains("npm ci --omit=dev")&&text.Contains("source=package-lock.json")&&text.Contains("ARG NODE_VERSION=20")&&MaterialDockerImage.UI.DockerfileModel.Render(MaterialDockerImage.UI.DockerfileModel.Parse(text).Document)==text,"Node.js suggestion uses the lockfile and round trips");
+        Check(DockerfileGraph.Parse(text).Stages.Count==suggestion.Stages.Count,"Node.js suggestion is readable by the canvas parser");
+        Check(MaterialDockerImage.UI.ProjectDetector.ComposeFor(d,suggestion).Contains("\"3000:3000\"")&&suggestion.IgnorePatterns.Contains("node_modules"),"compose and .dockerignore are generated for the detection");
+        Directory.CreateDirectory(Path.Combine(go,"cmd","api"));
+        File.WriteAllText(Path.Combine(go,"go.mod"),"module github.com/acme/service\n\ngo 1.23.4\n");
+        File.WriteAllText(Path.Combine(go,"cmd","api","main.go"),"package main");
+        var g=MaterialDockerImage.UI.ProjectDetector.Detect(go);
+        Check(g.Language=="go"&&g.Version=="1.23"&&g.BuildPath=="./cmd/api"&&g.Entry=="api","Go module detected with version and command package");
+        var goText=MaterialDockerImage.UI.DockerfileModel.Render(MaterialDockerImage.UI.ProjectDetector.Suggest(g));
+        Check(goText.Contains("golang:1.23-alpine")&&goText.Contains("./cmd/api")&&!goText.Contains("go.sum"),"Go suggestion uses the module version and skips a missing go.sum");
+    }
+    finally { foreach(var f in new[]{node,go}) try { Directory.Delete(f,true); } catch(IOException) { } }
+}
 Console.WriteLine($"UI state checks: {count} passed.");

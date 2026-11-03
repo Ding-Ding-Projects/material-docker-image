@@ -51,10 +51,36 @@ public sealed class DockerInstruction
     public string Command { get; set; } = "";
     /// <summary>Exec-form arguments.</summary>
     public List<string> Arguments { get; set; } = new();
-    /// <summary>RUN --mount=type=cache,target=... targets.</summary>
+    /// <summary>Legacy RUN cache mount targets from older drafts. <see cref="DockerfileModel.Normalize"/> moves them into <see cref="Mounts"/>; rendering still honours them.</summary>
     public List<string> CacheTargets { get; set; } = new();
-    /// <summary>RUN --mount=type=secret,id=... identifiers.</summary>
+    /// <summary>Legacy RUN secret mount ids from older drafts (see <see cref="CacheTargets"/>).</summary>
     public List<string> SecretIds { get; set; } = new();
+    /// <summary>RUN --mount entries of every type, in source order.</summary>
+    public List<RunMount> Mounts { get; set; } = new();
+    /// <summary>RUN --network: empty (not written), default, none or host.</summary>
+    public string Network { get; set; } = "";
+    /// <summary>RUN --security: empty (not written), sandbox or insecure.</summary>
+    public string Security { get; set; } = "";
+    /// <summary>RUN script or COPY file content given as a here-document instead of a command or sources.</summary>
+    public bool Heredoc { get; set; }
+    public string HeredocBody { get; set; } = "";
+    public string HeredocDelimiter { get; set; } = "EOF";
+    /// <summary>Quoted delimiter (&lt;&lt;"EOF"): variables in the body are not expanded at build time.</summary>
+    public bool HeredocQuoted { get; set; }
+    /// <summary>&lt;&lt;-EOF: leading tabs are removed from body lines.</summary>
+    public bool HeredocStripTabs { get; set; }
+    /// <summary>RUN heredoc interpreter written after the delimiter, for example bash or python3. Empty uses the default shell.</summary>
+    public string Interpreter { get; set; } = "";
+    /// <summary>COPY --parents.</summary>
+    public bool Parents { get; set; }
+    /// <summary>COPY/ADD --exclude patterns.</summary>
+    public List<string> Excludes { get; set; } = new();
+    /// <summary>ADD --checksum for URL and Git sources.</summary>
+    public string Checksum { get; set; } = "";
+    /// <summary>ADD --keep-git-dir=true for Git sources.</summary>
+    public bool KeepGitDir { get; set; }
+    /// <summary>ONBUILD: the wrapped instruction. When null, <see cref="Value"/> holds the instruction text.</summary>
+    public DockerInstruction? Inner { get; set; }
     public string Port { get; set; } = "";
     public string Protocol { get; set; } = "tcp";
     public string Interval { get; set; } = "";
@@ -80,6 +106,12 @@ public sealed class DockerfileDocument
 {
     public bool SyntaxHeader { get; set; } = true;
     public string Syntax { get; set; } = "docker/dockerfile:1";
+    /// <summary># escape= parser directive; empty means the default backslash.</summary>
+    public string Escape { get; set; } = "";
+    /// <summary># check= parser directive value, for example skip=JSONArgsRecommended;error=true. Empty means not written.</summary>
+    public string CheckDirective { get; set; } = "";
+    /// <summary>.dockerignore patterns edited alongside the Dockerfile (one pattern or comment per entry).</summary>
+    public List<string> IgnorePatterns { get; set; } = new();
     /// <summary>Instructions before the first FROM (global ARGs, comments and raw lines).</summary>
     public List<DockerInstruction> Preamble { get; set; } = new();
     public List<DockerfileStage> Stages { get; set; } = new();
@@ -90,7 +122,30 @@ public sealed class DockerfileDocument
     public DockerfileDocument Clone() => DockerfileModel.Clone(this);
 }
 
-public sealed record DockerfileParseResult(DockerfileDocument Document, IReadOnlyList<string> Warnings);
+/// <summary>
+/// Source lines (zero-based, inclusive) of one model element. StageIndex -1 is the global preamble; InstructionIndex -1
+/// is the stage's FROM line.
+/// </summary>
+public sealed record DockerfileLineSpan(int StageIndex, int InstructionIndex, int StartLine, int EndLine)
+{
+    public bool Contains(int line) => line >= StartLine && line <= EndLine;
+}
+
+/// <summary>Rendered text with the line span of every stage FROM line and instruction.</summary>
+public sealed record DockerfileRenderResult(string Text, IReadOnlyList<DockerfileLineSpan> Lines);
+
+public sealed record DockerfileParseResult(DockerfileDocument Document, IReadOnlyList<string> Warnings, IReadOnlyList<DockerfileLineSpan>? Lines = null)
+{
+    /// <summary>Line spans of the parsed elements in the source text (empty when not recorded).</summary>
+    public IReadOnlyList<DockerfileLineSpan> LineMap => Lines ?? Array.Empty<DockerfileLineSpan>();
+
+    /// <summary>The one-based source line a warning refers to ("Line 12: …"), or 0 when it is document-wide.</summary>
+    public static int WarningLine(string warning)
+    {
+        var m = Regex.Match(warning, @"^Line (\d+):", RegexOptions.None, TimeSpan.FromMilliseconds(100));
+        return m.Success && int.TryParse(m.Groups[1].Value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : 0;
+    }
+}
 
 /// <summary>Pure rendering, parsing, validation and serialisation for the structured Dockerfile model.</summary>
 public static class DockerfileModel
@@ -112,8 +167,8 @@ public static class DockerfileModel
     /// <summary>Replaces null collections from hand-edited or older drafts with empty ones.</summary>
     public static void Normalize(DockerfileDocument document)
     {
-        document.Preamble ??= new(); document.Stages ??= new();
-        document.Syntax ??= DefaultSyntax; document.Target ??= ""; document.Origin ??= "";
+        document.Preamble ??= new(); document.Stages ??= new(); document.IgnorePatterns ??= new();
+        document.Syntax ??= DefaultSyntax; document.Target ??= ""; document.Origin ??= ""; document.Escape ??= ""; document.CheckDirective ??= "";
         foreach (var stage in document.Stages)
         {
             stage.Instructions ??= new(); stage.Name ??= ""; stage.BaseImage ??= ""; stage.Platform ??= "";
@@ -124,9 +179,33 @@ public static class DockerfileModel
     private static void NormalizeInstruction(DockerInstruction i)
     {
         i.Pairs ??= new(); i.Sources ??= new(); i.Arguments ??= new(); i.CacheTargets ??= new(); i.SecretIds ??= new();
+        i.Mounts ??= new(); i.Excludes ??= new();
         i.Name ??= ""; i.Value ??= ""; i.Destination ??= ""; i.From ??= ""; i.Chown ??= ""; i.Chmod ??= ""; i.Command ??= "";
         i.Port ??= ""; i.Protocol ??= "tcp"; i.Interval ??= ""; i.Timeout ??= ""; i.StartPeriod ??= ""; i.Retries ??= "";
+        i.Network ??= ""; i.Security ??= ""; i.HeredocBody ??= ""; i.HeredocDelimiter ??= "EOF"; i.Interpreter ??= ""; i.Checksum ??= "";
+        foreach (var m in i.Mounts) RunMounts.Normalize(m);
+        MigrateLegacyMounts(i);
+        if (i.Inner != null) NormalizeInstruction(i.Inner);
     }
+
+    /// <summary>Moves legacy cache targets and secret ids into <see cref="DockerInstruction.Mounts"/> without changing the rendered text.</summary>
+    public static void MigrateLegacyMounts(DockerInstruction i)
+    {
+        if (i.CacheTargets.Count == 0 && i.SecretIds.Count == 0) return;
+        var legacy = LegacyMounts(i).ToList();
+        i.Mounts.InsertRange(0, legacy);
+        i.CacheTargets.Clear(); i.SecretIds.Clear();
+    }
+
+    private static IEnumerable<RunMount> LegacyMounts(DockerInstruction i) =>
+        i.CacheTargets.Where(t => t.Trim().Length > 0).Select(t => new RunMount { Type = RunMounts.Cache, Target = t.Trim() })
+            .Concat(i.SecretIds.Where(t => t.Trim().Length > 0).Select(id => new RunMount { Type = RunMounts.Secret, Id = id.Trim() }));
+
+    /// <summary>Every RUN mount: legacy entries first, then <see cref="DockerInstruction.Mounts"/>.</summary>
+    public static IReadOnlyList<RunMount> AllMounts(DockerInstruction i) => LegacyMounts(i).Concat(i.Mounts).ToList();
+
+    /// <summary>The shell text a RUN executes: the heredoc body, the exec arguments joined, or the shell command.</summary>
+    public static string RunScript(DockerInstruction i) => i.Heredoc ? i.HeredocBody : i.ExecForm ? string.Join(" ", i.Arguments) : i.Command;
 
     public static string Keyword(InstructionKind kind) => kind switch
     {
@@ -140,19 +219,37 @@ public static class DockerfileModel
     // ---------------------------------------------------------------- Rendering
 
     /// <summary>Renders the whole document. Output is deterministic and always ends with a single newline.</summary>
-    public static string Render(DockerfileDocument document)
+    public static string Render(DockerfileDocument document) => RenderWithMap(document).Text;
+
+    /// <summary>Renders the document and records which lines each FROM and instruction occupies.</summary>
+    public static DockerfileRenderResult RenderWithMap(DockerfileDocument document)
     {
         var sb = new StringBuilder();
+        var map = new List<DockerfileLineSpan>();
+        var line = 0;
+        void Emit(int stage, int instruction, string text)
+        {
+            var count = 1 + text.Count(c => c == '\n');
+            map.Add(new DockerfileLineSpan(stage, instruction, line, line + count - 1));
+            sb.Append(text).Append('\n');
+            line += count;
+        }
         if (document.SyntaxHeader) sb.Append("# syntax=").Append(string.IsNullOrWhiteSpace(document.Syntax) ? DefaultSyntax : document.Syntax.Trim()).Append('\n');
-        foreach (var instruction in document.Preamble) sb.Append(RenderInstruction(instruction)).Append('\n');
+        if (document.Escape.Trim().Length > 0) sb.Append("# escape=").Append(document.Escape.Trim()).Append('\n');
+        if (document.CheckDirective.Trim().Length > 0) sb.Append("# check=").Append(document.CheckDirective.Trim()).Append('\n');
+        line = sb.ToString().Count(c => c == '\n');
+        for (var p = 0; p < document.Preamble.Count; p++) Emit(-1, p, RenderInstruction(document.Preamble[p]));
         for (var i = 0; i < document.Stages.Count; i++)
         {
-            if (sb.Length > 0) sb.Append('\n');
-            sb.Append(RenderFrom(document.Stages[i])).Append('\n');
-            foreach (var instruction in document.Stages[i].Instructions) sb.Append(RenderInstruction(instruction)).Append('\n');
+            if (sb.Length > 0) { sb.Append('\n'); line++; }
+            Emit(i, -1, RenderFrom(document.Stages[i]));
+            for (var k = 0; k < document.Stages[i].Instructions.Count; k++) Emit(i, k, RenderInstruction(document.Stages[i].Instructions[k]));
         }
-        return sb.ToString();
+        return new DockerfileRenderResult(sb.ToString(), map);
     }
+
+    /// <summary>The span whose lines contain <paramref name="line"/> (zero-based), preferring the innermost; null for blank lines.</summary>
+    public static DockerfileLineSpan? SpanAt(IReadOnlyList<DockerfileLineSpan> map, int line) => map.LastOrDefault(s => s.Contains(line));
 
     public static string RenderFrom(DockerfileStage stage)
     {
@@ -175,16 +272,23 @@ public static class DockerfileModel
             case InstructionKind.Workdir:
             case InstructionKind.User:
             case InstructionKind.StopSignal:
-            case InstructionKind.OnBuild:
                 return Keyword(i.Kind) + " " + i.Value.Trim();
+            case InstructionKind.OnBuild:
+                return "ONBUILD " + (i.Inner != null ? RenderInstruction(i.Inner) : i.Value.Trim());
             case InstructionKind.Copy:
             case InstructionKind.Add:
             {
                 var sb = new StringBuilder(Keyword(i.Kind));
                 if (i.Kind == InstructionKind.Copy && i.From.Trim().Length > 0) sb.Append(" --from=").Append(i.From.Trim());
+                if (i.Kind == InstructionKind.Add && i.Checksum.Trim().Length > 0) sb.Append(" --checksum=").Append(i.Checksum.Trim());
+                if (i.Kind == InstructionKind.Add && i.KeepGitDir) sb.Append(" --keep-git-dir=true");
                 if (i.Chown.Trim().Length > 0) sb.Append(" --chown=").Append(i.Chown.Trim());
                 if (i.Chmod.Trim().Length > 0) sb.Append(" --chmod=").Append(i.Chmod.Trim());
                 if (i.Link) sb.Append(" --link");
+                if (i.Kind == InstructionKind.Copy && i.Parents) sb.Append(" --parents");
+                foreach (var pattern in i.Excludes.Select(e => e.Trim()).Where(e => e.Length > 0)) sb.Append(" --exclude=").Append(pattern);
+                if (i.Kind == InstructionKind.Copy && i.Heredoc)
+                    return sb.Append(' ').Append(HeredocOpener(i)).Append(' ').Append(i.Destination.Trim()).Append('\n').Append(HeredocTail(i)).ToString();
                 var paths = i.Sources.Select(s => s.Trim()).Where(s => s.Length > 0).Append(i.Destination.Trim()).ToList();
                 if (paths.Any(NeedsJsonPath)) sb.Append(' ').Append(ExecJson(paths));
                 else sb.Append(' ').Append(string.Join(" ", paths));
@@ -193,8 +297,15 @@ public static class DockerfileModel
             case InstructionKind.Run:
             {
                 var sb = new StringBuilder("RUN");
-                foreach (var target in i.CacheTargets.Where(t => t.Trim().Length > 0)) sb.Append(" --mount=type=cache,target=").Append(target.Trim());
-                foreach (var id in i.SecretIds.Where(t => t.Trim().Length > 0)) sb.Append(" --mount=type=secret,id=").Append(id.Trim());
+                foreach (var mount in AllMounts(i)) sb.Append(" --mount=").Append(RunMounts.Render(mount));
+                if (i.Network.Trim().Length > 0) sb.Append(" --network=").Append(i.Network.Trim());
+                if (i.Security.Trim().Length > 0) sb.Append(" --security=").Append(i.Security.Trim());
+                if (i.Heredoc)
+                {
+                    sb.Append(' ').Append(HeredocOpener(i));
+                    if (i.Interpreter.Trim().Length > 0) sb.Append(' ').Append(i.Interpreter.Trim());
+                    return sb.Append('\n').Append(HeredocTail(i)).ToString();
+                }
                 sb.Append(' ').Append(i.ExecForm ? ExecJson(i.Arguments) : i.Command.Trim());
                 return sb.ToString();
             }
@@ -228,6 +339,21 @@ public static class DockerfileModel
             default:
                 throw new ArgumentOutOfRangeException(nameof(i), i.Kind, "Unknown instruction kind.");
         }
+    }
+
+    private static string HeredocOpener(DockerInstruction i)
+    {
+        var delimiter = i.HeredocDelimiter.Trim().Length > 0 ? i.HeredocDelimiter.Trim() : "EOF";
+        return "<<" + (i.HeredocStripTabs ? "-" : "") + (i.HeredocQuoted ? "\"" + delimiter + "\"" : delimiter);
+    }
+
+    /// <summary>The heredoc body lines followed by the terminating delimiter line.</summary>
+    private static string HeredocTail(DockerInstruction i)
+    {
+        var body = i.HeredocBody.Replace("\r\n", "\n");
+        if (body.EndsWith('\n')) body = body[..^1];
+        var delimiter = i.HeredocDelimiter.Trim().Length > 0 ? i.HeredocDelimiter.Trim() : "EOF";
+        return (body.Length > 0 ? body + "\n" : "") + delimiter;
     }
 
     private static bool NeedsJsonPath(string path) => path.Any(c => char.IsWhiteSpace(c) || c == '"');
@@ -289,9 +415,10 @@ public static class DockerfileModel
         InstructionKind.Env => i.Pairs.Count == 1 ? "1 variable" : $"{i.Pairs.Count} variables",
         InstructionKind.Label => i.Pairs.Count == 1 ? "1 label" : $"{i.Pairs.Count} labels",
         InstructionKind.Workdir => "Working directory for the steps below",
-        InstructionKind.Copy => i.From.Trim().Length > 0 ? "From stage " + i.From.Trim() : $"{i.Sources.Count} source(s) from the build context",
-        InstructionKind.Add => "Adds files; prefer COPY for local files",
-        InstructionKind.Run => (i.ExecForm ? "Exec form" : "Shell form") + (i.CacheTargets.Count > 0 ? $" · {i.CacheTargets.Count} cache mount(s)" : "") + (i.SecretIds.Count > 0 ? $" · {i.SecretIds.Count} secret mount(s)" : ""),
+        InstructionKind.Copy => (i.Heredoc ? "Inline file (heredoc)" : i.From.Trim().Length > 0 ? "From stage " + i.From.Trim() : $"{i.Sources.Count} source(s) from the build context")
+            + (i.Parents ? " · keeps parent folders" : "") + (i.Excludes.Count > 0 ? $" · {i.Excludes.Count} exclusion(s)" : ""),
+        InstructionKind.Add => AddSourceKinds.Describe(i),
+        InstructionKind.Run => RunHint(i),
         InstructionKind.User => IsRootUser(i.Value) ? "Runs as root" : "Drops root before the command runs",
         InstructionKind.Expose => "Documents the port; publishing happens at run time",
         InstructionKind.Volume => "Declares mount points",
@@ -299,11 +426,21 @@ public static class DockerfileModel
         InstructionKind.Healthcheck => i.Disabled ? "Disables the inherited health check" : "Lets the engine report readiness",
         InstructionKind.StopSignal => "Signal sent to stop the container",
         InstructionKind.Shell => "Shell used by later shell-form instructions",
-        InstructionKind.OnBuild => "Runs when another image builds FROM this one",
+        InstructionKind.OnBuild => "Runs when another image builds FROM this one" + (i.Inner != null ? " (" + Keyword(i.Inner.Kind) + ")" : ""),
         InstructionKind.Comment => "Comment",
         InstructionKind.Raw => "Kept exactly as written (not modelled)",
         _ => ""
     };
+
+    private static string RunHint(DockerInstruction i)
+    {
+        var parts = new List<string> { i.Heredoc ? "Heredoc script" + (i.Interpreter.Trim().Length > 0 ? " (" + i.Interpreter.Trim() + ")" : "") : i.ExecForm ? "Exec form" : "Shell form" };
+        foreach (var group in AllMounts(i).GroupBy(m => m.Type.Trim().ToLowerInvariant()))
+            parts.Add($"{group.Count()} {group.Key} mount(s)");
+        if (i.Network.Trim().Length > 0) parts.Add("network " + i.Network.Trim());
+        if (string.Equals(i.Security.Trim(), "insecure", StringComparison.OrdinalIgnoreCase)) parts.Add("insecure mode");
+        return string.Join(" · ", parts);
+    }
 
     public static bool IsRootUser(string user)
     {
@@ -333,7 +470,7 @@ public static class DockerfileModel
         InstructionKind.Healthcheck => new() { Kind = kind, Interval = "30s", Timeout = "5s", StartPeriod = "10s", Retries = "3", Command = "wget -qO- http://localhost:8080/ || exit 1" },
         InstructionKind.StopSignal => new() { Kind = kind, Value = "SIGTERM" },
         InstructionKind.Shell => new() { Kind = kind, ExecForm = true, Arguments = { "/bin/sh", "-c" } },
-        InstructionKind.OnBuild => new() { Kind = kind, Value = "COPY . /app" },
+        InstructionKind.OnBuild => new() { Kind = kind, Inner = new DockerInstruction { Kind = InstructionKind.Copy, Sources = { "." }, Destination = "/app" } },
         InstructionKind.Comment => new() { Kind = kind, Value = "Explain the next step" },
         _ => new() { Kind = InstructionKind.Raw, Value = "" }
     };
@@ -379,21 +516,43 @@ public static class DockerfileModel
                 break;
             case InstructionKind.Copy:
             case InstructionKind.Add:
-                if (!i.Sources.Any(s => s.Trim().Length > 0)) problems.Add("Add at least one source path.");
+                if (i.Heredoc && i.Kind == InstructionKind.Copy) ValidateHeredoc(i, problems);
+                else if (!i.Sources.Any(s => s.Trim().Length > 0)) problems.Add("Add at least one source path.");
                 if (i.Destination.Trim().Length == 0) problems.Add("Enter a destination path.");
+                foreach (var pattern in i.Excludes)
+                    if (pattern.Trim().Length == 0 || pattern.Any(c => char.IsWhiteSpace(c) || char.IsControl(c))) problems.Add("Exclude patterns cannot be empty or contain spaces.");
+                if (i.Kind == InstructionKind.Add)
+                {
+                    var remote = i.Sources.Where(x => x.Trim().Length > 0).Select(x => AddSourceKinds.Of(x)).ToList();
+                    if (i.Checksum.Trim().Length > 0)
+                    {
+                        if (remote.Any(k => k == AddSourceKind.Local)) problems.Add("--checksum only applies to URL and Git sources.");
+                        if (!Regex.IsMatch(i.Checksum.Trim(), @"^(sha(256|384|512):[0-9a-fA-F]{32,128}|[0-9a-f]{7,64}|\$\{?[A-Za-z_][A-Za-z0-9_]*\}?)$", RegexOptions.None, RegexTimeout))
+                            problems.Add("Checksum is sha256: followed by the hexadecimal digest for URLs, or a commit hash for Git sources.");
+                    }
+                    if (i.KeepGitDir && remote.Any(k => k != AddSourceKind.Git)) problems.Add("--keep-git-dir only applies to Git repository sources.");
+                }
                 if (i.Chmod.Trim().Length > 0 && !Regex.IsMatch(i.Chmod.Trim(), "^[0-7]{3,4}$", RegexOptions.None, RegexTimeout)) problems.Add("Permissions use octal notation, for example 755 or 0644.");
                 if (i.Chown.Trim().Any(char.IsWhiteSpace) || i.From.Trim().Any(char.IsWhiteSpace)) problems.Add("Owner and source stage cannot contain spaces.");
                 foreach (var s in i.Sources) NoControl("Sources", s);
                 NoControl("Destination", i.Destination);
                 break;
             case InstructionKind.Run:
-                if (i.ExecForm ? i.Arguments.Count == 0 : i.Command.Trim().Length == 0) problems.Add("Enter the command to run.");
-                if (!i.ExecForm) ValidateContinuations(i.Command, problems);
-                foreach (var a in i.Arguments) NoControl("Arguments", a);
-                foreach (var t in i.CacheTargets.Where(t => t.Trim().Length > 0))
-                    if (!(t.Trim().StartsWith('/') || t.Trim().StartsWith('$')) || t.Contains(',') || t.Any(char.IsWhiteSpace)) problems.Add($"Cache target \"{t.Trim()}\" must be an absolute path without commas or spaces.");
-                foreach (var id in i.SecretIds.Where(t => t.Trim().Length > 0))
-                    if (!Regex.IsMatch(id.Trim(), "^[A-Za-z_][A-Za-z0-9_.-]*$", RegexOptions.None, RegexTimeout)) problems.Add($"Secret id \"{id.Trim()}\" must start with a letter or underscore.");
+                if (i.Heredoc)
+                {
+                    ValidateHeredoc(i, problems);
+                    NoControl("Interpreter", i.Interpreter);
+                    if (i.Interpreter.Contains("<<", StringComparison.Ordinal)) problems.Add("The interpreter cannot contain another heredoc.");
+                }
+                else
+                {
+                    if (i.ExecForm ? i.Arguments.Count == 0 : i.Command.Trim().Length == 0) problems.Add("Enter the command to run.");
+                    if (!i.ExecForm) ValidateContinuations(i.Command, problems);
+                    foreach (var a in i.Arguments) NoControl("Arguments", a);
+                }
+                foreach (var mount in AllMounts(i)) problems.AddRange(RunMounts.Validate(mount));
+                if (i.Network.Trim().ToLowerInvariant() is not ("" or "default" or "none" or "host")) problems.Add("Network must be default, none or host.");
+                if (i.Security.Trim().ToLowerInvariant() is not ("" or "sandbox" or "insecure")) problems.Add("Security must be sandbox or insecure.");
                 break;
             case InstructionKind.User:
                 if (i.Value.Trim().Length == 0 || i.Value.Trim().Any(char.IsWhiteSpace)) problems.Add("Enter one user name or UID (optionally user:group) without spaces.");
@@ -428,6 +587,12 @@ public static class DockerfileModel
                 if (i.Arguments.Count == 0) problems.Add("Enter the shell executable and its arguments, for example /bin/sh and -c.");
                 break;
             case InstructionKind.OnBuild:
+                if (i.Inner != null)
+                {
+                    if (i.Inner.Kind is InstructionKind.OnBuild or InstructionKind.Comment or InstructionKind.Raw) problems.Add("ONBUILD wraps one instruction such as RUN or COPY (not ONBUILD, a comment or raw text).");
+                    else problems.AddRange(Validate(i.Inner));
+                    break;
+                }
                 var inner = i.Value.Trim();
                 if (inner.Length == 0) problems.Add("Enter the instruction to run in downstream builds.");
                 else if (Regex.IsMatch(inner, @"^(ONBUILD|FROM|MAINTAINER)\b", RegexOptions.IgnoreCase, RegexTimeout)) problems.Add("ONBUILD cannot wrap ONBUILD, FROM or MAINTAINER.");
@@ -445,6 +610,17 @@ public static class DockerfileModel
         if (stage.Name.Trim().Length > 0 && !Regex.IsMatch(stage.Name.Trim(), "^[A-Za-z][A-Za-z0-9_.-]*$", RegexOptions.None, RegexTimeout)) problems.Add("Stage names start with a letter and use letters, digits, '.', '_' and '-'.");
         if (stage.Platform.Trim().Any(c => char.IsWhiteSpace(c) || char.IsControl(c))) problems.Add("The platform cannot contain spaces.");
         return problems;
+    }
+
+    private static void ValidateHeredoc(DockerInstruction i, List<string> problems)
+    {
+        var delimiter = i.HeredocDelimiter.Trim();
+        if (!Regex.IsMatch(delimiter, "^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.None, RegexTimeout)) problems.Add("The heredoc delimiter uses letters, digits and underscores, for example EOF.");
+        var body = i.HeredocBody.Replace("\r\n", "\n");
+        if (i.Kind == InstructionKind.Run && body.Trim().Length == 0) problems.Add("Enter the script for the heredoc.");
+        if (delimiter.Length > 0 && body.Split('\n').Any(line => (i.HeredocStripTabs ? line.TrimStart('\t') : line).TrimEnd() == delimiter))
+            problems.Add($"A body line equals the delimiter {delimiter}, which would end the heredoc early. Choose another delimiter.");
+        if (body.Any(c => char.IsControl(c) && c is not ('\n' or '\r' or '\t'))) problems.Add("The heredoc body cannot contain control characters.");
     }
 
     private static void ValidateContinuations(string command, List<string> problems)
@@ -467,6 +643,7 @@ public static class DockerfileModel
     public static DockerfileParseResult Parse(string source)
     {
         var warnings = new List<string>();
+        var map = new List<DockerfileLineSpan>();
         var document = new DockerfileDocument { SyntaxHeader = false, Syntax = DefaultSyntax };
         if (Encoding.UTF8.GetByteCount(source) > MaxSourceBytes) throw new ArgumentException("The Dockerfile is larger than the 1 MiB import limit.");
         var lines = source.Replace("\r\n", "\n").Split('\n');
@@ -481,14 +658,25 @@ public static class DockerfileModel
             else if (key == "escape")
             {
                 if (directive.Groups[2].Value != "\\") warnings.Add("The escape directive changes the continuation character; the Creator always uses a backslash. Review imported multi-line instructions.");
+                document.Escape = directive.Groups[2].Value;
+            }
+            else if (key == "check") document.CheckDirective = directive.Groups[2].Value;
+            else
+            {
+                map.Add(new DockerfileLineSpan(-1, document.Preamble.Count, index, index));
                 document.Preamble.Add(new DockerInstruction { Kind = InstructionKind.Raw, Value = lines[index].Trim() });
             }
-            else document.Preamble.Add(new DockerInstruction { Kind = InstructionKind.Raw, Value = lines[index].Trim() });
             index++;
         }
 
         DockerfileStage? stage = null;
         List<DockerInstruction> Target() => stage?.Instructions ?? document.Preamble;
+        void Emit(DockerInstruction instruction, int first, int last)
+        {
+            var list = Target();
+            map.Add(new DockerfileLineSpan(stage == null ? -1 : document.Stages.Count - 1, list.Count, first, Math.Max(first, last)));
+            list.Add(instruction);
+        }
         while (index < lines.Length)
         {
             var line = lines[index];
@@ -497,13 +685,14 @@ public static class DockerfileModel
             if (trimmed.StartsWith('#'))
             {
                 var comment = new List<string>();
+                var commentStart = index;
                 while (index < lines.Length && lines[index].Trim().StartsWith('#'))
                 {
                     var text = lines[index].Trim()[1..];
                     comment.Add(text.StartsWith(' ') ? text[1..] : text);
                     index++;
                 }
-                Target().Add(new DockerInstruction { Kind = InstructionKind.Comment, Value = string.Join("\n", comment) });
+                Emit(new DockerInstruction { Kind = InstructionKind.Comment, Value = string.Join("\n", comment) }, commentStart, index - 1);
                 continue;
             }
 
@@ -523,21 +712,28 @@ public static class DockerfileModel
             {
                 var terminator = heredoc.Groups[2].Value;
                 var strip = heredoc.Groups[1].Value == "-";
-                var body = new List<string>(physical);
+                var bodyLines = new List<string>();
+                string? terminatorLine = null;
                 while (index < lines.Length)
                 {
                     var bodyLine = lines[index]; index++;
-                    body.Add(bodyLine);
-                    if ((strip ? bodyLine.TrimStart('\t') : bodyLine).TrimEnd() == terminator) break;
+                    if ((strip ? bodyLine.TrimStart('\t') : bodyLine).TrimEnd() == terminator) { terminatorLine = bodyLine; break; }
+                    bodyLines.Add(bodyLine);
                 }
-                Target().Add(new DockerInstruction { Kind = InstructionKind.Raw, Value = string.Join("\n", body) });
-                warnings.Add($"Line {startLine + 1}: heredoc kept as raw source.");
+                var single = physical.Count == 1 && Regex.Matches(physical[0], "<<", RegexOptions.None, RegexTimeout).Count == 1;
+                var structured = terminatorLine != null && single && stage != null ? ParseHeredocInstruction(physical[0], bodyLines) : null;
+                if (structured != null) { Emit(structured, startLine, index - 1); continue; }
+                var rawBody = new List<string>(physical);
+                rawBody.AddRange(bodyLines);
+                if (terminatorLine != null) rawBody.Add(terminatorLine);
+                Emit(new DockerInstruction { Kind = InstructionKind.Raw, Value = string.Join("\n", rawBody) }, startLine, index - 1);
+                warnings.Add($"Line {startLine + 1}: heredoc kept as raw source" + (terminatorLine == null ? " (no closing delimiter was found)." : "."));
                 continue;
             }
 
             var collapsed = CollapseContinuations(physical);
             var keywordMatch = Regex.Match(collapsed, @"^\s*([A-Za-z]+)\b\s*(.*)$", RegexOptions.Singleline, RegexTimeout);
-            if (!keywordMatch.Success) { Target().Add(Raw(rawText)); warnings.Add($"Line {startLine + 1}: not an instruction; kept as raw source."); continue; }
+            if (!keywordMatch.Success) { Emit(Raw(rawText), startLine, index - 1); warnings.Add($"Line {startLine + 1}: not an instruction; kept as raw source."); continue; }
             var keyword = keywordMatch.Groups[1].Value.ToUpperInvariant();
             var rest = keywordMatch.Groups[2].Value.Trim();
 
@@ -552,21 +748,22 @@ public static class DockerfileModel
                     Name = from.Groups.Count > 3 && from.Groups[3].Success ? from.Groups[3].Value : ""
                 };
                 document.Stages.Add(stage);
+                map.Add(new DockerfileLineSpan(document.Stages.Count - 1, -1, startLine, index - 1));
                 continue;
             }
             if (stage == null && keyword != "ARG")
             {
-                document.Preamble.Add(Raw(rawText));
+                Emit(Raw(rawText), startLine, index - 1);
                 warnings.Add($"Line {startLine + 1}: {keyword} before the first FROM was kept as raw source.");
                 continue;
             }
             var parsed = ParseInstruction(keyword, rest, rawText);
             if (parsed.Count == 1 && parsed[0].Kind == InstructionKind.Raw && keyword is not ("MAINTAINER")) warnings.Add($"Line {startLine + 1}: {keyword} uses syntax the Creator does not model; kept as raw source.");
             if (keyword == "MAINTAINER") warnings.Add($"Line {startLine + 1}: MAINTAINER is deprecated; consider a LABEL. Kept as raw source.");
-            Target().AddRange(parsed);
+            foreach (var instruction in parsed) Emit(instruction, startLine, index - 1);
         }
         if (document.Stages.Count == 0) warnings.Add("No FROM instruction was found, so the draft has no stages.");
-        return new(document, warnings);
+        return new(document, warnings, map);
     }
 
     private static DockerInstruction Raw(string text) => new() { Kind = InstructionKind.Raw, Value = text };
@@ -595,7 +792,7 @@ public static class DockerfileModel
             "WORKDIR" => rest.Length > 0 ? new() { Kind = InstructionKind.Workdir, Value = rest } : null,
             "USER" => rest.Length > 0 && !rest.Any(char.IsWhiteSpace) ? new() { Kind = InstructionKind.User, Value = rest } : null,
             "STOPSIGNAL" => rest.Length > 0 ? new() { Kind = InstructionKind.StopSignal, Value = rest } : null,
-            "ONBUILD" => rest.Length > 0 ? new() { Kind = InstructionKind.OnBuild, Value = rest } : null,
+            "ONBUILD" => ParseOnBuild(rest),
             "COPY" => ParseCopy(InstructionKind.Copy, rest),
             "ADD" => ParseCopy(InstructionKind.Add, rest),
             "RUN" => ParseRun(rawText),
@@ -655,26 +852,40 @@ public static class DockerfileModel
         return instruction;
     }
 
-    private static DockerInstruction? ParseCopy(InstructionKind kind, string rest)
+    /// <summary>Consumes leading COPY/ADD flags from <paramref name="remainder"/>. False when a flag is not modelled.</summary>
+    private static bool ParseCopyFlags(DockerInstruction instruction, ref string remainder)
     {
-        var instruction = new DockerInstruction { Kind = kind };
-        var remainder = rest;
+        var kind = instruction.Kind;
         while (true)
         {
             var flag = Regex.Match(remainder, @"^--([a-z-]+)(?:=(\S*))?\s+", RegexOptions.None, RegexTimeout);
-            if (!flag.Success) break;
+            if (!flag.Success) return true;
             var name = flag.Groups[1].Value; var value = flag.Groups[2].Value;
+            var bare = !flag.Groups[2].Success;
             switch (name)
             {
                 case "from" when kind == InstructionKind.Copy && value.Length > 0: instruction.From = value; break;
                 case "chown" when value.Length > 0: instruction.Chown = value; break;
                 case "chmod" when value.Length > 0: instruction.Chmod = value; break;
-                case "link" when !flag.Groups[2].Success || value == "true": instruction.Link = true; break;
+                case "link" when bare || value == "true": instruction.Link = true; break;
                 case "link" when value == "false": break;
-                default: return null;
+                case "parents" when kind == InstructionKind.Copy && (bare || value == "true"): instruction.Parents = true; break;
+                case "parents" when kind == InstructionKind.Copy && value == "false": break;
+                case "exclude" when value.Length > 0: instruction.Excludes.Add(value); break;
+                case "checksum" when kind == InstructionKind.Add && value.Length > 0: instruction.Checksum = value; break;
+                case "keep-git-dir" when kind == InstructionKind.Add && (bare || value == "true"): instruction.KeepGitDir = true; break;
+                case "keep-git-dir" when kind == InstructionKind.Add && value == "false": break;
+                default: return false;
             }
             remainder = remainder[flag.Length..];
         }
+    }
+
+    private static DockerInstruction? ParseCopy(InstructionKind kind, string rest)
+    {
+        var instruction = new DockerInstruction { Kind = kind };
+        var remainder = rest;
+        if (!ParseCopyFlags(instruction, ref remainder)) return null;
         List<string> paths;
         if (remainder.StartsWith('[')) { var json = TryExec(remainder); if (json == null) return null; paths = json; }
         else paths = remainder.Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries).ToList();
@@ -696,17 +907,7 @@ public static class DockerfileModel
             position += skip.Length;
             if (!text[position..].StartsWith("--", StringComparison.Ordinal)) break;
             var token = Regex.Match(text[position..], @"^--(\S+)", RegexOptions.None, RegexTimeout);
-            var flag = token.Groups[1].Value;
-            if (!flag.StartsWith("mount=", StringComparison.Ordinal)) return null;
-            var options = flag["mount=".Length..].Split(',').Select(o => o.Split('=', 2)).ToList();
-            if (options.Any(o => o.Length != 2)) return null;
-            var map = options.ToDictionary(o => o[0], o => o[1], StringComparer.Ordinal);
-            if (map.Count != options.Count) return null;
-            var type = map.TryGetValue("type", out var t) ? t : "";
-            if (type == "cache" && map.Count == 2 && (map.TryGetValue("target", out var target) || map.TryGetValue("dst", out target) || map.TryGetValue("destination", out target)))
-                instruction.CacheTargets.Add(target);
-            else if (type == "secret" && map.Count == 2 && map.TryGetValue("id", out var id)) instruction.SecretIds.Add(id);
-            else return null;
+            if (!ApplyRunFlag(instruction, token.Groups[1].Value)) return null;
             position += token.Length;
         }
         var command = text[position..].TrimEnd();
@@ -714,6 +915,89 @@ public static class DockerfileModel
         if (command.StartsWith('[') && TryExec(CollapseContinuations(command.Split('\n'))) is { } exec) { instruction.ExecForm = true; instruction.Arguments = exec; }
         else instruction.Command = command;
         return instruction;
+    }
+
+    /// <summary>Applies one RUN flag (without the leading dashes). False when the flag or its value is not modelled.</summary>
+    private static bool ApplyRunFlag(DockerInstruction instruction, string flag)
+    {
+        if (flag.StartsWith("mount=", StringComparison.Ordinal))
+        {
+            var mount = RunMounts.Parse(flag["mount=".Length..]);
+            if (mount == null) return false;
+            instruction.Mounts.Add(mount);
+            return true;
+        }
+        if (flag.StartsWith("network=", StringComparison.Ordinal))
+        {
+            var value = flag["network=".Length..];
+            if (value is not ("default" or "none" or "host") || instruction.Network.Length > 0) return false;
+            instruction.Network = value;
+            return true;
+        }
+        if (flag.StartsWith("security=", StringComparison.Ordinal))
+        {
+            var value = flag["security=".Length..];
+            if (value is not ("sandbox" or "insecure") || instruction.Security.Length > 0) return false;
+            instruction.Security = value;
+            return true;
+        }
+        return false;
+    }
+
+    private static readonly Regex HeredocToken = new(@"<<(?<dash>-?)(?<q>[""']?)(?<d>[A-Za-z_][A-Za-z0-9_]*)\k<q>", RegexOptions.None, RegexTimeout);
+
+    /// <summary>
+    /// Structured RUN or COPY with exactly one here-document on a single first line. Null when the form is not
+    /// modelled (the caller keeps the source as raw text).
+    /// </summary>
+    private static DockerInstruction? ParseHeredocInstruction(string firstLine, List<string> body)
+    {
+        var head = Regex.Match(firstLine, @"^\s*(RUN|COPY)\s+(.*?)\s*$", RegexOptions.IgnoreCase, RegexTimeout);
+        if (!head.Success) return null;
+        var keyword = head.Groups[1].Value.ToUpperInvariant();
+        var remainder = head.Groups[2].Value + " ";
+        var instruction = new DockerInstruction { Kind = keyword == "RUN" ? InstructionKind.Run : InstructionKind.Copy, Heredoc = true, HeredocBody = string.Join("\n", body) };
+        if (instruction.Kind == InstructionKind.Run)
+        {
+            while (true)
+            {
+                var flag = Regex.Match(remainder, @"^--(\S+)\s+", RegexOptions.None, RegexTimeout);
+                if (!flag.Success) break;
+                if (!ApplyRunFlag(instruction, flag.Groups[1].Value)) return null;
+                remainder = remainder[flag.Length..];
+            }
+        }
+        else if (!ParseCopyFlags(instruction, ref remainder)) return null;
+        remainder = remainder.Trim();
+        var token = HeredocToken.Match(remainder);
+        if (!token.Success) return null;
+        instruction.HeredocDelimiter = token.Groups["d"].Value;
+        instruction.HeredocQuoted = token.Groups["q"].Value.Length > 0;
+        instruction.HeredocStripTabs = token.Groups["dash"].Value.Length > 0;
+        var before = remainder[..token.Index].Trim();
+        var after = remainder[(token.Index + token.Length)..].Trim();
+        if (after.Length > 0 && !char.IsWhiteSpace(remainder[token.Index + token.Length])) return null;
+        if (instruction.Kind == InstructionKind.Copy)
+        {
+            if (before.Length > 0 || after.Length == 0 || after.Any(char.IsWhiteSpace)) return null;
+            instruction.Destination = after;
+            return instruction;
+        }
+        if (before.Length > 0 && after.Length > 0) return null;
+        instruction.Interpreter = before.Length > 0 ? before : after;
+        return instruction;
+    }
+
+    private static DockerInstruction? ParseOnBuild(string rest)
+    {
+        if (rest.Length == 0) return null;
+        var m = Regex.Match(rest, @"^([A-Za-z]+)\b\s*(.*)$", RegexOptions.Singleline, RegexTimeout);
+        if (!m.Success) return new DockerInstruction { Kind = InstructionKind.OnBuild, Value = rest };
+        var keyword = m.Groups[1].Value.ToUpperInvariant();
+        if (keyword is "ONBUILD" or "FROM" or "MAINTAINER") return null;
+        var inner = ParseInstruction(keyword, m.Groups[2].Value.Trim(), rest);
+        if (inner.Count == 1 && inner[0].Kind != InstructionKind.Raw) return new DockerInstruction { Kind = InstructionKind.OnBuild, Inner = inner[0] };
+        return new DockerInstruction { Kind = InstructionKind.OnBuild, Value = rest };
     }
 
     private static DockerInstruction? ParseVolume(string rest)
