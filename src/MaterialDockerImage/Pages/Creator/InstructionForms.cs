@@ -9,7 +9,7 @@ namespace MaterialDockerImage.Pages;
 /// Builds the inline structured form for one instruction. Every edit writes straight into the instruction and calls
 /// <c>changed</c>. Validation messages from <see cref="DockerfileModel.Validate"/> are shown under the form.
 /// </summary>
-public sealed class InstructionForm : StackPanel
+public sealed partial class InstructionForm : StackPanel
 {
     private readonly DockerInstruction instruction;
     private readonly Action changed;
@@ -103,35 +103,14 @@ public sealed class InstructionForm : StackPanel
                 yield return Ui.Field("Signal", EditableCombo(Signals, () => i.Value, "Signal", v => i.Value = v), "Signal docker stop sends to the main process.", "SIGTERM");
                 break;
             case InstructionKind.OnBuild:
-                yield return Ui.Field("Instruction", Text(i.Value, "Instruction", v => i.Value = v), "A complete instruction that runs when another Dockerfile uses this image in FROM.", "COPY . /app");
+                foreach (var element in OnBuildFields(i)) yield return element;
                 break;
             case InstructionKind.Copy:
             case InstructionKind.Add:
-                yield return Ui.Field("Sources", new ListRows(i.Sources, "Source", "Add source", changed), i.Kind == InstructionKind.Copy ? "Paths in the build context, or in the source stage when From stage is set. Wildcards are allowed." : "Local paths, URLs or git repositories. Local tar archives are extracted.", "package.json\npackage-lock.json");
-                yield return Ui.Field("Destination", Text(i.Destination, "Destination", v => i.Destination = v), "Path inside the image. End with / to copy into a directory.", "./");
-                if (i.Kind == InstructionKind.Copy)
-                    yield return Ui.Field("From stage", EditableCombo(new[] { "" }.Concat(earlierStages()), () => i.From, "From stage", v => i.From = v), "Copy from an earlier stage (by name) or an image instead of the build context.", "build");
-                yield return Ui.Columns(12, [1, 1],
-                    Ui.Field("Owner", Text(i.Chown, "Owner", v => i.Chown = v), "Sets owner (and group) of the copied files (--chown).", "node:node"),
-                    Ui.Field("Permissions", Text(i.Chmod, "Permissions", v => i.Chmod = v), "Octal mode for the copied files (--chmod).", "755"));
-                yield return Ui.Switch("Link layer (--link)", i.Link, v => { i.Link = v; changed(); }, "Copies into an independent layer so later base image changes do not invalidate it.");
+                foreach (var element in CopyFields(i)) yield return element;
                 break;
             case InstructionKind.Run:
-                yield return Mode(i.ExecForm, "Shell command", exec =>
-                {
-                    if (exec && !i.ExecForm) i.Arguments = DockerfileModel.SimpleArgv(i.Command) ?? (i.Command.Trim().Length > 0 ? ["/bin/sh", "-c", i.Command.Trim()] : []);
-                    if (!exec && i.ExecForm) i.Command = string.Join(" ", i.Arguments.Select(a => a.Any(char.IsWhiteSpace) ? DockerfileModel.QuoteValue(a) : a));
-                    i.ExecForm = exec;
-                });
-                if (i.ExecForm) yield return Ui.Field("Arguments", new ListRows(i.Arguments, "Argument", "Add argument", changed), "Program and arguments, one per row. No shell processing happens.", "/usr/local/bin/setup\n--quiet");
-                else
-                {
-                    var command = Ui.CodeBox(i.Command, 72);
-                    command.TextChanged += (_, _) => { i.Command = command.Text; changed(); };
-                    yield return Ui.Field("Command", command, "Shell command. For several lines end each line with a backslash, or join commands with &&.", "apt-get update && \\\n    apt-get install -y --no-install-recommends curl && \\\n    rm -rf /var/lib/apt/lists/*");
-                }
-                yield return Ui.Field("Cache mounts", new ListRows(i.CacheTargets, "Cache target", "Add cache mount", changed), "Directories BuildKit keeps between builds (--mount=type=cache). Use package manager caches so reinstalling is fast.", "/root/.npm\n/root/.cache/pip\n/go/pkg/mod");
-                yield return Ui.Field("Secret mounts", new ListRows(i.SecretIds, "Secret id", "Add secret mount", changed), "Secret ids made available to this step only (--mount=type=secret). Provide the file in Build under Labels, cache and secrets. Secrets are not stored in the image.", "npmrc");
+                foreach (var element in RunFields(i)) yield return element;
                 break;
             case InstructionKind.Expose:
                 yield return Ui.Columns(12, [1, 1],

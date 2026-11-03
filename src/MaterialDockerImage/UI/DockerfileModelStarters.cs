@@ -25,7 +25,7 @@ public static class DockerfileStarters
 
     public static DockerfileStarter? Find(string id) => All.FirstOrDefault(s => string.Equals(s.Id, id, StringComparison.OrdinalIgnoreCase));
 
-    private static DockerInstruction Run(string command, params string[] caches) => new() { Kind = InstructionKind.Run, Command = command, CacheTargets = caches.ToList() };
+    private static DockerInstruction Run(string command, params string[] caches) => new() { Kind = InstructionKind.Run, Command = command, Mounts = caches.Select(c => new RunMount { Type = RunMounts.Cache, Target = c }).ToList() };
     private static DockerInstruction Copy(string destination, params string[] sources) => new() { Kind = InstructionKind.Copy, Sources = sources.ToList(), Destination = destination };
     private static DockerInstruction CopyFrom(string from, string source, string destination, string chown = "") => new() { Kind = InstructionKind.Copy, From = from, Sources = { source }, Destination = destination, Chown = chown };
     private static DockerInstruction Workdir(string path) => new() { Kind = InstructionKind.Workdir, Value = path };
@@ -47,7 +47,7 @@ public static class DockerfileStarters
     public static DockerfileDocument PythonPip() => Document("Python (pip) service starter",
         Stage("build", "python:3.13-slim", Workdir("/src"), Copy("./", "requirements.txt"), Run("pip wheel --wheel-dir /wheels -r requirements.txt", "/root/.cache/pip")),
         Stage("runtime", "python:3.13-slim", Env(("PYTHONDONTWRITEBYTECODE", "1"), ("PYTHONUNBUFFERED", "1")), Workdir("/app"),
-            CopyFrom("build", "/wheels", "/wheels"), Run("pip install --no-index --find-links=/wheels /wheels/* && rm -rf /wheels"),
+            CopyFrom("build", "/wheels", "/wheels"), Run("pip install --no-cache-dir --no-index --find-links=/wheels /wheels/* && rm -rf /wheels"),
             Copy(".", "."), Run("useradd --system --uid 10001 --no-create-home app"), Expose("8000"), User("app"),
             Exec(InstructionKind.Cmd, "python", "-m", "app")));
 

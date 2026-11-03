@@ -53,6 +53,9 @@ public sealed partial class CreatorPage
     private readonly List<(DockerInstruction Instruction, TextBlock Summary, TextBlock Hint, Border Card)> cardViews = new();
     private bool syncingStage;
     private Button? addInstruction;
+    private readonly TextBox checkDirective = Ui.Input("", "Check directive", true);
+    private readonly TextBox escapeDirective = Ui.Input("", "Escape directive", true);
+    private FrameworkElement escapeField = null!;
 
     private UIElement BuildEditorColumn()
     {
@@ -64,21 +67,25 @@ public sealed partial class CreatorPage
         stagePlatform.ToolTip = Loc.T("Empty means any: the build platform decides.");
         stageName.TextChanged += (_, _) => StageFieldChanged();
 
+        var crossCompile = Ui.Button("Build on BUILDPLATFORM", Icons.AltRoute, ButtonKind.Text, UseBuildPlatform);
+        crossCompile.ToolTip = Loc.T("Cross-compilation helper: sets FROM --platform=$BUILDPLATFORM so the compiler runs natively, and declares ARG TARGETOS and ARG TARGETARCH in this stage for commands such as GOOS=$TARGETOS GOARCH=$TARGETARCH.");
+        crossCompile.HorizontalAlignment = HorizontalAlignment.Left;
         stageFields = Ui.VStack(12,
             Ui.Field("Base image", baseImage, "The image this stage starts from, or the name of an earlier stage. Pin a version tag or digest for repeatable builds.", "node:22-alpine\nnode:22-alpine@sha256:…\ndeps"),
             Ui.Columns(12, [1, 1],
                 Ui.Field("Stage name", stageName, "Name used by COPY --from, later FROM lines and the build target. Letters, digits, '.', '_' and '-'.", "runtime"),
                 Ui.Field("Platform", stagePlatform, "Optional FROM --platform. Leave empty for any; $BUILDPLATFORM runs build tools natively during cross-builds.", "$BUILDPLATFORM")),
+            crossCompile,
             stageProblems);
         stageProblems.Visibility = Visibility.Collapsed;
 
-        preambleSection = Ui.VStack(8, Ui.Overline("Before the first stage"), preambleCards);
-        preambleSection.Visibility = Visibility.Collapsed;
+        preambleSection = BuildGlobalCard();
 
         addInstruction = Ui.Button("Add instruction", Icons.Add, ButtonKind.Tonal, () => OpenAddMenu(addInstruction!));
         addInstruction.ToolTip = Loc.T("Choose an instruction to add after the open card, or at the end.");
         var quick = Ui.Wrap(6,
-            QuickChip("RUN with cache mount", () => new DockerInstruction { Kind = InstructionKind.Run, Command = "echo build", CacheTargets = { "/root/.cache" } }, false),
+            QuickChip("RUN with cache mount", () => new DockerInstruction { Kind = InstructionKind.Run, Command = "echo build", Mounts = { new RunMount { Type = RunMounts.Cache, Target = "/root/.cache" } } }, false),
+            QuickChip("RUN heredoc script", () => new DockerInstruction { Kind = InstructionKind.Run, Heredoc = true, HeredocDelimiter = "EOF", HeredocBody = "set -e\necho build" }, false),
             QuickChip("HEALTHCHECK", () => DockerfileModel.Create(InstructionKind.Healthcheck), true),
             QuickChip("Non-root USER", () => new DockerInstruction { Kind = InstructionKind.User, Value = "10001" }, true),
             QuickChip("EXPOSE", () => DockerfileModel.Create(InstructionKind.Expose), true));
@@ -168,6 +175,69 @@ public sealed partial class CreatorPage
         search.Box.Dispatcher.BeginInvoke(() => search.Box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
+    // ----------------------------------------------------------------- global arguments and directives
+
+    /// <summary>The "Build arguments and platform" card: global ARGs before the first FROM and the parser directives.</summary>
+    private FrameworkElement BuildGlobalCard()
+    {
+        var addArg = Ui.Button("Add ARG", Icons.Add, ButtonKind.Tonal, () =>
+        {
+            FlushCommit();
+            var arg = DockerfileModel.Create(InstructionKind.Arg);
+            arg.Name = UniqueArgName("VERSION");
+            doc.Preamble.Add(arg);
+            expanded = arg;
+            Changed();
+        });
+        addArg.ToolTip = Loc.T("Global build argument. It can be used in FROM lines; declare it again (ARG NAME) inside a stage to use it in that stage's commands.");
+        var platformArgs = Ui.Button("Add TARGETPLATFORM and BUILDPLATFORM", Icons.DeviceHub, ButtonKind.Outlined, () => AddPlatformArgs("TARGETPLATFORM", "BUILDPLATFORM"));
+        platformArgs.ToolTip = Loc.T("BuildKit sets these automatically; declaring them documents that the Dockerfile is multi-platform aware.");
+        var more = new WrapPanel();
+        foreach (var (name, meaning) in DockerfilePlatform.AutomaticArgs.Where(a => a.Name is "TARGETOS" or "TARGETARCH" or "TARGETVARIANT" or "BUILDARCH"))
+        {
+            var b = Ui.Button(name, Icons.Add, ButtonKind.Text, () => AddPlatformArgs(name), false);
+            b.ToolTip = meaning; b.MinHeight = 32; b.Height = 32; b.Padding = new Thickness(8, 0, 10, 0); b.Margin = new Thickness(0, 0, 4, 4);
+            more.Children.Add(b);
+        }
+        checkDirective.TextChanged += (_, _) => { if (syncingStage) return; if (doc.CheckDirective == checkDirective.Text) return; doc.CheckDirective = checkDirective.Text; Touched(); };
+        escapeDirective.TextChanged += (_, _) => { if (syncingStage) return; if (doc.Escape == escapeDirective.Text) return; doc.Escape = escapeDirective.Text; Touched(); };
+        escapeField = Ui.Field("Escape character", escapeDirective, "# escape= changes the escape and line continuation character. The Creator writes backslash continuations, so clear this unless the file targets Windows paths.", "`");
+        var stack = Ui.VStack(10,
+            Ui.Columns(10, [0, 1], Ui.Icon(Icons.Tune, 20, true, "Primary"), Ui.Text("Build arguments and platform", 15, FontWeights.SemiBold)),
+            Ui.Caption("Global ARGs come before the first FROM. Use them in FROM lines, for example FROM node:${NODE_VERSION}-alpine, and pass values with --build-arg."),
+            preambleCards,
+            Ui.Wrap(8, addArg, platformArgs),
+            more,
+            Ui.Field("Check directive", checkDirective, "# check= controls the build checks BuildKit runs: skip=<rules> to skip some, error=true to fail the build on warnings.", "skip=JSONArgsRecommended;error=true"),
+            escapeField);
+        return Ui.Card(stack, 14, "SurfaceContainer", 14);
+    }
+
+    private string UniqueArgName(string baseName)
+    {
+        var name = baseName; var n = 2;
+        while (doc.Preamble.Any(i => i.Kind == InstructionKind.Arg && i.Name == name)) name = baseName + "_" + n++;
+        return name;
+    }
+
+    private void AddPlatformArgs(params string[] names)
+    {
+        FlushCommit();
+        var added = DockerfilePlatform.AddGlobalArgs(doc, names);
+        if (added.Count == 0) { Host.Notify.Info(Loc.T("Already declared:") + " " + string.Join(", ", names)); return; }
+        Changed();
+        Host.Notify.Info(Loc.T("Added global") + " " + string.Join(", ", added.Select(a => "ARG " + a)) + ". " + Loc.T("Declare them again inside a stage to use them in RUN."));
+    }
+
+    private void UseBuildPlatform()
+    {
+        if (doc.Stages.Count == 0) return;
+        FlushCommit();
+        var message = DockerfilePlatform.UseBuildPlatform(doc, selectedStage);
+        Changed();
+        Host.Notify.Info(message + " " + Loc.T("Use $TARGETOS and $TARGETARCH in the build command of this stage."));
+    }
+
     // ----------------------------------------------------------------- stage fields
 
     private void StageFieldChanged()
@@ -197,8 +267,15 @@ public sealed partial class CreatorPage
         noStage.Visibility = has ? Visibility.Collapsed : Visibility.Visible;
         editorScroll.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
         cards.Children.Clear(); preambleCards.Children.Clear(); cardViews.Clear();
-        preambleSection.Visibility = doc.Preamble.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
         for (var i = 0; i < doc.Preamble.Count; i++) preambleCards.Children.Add(Card(doc.Preamble, i, -1));
+        syncingStage = true;
+        try
+        {
+            checkDirective.Text = doc.CheckDirective;
+            escapeDirective.Text = doc.Escape;
+            escapeField.Visibility = doc.Escape.Trim().Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        }
+        finally { syncingStage = false; }
         if (!has) return;
         var stage = doc.Stages[selectedStage];
         syncingStage = true;
@@ -221,7 +298,8 @@ public sealed partial class CreatorPage
             summary.Text = DockerfileModel.Summary(instruction);
             hint.Text = Loc.T(DockerfileModel.Hint(instruction));
             var invalid = DockerfileModel.Validate(instruction).Count > 0;
-            card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : expanded == instruction ? "Primary" : "OutlineVariant");
+            card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : expanded == instruction || highlighted == instruction ? "Primary" : "OutlineVariant");
+            card.BorderThickness = new Thickness(expanded == instruction || highlighted == instruction ? 2 : 1);
         }
     }
 
@@ -255,8 +333,10 @@ public sealed partial class CreatorPage
         var edit = Ui.IconButton(isOpen ? Icons.Check : Icons.Edit, isOpen ? "Done editing" : "Edit", () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); FocusCard(instruction); });
         var duplicate = Ui.IconButton(Icons.FilterNone, "Duplicate", () => { FlushCommit(); var copy = instruction.Clone(); list.Insert(index + 1, copy); expanded = copy; Changed(); });
         var delete = Ui.IconButton(Icons.Delete, "Delete (Del)", () => { FlushCommit(); list.RemoveAt(index); if (expanded == instruction) expanded = null; Changed(); Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it.")); });
-        foreach (var b in new[] { up, down, edit, duplicate, delete }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
-        var actions = Ui.HStack(0, up, down, duplicate, edit, delete);
+        var asText = Ui.IconButton(Icons.Code, "Edit as text", () => EditAsText(instruction));
+        asText.Visibility = instruction.Kind == InstructionKind.Raw ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var b in new[] { up, down, edit, duplicate, delete, asText }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
+        var actions = Ui.HStack(0, asText, up, down, duplicate, edit, delete);
         actions.VerticalAlignment = VerticalAlignment.Top;
 
         var top = Ui.Columns(12, [0, 1, 0], chip, text, actions);
@@ -274,7 +354,16 @@ public sealed partial class CreatorPage
         }
         var card = new Border { Child = body, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), BorderThickness = new Thickness(isOpen ? 2 : 1), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction };
         card.SetResourceReference(Border.BackgroundProperty, isOpen ? "SurfaceHigh" : "SurfaceContainer");
-        card.SetResourceReference(Border.BorderBrushProperty, DockerfileModel.Validate(instruction).Count > 0 ? "Error" : isOpen ? "Primary" : "OutlineVariant");
+        var marked = isOpen || highlighted == instruction;
+        card.BorderThickness = new Thickness(marked ? 2 : 1);
+        card.SetResourceReference(Border.BorderBrushProperty, DockerfileModel.Validate(instruction).Count > 0 ? "Error" : marked ? "Primary" : "OutlineVariant");
+        card.GotKeyboardFocus += (_, _) =>
+        {
+            if (highlighted == instruction) return;
+            highlighted = instruction;
+            UpdateCardSummaries();
+            HighlightLines(instruction);
+        };
         card.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
         System.Windows.Automation.AutomationProperties.SetName(card, $"{Loc.T("Step")} {index + 1}: {keyword} {summary.Text}");
         card.PreviewKeyDown += (_, e) =>
@@ -288,6 +377,7 @@ public sealed partial class CreatorPage
         card.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2 && !isOpen) { expanded = instruction; RebuildStageEditor(); e.Handled = true; } };
         card.ContextMenu = new ContextMenu();
         card.ContextMenu.Items.Add(Ui.MenuItem(isOpen ? "Done editing" : "Edit", Icons.Edit, () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); }, "Enter"));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Edit as text", Icons.Code, () => EditAsText(instruction)));
         card.ContextMenu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => Move(-1), "Alt+Up"));
         card.ContextMenu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => Move(1), "Alt+Down"));
         card.ContextMenu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => duplicate.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent))));

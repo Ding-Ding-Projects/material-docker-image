@@ -86,7 +86,7 @@ public sealed partial class CreatorPage : PageBase
         commitTimer.Tick += (_, _) => { commitTimer.Stop(); FlushCommit(); };
         persistTimer.Tick += (_, _) => { persistTimer.Stop(); PersistDraft(); };
         recordTimer.Tick += (_, _) => { recordTimer.Stop(); RecordDraft(null); };
-        Unloaded += (_, _) => { FlushCommit(); if (persistTimer.IsEnabled) { persistTimer.Stop(); PersistDraft(); } };
+        Unloaded += (_, _) => { if (textDirty) { parseTimer.Stop(); ApplyPreviewText(); } FlushCommit(); if (persistTimer.IsEnabled) { persistTimer.Stop(); PersistDraft(); } };
         PreviewKeyDown += OnKeys;
         history.Reset(doc);
         RebuildAll();
@@ -131,6 +131,8 @@ public sealed partial class CreatorPage : PageBase
         foreach (var starter in DockerfileStarters.All)
             yield return new AppCommand { Id = "creator.starter." + starter.Id, Title = "Creator: start from " + starter.Label, Group = "Creator", Icon = Icons.RocketLaunch, Keywords = "dockerfile template preset starter " + starter.Description, Run = () => { Host.Navigate("Creator"); PageTasks.Fire(() => ApplyStarterAsync(starter)); } };
         yield return new AppCommand { Id = "creator.import", Title = "Creator: open existing Dockerfile…", Group = "Creator", Icon = Icons.FolderOpen, Keywords = "import parse", Run = () => { Host.Navigate("Creator"); PageTasks.Fire(ImportAsync); } };
+        yield return new AppCommand { Id = "creator.detect", Title = "Creator: detect project in a folder…", Group = "Creator", Icon = Icons.ManageSearch, Keywords = "docker init detect language package.json go.mod csproj", Run = () => { Host.Navigate("Creator"); PageTasks.Fire(ChooseAndDetectAsync); } };
+        yield return new AppCommand { Id = "creator.buildcommand", Title = "Creator: copy as build command", Group = "Creator", Icon = Icons.Terminal, Keywords = "buildx command clipboard secret allow", Run = CopyBuildCommand };
         yield return new AppCommand { Id = "creator.tobuild", Title = "Creator: open draft in Build", Group = "Creator", Icon = Icons.Construction, Keywords = "send build", Run = () => PageTasks.Fire(OpenInBuildAsync) };
     }
 
@@ -188,6 +190,7 @@ public sealed partial class CreatorPage : PageBase
         RebuildStageEditor();
         RefreshDerived();
         UpdateUndoButtons();
+        RefreshIgnoreEditor();
     }
 
     private void RefreshDerived()
@@ -219,7 +222,7 @@ public sealed partial class CreatorPage : PageBase
         FlushCommit();
         var previous = history.Undo();
         if (previous == null) return;
-        doc = previous; expanded = null;
+        doc = previous; expanded = null; highlighted = null;
         SchedulePersist();
         RebuildAll();
     }
@@ -229,7 +232,7 @@ public sealed partial class CreatorPage : PageBase
         FlushCommit();
         var next = history.Redo();
         if (next == null) return;
-        doc = next; expanded = null;
+        doc = next; expanded = null; highlighted = null;
         SchedulePersist();
         RebuildAll();
     }
@@ -271,7 +274,7 @@ public sealed partial class CreatorPage : PageBase
         if (hadContent) RecordDraft("Creator draft before " + reason);
         doc = replacement;
         selectedStage = Math.Max(0, doc.Stages.Count - 1);
-        expanded = null;
+        expanded = null; highlighted = null;
         savedPath = "";
         Changed();
         recordTimer.Stop();

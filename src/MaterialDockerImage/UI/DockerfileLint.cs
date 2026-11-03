@@ -21,7 +21,7 @@ public sealed record LintFix(string Label, Action<DockerfileDocument>? Apply = n
 public sealed record LintResult(string Id, LintSeverity Severity, string Title, string Message, int StageIndex = -1, int InstructionIndex = -1, LintFix? Fix = null);
 
 /// <summary>Pure checks over the structured Dockerfile model. Every rule is deterministic and has a stable id.</summary>
-public static class DockerfileLint
+public static partial class DockerfileLint
 {
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromMilliseconds(100);
 
@@ -54,6 +54,9 @@ public static class DockerfileLint
         }
         CheckFinalStage(document, results);
         CheckSecretNames(document, results);
+        CheckAdvanced(document, results);
+        var skipped = SkippedChecks(document);
+        if (skipped.Count > 0) results.RemoveAll(r => skipped.Contains("all") || (BuildKitName(r.Id) is { } name && skipped.Contains(name)));
         return results.OrderBy(r => r.Severity).ThenBy(r => r.StageIndex).ThenBy(r => r.InstructionIndex).ToList();
     }
 
@@ -168,7 +171,7 @@ public static class DockerfileLint
             var index = i;
             switch (instruction.Kind)
             {
-                case InstructionKind.Run when !instruction.ExecForm:
+                case InstructionKind.Run when !instruction.ExecForm && !instruction.Heredoc:
                     CheckApt(document, s, i, instruction, results);
                     break;
                 case InstructionKind.Add:
@@ -220,7 +223,7 @@ public static class DockerfileLint
         {
             var stage = document.Stages[s];
             var next = i + 1 < stage.Instructions.Count ? stage.Instructions[i + 1] : null;
-            var canMerge = next is { Kind: InstructionKind.Run, ExecForm: false } && AptInstall.IsMatch(next.Command) && next.CacheTargets.Count == 0 && next.SecretIds.Count == 0;
+            var canMerge = next is { Kind: InstructionKind.Run, ExecForm: false } && AptInstall.IsMatch(next.Command) && DockerfileModel.AllMounts(next).Count == 0 && !next.Heredoc && !stage.Instructions[i].Heredoc;
             results.Add(new("DF020", LintSeverity.Warning, "apt-get update without install", "Run apt-get update and apt-get install in the same RUN; otherwise a cached update layer can install stale package versions.", s, i,
                 canMerge ? new LintFix("Merge with next RUN", d =>
                 {
@@ -233,7 +236,7 @@ public static class DockerfileLint
         if (!command.Contains("--no-install-recommends", StringComparison.Ordinal))
             results.Add(new("DF021", LintSeverity.Info, "apt-get install pulls recommended packages", "Add --no-install-recommends to keep the image smaller.", s, i,
                 new LintFix("Add flag", d => { var target = d.Stages[s].Instructions[i]; target.Command = AptInstall.Replace(target.Command, m => m.Value + " --no-install-recommends", 1); })));
-        var cachesApt = run.CacheTargets.Any(t => t.Trim().StartsWith("/var/lib/apt", StringComparison.Ordinal) || t.Trim().StartsWith("/var/cache/apt", StringComparison.Ordinal));
+        var cachesApt = DockerfileModel.AllMounts(run).Any(m => m.Type == RunMounts.Cache && (m.Target.Trim().StartsWith("/var/lib/apt", StringComparison.Ordinal) || m.Target.Trim().StartsWith("/var/cache/apt", StringComparison.Ordinal)));
         if (!cachesApt && !command.Contains("/var/lib/apt/lists", StringComparison.Ordinal))
             results.Add(new("DF022", LintSeverity.Info, "apt lists are not cleaned up", "Remove /var/lib/apt/lists/* in the same RUN so the package index does not stay in the layer.", s, i,
                 new LintFix("Add cleanup", d => { var target = d.Stages[s].Instructions[i]; target.Command = target.Command.TrimEnd() + " && \\\n    rm -rf /var/lib/apt/lists/*"; })));

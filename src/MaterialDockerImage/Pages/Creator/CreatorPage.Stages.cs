@@ -52,7 +52,9 @@ public sealed partial class CreatorPage
             Ui.Divider().Margin(0, 6, 0, 0),
             Ui.HStack(0, Ui.Overline("Start from"), Ui.InfoButton("Starters", "A starter builds a complete draft for a common stack. Hover a starter to see exactly what it creates.", "Node.js: deps, build and runtime stages with npm cache mounts, USER node and EXPOSE 8080.")),
             starters,
-            Ui.Caption("A starter replaces the draft. The previous draft stays in local history (Activity) and can be restored."));
+            Ui.Caption("A starter replaces the draft. The previous draft stays in local history (Activity) and can be restored."),
+            Ui.Divider().Margin(0, 6, 0, 0),
+            BuildDetectSection());
         add.HorizontalAlignment = HorizontalAlignment.Left;
         return Ui.Scroll(stack);
     }
