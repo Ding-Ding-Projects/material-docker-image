@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Swarm</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Swarm" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto">&#xE335;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Swarm</h1>
+<span style="font-size: 13px; color: #C4C6D0">Cluster lab-swarm · 3 nodes (1 manager) · this engine is a manager · 4 services</span>
+</div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF500;</span>Deploy stack</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Create service</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px; background: #1D2024; border-radius: 12px; padding: 8px 8px 8px 14px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE88E;</span>
+<span style="font-size: 13px; color: #C4C6D0; flex: 1 1 auto">Variant when inactive: "This engine is not part of a swarm." Init swarm opens a confirmation that names the advertise address and warns that this engine becomes a manager.</span>
+<button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Init swarm…</button>
+</div>
+<div role="tablist" aria-label="Swarm sections" style="height: 44px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #282A2F">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+<button role="tab" aria-selected="{{t.selected}}" style="height: 40px; padding: 0 16px; border: none; border-bottom: 3px solid {{t.line}}; background: transparent; color: {{t.ink}}; font: inherit; font-weight: {{t.weight}}; display: flex; align-items: center; gap: 8px">{{t.label}}<span style="font-size: 12px; color: #C4C6D0">{{t.count}}</span></button>
+</sc-for>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 12px">
+<section aria-label="Services" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; padding: 14px 16px">
+<div style="height: 40px; flex: 0 1 340px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Filter services" placeholder="Filter services" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><button aria-label="Regular expression builder" style="height: 28px; padding: 0 8px; border-radius: 14px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Cascadia Mono',monospace">.*</button></div>
+<span style="flex: 1 1 auto"></span>
+<button aria-label="Refresh services" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE5D5;</button>
+</div>
+<div role="table" aria-label="Services" style="display: flex; flex-direction: column; padding: 0 12px">
+<div role="row" style="height: 40px; display: grid; grid-template-columns: minmax(0, 1.1fr) 150px minmax(0, 1.3fr) 120px 110px; align-items: center; gap: 12px; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600; border-bottom: 1px solid #282A2F">
+<span role="columnheader">Name</span><span role="columnheader">Mode</span><span role="columnheader">Image</span><span role="columnheader">Ports</span><span role="columnheader">Updated</span>
+</div>
+<sc-for list="{{services}}" as="s" hint-placeholder-count="4">
+<div role="row" style="height: 56px; display: grid; grid-template-columns: minmax(0, 1.1fr) 150px minmax(0, 1.3fr) 120px 110px; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; background: {{s.bg}}">
+<span role="cell" style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600">{{s.name}}</span><span style="font-size: 12px; color: #C4C6D0">{{s.stack}}</span></span>
+<span role="cell" style="display: flex; align-items: center; gap: 6px"><span style="color: #C4C6D0">{{s.mode}}</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; font-size: 12px; font-weight: 600; display: flex; align-items: center; background: {{s.repBg}}; color: {{s.repInk}}">{{s.replicas}}</span></span>
+<span role="cell" style="font: 12px 'Cascadia Mono',Consolas,monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.image}}</span>
+<span role="cell" style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{s.ports}}</span>
+<span role="cell" style="color: #C4C6D0">{{s.updated}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<aside aria-label="Service inspector" style="background: #191C20; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Service</span><h2 style="margin: 0; font-size: 18px; font-weight: 600">hello_api</h2><span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">registry.example.com/hello/api:1.4.0</span></div>
+<div style="display: flex; align-items: center; gap: 12px; background: #1D2024; border-radius: 12px; padding: 10px 12px">
+<span style="flex: 1 1 auto; display: flex; flex-direction: column"><label for="scale" style="font-weight: 600">Replicas</label><span style="font-size: 12px; color: #C4C6D0">Replicated mode</span></span>
+<button aria-label="Decrease replicas" style="width: 36px; height: 36px; border-radius: 18px; border: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: 600 18px 'Segoe UI',sans-serif">-</button>
+<input id="scale" value="3" inputmode="numeric" style="width: 56px; height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; text-align: center; font: inherit; font-weight: 600">
+<button aria-label="Increase replicas" style="width: 36px; height: 36px; border-radius: 18px; border: 1px solid #8E9099; background: transparent; color: #E2E2E9; font-family: MSO; font-size: 18px">&#xE145;</button>
+<button style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600">Scale</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Tasks</span>
+<sc-for list="{{tasks}}" as="t" hint-placeholder-count="5">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 70px 92px; gap: 8px; align-items: center; min-height: 40px; padding: 4px 0; border-top: 1px solid #282A2F">
+<span style="display: flex; flex-direction: column; min-width: 0"><span style="font: 12px 'Cascadia Mono',Consolas,monospace">{{t.name}}</span><span style="font-size: 12px; color: {{t.errInk}}">{{t.error}}</span></span>
+<span style="font-size: 12px; color: #C4C6D0">{{t.node}}</span>
+<span style="justify-self: start; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 12px; font-weight: 600; display: flex; align-items: center; background: {{t.bg}}; color: {{t.ink}}">{{t.state}}</span>
+</div>
+</sc-for>
+</div>
+<div style="flex: 1 1 auto"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="newimg" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Update image</label><input id="newimg" value="registry.example.com/hello/api:1.4.1" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace"><span style="font-size: 12px; color: #C4C6D0">Rolling update, parallelism 1, delay 10s, failure action rollback</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE8B3;</span>Rollback</button>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE627;</span>Update</button>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const tabs = [['Services','4',true],['Stacks','1',false],['Nodes','3',false],['Secrets','2',false],['Configs','1',false]].map(([label, count, on]) => ({ label, count, selected: on ? 'true' : 'false', line: on ? '#ADC6FF' : 'transparent', ink: on ? '#E2E2E9' : '#C4C6D0', weight: on ? 600 : 400 }));
+const services = [
+['hello_api','stack hello','replicated','3/3','registry.example.com/hello/api:1.4.0','8080:8080/tcp','12 min ago',true],
+['hello_worker','stack hello','replicated','1/2','registry.example.com/hello/worker:1.4.0','None','12 min ago',false],
+['hello_db','stack hello','replicated','1/1','postgres:16.4','None','2 days ago',false],
+['node-exporter','','global','3/3','prom/node-exporter:v1.8.2','9100:9100/tcp','5 days ago',false]
+].map(([name, stack, mode, replicas, image, ports, updated, sel]) => {
+const [a, b] = replicas.split('/');
+const ok = a === b;
+return { name, stack: stack || 'standalone', mode, replicas, image, ports, updated, bg: sel ? '#282A2F' : 'transparent', repBg: ok ? '#005227' : '#5C3F00', repInk: ok ? '#9CF6B4' : '#FFDDB3' };
+});
+const st = { Running: ['#005227','#9CF6B4'], Shutdown: ['#282A2F','#C4C6D0'], Failed: ['#93000A','#FFDAD6'] };
+const tasks = [
+['hello_api.1.k2v9x0','node-a','Running',''],
+['hello_api.2.p7m31d','node-b','Running',''],
+['hello_api.3.w0q8ne','node-c','Running',''],
+['hello_api.2.f4c2a1','node-b','Failed','task: non-zero exit (1)'],
+['hello_api.1.r9d0b7','node-a','Shutdown','replaced by update']
+].map(([name, node, state, error]) => ({ name, node, state, error: error || 'No error', errInk: state === 'Failed' ? '#FFB4AB' : '#C4C6D0', bg: st[state][0], ink: st[state][1] }));
+return { tabs, services, tasks };
+}
+}
+</script>
+</body>
+</html>

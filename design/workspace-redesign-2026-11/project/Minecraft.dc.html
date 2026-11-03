@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Minecraft servers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Minecraft" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center">&#xE80B;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Minecraft servers</h1>
+<span style="font-size: 13px; color: #C4C6D0">3 servers · 2 running · itzg/minecraft-server and itzg/minecraft-bedrock-server · EULA accepted per server</span>
+</div>
+<div style="height: 40px; width: 260px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Search servers" placeholder="Search servers" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><button aria-label="Regular expression builder" style="height: 28px; padding: 0 8px; border-radius: 14px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Cascadia Mono',monospace">.*</button></div>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE145;</span>New server</button>
+</div>
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{servers}}" as="s" hint-placeholder-count="3">
+<button aria-pressed="{{s.on}}" style="border: {{s.border}}; border-radius: 16px; background: {{s.bg}}; color: #E2E2E9; font: inherit; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; text-align: left">
+<span style="display: flex; align-items: center; gap: 10px; width: 100%"><span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 10px; background: {{s.tile}}; color: {{s.tileInk}}; font-family: MSF; font-size: 22px; display: flex; align-items: center; justify-content: center">&#xE80B;</span><span style="display: flex; flex-direction: column; flex: 1 1 auto"><span style="font-weight: 600; font-size: 15px">{{s.name}}</span><span style="font-size: 12px; color: #C4C6D0">{{s.kind}}</span></span><span style="height: 24px; padding: 0 10px; border-radius: 12px; background: {{s.chipBg}}; color: {{s.chipInk}}; font-size: 12px; font-weight: 600; display: flex; align-items: center">{{s.state}}</span></span>
+<span style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; font-size: 12px; color: #C4C6D0"><span style="display: flex; flex-direction: column"><span style="font-size: 18px; font-weight: 700; color: #E2E2E9">{{s.players}}</span>Players</span><span style="display: flex; flex-direction: column"><span style="font-size: 18px; font-weight: 700; color: #E2E2E9">{{s.mem}}</span>Memory</span><span style="display: flex; flex-direction: column"><span style="font: 600 14px 'Cascadia Mono',monospace; color: #E2E2E9; line-height: 1.8">{{s.port}}</span>Port</span></span>
+</button>
+</sc-for>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 12px">
+<section aria-label="Server console" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div role="tablist" aria-label="Server sections" style="height: 48px; display: flex; align-items: flex-end; gap: 2px; padding: 0 12px; border-bottom: 1px solid #282A2F">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="7">
+<button role="tab" aria-selected="{{t.on}}" style="height: 44px; padding: 0 14px; border: none; border-bottom: {{t.line}}; background: transparent; color: {{t.ink}}; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">{{t.icon}}</span>{{t.name}}</button>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px">
+<div style="height: 36px; flex: 0 1 300px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 18px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Search console" value="joined" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><button aria-label="Regular expression builder" style="height: 26px; padding: 0 8px; border-radius: 13px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Cascadia Mono',monospace">.*</button></div>
+<button aria-pressed="true" style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px">Follow</button>
+<button aria-pressed="false" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Warnings only</button>
+<span style="flex: 1 1 auto"></span>
+<span style="font-size: 12px; color: #C4C6D0">TPS 20.0 · uptime 3 h 12 min</span>
+</div>
+<pre style="margin: 0 14px; flex: 1 1 auto; padding: 12px 14px; border-radius: 12px; background: #111318; font: 12px/1.65 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: pre; overflow: hidden">[14:02:11 INFO]: Done (8.412s)! For help, type "help"
+[14:05:37 INFO]: <span style="color: #E2E2E9; background: #3E4759">example-player-1 joined</span> the game
+[14:09:02 INFO]: example-player-2 has made the advancement [Stone Age]
+[14:11:48 INFO]: <span style="color: #E2E2E9; background: #3E4759">example-player-3 joined</span> the game
+[14:12:20 <span style="color: #F9BD5C">WARN</span>]: Can't keep up! Is the server overloaded? Running 2104ms behind
+[14:15:00 INFO]: Saved the game (autosave)
+[14:16:31 INFO]: [Rcon] Gave 1 [Torch] to example-player-1</pre>
+<div style="display: flex; align-items: center; gap: 8px; padding: 12px 14px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xEB8E;</span>
+<input aria-label="RCON command" value="/time set day" style="flex: 1 1 auto; height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<button style="height: 40px; padding: 0 18px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600">Send</button>
+</div>
+</section>
+<aside aria-label="Server controls" style="background: #191C20; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE5D5;</span>Restart</button>
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #FFB4AB; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE047;</span>Stop</button>
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE864;</span>Backup</button>
+</div>
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">server.properties</span>
+<div style="display: grid; grid-template-columns: 130px minmax(0, 1fr); row-gap: 8px; column-gap: 12px; align-items: center; font-size: 13px">
+<label style="color: #C4C6D0" for="motd">Message of the day</label><input id="motd" value="Weekend survival" style="height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 10px; font: inherit">
+<span style="color: #C4C6D0">Game mode</span><div role="radiogroup" aria-label="Game mode" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 18px; overflow: hidden; height: 34px"><button role="radio" aria-checked="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 12px; font-weight: 600">Survival</button><button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 12px">Creative</button><button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 12px">Adventure</button></div>
+<span style="color: #C4C6D0">Difficulty</span><button style="height: 36px; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 10px">Normal<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></button>
+<span style="color: #C4C6D0">View distance</span><span style="display: flex; align-items: center; gap: 10px"><span style="flex: 1 1 auto; height: 4px; border-radius: 2px; background: #ADC6FF; position: relative"><span style="position: absolute; top: -8px; left: 40%; width: 20px; height: 20px; border-radius: 10px; background: #ADC6FF"></span></span><span style="font: 12px 'Cascadia Mono',monospace">10</span></span>
+<span style="color: #C4C6D0">Memory</span><span style="display: flex; gap: 6px"><span style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid #44474F; display: flex; align-items: center; font-size: 12px">2G</span><span style="height: 30px; padding: 0 10px; border-radius: 8px; background: #3E4759; color: #DAE2F9; display: flex; align-items: center; font-size: 12px; font-weight: 600">4G</span><span style="height: 30px; padding: 0 10px; border-radius: 8px; border: 1px solid #44474F; display: flex; align-items: center; font-size: 12px">8G</span></span>
+</div>
+<label style="height: 36px; display: flex; align-items: center; justify-content: space-between; font-size: 13px">Whitelist only<span style="width: 52px; height: 32px; border-radius: 16px; background: #ADC6FF; position: relative"><span style="position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 12px; background: #002E69"></span></span></label>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Players online</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #282A2F; display: flex; align-items: center; gap: 6px; font-size: 12px"><span aria-hidden="true" style="font-family: MSO; font-size: 14px">&#xF0D3;</span>example-player-1</span><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #282A2F; display: flex; align-items: center; gap: 6px; font-size: 12px"><span aria-hidden="true" style="font-family: MSO; font-size: 14px">&#xF0D3;</span>example-player-3</span></div></div>
+<div style="flex: 1 1 auto"></div>
+<div style="display: flex; align-items: flex-start; gap: 10px; background: #1D2024; border-radius: 12px; padding: 12px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE88E;</span><span style="font-size: 12px; color: #C4C6D0">Changes are written to the container environment and need a restart. The world lives in the volume mc-weekend-data; backups use the same volume archive flow as Storage.</span></div>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE161;</span>Apply and restart</button>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const servers = [['Weekend survival','Java · Paper · latest release','Running','2 / 20','3.1 GB','25565',true],['Creative build','Java · Vanilla · snapshot off','Running','0 / 10','1.8 GB','25566',false],['Bedrock family','Bedrock · official server','Stopped','–','–','19132/udp',false]].map(([name, kind, state, players, mem, port, on]) => ({ name, kind, state, players, mem, port,
+ on: on ? 'true' : 'false', bg: on ? '#282A2F' : '#191C20', border: on ? '2px solid #ADC6FF' : '1px solid #282A2F',
+ tile: state === 'Running' ? '#005227' : '#33353A', tileInk: state === 'Running' ? '#9CF6B4' : '#C4C6D0',
+ chipBg: state === 'Running' ? '#005227' : '#33353A', chipInk: state === 'Running' ? '#9CF6B4' : '#C4C6D0' }));
+const tabs = [['Console','',true],['Players','',false],['Properties','',false],['Mods and plugins','',false],['Worlds','',false],['Backups','',false],['Logs','',false]].map(([name, icon, on]) => ({ name, icon, on: on ? 'true' : 'false', ink: on ? '#ADC6FF' : '#C4C6D0', line: on ? '3px solid #ADC6FF' : '3px solid transparent' }));
+return { servers, tabs };
+}
+}
+</script>
+</body>
+</html>

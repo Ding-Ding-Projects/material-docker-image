@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Volume backup</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Storage" hint-size="96px,912px"></dc-import>
+<main aria-hidden="true" style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto">&#xF20E;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Storage</h1>
+<span style="font-size: 13px; color: #C4C6D0">6 volumes · 2.31 GB · 4 networks</span>
+</div>
+</div>
+<section style="flex: 1 1 auto; background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; padding: 8px 12px">
+<div style="height: 40px; display: grid; grid-template-columns: minmax(0, 1.4fr) 110px 100px minmax(0, 1fr) 140px; align-items: center; gap: 12px; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600; border-bottom: 1px solid #282A2F"><span>Volume</span><span>Driver</span><span>Size</span><span>Used by</span><span>Last backup</span></div>
+<sc-for list="{{volumes}}" as="v" hint-placeholder-count="6">
+<div style="height: 52px; display: grid; grid-template-columns: minmax(0, 1.4fr) 110px 100px minmax(0, 1fr) 140px; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; background: {{v.bg}}">
+<span style="font-weight: 600; font-family: 'Cascadia Mono',Consolas,monospace; font-size: 13px">{{v.name}}</span><span style="color: #C4C6D0">local</span><span>{{v.size}}</span><span style="color: #C4C6D0">{{v.used}}</span><span style="color: #C4C6D0">{{v.backup}}</span>
+</div>
+</sc-for>
+</section>
+</main>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,.55); display: flex; align-items: center; justify-content: center">
+<div role="dialog" aria-modal="true" aria-labelledby="bkTitle" style="width: 600px; background: #282A2F; border-radius: 28px; padding: 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 12px 32px rgba(0,0,0,.5)">
+<div style="display: flex; align-items: center; gap: 12px">
+<span aria-hidden="true" style="width: 40px; height: 40px; border-radius: 12px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 22px; display: flex; align-items: center; justify-content: center">&#xE864;</span>
+<h2 id="bkTitle" style="margin: 0; font-size: 22px; font-weight: 600; flex: 1 1 auto">Back up volume</h2>
+<button aria-label="Close dialog" style="width: 40px; height: 40px; border: none; border-radius: 20px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE5CD;</button>
+</div>
+<div role="tablist" aria-label="Operation" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 20px; overflow: hidden; height: 40px">
+<button role="tab" aria-selected="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE864;</span>Backup</button>
+<button role="tab" aria-selected="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE8B3;</span>Restore</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px"><label for="bkVol" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Volume</label><input id="bkVol" value="hello_pgdata" readonly style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #1D2024; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<label for="bkDest" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Destination archive</label>
+<div style="display: flex; gap: 8px"><input id="bkDest" value="D:\Backups\docker\hello_pgdata-2026-11-03-1152.tar.gz" style="flex: 1 1 auto; min-width: 0; height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #ADC6FF; background: #1D2024; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace"><button aria-label="Choose destination file" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #33353A; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE2C8;</button></div>
+</div>
+<div style="display: flex; align-items: flex-start; gap: 10px; background: #1D2024; border-radius: 12px; padding: 10px 12px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE88E;</span>
+<span style="font-size: 13px; color: #C4C6D0; line-height: 1.5">Runs a short-lived helper container from <span style="font-family: 'Cascadia Mono',Consolas,monospace; color: #E2E2E9">busybox:1.36</span> that mounts the volume read-only and writes a tar.gz. The image is pulled once if missing.</span>
+</div>
+<div style="height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px">
+<span style="display: flex; flex-direction: column"><span>Pause containers using this volume</span><span style="font-size: 12px; color: #C4C6D0">hello_db will be paused, then resumed after the copy</span></span>
+<button role="switch" aria-checked="true" aria-label="Pause containers using this volume" style="width: 52px; height: 32px; flex: 0 0 auto; border-radius: 16px; border: none; background: #ADC6FF; position: relative; padding: 0"><span style="position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 12px; background: #002E69"></span></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px" role="group" aria-label="Backup progress">
+<div style="display: flex; justify-content: space-between; font-size: 13px"><span>Writing archive · 412 MB of 655 MB</span><span style="color: #C4C6D0">63% · about 9 s left</span></div>
+<div role="progressbar" aria-valuenow="63" aria-valuemin="0" aria-valuemax="100" aria-label="Backup progress" style="height: 6px; border-radius: 3px; background: #44474F; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 63%; border-radius: 3px; background: #ADC6FF"></div></div>
+</div>
+<div style="display: flex; align-items: flex-start; gap: 10px; border: 1px solid #44474F; border-radius: 12px; padding: 10px 12px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #F9BD5C">&#xF083;</span>
+<span style="font-size: 13px; color: #C4C6D0; line-height: 1.5">Restore tab: pick an archive, choose a new or empty volume, and confirm. Restoring into a volume that has data asks for the full destructive confirmation first.</span>
+</div>
+<div style="display: flex; justify-content: flex-end; gap: 8px">
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Cancel backup</button>
+<button disabled style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #33353A; color: #C4C6D0; font: inherit; font-weight: 600">Backing up…</button>
+</div>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const volumes = [
+['hello_pgdata','655 MB','hello_db (running)','2026-10-27',true],
+['hello_redis','48 MB','hello_cache (running)','Never',false],
+['buildx_buildkit_state','1.21 GB','buildx_buildkit_default','Never',false],
+['grafana-storage','212 MB','None','2026-09-14',false],
+['npm-cache','164 MB','None','Never',false],
+['scratch-test','28 MB','None','Never',false]
+].map(([name, size, used, backup, sel]) => ({ name, size, used, backup, bg: sel ? '#282A2F' : 'transparent' }));
+return { volumes };
+}
+}
+</script>
+</body>
+</html>

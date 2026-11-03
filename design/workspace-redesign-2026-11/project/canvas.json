@@ -1,33 +1,264 @@
 {
   "v": 3,
-  "createdOnFiles": {"v": 1, "at": "2026-11-03T16:58:00Z"},
+  "createdOnFiles": {
+    "v": 1,
+    "at": "2026-11-03T16:58:00Z"
+  },
   "title": "Material Docker Image redesign",
-  "launch": {"view": "canvas"},
+  "launch": {
+    "view": "canvas"
+  },
   "pages": [],
   "boards": {
-    "Main.dc.html": {"x": 0, "y": 0, "w": 1440, "h": 960, "title": "Build workspace"},
-    "Images.dc.html": {"x": 1520, "y": 0, "w": 1440, "h": 960, "title": "Images"},
-    "Containers.dc.html": {"x": 3040, "y": 0, "w": 1440, "h": 960, "title": "Containers and detail"},
-    "RunContainer.dc.html": {"x": 0, "y": 1080, "w": 1440, "h": 960, "title": "Run container editor"},
-    "Compose.dc.html": {"x": 1520, "y": 1080, "w": 1440, "h": 960, "title": "Compose projects"},
-    "Canvas.dc.html": {"x": 3040, "y": 1080, "w": 1440, "h": 960, "title": "Dockerfile canvas"},
-    "Storage.dc.html": {"x": 0, "y": 2160, "w": 1440, "h": 960, "title": "Volumes and networks"},
-    "Monitor.dc.html": {"x": 1520, "y": 2160, "w": 1440, "h": 960, "title": "Live monitor"},
-    "System.dc.html": {"x": 3040, "y": 2160, "w": 1440, "h": 960, "title": "System cleanup with super confirmation"},
-    "Registry.dc.html": {"x": 0, "y": 3240, "w": 1440, "h": 960, "title": "Registry and builders"},
-    "Diagnostics.dc.html": {"x": 1520, "y": 3240, "w": 1440, "h": 960, "title": "Diagnostics"},
-    "Tools.dc.html": {"x": 3040, "y": 3240, "w": 1440, "h": 960, "title": "Tools and offline docs"},
-    "Settings.dc.html": {"x": 0, "y": 4320, "w": 1440, "h": 960, "title": "Settings"},
-    "Palette.dc.html": {"x": 1520, "y": 4320, "w": 1440, "h": 960, "title": "Command palette"},
-    "Setup.dc.html": {"x": 3040, "y": 4320, "w": 1440, "h": 960, "title": "Setup wizard"},
-    "Creator.dc.html": {"x": 0, "y": 5400, "w": 1440, "h": 960, "title": "Dockerfile Creator"},
-    "TitleBar.dc.html": {"x": 4600, "y": 0, "w": 1440, "h": 48, "title": "Component: title bar"},
-    "Rail.dc.html": {"x": 4600, "y": 128, "w": 96, "h": 912, "title": "Component: navigation rail"}
+    "Main.dc.html": {
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "title": "Build workspace"
+    },
+    "Images.dc.html": {
+      "x": 1520,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "title": "Images"
+    },
+    "Containers.dc.html": {
+      "x": 3040,
+      "y": 0,
+      "w": 1440,
+      "h": 960,
+      "title": "Containers and detail"
+    },
+    "RunContainer.dc.html": {
+      "x": 0,
+      "y": 1080,
+      "w": 1440,
+      "h": 960,
+      "title": "Run container editor"
+    },
+    "Compose.dc.html": {
+      "x": 1520,
+      "y": 1080,
+      "w": 1440,
+      "h": 960,
+      "title": "Compose projects"
+    },
+    "Canvas.dc.html": {
+      "x": 3040,
+      "y": 1080,
+      "w": 1440,
+      "h": 960,
+      "title": "Dockerfile canvas"
+    },
+    "Storage.dc.html": {
+      "x": 0,
+      "y": 2160,
+      "w": 1440,
+      "h": 960,
+      "title": "Volumes and networks"
+    },
+    "Monitor.dc.html": {
+      "x": 1520,
+      "y": 2160,
+      "w": 1440,
+      "h": 960,
+      "title": "Live monitor"
+    },
+    "System.dc.html": {
+      "x": 3040,
+      "y": 2160,
+      "w": 1440,
+      "h": 960,
+      "title": "System cleanup with super confirmation"
+    },
+    "Registry.dc.html": {
+      "x": 0,
+      "y": 3240,
+      "w": 1440,
+      "h": 960,
+      "title": "Registry and builders"
+    },
+    "Diagnostics.dc.html": {
+      "x": 1520,
+      "y": 3240,
+      "w": 1440,
+      "h": 960,
+      "title": "Diagnostics"
+    },
+    "Tools.dc.html": {
+      "x": 3040,
+      "y": 3240,
+      "w": 1440,
+      "h": 960,
+      "title": "Tools and offline docs"
+    },
+    "Settings.dc.html": {
+      "x": 0,
+      "y": 4320,
+      "w": 1440,
+      "h": 960,
+      "title": "Settings"
+    },
+    "Palette.dc.html": {
+      "x": 1520,
+      "y": 4320,
+      "w": 1440,
+      "h": 960,
+      "title": "Command palette"
+    },
+    "Setup.dc.html": {
+      "x": 3040,
+      "y": 4320,
+      "w": 1440,
+      "h": 960,
+      "title": "Setup wizard"
+    },
+    "Creator.dc.html": {
+      "x": 0,
+      "y": 5400,
+      "w": 1440,
+      "h": 960,
+      "title": "Dockerfile Creator"
+    },
+    "TitleBar.dc.html": {
+      "x": 4600,
+      "y": 0,
+      "w": 1440,
+      "h": 48,
+      "title": "Component: title bar"
+    },
+    "Rail.dc.html": {
+      "x": 4600,
+      "y": 128,
+      "w": 96,
+      "h": 912,
+      "title": "Component: navigation rail"
+    },
+    "BuildV2.dc.html": {
+      "x": 0,
+      "y": 6720,
+      "w": 1440,
+      "h": 960,
+      "title": "Build v2 with BuildKit timeline"
+    },
+    "Bake.dc.html": {
+      "x": 1520,
+      "y": 6720,
+      "w": 1440,
+      "h": 960,
+      "title": "Bake targets"
+    },
+    "ImagesV2.dc.html": {
+      "x": 3040,
+      "y": 6720,
+      "w": 1440,
+      "h": 960,
+      "title": "Image detail: layers, platforms, Scout"
+    },
+    "Security.dc.html": {
+      "x": 0,
+      "y": 7800,
+      "w": 1440,
+      "h": 960,
+      "title": "Image security"
+    },
+    "Contexts.dc.html": {
+      "x": 1520,
+      "y": 7800,
+      "w": 1440,
+      "h": 960,
+      "title": "Engine contexts and plugins"
+    },
+    "Swarm.dc.html": {
+      "x": 3040,
+      "y": 7800,
+      "w": 1440,
+      "h": 960,
+      "title": "Swarm"
+    },
+    "CreatorV2.dc.html": {
+      "x": 0,
+      "y": 8880,
+      "w": 1440,
+      "h": 960,
+      "title": "Dockerfile Creator v2"
+    },
+    "VolumeBackup.dc.html": {
+      "x": 1520,
+      "y": 8880,
+      "w": 1440,
+      "h": 960,
+      "title": "Volume backup and restore"
+    },
+    "Appearance.dc.html": {
+      "x": 3040,
+      "y": 8880,
+      "w": 1440,
+      "h": 960,
+      "title": "Appearance studio and motion"
+    },
+    "Minecraft.dc.html": {
+      "x": 0,
+      "y": 9960,
+      "w": 1440,
+      "h": 960,
+      "title": "Minecraft servers"
+    }
   },
-  "order": ["Main.dc.html", "Images.dc.html", "Containers.dc.html", "RunContainer.dc.html", "Compose.dc.html", "Canvas.dc.html", "Storage.dc.html", "Monitor.dc.html", "System.dc.html", "Registry.dc.html", "Diagnostics.dc.html", "Tools.dc.html", "Settings.dc.html", "Palette.dc.html", "Setup.dc.html", "Creator.dc.html", "TitleBar.dc.html", "Rail.dc.html"],
+  "order": [
+    "Main.dc.html",
+    "Images.dc.html",
+    "Containers.dc.html",
+    "RunContainer.dc.html",
+    "Compose.dc.html",
+    "Canvas.dc.html",
+    "Storage.dc.html",
+    "Monitor.dc.html",
+    "System.dc.html",
+    "Registry.dc.html",
+    "Diagnostics.dc.html",
+    "Tools.dc.html",
+    "Settings.dc.html",
+    "Palette.dc.html",
+    "Setup.dc.html",
+    "Creator.dc.html",
+    "TitleBar.dc.html",
+    "Rail.dc.html",
+    "BuildV2.dc.html",
+    "Bake.dc.html",
+    "ImagesV2.dc.html",
+    "Security.dc.html",
+    "Contexts.dc.html",
+    "Swarm.dc.html",
+    "CreatorV2.dc.html",
+    "VolumeBackup.dc.html",
+    "Appearance.dc.html",
+    "Minecraft.dc.html"
+  ],
   "notes": {
-    "intro": {"x": 0, "y": -300, "text": "Material Docker Image: native workspace redesign", "kind": "title1", "maxW": 4480},
-    "tokens": {"x": 4600, "y": 1120, "w": 420, "text": "Look: Material 3 dark, blue seed. Surface #111318, containers #191C20 / #1D2024 / #282A2F, primary #ADC6FF on #002E69, primary container #004494, tertiary #82D3E0, success #7FD99A, warning #F9BD5C, error #FFB4AB. Type: Segoe UI Variable. Icons: Material Symbols Rounded (subset, outline + filled). Shape: 12 px cards, 20 px pills, 28 px dialogs. Light theme mirrors these roles.", "fill": "blue"}
+    "intro": {
+      "x": 0,
+      "y": -300,
+      "text": "Material Docker Image: native workspace redesign",
+      "kind": "title1",
+      "maxW": 4480
+    },
+    "tokens": {
+      "x": 4600,
+      "y": 1120,
+      "w": 420,
+      "text": "Look: Material 3 dark, blue seed. Surface #111318, containers #191C20 / #1D2024 / #282A2F, primary #ADC6FF on #002E69, primary container #004494, tertiary #82D3E0, success #7FD99A, warning #F9BD5C, error #FFB4AB. Type: Segoe UI Variable. Icons: Material Symbols Rounded (subset, outline + filled). Shape: 12 px cards, 20 px pills, 28 px dialogs. Light theme mirrors these roles.",
+      "fill": "blue"
+    },
+    "advanced": {
+      "x": 0,
+      "y": 6420,
+      "text": "Advanced v2: deeper Docker, Dockerfile, Minecraft and appearance features",
+      "kind": "title1",
+      "maxW": 4480
+    }
   },
   "designSystems": []
 }

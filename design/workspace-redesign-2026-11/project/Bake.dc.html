@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Bake</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Bake" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto">&#xF8EE;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Bake</h1>
+<span style="font-size: 13px; color: #C4C6D0">2 groups · 3 targets · 5 platform builds · parsed 11:52:07</span>
+</div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE265;</span>Print plan</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE877;</span>Build group release</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xEA3C;</span>Build selected</button>
+</div>
+<div style="display: flex; align-items: flex-end; gap: 8px; background: #191C20; border-radius: 16px; padding: 12px 16px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto">
+<label for="bakefile" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Bake file</label>
+<input id="bakefile" value="C:\Projects\hello-platform\docker-bake.hcl" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace">
+</div>
+<div style="display: flex; flex-direction: column; gap: 4px; width: 280px">
+<label for="bakeover" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Overrides (--set)</label>
+<input id="bakeover" value="*.args.VERSION=1.4.0" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace">
+</div>
+<button aria-label="Browse for bake file" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE2C8;</button>
+<button aria-label="Reload bake file" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE5D5;</button>
+<button aria-label="Open bake file in editor" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE89E;</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 460px minmax(0, 1fr); gap: 12px">
+<section aria-label="Groups and targets" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 12px; color: #C4C6D0; font-weight: 600">Groups</h2>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 10px; background: #1D2024; border-radius: 12px; padding: 10px 12px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #82D3E0">&#xEA0F;</span>
+<span style="display: flex; flex-direction: column; flex: 1 1 auto; gap: 2px"><span style="font-weight: 600; font-family: 'Cascadia Mono',Consolas,monospace">{{g.name}}</span><span style="font-size: 12px; color: #C4C6D0">{{g.members}}</span></span>
+<button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Build</button>
+</div>
+</sc-for>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<h2 style="margin: 0; font-size: 12px; color: #C4C6D0; font-weight: 600">Targets</h2>
+<sc-for list="{{targets}}" as="t" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 8px; background: {{t.bg}}; border-radius: 12px; padding: 12px; border: 1px solid {{t.border}}">
+<div style="display: flex; align-items: center; gap: 10px">
+<button role="checkbox" aria-checked="{{t.checked}}" aria-label="{{t.selectLabel}}" style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 4px; border: 2px solid {{t.boxBorder}}; background: {{t.boxBg}}; color: #002E69; font-family: MSO; font-size: 16px; padding: 0; display: flex; align-items: center; justify-content: center">{{t.boxIcon}}</button>
+<span style="font-weight: 600; font-family: 'Cascadia Mono',Consolas,monospace; flex: 1 1 auto">{{t.name}}</span>
+<span style="font-size: 12px; color: #C4C6D0">{{t.dockerfile}}</span>
+</div>
+<div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding-left: 28px">
+<sc-for list="{{t.platforms}}" as="p" hint-placeholder-count="2">
+<span style="height: 24px; padding: 0 8px; border-radius: 6px; background: #3E4759; color: #DAE2F9; font: 12px 'Cascadia Mono',Consolas,monospace; display: flex; align-items: center">{{p}}</span>
+</sc-for>
+<span style="font-size: 12px; color: #C4C6D0; margin-left: 4px">{{t.tags}}</span>
+</div>
+</div>
+</sc-for>
+</div>
+</section>
+<section aria-label="Target inspector" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px; padding: 14px 12px 12px 16px; border-bottom: 1px solid #282A2F">
+<span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xE4FD;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><h2 style="margin: 0; font-size: 15px; font-weight: 600">Target api · resolved definition</h2><span style="font-size: 12px; color: #C4C6D0">Inherits from _common · variables VERSION=1.4.0, REGISTRY=registry.example.com</span></div>
+<div role="tablist" aria-label="Inspector view" style="display: flex; gap: 4px">
+<button role="tab" aria-selected="true" style="height: 32px; padding: 0 12px; border-radius: 16px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; font-weight: 600">Resolved</button>
+<button role="tab" aria-selected="false" style="height: 32px; padding: 0 12px; border-radius: 16px; border: none; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">HCL source</button>
+</div>
+<button aria-label="Copy resolved definition" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE14D;</button>
+</div>
+<pre style="margin: 0; flex: 1 1 auto; padding: 14px 16px; font: 13px/1.65 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: pre; overflow: hidden; background: #111318; margin: 12px; border-radius: 12px">{
+  <span style="color: #82D3E0">"target"</span>: {
+    <span style="color: #82D3E0">"api"</span>: {
+      <span style="color: #82D3E0">"context"</span>: <span style="color: #F9BD5C">"services/api"</span>,
+      <span style="color: #82D3E0">"dockerfile"</span>: <span style="color: #F9BD5C">"Dockerfile"</span>,
+      <span style="color: #82D3E0">"target"</span>: <span style="color: #F9BD5C">"runtime"</span>,
+      <span style="color: #82D3E0">"args"</span>: {
+        <span style="color: #82D3E0">"NODE_VERSION"</span>: <span style="color: #F9BD5C">"22"</span>,
+        <span style="color: #82D3E0">"VERSION"</span>: <span style="color: #F9BD5C">"1.4.0"</span>
+      },
+      <span style="color: #82D3E0">"tags"</span>: [
+        <span style="color: #F9BD5C">"registry.example.com/hello/api:1.4.0"</span>,
+        <span style="color: #F9BD5C">"registry.example.com/hello/api:latest"</span>
+      ],
+      <span style="color: #82D3E0">"platforms"</span>: [<span style="color: #F9BD5C">"linux/amd64"</span>, <span style="color: #F9BD5C">"linux/arm64"</span>],
+      <span style="color: #82D3E0">"cache-from"</span>: [<span style="color: #F9BD5C">"type=registry,ref=registry.example.com/hello/api:cache"</span>],
+      <span style="color: #82D3E0">"cache-to"</span>: [<span style="color: #F9BD5C">"type=registry,ref=registry.example.com/hello/api:cache,mode=max"</span>],
+      <span style="color: #82D3E0">"attest"</span>: [<span style="color: #F9BD5C">"type=sbom"</span>, <span style="color: #F9BD5C">"type=provenance,mode=max"</span>],
+      <span style="color: #82D3E0">"output"</span>: [<span style="color: #F9BD5C">"type=registry"</span>]
+    }
+  }
+}</pre>
+<div style="display: flex; align-items: center; gap: 10px; padding: 0 16px 16px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #F9BD5C">&#xF083;</span>
+<span style="font-size: 13px; color: #C4C6D0; flex: 1 1 auto">Output type=registry pushes on build. Sign in to registry.example.com first, or switch output to load locally.</span>
+<button style="height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Load locally instead</button>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const groups = [['default','api, worker, web · 3 targets'],['release','api, web · pushes to registry.example.com']].map(([name, members]) => ({ name, members }));
+const targets = [
+['api','services/api/Dockerfile',['linux/amd64','linux/arm64'],'2 tags',true],
+['worker','services/worker/Dockerfile',['linux/amd64'],'1 tag',false],
+['web','apps/web/Dockerfile',['linux/amd64','linux/arm64'],'2 tags',false]
+].map(([name, dockerfile, platforms, tags, on]) => ({ name, dockerfile, platforms, tags, checked: on ? 'true' : 'false', boxIcon: on ? '' : '', boxBg: on ? '#ADC6FF' : 'transparent', boxBorder: on ? '#ADC6FF' : '#8E9099', selectLabel: 'Select target ' + name, bg: on ? '#282A2F' : '#1D2024', border: on ? '#ADC6FF' : 'transparent' }));
+return { groups, targets };
+}
+}
+</script>
+</body>
+</html>

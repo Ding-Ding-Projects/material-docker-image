@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Appearance editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Settings" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center">&#xE40A;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Appearance studio</h1>
+<span style="font-size: 13px; color: #C4C6D0">Every change applies live · Saved in settings.json · Undo with Ctrl+Z</span>
+</div>
+<div style="height: 40px; width: 260px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Search appearance settings" placeholder="Search appearance" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><button aria-label="Regular expression builder" style="height: 28px; padding: 0 8px; border-radius: 14px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Cascadia Mono',monospace">.*</button></div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF090;</span>Export theme</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE161;</span>Save as preset</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr) 420px; gap: 12px">
+<section aria-label="Presets" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Presets</span>
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="7">
+<button aria-pressed="{{p.on}}" style="border: {{p.border}}; border-radius: 14px; background: {{p.bg}}; color: #E2E2E9; font: inherit; padding: 10px; display: flex; align-items: center; gap: 10px; text-align: left">
+<span aria-hidden="true" style="display: grid; grid-template-columns: repeat(2, 14px); gap: 2px"><span style="width: 14px; height: 14px; border-radius: 4px; background: {{p.a}}"></span><span style="width: 14px; height: 14px; border-radius: 4px; background: {{p.b}}"></span><span style="width: 14px; height: 14px; border-radius: 4px; background: {{p.c}}"></span><span style="width: 14px; height: 14px; border-radius: 4px; background: {{p.d}}"></span></span>
+<span style="display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 600">{{p.name}}</span><span style="font-size: 12px; color: #C4C6D0">{{p.note}}</span></span>
+</button>
+</sc-for>
+<div style="flex: 1 1 auto"></div>
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C8;</span>Import theme file</button>
+</section>
+<section aria-label="Editors" style="display: flex; flex-direction: column; gap: 12px; min-height: 0; overflow: hidden">
+<div style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xE40A;</span><span style="font-weight: 600; flex: 1 1 auto">Colour</span>
+<div role="radiogroup" aria-label="Theme" style="display: grid; grid-template-columns: repeat(3, 88px); border: 1px solid #8E9099; border-radius: 20px; overflow: hidden; height: 36px"><button role="radio" aria-checked="false" style="border: none; background: transparent; color: #E2E2E9; font: inherit">Light</button><button role="radio" aria-checked="true" style="border: none; border-left: 1px solid #8E9099; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600">Dark</button><button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit">System</button></div></div>
+<div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 16px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 6px; align-items: center"><span aria-hidden="true" style="width: 96px; height: 96px; border-radius: 48px; background: conic-gradient(#FF6B6B, #F9BD5C, #7FD99A, #82D3E0, #ADC6FF, #D0A6FF, #FF6B6B); display: flex; align-items: center; justify-content: center"><span style="width: 56px; height: 56px; border-radius: 28px; background: #4A7FE0; border: 3px solid #111318"></span></span><span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">Seed #4A7FE0</span></div>
+<div style="display: flex; flex-direction: column; gap: 10px">
+<sc-for list="{{sliders}}" as="s" hint-placeholder-count="3">
+<label style="display: grid; grid-template-columns: 70px minmax(0, 1fr) 52px; align-items: center; gap: 10px; font-size: 13px"><span style="color: #C4C6D0">{{s.label}}</span><span style="height: 12px; border-radius: 6px; background: {{s.track}}; position: relative"><span style="position: absolute; top: -4px; left: {{s.pos}}; width: 20px; height: 20px; border-radius: 10px; background: #E2E2E9; border: 2px solid #111318; box-sizing: border-box"></span></span><span style="font: 12px 'Cascadia Mono',Consolas,monospace; text-align: right">{{s.value}}</span></label>
+</sc-for>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Generated tonal palette · primary</span><div style="display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 3px; height: 28px"><sc-for list="{{tones}}" as="t" hint-placeholder-count="13"><span title="{{t.label}}" style="border-radius: 6px; background: {{t.c}}"></span></sc-for></div></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+<sc-for list="{{roles}}" as="r" hint-placeholder-count="6">
+<div style="height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 10px; background: #1D2024"><span aria-hidden="true" style="width: 24px; height: 24px; border-radius: 6px; background: {{r.c}}; border: 1px solid #44474F"></span><span style="flex: 1 1 auto; font-size: 13px">{{r.name}}</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; background: {{r.passBg}}; color: {{r.passInk}}; font-size: 11px; font-weight: 700; display: flex; align-items: center">{{r.ratio}}</span></div>
+</sc-for>
+</div>
+</div>
+<div style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xE661;</span><span style="font-weight: 600; flex: 1 1 auto">Motion</span><label style="display: flex; align-items: center; gap: 10px; font-size: 13px; color: #C4C6D0">Reduced motion<span style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid #8E9099; background: #33353A; position: relative"><span style="position: absolute; left: 6px; top: 6px; width: 16px; height: 16px; border-radius: 8px; background: #8E9099"></span></span></label></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{transitions}}" as="x" hint-placeholder-count="4">
+<button aria-pressed="{{x.on}}" style="height: 72px; border-radius: 12px; border: {{x.border}}; background: {{x.bg}}; color: #E2E2E9; font: inherit; font-size: 13px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 22px; color: #ADC6FF">{{x.icon}}</span>{{x.name}}</button>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 200px; gap: 16px; align-items: center">
+<div style="display: flex; flex-direction: column; gap: 10px">
+<label style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 60px; align-items: center; gap: 10px; font-size: 13px"><span style="color: #C4C6D0">Speed</span><span style="height: 4px; border-radius: 2px; background: #ADC6FF; position: relative"><span style="position: absolute; top: -8px; left: 48%; width: 20px; height: 20px; border-radius: 10px; background: #ADC6FF"></span></span><span style="font: 12px 'Cascadia Mono',monospace; text-align: right">1.0×</span></label>
+<label style="display: grid; grid-template-columns: 110px minmax(0, 1fr) 60px; align-items: center; gap: 10px; font-size: 13px"><span style="color: #C4C6D0">Spring bounce</span><span style="height: 4px; border-radius: 2px; background: #ADC6FF; position: relative"><span style="position: absolute; top: -8px; left: 30%; width: 20px; height: 20px; border-radius: 10px; background: #ADC6FF"></span></span><span style="font: 12px 'Cascadia Mono',monospace; text-align: right">0.3</span></label>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #3E4759; color: #DAE2F9; font-size: 12px; display: flex; align-items: center">Emphasized decelerate</span><span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #44474F; font-size: 12px; display: flex; align-items: center; color: #C4C6D0">Standard</span><span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #44474F; font-size: 12px; display: flex; align-items: center; color: #C4C6D0">Spring</span><span style="height: 28px; padding: 0 10px; border-radius: 8px; border: 1px solid #44474F; font-size: 12px; display: flex; align-items: center; color: #C4C6D0">Linear</span></div>
+</div>
+<svg role="img" aria-label="Easing curve: emphasized decelerate" width="200" height="120" viewBox="0 0 200 120"><rect x="0.5" y="0.5" width="199" height="119" rx="10" fill="#1D2024" stroke="#282A2F"></rect><path d="M16 104 C 50 20, 90 16, 184 16" fill="none" stroke="#ADC6FF" stroke-width="3" stroke-linecap="round"></path><circle cx="16" cy="104" r="4" fill="#82D3E0"></circle><circle cx="184" cy="16" r="4" fill="#82D3E0"></circle></svg>
+</div>
+</div>
+<div style="background: #191C20; border-radius: 16px; padding: 16px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px">
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Corner shape</span><div style="display: flex; gap: 6px"><span style="width: 36px; height: 36px; border-radius: 4px; border: 2px solid #44474F"></span><span style="width: 36px; height: 36px; border-radius: 12px; border: 2px solid #ADC6FF; background: #3E4759"></span><span style="width: 36px; height: 36px; border-radius: 18px; border: 2px solid #44474F"></span></div></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Density</span><div role="radiogroup" aria-label="Density" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 18px; overflow: hidden; height: 36px"><button role="radio" aria-checked="false" style="border: none; background: transparent; color: #E2E2E9; font: inherit; font-size: 13px">Compact</button><button role="radio" aria-checked="true" style="border: none; border-left: 1px solid #8E9099; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; font-weight: 600">Default</button><button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 13px">Comfy</button></div></div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Type scale</span><div style="display: flex; align-items: baseline; gap: 10px"><span style="font-size: 13px">Aa</span><span style="font-size: 16px">Aa</span><span style="font-size: 20px; color: #ADC6FF; font-weight: 600">Aa</span><span style="font: 12px 'Cascadia Mono',monospace; color: #C4C6D0">110%</span></div></div>
+</div>
+</section>
+<section aria-label="Live preview" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600; flex: 1 1 auto">Live preview</span><span style="height: 24px; padding: 0 10px; border-radius: 12px; background: #005227; color: #9CF6B4; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 4px"><span aria-hidden="true" style="font-family: MSF; font-size: 14px">&#xE668;</span>All roles pass AA</span><button aria-label="Replay transition" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE5D5;</button></div>
+<div style="flex: 1 1 auto; border-radius: 14px; background: #111318; border: 1px solid #282A2F; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: #191C20"><span style="width: 10px; height: 10px; border-radius: 5px; background: #ADC6FF"></span><span style="font-size: 12px; color: #C4C6D0">Material Docker Image</span></div>
+<div style="flex: 1 1 auto; display: flex; gap: 10px; padding: 10px">
+<div style="width: 44px; display: flex; flex-direction: column; gap: 8px; align-items: center"><span style="width: 36px; height: 24px; border-radius: 12px; background: #3E4759"></span><span style="width: 20px; height: 20px; border-radius: 6px; background: #33353A"></span><span style="width: 20px; height: 20px; border-radius: 6px; background: #33353A"></span><span style="width: 20px; height: 20px; border-radius: 6px; background: #33353A"></span></div>
+<div style="flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px">
+<div style="border-radius: 12px; background: #1D2024; padding: 12px; display: flex; flex-direction: column; gap: 8px"><span style="font-weight: 600">Build image</span><span style="height: 6px; border-radius: 3px; background: #33353A; position: relative"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 64%; border-radius: 3px; background: #ADC6FF"></span></span><div style="display: flex; gap: 6px"><span style="height: 28px; padding: 0 12px; border-radius: 14px; background: #ADC6FF; color: #002E69; font-size: 12px; font-weight: 600; display: flex; align-items: center">Build</span><span style="height: 28px; padding: 0 12px; border-radius: 14px; border: 1px solid #8E9099; color: #ADC6FF; font-size: 12px; font-weight: 600; display: flex; align-items: center">Check</span></div></div>
+<div style="border-radius: 12px; background: #1D2024; padding: 12px; display: flex; flex-direction: column; gap: 6px"><div style="display: flex; justify-content: space-between; font-size: 12px"><span>hello-api</span><span style="color: #7FD99A">Running</span></div><div style="display: flex; justify-content: space-between; font-size: 12px"><span>postgres</span><span style="color: #F9BD5C">Restarting</span></div><div style="display: flex; justify-content: space-between; font-size: 12px"><span>worker</span><span style="color: #FFB4AB">Exited (1)</span></div></div>
+<div style="border-radius: 12px; background: #004494; color: #D8E2FF; padding: 10px 12px; font-size: 12px; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 16px">&#xE88E;</span>Snackbar slides up with the chosen transition</div>
+</div>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px"><button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Reset to default</button><button style="height: 40px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600">Compare A/B</button></div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const presets = [['Harbour blue','Default dark seed',true,'#ADC6FF','#004494','#82D3E0','#111318'],['Milk tea','Warm neutral light',false,'#8B5000','#FFDDB3','#C49A6C','#FFF8F3'],['Jade','Calm green',false,'#7FD99A','#005227','#A2EEFB','#101510'],['Neon night','High chroma',false,'#FF7AD9','#5E0049','#7CF5FF','#0E0B14'],['Paper','Low chroma light',false,'#45464F','#E2E2E9','#757780','#FCFCFF'],['High contrast','Maximum legibility',false,'#FFFFFF','#000000','#FFE500','#000000'],['From wallpaper','Windows accent colour',false,'#9ECAFF','#00497D','#BDC7DC','#101418']].map(([name, note, on, a, b, c, d]) => ({ name, note, a, b, c, d, on: on ? 'true' : 'false', bg: on ? '#282A2F' : '#1D2024', border: on ? '2px solid #ADC6FF' : '1px solid #282A2F' }));
+const sliders = [['Hue','linear-gradient(90deg,#FF6B6B,#F9BD5C,#7FD99A,#82D3E0,#ADC6FF,#D0A6FF,#FF6B6B)','58%','217°'],['Chroma','linear-gradient(90deg,#5F6670,#4A7FE0)','62%','48'],['Tone','linear-gradient(90deg,#000000,#4A7FE0,#FFFFFF)','45%','52']].map(([label, track, pos, value]) => ({ label, track, pos, value }));
+const tones = ['#000000','#001A41','#002E69','#004494','#0F5BC0','#3D74DA','#5B8EF6','#7FA8FF','#ADC6FF','#D8E2FF','#EDF0FF','#FAF9FF','#FFFFFF'].map((c, i) => ({ c, label: 'Tone ' + [0,10,20,30,40,50,60,70,80,90,95,99,100][i] }));
+const roles = [['Primary','#ADC6FF','9.8:1',true],['On primary container','#D8E2FF','8.1:1',true],['Tertiary','#82D3E0','10.2:1',true],['Error','#FFB4AB','9.6:1',true],['Outline','#8E9099','5.4:1',true],['Surface variant ink','#C4C6D0','10.9:1',true]].map(([name, c, ratio, ok]) => ({ name, c, ratio, passBg: ok ? '#005227' : '#93000A', passInk: ok ? '#9CF6B4' : '#FFDAD6' }));
+const transitions = [['Shared axis','',true],['Fade through','',false],['Container transform','',false],['Slide','',false]].map(([name, icon, on]) => ({ name, icon: icon === '' ? '' : icon === '' ? '' : icon === '' ? '' : '', on: on ? 'true' : 'false', bg: on ? '#282A2F' : '#1D2024', border: on ? '2px solid #ADC6FF' : '1px solid #282A2F' }));
+return { presets, sliders, tones, roles, transitions };
+}
+}
+</script>
+</body>
+</html>

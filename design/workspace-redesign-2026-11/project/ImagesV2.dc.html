@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Image detail</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Images" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto">&#xE53B;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0">
+<nav aria-label="Breadcrumb" style="font-size: 12px; color: #C4C6D0"><a href="#">Images</a> / hello-api</nav>
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">hello-api:1.4.0</h1>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">sha256:7f3c91a0e2b4c6d8…8a4fd81e · 182 MB · 9 layers · created 4 minutes ago</span>
+</div>
+<button aria-label="Copy image digest" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE14D;</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE149;</span>Export</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF09B;</span>Push</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE037;</span>Run</button>
+</div>
+<div role="tablist" aria-label="Image detail sections" style="height: 44px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #282A2F">
+<sc-for list="{{tabs}}" as="t" hint-placeholder-count="5">
+<button role="tab" aria-selected="{{t.selected}}" style="height: 40px; padding: 0 16px; border: none; border-bottom: 3px solid {{t.line}}; background: transparent; color: {{t.ink}}; font: inherit; font-weight: {{t.weight}}; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">{{t.icon}}</span>{{t.label}}<span style="font-size: 12px; color: #C4C6D0">{{t.count}}</span></button>
+</sc-for>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 12px">
+<section aria-label="Layers" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 16px; border-bottom: 1px solid #282A2F">
+<h2 style="margin: 0; font-size: 15px; font-weight: 600; flex: 1 1 auto">Layers, oldest first</h2>
+<span style="font-size: 12px; color: #C4C6D0">Bars relative to the largest layer (118 MB)</span>
+<button aria-label="Sort layers" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE152;</button>
+</div>
+<div role="table" aria-label="Layers" style="display: flex; flex-direction: column; padding: 6px 8px">
+<div role="row" style="height: 36px; display: grid; grid-template-columns: 32px minmax(0, 1fr) 220px 76px; gap: 12px; align-items: center; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600"><span role="columnheader">#</span><span role="columnheader">Created by</span><span role="columnheader">Share of image</span><span role="columnheader" style="text-align: right">Size</span></div>
+<sc-for list="{{layers}}" as="l" hint-placeholder-count="9">
+<div role="row" style="height: 52px; display: grid; grid-template-columns: 32px minmax(0, 1fr) 220px 76px; gap: 12px; align-items: center; padding: 0 8px; border-radius: 10px; background: {{l.bg}}">
+<span role="cell" style="color: #C4C6D0; font-variant-numeric: tabular-nums">{{l.n}}</span>
+<span role="cell" style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 12px 'Cascadia Mono',Consolas,monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{l.cmd}}</span><span style="font-size: 12px; color: #C4C6D0">{{l.note}}</span></span>
+<span role="cell" style="height: 10px; border-radius: 5px; background: #282A2F; position: relative"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: {{l.width}}; border-radius: 5px; background: {{l.barInk}}"></span></span>
+<span role="cell" style="text-align: right; font-variant-numeric: tabular-nums">{{l.size}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<div style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
+<section aria-label="Platforms" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xE30D;</span><h2 style="margin: 0; font-size: 15px; font-weight: 600; flex: 1 1 auto">Platforms</h2><span style="font-size: 12px; color: #C4C6D0">OCI index</span></div>
+<sc-for list="{{platforms}}" as="p" hint-placeholder-count="2">
+<div style="background: #1D2024; border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600; flex: 1 1 auto">{{p.name}}</span><span style="height: 22px; padding: 0 8px; border-radius: 6px; background: {{p.chipBg}}; color: {{p.chipInk}}; font-size: 11px; font-weight: 600; display: flex; align-items: center">{{p.chip}}</span></div>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{p.digest}}</span>
+</div>
+</sc-for>
+</section>
+<section aria-label="Scout summary" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xE32A;</span><h2 style="margin: 0; font-size: 15px; font-weight: 600; flex: 1 1 auto">Scout summary</h2><span style="font-size: 12px; color: #C4C6D0">analysed 11:49</span></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{severity}}" as="s" hint-placeholder-count="4">
+<div style="background: {{s.bg}}; color: {{s.ink}}; border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 2px"><span style="font-size: 22px; font-weight: 700; line-height: 1.2">{{s.count}}</span><span style="font-size: 12px; font-weight: 600">{{s.label}}</span></div>
+</sc-for>
+</div>
+<span style="font-size: 13px; color: #C4C6D0">18 vulnerabilities in 7 packages · 9 have a fix available</span>
+<div style="display: flex; align-items: flex-start; gap: 10px; background: #1D2024; border-radius: 12px; padding: 12px">
+<span aria-hidden="true" style="font-family: MSF; font-size: 20px; color: #7FD99A">&#xEF76;</span>
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto"><span style="font-weight: 600">Base image recommendation</span><span style="font-size: 13px; color: #C4C6D0">Update <span style="font-family: 'Cascadia Mono',Consolas,monospace; color: #E2E2E9">node:22-alpine</span> to <span style="font-family: 'Cascadia Mono',Consolas,monospace; color: #E2E2E9">node:22.11-alpine3.20</span> to remove both High findings.</span></div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">View findings</button>
+<button style="height: 40px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE5D5;</span>Analyse again</button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const tabs = [['Layers','','9',true],['Platforms','','2',false],['Vulnerabilities','','18',false],['SBOM','','214',false],['Compare','','',false]].map(([label, icon, count, on]) => ({ label, icon, count, selected: on ? 'true' : 'false', line: on ? '#ADC6FF' : 'transparent', ink: on ? '#E2E2E9' : '#C4C6D0', weight: on ? 600 : 400 }));
+const raw = [
+['ADD alpine-minirootfs-3.20.3-x86_64.tar.gz / # buildkit','Base: alpine 3.20.3',7.8,'7.8 MB'],
+['ENV NODE_VERSION=22.11.0','Metadata only',0,'0 B'],
+['RUN addgroup -g 1000 node && adduser -u 1000 -G node … && apk add --no-cache libstdc++','Node.js runtime install',118,'118 MB'],
+['RUN apk add --no-cache --virtual .build-deps-yarn curl gnupg tar && …','Yarn 1.22.22',5.6,'5.6 MB'],
+['COPY docker-entrypoint.sh /usr/local/bin/ # buildkit','From node:22-alpine',0.0004,'388 B'],
+['WORKDIR /app','Your Dockerfile, line 3',0,'0 B'],
+['COPY /app/node_modules ./node_modules # buildkit','Your Dockerfile, line 12 · from stage deps',48.6,'48.6 MB'],
+['COPY /app/dist ./dist # buildkit','Your Dockerfile, line 13 · from stage build',1.2,'1.2 MB'],
+['CMD ["node" "dist/server.js"]','Your Dockerfile, line 15',0,'0 B']
+];
+const layers = raw.map(([cmd, note, mb, size], i) => ({ n: i + 1, cmd, note, size,
+width: mb > 0 ? Math.max(1, Math.round(mb / 118 * 100)) + '%' : '0%',
+barInk: mb === 118 ? '#ADC6FF' : '#8E9099', bg: i === 6 ? '#282A2F' : 'transparent' }));
+const platforms = [['linux/amd64','sha256:2c41e8b07f9a…5d03','This machine','#005227','#9CF6B4'],['linux/arm64','sha256:b9d07a13c6e2…e71a','Emulated','#282A2F','#C4C6D0']].map(([name, digest, chip, chipBg, chipInk]) => ({ name, digest, chip, chipBg, chipInk }));
+const severity = [['Critical','0','#93000A','#FFDAD6'],['High','2','#FFB4AB','#690005'],['Medium','5','#5C3F00','#FFDDB3'],['Low','11','#004F58','#A2EEFB']].map(([label, count, bg, ink]) => ({ label, count, bg, ink }));
+return { tabs, layers, platforms, severity };
+}
+}
+</script>
+</body>
+</html>

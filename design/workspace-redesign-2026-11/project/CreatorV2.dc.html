@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dockerfile Creator v2</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Creator" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 14px">
+<span aria-hidden="true" style="width: 48px; height: 48px; border-radius: 14px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 24px; display: flex; align-items: center; justify-content: center; flex: 0 0 auto">&#xE86F;</span>
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<h1 style="margin: 0; font-size: 22px; font-weight: 600; line-height: 1.3">Dockerfile Creator</h1>
+<span style="font-size: 13px; color: #C4C6D0">C:\Projects\hello-api · 2 stages · 11 instructions · unsaved changes</span>
+</div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF0C5;</span>Check</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE161;</span>Save</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xEA3C;</span>Build</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr) 420px; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
+<section aria-label="Detected project" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xF02F;</span><h2 style="margin: 0; font-size: 15px; font-weight: 600">Detected project</h2></div>
+<sc-for list="{{detected}}" as="d" hint-placeholder-count="3">
+<div style="display: flex; flex-direction: column; gap: 2px; background: #1D2024; border-radius: 12px; padding: 10px 12px">
+<span style="font-weight: 600">{{d.value}}</span>
+<span style="font-size: 12px; color: #C4C6D0">from <span style="font-family: 'Cascadia Mono',Consolas,monospace">{{d.source}}</span></span>
+</div>
+</sc-for>
+<span style="font-size: 13px; color: #C4C6D0">Suggestion: cache npm downloads and mount .npmrc as a secret instead of copying it.</span>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE877;</span>Apply suggestion</button>
+</section>
+<section aria-label="Instructions" style="flex: 1 1 auto; min-height: 0; background: #191C20; border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 2px; overflow: hidden">
+<h2 style="margin: 4px 4px 8px; font-size: 12px; color: #C4C6D0; font-weight: 600">Stage deps</h2>
+<sc-for list="{{outline}}" as="o" hint-placeholder-count="6">
+<button style="height: 36px; border: none; border-radius: 10px; background: {{o.bg}}; color: {{o.ink}}; font: inherit; display: grid; grid-template-columns: 76px minmax(0, 1fr); align-items: center; gap: 8px; padding: 0 10px; text-align: left"><span style="font: 600 12px 'Cascadia Mono',Consolas,monospace; color: #82D3E0">{{o.op}}</span><span style="font: 12px 'Cascadia Mono',Consolas,monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{o.arg}}</span></button>
+</sc-for>
+</section>
+</div>
+<section aria-label="RUN instruction" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px">
+<span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #004F58; color: #A2EEFB; font: 700 13px 'Cascadia Mono',Consolas,monospace; display: flex; align-items: center">RUN</span>
+<h2 style="margin: 0; font-size: 16px; font-weight: 600; flex: 1 1 auto">Install dependencies</h2>
+<button aria-label="Collapse instruction" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE5CF;</button>
+<button aria-label="More instruction actions" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE5D4;</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; justify-content: space-between"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Mounts</span><button style="height: 28px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 4px; padding: 0 4px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE145;</span>Add mount</button></div>
+<sc-for list="{{mounts}}" as="m" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 82px minmax(0, 1.3fr) minmax(0, 1fr) 96px 28px; gap: 6px; align-items: center; background: #1D2024; border-radius: 12px; padding: 8px">
+<span style="height: 30px; border-radius: 8px; background: #3E4759; color: #DAE2F9; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center">{{m.type}}</span>
+<input value="{{m.target}}" aria-label="{{m.targetLabel}}" placeholder="target" style="height: 32px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 8px; font: 12px 'Cascadia Mono',Consolas,monospace">
+<input value="{{m.id}}" aria-label="{{m.idLabel}}" placeholder="id" style="height: 32px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 8px; font: 12px 'Cascadia Mono',Consolas,monospace">
+<input value="{{m.extra}}" aria-label="{{m.extraLabel}}" placeholder="options" style="height: 32px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 8px; font: 12px 'Cascadia Mono',Consolas,monospace">
+<button aria-label="{{m.removeLabel}}" style="width: 28px; height: 28px; border: none; border-radius: 14px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 16px">&#xE92E;</button>
+</div>
+</sc-for>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Network</span>
+<div role="radiogroup" aria-label="Network" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 18px; overflow: hidden; height: 36px">
+<button role="radio" aria-checked="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; font-weight: 600">default</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 13px">none</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 13px">host</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Security</span>
+<div role="radiogroup" aria-label="Security" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 18px; overflow: hidden; height: 36px">
+<button role="radio" aria-checked="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; font-weight: 600">sandbox</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; font-size: 13px">insecure</button>
+</div>
+</div>
+</div>
+<div style="height: 40px; display: flex; align-items: center; justify-content: space-between">
+<span style="display: flex; flex-direction: column"><span>Heredoc script</span><span style="font-size: 12px; color: #C4C6D0">Write several commands as one RUN with set -eux</span></span>
+<button role="switch" aria-checked="true" aria-label="Heredoc script" style="width: 52px; height: 32px; border-radius: 16px; border: none; background: #ADC6FF; position: relative; padding: 0"><span style="position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 12px; background: #002E69"></span></button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-height: 0">
+<label for="heredoc" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Script</label>
+<textarea id="heredoc" style="flex: 1 1 auto; min-height: 120px; box-sizing: border-box; resize: none; border-radius: 12px; border: 1px solid #ADC6FF; background: #111318; color: #E2E2E9; padding: 10px 12px; font: 13px/1.6 'Cascadia Mono',Consolas,monospace">set -eux
+npm ci --omit=dev
+npm cache verify
+rm -rf /tmp/*</textarea>
+</div>
+</section>
+<section aria-label="Preview" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div role="tablist" aria-label="Preview files" style="height: 48px; display: flex; align-items: flex-end; gap: 4px; padding: 0 12px; border-bottom: 1px solid #282A2F">
+<button role="tab" aria-selected="true" style="height: 44px; padding: 0 14px; border: none; border-bottom: 3px solid #ADC6FF; background: transparent; color: #E2E2E9; font: inherit; font-weight: 600">Dockerfile</button>
+<button role="tab" aria-selected="false" style="height: 44px; padding: 0 14px; border: none; border-bottom: 3px solid transparent; background: transparent; color: #C4C6D0; font: inherit">.dockerignore</button>
+<span style="flex: 1 1 auto"></span>
+<button aria-label="Copy preview" style="width: 36px; height: 36px; margin-bottom: 4px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE14D;</button>
+</div>
+<pre style="margin: 0; padding: 14px 16px; font: 12px/1.65 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: pre; overflow: hidden"><span style="color: #8E9099"># syntax=docker/dockerfile:1</span>
+<span style="color: #82D3E0">FROM</span> node:22-alpine <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">deps</span>
+<span style="color: #82D3E0">WORKDIR</span> /app
+<span style="color: #82D3E0">COPY</span> package.json package-lock.json ./
+<span style="color: #82D3E0">RUN</span> <span style="color: #ADC6FF">--mount=type=cache,target=/root/.npm,</span>
+<span style="color: #ADC6FF">      id=npm,sharing=locked</span> \
+    <span style="color: #ADC6FF">--mount=type=secret,id=npmrc,</span>
+<span style="color: #ADC6FF">      target=/root/.npmrc</span> \
+    <span style="color: #ADC6FF">--mount=type=ssh</span> \
+    <span style="color: #ADC6FF">--network=default</span> &lt;&lt;EOF
+set -eux
+npm ci --omit=dev
+npm cache verify
+rm -rf /tmp/*
+EOF
+
+<span style="color: #82D3E0">FROM</span> node:22-alpine <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">runtime</span>
+<span style="color: #82D3E0">COPY</span> --from=deps /app/node_modules ./node_modules
+<span style="color: #82D3E0">COPY</span> dist ./dist
+<span style="color: #82D3E0">EXPOSE</span> 8080
+<span style="color: #82D3E0">CMD</span> ["node", "dist/server.js"]</pre>
+<div style="flex: 1 1 auto"></div>
+<div style="border-top: 1px solid #282A2F; padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">.dockerignore presets</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{presets}}" as="p" hint-placeholder-count="5">
+<button aria-pressed="{{p.pressed}}" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{p.border}}; background: {{p.bg}}; color: {{p.ink}}; font: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="display: {{p.checkDisplay}}; font-family: MSO; font-size: 16px">&#xE668;</span>{{p.label}}</button>
+</sc-for>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const detected = [['Node.js 22','package.json engines'],['npm with lockfile','package-lock.json'],['Port 8080','server.js listen()']].map(([value, source]) => ({ value, source }));
+const outline = [['FROM','node:22-alpine AS deps',false],['WORKDIR','/app',false],['COPY','package.json package-lock.json ./',false],['RUN','--mount=… npm ci --omit=dev',true],['FROM','node:22-alpine AS runtime',false],['COPY','--from=deps /app/node_modules',false],['EXPOSE','8080',false],['CMD','["node", "dist/server.js"]',false]].map(([op, arg, on]) => ({ op, arg, bg: on ? '#3E4759' : 'transparent', ink: on ? '#DAE2F9' : '#E2E2E9' }));
+const mounts = [['cache','/root/.npm','npm','sharing=locked'],['secret','/root/.npmrc','npmrc','required'],['ssh','','default','']].map(([type, target, id, extra]) => ({ type, target, id, extra,
+targetLabel: type + ' mount target', idLabel: type + ' mount id', extraLabel: type + ' mount options', removeLabel: 'Remove ' + type + ' mount' }));
+const presets = [['Node.js',true],['Git',true],['Secrets and .env',true],['Visual Studio',false],['Logs and coverage',false]].map(([label, on]) => ({ label, pressed: on ? 'true' : 'false', bg: on ? '#3E4759' : 'transparent', ink: on ? '#DAE2F9' : '#C4C6D0', border: on ? '#3E4759' : '#44474F', checkDisplay: on ? 'inline' : 'none' }));
+return { detected, outline, mounts, presets };
+}
+}
+</script>
+</body>
+</html>

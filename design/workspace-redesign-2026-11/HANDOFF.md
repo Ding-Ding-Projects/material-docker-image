@@ -31,3 +31,17 @@ Material 3 dark with a blue seed; the light theme mirrors the same roles. Roles:
 - The Stageshow skill was followed from the pinned copy at commit `802057409787133703c56001080169e347305572` because a fresh install was not permitted in the design session. Its restraint, spacing, icon, colour and review rules were applied. Its animation, cursor choreography, marketing framing and bento rules do not apply to real application screens and were not used.
 - Content in the artboards is illustrative (example project names, image tags and registry accounts). The application itself shows only real engine data and truthful empty states.
 - The review of rendered frames is recorded in `REHEARSAL.md`.
+
+## Advanced v2 boards
+
+The second pass added boards for the deeper features, laid out below the original rows:
+
+- `BuildV2.dc.html`: BuildKit step timeline with cache hits, durations, digest and result card.
+- `Bake.dc.html`: groups, targets with platforms and the resolved target definition.
+- `ImagesV2.dc.html` and `Security.dc.html`: image detail tabs (layers with size bars, platforms, Scout summary) and the security overview.
+- `Contexts.dc.html`, `Swarm.dc.html` and `VolumeBackup.dc.html`: engine context cards and plugins, Swarm services, and the volume backup dialog.
+- `CreatorV2.dc.html`: the Creator with mounts, heredocs and the editable source.
+- `Appearance.dc.html`: the appearance studio (colour, motion, shape, density, type) with a live preview.
+- `Minecraft.dc.html`: Minecraft server cards, console with RCON and server properties.
+
+Every board uses the current Material Symbols subset (221 icons) so rail and page icons render.
