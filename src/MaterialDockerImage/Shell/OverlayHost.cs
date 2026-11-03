@@ -29,7 +29,9 @@ public sealed class OverlayHost : Grid
         scrim.SetResourceReference(Border.BackgroundProperty, "Scrim");
         var card = Ui.Card(content is ScrollViewer ? content : Ui.Scroll(content), 24, "SurfaceContainer", 28);
         card.Width = width;
-        card.MaxWidth = Math.Max(320, ActualWidth - 48);
+        double HostWidth() => ActualWidth > 0 ? ActualWidth : (Parent as FrameworkElement)?.ActualWidth > 0 ? ((FrameworkElement)Parent).ActualWidth : Window.GetWindow(this)?.ActualWidth ?? 1440;
+        double HostHeight() => ActualHeight > 0 ? ActualHeight : (Parent as FrameworkElement)?.ActualHeight > 0 ? ((FrameworkElement)Parent).ActualHeight : Window.GetWindow(this)?.ActualHeight ?? 960;
+        void Fit() { card.MaxWidth = Math.Max(320, HostWidth() - 48); card.MaxHeight = Math.Max(240, HostHeight() * maxHeightRatio); }
         card.HorizontalAlignment = HorizontalAlignment.Center;
         card.VerticalAlignment = vertical;
         card.Margin = new Thickness(24, vertical == VerticalAlignment.Top ? 72 : 24, 24, 24);
@@ -39,8 +41,8 @@ public sealed class OverlayHost : Grid
         var layer = new Grid();
         layer.Children.Add(scrim);
         layer.Children.Add(card);
-        SizeChanged += (_, _) => { card.MaxWidth = Math.Max(320, ActualWidth - 48); card.MaxHeight = Math.Max(240, ActualHeight * maxHeightRatio); };
-        card.MaxHeight = Math.Max(240, (ActualHeight > 0 ? ActualHeight : 900) * maxHeightRatio);
+        SizeChanged += (_, _) => Fit();
+        Fit();
         var focus = Keyboard.FocusedElement;
         var closed = false;
         void Close()
@@ -63,10 +65,13 @@ public sealed class OverlayHost : Grid
             card.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(180)));
             card.RenderTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(220)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
         }
-        card.Loaded += (_, _) => { var first = FindFocusable(content); (first ?? card).Focus(); };
+        card.Loaded += (_, _) => { Fit(); var first = FindFocusable(content); (first ?? card).Focus(); };
         Changed?.Invoke();
         return Close;
     }
+
+    /// <summary>Cancels every open surface, newest first.</summary>
+    public void CloseAll() { while (layers.Count > 0) layers.Peek().Cancel(); }
 
     private static IInputElement? FindFocusable(DependencyObject root)
     {

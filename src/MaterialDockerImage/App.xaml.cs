@@ -43,13 +43,14 @@ public partial class App : Application
             var themeIndex = Array.IndexOf(e.Args, "--capture-theme");
             if (themeIndex >= 0 && themeIndex + 1 < e.Args.Length) Services.Theme.Apply(Resources, e.Args[themeIndex + 1], "#3A6FD8", false);
             var suffix = themeIndex >= 0 && themeIndex + 1 < e.Args.Length ? "-" + e.Args[themeIndex + 1].ToLowerInvariant() : "";
+            double captureWidth = 1440, captureHeight = 960;
             var widthIndex = Array.IndexOf(e.Args, "--capture-size");
-            if (widthIndex >= 0 && widthIndex + 1 < e.Args.Length && e.Args[widthIndex + 1].Split('x') is [var w, var h] && double.TryParse(w, out var width) && double.TryParse(h, out var height)) { window.Width = width; window.Height = height; suffix += "-" + w + "x" + h; }
+            if (widthIndex >= 0 && widthIndex + 1 < e.Args.Length && e.Args[widthIndex + 1].Split('x') is [var w, var h] && double.TryParse(w, out var width) && double.TryParse(h, out var height)) { window.Width = width; window.Height = height; suffix += "-" + w + "x" + h; captureWidth = width; captureHeight = height; }
             window.WindowStartupLocation = WindowStartupLocation.Manual; window.Left = 0; window.Top = 0;
             window.Show();
             window.Dispatcher.InvokeAsync(async () =>
             {
-                try { var count = await window.CaptureAsync(e.Args[captureIndex + 1], suffix); Console.WriteLine($"Captured {count} surfaces."); Shutdown(0); }
+                try { var count = await window.CaptureAsync(e.Args[captureIndex + 1], suffix, captureWidth, captureHeight); Console.WriteLine($"Captured {count} surfaces."); Shutdown(0); }
                 catch (Exception exception) { Console.Error.WriteLine(exception); Shutdown(3); }
             });
             return;

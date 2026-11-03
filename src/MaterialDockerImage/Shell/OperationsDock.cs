@@ -15,11 +15,11 @@ public sealed class OperationsDock : Border
     private readonly TextBox output = new() { IsReadOnly = true, AcceptsReturn = true, TextWrapping = TextWrapping.NoWrap, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, BorderThickness = new Thickness(0), FontSize = 12, VerticalContentAlignment = VerticalAlignment.Top, Padding = new Thickness(12, 8, 12, 8) };
     private readonly StringBuilder transcript = new();
     private readonly TextBlock title = Ui.Text("Ready", 14, FontWeights.SemiBold);
-    private readonly TextBlock detail = Ui.Caption("No operation is running.");
+    private readonly TextBlock detail = Ui.Text("No operation is running.", 13, null, "OnSurfaceVariant", false);
     private readonly ProgressBar progress = new() { Width = 160, Minimum = 0, Maximum = 1, Value = 0, Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
     private readonly Button cancel;
     private readonly Button toggle;
-    private readonly SearchFilter search = new("Search output", 220);
+    private readonly SearchFilter search = new("Search output", 200);
     private readonly Grid body;
     private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromMilliseconds(500) };
     private Stopwatch? watch;

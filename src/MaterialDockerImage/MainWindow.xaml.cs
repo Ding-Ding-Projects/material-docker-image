@@ -486,8 +486,10 @@ public partial class MainWindow : Window
 
     // ----- Capture mode -----
     /// <summary>Renders every destination (and the palette, notification centre and super confirmation) to PNG files.</summary>
-    public async Task<int> CaptureAsync(string directory, string suffix)
+    public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960)
     {
+        // Lay the window content out at the exact requested size, independent of the runner's screen size.
+        Root.Width = width; Root.Height = height; Root.HorizontalAlignment = HorizontalAlignment.Left; Root.VerticalAlignment = VerticalAlignment.Top;
         Directory.CreateDirectory(directory);
         var written = 0;
         async Task Shot(string name)
@@ -517,14 +519,14 @@ public partial class MainWindow : Window
         Navigate("Containers");
         OpenPalette();
         await Shot("command-palette");
-        host.Overlay.Children.Clear(); host.Overlay.Visibility = Visibility.Collapsed;
+        host.Overlay.CloseAll();
         Navigate("System");
         _ = host.Overlay.SuperConfirmAsync("Remove unused data", "Super confirmation preview captured for documentation. Nothing is removed unless both keys are on and the slider reaches the end.", ["Stopped containers", "Dangling images", "Unused networks", "Build cache"]);
         await Shot("super-confirmation");
-        host.Overlay.Children.Clear(); host.Overlay.Visibility = Visibility.Collapsed;
+        host.Overlay.CloseAll();
         ShowNotifications();
         await Shot("notification-centre");
-        host.Overlay.Children.Clear(); host.Overlay.Visibility = Visibility.Collapsed;
+        host.Overlay.CloseAll();
         return written;
     }
 
