@@ -499,6 +499,7 @@ public partial class MainWindow : Window
         var written = 0;
         async Task Shot(string name)
         {
+            host.Notify.ClearToasts();
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             await Task.Delay(250);
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
@@ -514,11 +515,17 @@ public partial class MainWindow : Window
             written++;
         }
         await RefreshContexts();
+        // Populate the Creator from a real starter and hand it to Build so Build and Canvas show a real Dockerfile.
+        async Task RunCommand(string id) { if (host.Commands.Find(id)?.Run is { } run) { run(); await Task.Delay(1500); } }
+        foreach (var d in Destinations.All) Page(d.Key);
+        await RunCommand("creator.starter.node");
+        await RunCommand("creator.tobuild");
         foreach (var d in Destinations.All)
         {
             Navigate(d.Key);
             var page = Page(d.Key);
             try { await page.SafeRefresh().WaitAsync(TimeSpan.FromSeconds(30)); } catch (TimeoutException) { }
+            if (d.Key == "Monitor") await Task.Delay(4000);
             await Shot(d.Key.ToLowerInvariant());
         }
         Navigate("Containers");

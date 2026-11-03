@@ -38,7 +38,7 @@ public sealed class UserSettings
     public bool OneThingAtATime { get; set; }
     public bool Momentum { get; set; }
     public bool PaletteFullWindow { get; set; }
-    public bool OutputDockOpen { get; set; } = true;
+    public bool OutputDockOpen { get; set; }
     public string LastDestination { get; set; } = "Build";
     public List<string> OpenTabs { get; set; } = new();
     public List<string> PinnedTabs { get; set; } = new();

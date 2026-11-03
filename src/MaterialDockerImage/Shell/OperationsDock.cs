@@ -66,6 +66,7 @@ public sealed class OperationsDock : Border
     public void Begin(string label)
     {
         currentLabel = label;
+        if (!Expanded) SetExpanded(true);
         watch = Stopwatch.StartNew();
         title.Text = label;
         detail.Text = Loc.T("Working");

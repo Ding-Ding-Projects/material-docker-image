@@ -218,6 +218,8 @@ public sealed class DataTable<T> : Grid
         all = items.ToList();
         Apply();
         if (Key != null && keep.Count > 0) foreach (var row in rows.Where(r => keep.Contains(Key(r.Item)))) List.SelectedItems.Add(row);
+        // Documentation captures show the inspector with the first real record instead of an empty selection.
+        if (AppHost.Current?.IsCapture == true && List.SelectedIndex < 0 && rows.Count > 0) List.SelectedIndex = rows.Count - 1;
     }
 
     public void Apply()
