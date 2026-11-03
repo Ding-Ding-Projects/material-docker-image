@@ -11,16 +11,24 @@ using Microsoft.Win32;
 namespace MaterialDockerImage.Pages;
 
 /// <summary>
-/// Build destination: configuration card on the left, Dockerfile editor (with find, line numbers and an optional
-/// stage outline) on the right. Hand-offs: Build.OpenDockerfile, Build.Source (in); Build.CurrentSource,
+/// Build destination: configuration card on the left; on the right, tabs for the Dockerfile editor (with find, line
+/// numbers and an optional stage outline), the live BuildKit run timeline and recent builds. Engine actions are in
+/// Pages/Build/BuildPage.Run.cs. Hand-offs: Build.OpenDockerfile, Build.Source (in); Build.CurrentSource,
 /// Build.SetSource, Build.SetTarget, Build.GoToLine (published for Canvas).
 /// </summary>
-public sealed class BuildPage : PageBase, IDirtyAware
+public sealed partial class BuildPage : PageBase, IDirtyAware
 {
     public override string Key => "Build";
     private const int MaxBytes = 1024 * 1024;
 
     private readonly BuildOptionsPanel options = new();
+    private readonly TabControl tabs = new();
+    private readonly TabItem editorTab, runTab, historyTab;
+    private readonly BuildTimelineView timeline;
+    private readonly BuildRunner runner;
+    private readonly BuildHistoryCard history = new();
+    private readonly Button check, buildRun, build;
+    private bool historyLoaded;
     private readonly CodeEditor editor = new(false, 280);
     private readonly TextFindBar find;
     private readonly StageMap stageMap = new();
@@ -42,12 +50,17 @@ public sealed class BuildPage : PageBase, IDirtyAware
         find = new TextFindBar(editor.Box, "Find in Dockerfile");
         System.Windows.Automation.AutomationProperties.SetName(editor.Box, Loc.T("Dockerfile source"));
 
-        var check = Ui.AsyncButton("Check Dockerfile", Icons.PlaylistAddCheck, ButtonKind.Outlined, CheckAsync);
+        check = Ui.AsyncButton("Check Dockerfile", Icons.PlaylistAddCheck, ButtonKind.Outlined, CheckAsync);
         check.ToolTip = Loc.T("Runs docker buildx build --check on the saved file. Nothing is built.");
-        var buildRun = Ui.AsyncButton("Build and run", Icons.PlayArrow, ButtonKind.Tonal, BuildAndRunAsync);
+        buildRun = Ui.AsyncButton("Build and run", Icons.PlayArrow, ButtonKind.Tonal, BuildAndRunAsync);
         buildRun.ToolTip = Loc.T("Builds and loads the image, then opens the run form in Images for the first tag.");
-        var build = Ui.AsyncButton("Build", Icons.Construction, ButtonKind.Filled, async () => await BuildAsync());
+        build = Ui.AsyncButton("Build", Icons.Construction, ButtonKind.Filled, async () => await BuildAsync());
         var header = Ui.Header("Build image", "Choose a context folder and a Dockerfile", out subtitle, check, buildRun, build);
+        timeline = new BuildTimelineView("Start a build to see each BuildKit step with its status, cache use and duration. Click a step to filter the log to its lines.",
+            Ui.AsyncButton("Build now", Icons.Construction, ButtonKind.Filled, async () => await BuildAsync()));
+        runner = new BuildRunner(timeline);
+        BuildRunner.ActiveChanged += SetRunning;
+        options.CallChanged += UpdateBuildLabel;
 
         var config = Ui.Card(Ui.Scroll(options), 20, "SurfaceLow", 16);
         options.Tags.SetTags(TagInput.Split(Host.Settings.ImageTag));
@@ -85,7 +98,17 @@ public sealed class BuildPage : PageBase, IDirtyAware
         find.Margin = new Thickness(0, 10, 0, 10);
         right.Children.Add(find.Dock(System.Windows.Controls.Dock.Top));
         right.Children.Add(editorGrid);
-        var editorCard = Ui.Card(right, 16, "SurfaceLow", 16);
+        editorTab = new TabItem { Header = Loc.T("Dockerfile"), Content = right };
+        runTab = new TabItem { Header = Loc.T("Build run"), Content = timeline };
+        historyTab = new TabItem { Header = Loc.T("Recent builds"), Content = history };
+        tabs.Items.Add(editorTab); tabs.Items.Add(runTab); tabs.Items.Add(historyTab);
+        tabs.SelectionChanged += (_, e) =>
+        {
+            if (e.OriginalSource != tabs || tabs.SelectedItem != historyTab || historyLoaded) return;
+            historyLoaded = true;
+            PageTasks.Fire(history.RefreshAsync);
+        };
+        var editorCard = Ui.Card(tabs, 16, "SurfaceLow", 16);
 
         var body = new Grid();
         body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star), MinWidth = 320, MaxWidth = 460 });
@@ -121,6 +144,7 @@ public sealed class BuildPage : PageBase, IDirtyAware
 
     public override Task RefreshAsync()
     {
+        if (historyLoaded) PageTasks.Fire(history.RefreshAsync);
         if (resumed) return Task.CompletedTask;
         resumed = true;
         // Resume the saved build folder once, unless a hand-off already put a file or draft in the editor.
@@ -172,6 +196,9 @@ public sealed class BuildPage : PageBase, IDirtyAware
         new() { Id = "build.check", Title = "Check Dockerfile", Group = "Build", Icon = Icons.PlaylistAddCheck, Keywords = "lint buildx check", Run = () => { Host.Navigate("Build"); PageTasks.Fire(CheckAsync); } },
         new() { Id = "build.build", Title = "Build image", Group = "Build", Icon = Icons.Construction, Keywords = "buildx build docker image", Run = () => { Host.Navigate("Build"); PageTasks.Fire(async () => await BuildAsync()); } },
         new() { Id = "build.vscode", Title = "Open Dockerfile in VS Code", Group = "Build", Icon = Icons.OpenInNew, Keywords = "editor code external", Run = () => PageTasks.Fire(OpenInEditorAsync) },
+        new() { Id = "build.timeline", Title = "Show build timeline", Group = "Build", Icon = Icons.ViewTimeline, Keywords = "buildkit steps progress run log", Run = () => { Host.Navigate("Build"); tabs.SelectedItem = runTab; } },
+        new() { Id = "build.history", Title = "Recent builds", Group = "Build", Icon = Icons.History, Keywords = "buildx history ls previous builds", Run = () => { Host.Navigate("Build"); tabs.SelectedItem = historyTab; } },
+        new() { Id = "build.cancel", Title = "Cancel running build", Group = "Build", Icon = Icons.Stop, Keywords = "stop abort buildkit", Run = () => { if (runner.Running) timeline.Cancel(); else Host.Notify.Info("No build from the Build page is running."); } },
     ];
 
     private void OnKeys(object sender, KeyEventArgs e)
@@ -181,7 +208,7 @@ public sealed class BuildPage : PageBase, IDirtyAware
         var ctrlOnly = Keyboard.Modifiers == ModifierKeys.Control;
         if (ctrl && !Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) && e.Key == System.Windows.Input.Key.S) { PageTasks.Fire(() => SaveAsync(shift)); e.Handled = true; }
         else if (ctrlOnly && e.Key == System.Windows.Input.Key.O) { PageTasks.Fire(OpenAsync); e.Handled = true; }
-        else if (ctrlOnly && e.Key == System.Windows.Input.Key.F) { find.FocusSearch(); e.Handled = true; }
+        else if (ctrlOnly && e.Key == System.Windows.Input.Key.F && tabs.SelectedItem == editorTab) { find.FocusSearch(); e.Handled = true; }
         else if (e.Key == System.Windows.Input.Key.F3) { if (shift) find.FindPrevious(); else find.FindNext(); e.Handled = true; }
     }
 
@@ -334,44 +361,5 @@ public sealed class BuildPage : PageBase, IDirtyAware
         var problem = await ExternalEditor.OpenAsync(dockerfilePath, Host.Settings.ExternalEditor);
         if (problem != null) Host.Notify.Warning(problem);
         else Host.Notify.Info("Opened in the external editor. Reload the file here after saving changes there.");
-    }
-
-    // ----------------------------------------------------------------- engine actions
-
-    private async Task CheckAsync()
-    {
-        if (!Directory.Exists(options.ContextFolder.Text)) throw new ArgumentException("Choose an existing build context folder first.");
-        if (!await EnsureSavedAsync("The Dockerfile check")) return;
-        var args = new List<string> { "buildx", "build", "--check", "--file", dockerfilePath };
-        var target = (options.Target.Text ?? "").Trim();
-        if (target.Length > 0) { DockerService.ValidateOperand(target, "target"); args.AddRange(["--target", target]); }
-        args.Add(Path.GetFullPath(options.ContextFolder.Text));
-        await Host.Execute("BuildKit Dockerfile check", args, boundContext: Host.Context);
-    }
-
-    /// <summary>Builds with the current options. Returns the result, or null when nothing ran.</summary>
-    private async Task<CommandResult?> BuildAsync()
-    {
-        if (!Directory.Exists(options.ContextFolder.Text)) throw new ArgumentException("Choose an existing build context folder.");
-        if (!await EnsureSavedAsync("The build")) return null;
-        var args = await options.CreateArgumentsAsync(dockerfilePath);
-        if (args == null) return null;
-        Host.Settings.BuildFolder = Path.GetFullPath(options.ContextFolder.Text);
-        options.ContextFolder.Text = Host.Settings.BuildFolder;
-        Host.Settings.ImageTag = string.Join(", ", options.Tags.Tags);
-        Host.SaveSettings(null);
-        UpdateSubtitle();
-        return await Host.Execute("Build image", args, boundContext: Host.Context);
-    }
-
-    private async Task BuildAndRunAsync()
-    {
-        if (options.Destination != BuildDestination.Load) throw new InvalidOperationException("Build and run needs the Load locally destination so the image exists in this engine.");
-        var tag = options.Tags.Tags.FirstOrDefault();
-        if (tag == null) throw new ArgumentException("Add a tag so the built image can be run.");
-        var result = await BuildAsync();
-        if (result?.Success != true) return;
-        Host.HandOff["Images.RunImage"] = tag;
-        Host.Navigate("Images");
     }
 }
