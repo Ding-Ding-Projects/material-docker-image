@@ -44,7 +44,12 @@ public static class Ui
         t.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
         return t;
     }
-    public static TextBlock Title(string text, double size = 22) => Text(text, size, FontWeights.SemiBold);
+    public static TextBlock Title(string text, double size = 22)
+    {
+        var t = Text(text, size, FontWeights.SemiBold);
+        t.SetResourceReference(TextBlock.FontWeightProperty, "HeadingWeight"); // heading weight is an appearance setting
+        return t;
+    }
     public static TextBlock Caption(string text) => Text(text, 13, null, "OnSurfaceVariant");
     public static TextBlock Overline(string text) => Text(text, 12, FontWeights.SemiBold, "OnSurfaceVariant");
 
@@ -99,6 +104,8 @@ public static class Ui
     {
         var b = new Border { Child = child, Padding = new Thickness(padding), CornerRadius = new CornerRadius(radius) };
         b.SetResourceReference(Border.BackgroundProperty, brush);
+        // Standard radii follow the corner radius scale of the appearance editor.
+        if (RadiusKey(radius) is { } key) b.SetResourceReference(Border.CornerRadiusProperty, key);
         return b;
     }
 
@@ -184,7 +191,7 @@ public static class Ui
     {
         var card = Card(new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 520 }, 16, "SurfaceHigh", 16);
         card.Width = width;
-        card.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 18, ShadowDepth = 4, Opacity = .35 };
+        card.Effect = Elevation(18, 4, .35);
         card.Margin = new Thickness(0, 4, 12, 12);
         var popup = new Popup { PlacementTarget = anchor, Placement = PlacementMode.Bottom, StaysOpen = false, AllowsTransparency = true, Child = card, IsOpen = true };
         card.KeyDown += (_, e) => { if (e.Key == Key.Escape) { popup.IsOpen = false; e.Handled = true; } };
@@ -350,6 +357,17 @@ public static class Ui
         if (danger) m.SetResourceReference(Control.ForegroundProperty, "Error");
         m.Click += (_, _) => Guard(action);
         return m;
+    }
+
+    /// <summary>The shape resource for a standard corner radius (8, 12, 16, 20 or 28), or null for other values.</summary>
+    public static string? RadiusKey(double radius) => radius switch { 8 => "RadiusSmall", 12 => "RadiusMedium", 16 => "RadiusLarge", 20 => "RadiusPill", 28 => "RadiusExtraLarge", _ => null };
+
+    /// <summary>A shadow scaled by the elevation intensity from the appearance editor (none when it is 0).</summary>
+    public static System.Windows.Media.Effects.DropShadowEffect? Elevation(double blur, double depth, double opacity)
+    {
+        var scale = Application.Current?.TryFindResource("ElevationOpacity") is double e ? e / 0.35 : 1;
+        if (scale <= 0.001) return null;
+        return new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = blur, ShadowDepth = depth, Opacity = Math.Clamp(opacity * scale, 0, 1) };
     }
 
     public static string FormatBytes(double bytes)

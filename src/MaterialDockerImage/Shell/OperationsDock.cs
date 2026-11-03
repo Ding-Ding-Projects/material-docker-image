@@ -27,7 +27,8 @@ public sealed class OperationsDock : Border
     public event Action? CancelRequested;
     public bool Expanded { get; private set; } = true;
     /// <summary>Short windows give the output panel less height so the page keeps its working space.</summary>
-    public bool CompactHeight { set => body.Height = value ? 96 : 170; }
+    public bool CompactHeight { set { bodyHeight = value ? 96 : 170; body.Height = bodyHeight; } }
+    private double bodyHeight = 170;
     public string Transcript => transcript.ToString();
 
     public OperationsDock()
@@ -57,8 +58,15 @@ public sealed class OperationsDock : Border
 
     public void SetExpanded(bool expanded)
     {
+        var changed = Expanded != expanded;
         Expanded = expanded;
-        body.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
+        if (changed && IsLoaded && Motion.Enabled)
+        {
+            // The panel height animates; the real state (Visibility) is applied before expanding and after collapsing.
+            if (expanded) { body.Visibility = Visibility.Visible; Motion.AnimateHeight(body, 0, bodyHeight); }
+            else Motion.AnimateHeight(body, body.ActualHeight > 0 ? body.ActualHeight : bodyHeight, 0, () => { if (!Expanded) body.Visibility = Visibility.Collapsed; });
+        }
+        else body.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         toggle.Content = expanded ? Icons.ExpandMore : Icons.ExpandLess;
         AutomationProperties.SetName(toggle, Loc.T(expanded ? "Collapse output" : "Expand output"));
     }
@@ -84,7 +92,8 @@ public sealed class OperationsDock : Border
         var elapsed = watch?.Elapsed ?? TimeSpan.Zero;
         watch = null;
         cancel.IsEnabled = false;
-        progress.IsIndeterminate = false; progress.Value = success ? 1 : 0;
+        progress.IsIndeterminate = false;
+        Motion.SmoothProgress(progress, success ? 1 : 0);
         detail.Text = cancelled ? $"Canceled after {elapsed.TotalSeconds:F1}s. Engine-side work may continue; refresh before retrying." : success ? $"Completed in {elapsed.TotalSeconds:F1}s (exit 0)." : $"Failed (exit {exitCode}) after {elapsed.TotalSeconds:F1}s. Review the output.";
         Append($"[{DateTimeOffset.Now:HH:mm:ss}] {currentLabel}: {(cancelled ? "canceled" : success ? "completed" : "failed, exit " + exitCode)}");
     }

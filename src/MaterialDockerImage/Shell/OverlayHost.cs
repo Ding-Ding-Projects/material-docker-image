@@ -35,7 +35,7 @@ public sealed class OverlayHost : Grid
         card.HorizontalAlignment = HorizontalAlignment.Center;
         card.VerticalAlignment = vertical;
         card.Margin = new Thickness(24, vertical == VerticalAlignment.Top ? 72 : 24, 24, 24);
-        card.Effect = new System.Windows.Media.Effects.DropShadowEffect { BlurRadius = 30, ShadowDepth = 8, Opacity = .4 };
+        card.Effect = Ui.Elevation(30, 8, .4);
         KeyboardNavigation.SetTabNavigation(card, KeyboardNavigationMode.Cycle);
         AutomationProperties.SetIsDialog(card, true);
         var layer = new Grid();
@@ -59,12 +59,9 @@ public sealed class OverlayHost : Grid
         layers.Push((layer, focus, Cancel));
         Children.Add(layer);
         Visibility = Visibility.Visible;
-        if (AppHost.Current?.Settings.ReducedMotion != true && AppHost.Current?.Settings.LowStimulation != true && AppHost.Current?.IsCapture != true)
-        {
-            card.Opacity = 0; card.RenderTransform = new TranslateTransform(0, 12);
-            card.BeginAnimation(OpacityProperty, new DoubleAnimation(1, TimeSpan.FromMilliseconds(180)));
-            card.RenderTransform.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(0, TimeSpan.FromMilliseconds(220)) { EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut } });
-        }
+        // Material container transform: the dialog grows in over a fading scrim. Snaps when motion is off.
+        Motion.FadeIn(scrim);
+        Motion.ContainerTransform(card);
         card.Loaded += (_, _) => { Fit(); var first = FindFocusable(content); (first ?? card).Focus(); };
         Changed?.Invoke();
         return Close;
