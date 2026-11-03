@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
+using System.Windows.Media;
 
 namespace MaterialDockerImage.Pages;
 
@@ -55,12 +56,27 @@ public abstract class PageBase : Grid
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(gap) });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        Children.Add(header);
+        Children.Add(WithHero(header));
         Grid.SetRow(body, 2);
         Children.Add(body);
     }
 
     protected static string Ago(string value) => value;
+
+    /// <summary>Adds the destination's icon in a tonal tile beside the page header, so every page opens with the same identity.</summary>
+    private UIElement WithHero(UIElement header)
+    {
+        if (Destinations.Find(Key) is not { } destination) return header;
+        var glyph = Ui.Icon(destination.Icon, 24, true, "OnPrimaryContainer");
+        glyph.HorizontalAlignment = HorizontalAlignment.Center;
+        var tile = new Border { Width = 48, Height = 48, CornerRadius = new CornerRadius(14), Child = glyph, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 16, 0) };
+        tile.SetResourceReference(Border.BackgroundProperty, "PrimaryContainer");
+        var row = new DockPanel { LastChildFill = true };
+        DockPanel.SetDock(tile, Dock.Left);
+        row.Children.Add(tile);
+        row.Children.Add(header);
+        return row;
+    }
 }
 
 public sealed record Destination(string Key, string Icon, string Description, Func<PageBase> Create, bool OnRail = true);

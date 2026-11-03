@@ -21,7 +21,7 @@ public static class Loc
     private static readonly Dictionary<string, string> Cantonese = new(StringComparer.Ordinal)
     {
         ["Build"] = "建立映像", ["Creator"] = "Dockerfile 工房", ["Images"] = "映像", ["Containers"] = "容器", ["Compose"] = "Compose 專案",
-        ["Canvas"] = "畫布", ["Storage"] = "儲存與網絡", ["Volumes"] = "磁碟區", ["Networks"] = "網絡", ["Monitor"] = "即時監察",
+        ["Canvas"] = "畫布", ["Bake"] = "Bake 建置", ["Security"] = "安全", ["Contexts"] = "引擎環境", ["Swarm"] = "Swarm 叢集", ["Storage"] = "儲存與網絡", ["Volumes"] = "磁碟區", ["Networks"] = "網絡", ["Monitor"] = "即時監察",
         ["System"] = "系統", ["Registry"] = "映像倉庫", ["Diagnostics"] = "診斷", ["Tools"] = "工具", ["Activity"] = "活動記錄",
         ["Settings"] = "設定", ["Setup"] = "初次設定", ["Refresh"] = "重新整理", ["Browse"] = "瀏覽", ["Save"] = "儲存", ["Save as…"] = "另存新檔…",
         ["Load"] = "載入", ["Cancel"] = "取消", ["Close"] = "關閉", ["Back"] = "返回", ["Next"] = "下一步", ["Finish"] = "完成",
