@@ -1,90 +1,115 @@
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
-using MaterialDockerImage.Core;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
 using Microsoft.Win32;
 
 namespace MaterialDockerImage.Pages;
 
-public enum BuildDestination { Load, Push, Oci }
-
 /// <summary>
-/// Left configuration card of the Build page: context, tags, target, platform, destination, build arguments,
-/// switches and the expandable labels/cache/secrets section. It also assembles the validated buildx arguments.
+/// Left configuration card of the Build page: context, tags, target, platforms, call mode, destination, build
+/// arguments, switches, the expandable advanced sections and a live command preview. It assembles the validated
+/// buildx arguments through <see cref="BuildKitCommand"/>.
 /// </summary>
 public sealed class BuildOptionsPanel : StackPanel
 {
     private static AppHost Host => AppHost.Current;
-    public static readonly string[] CommonPlatforms = ["linux/amd64", "linux/arm64", "linux/arm/v7", "linux/amd64,linux/arm64", "windows/amd64"];
-    private static readonly string[] DestinationNames = ["Load locally", "Push", "OCI archive"];
+    private static readonly string[] DestinationNames = ["Load locally", "Push", "OCI archive", "Export files"];
+    private static readonly string[] CallNames = ["Build", "Check", "Outline", "Targets"];
 
     public TextBox ContextFolder { get; } = Ui.Input("", "Build context", true);
     public TextBox DockerfilePath { get; } = Ui.Input("", "Dockerfile", true);
     public TagInput Tags { get; } = new();
     public ComboBox Target { get; } = new() { IsEditable = true };
-    public ComboBox Platform { get; } = Ui.Combo(CommonPlatforms, "", true);
-    public BuildDestination Destination { get; private set; } = BuildDestination.Load;
+    public BuildPlatformChips Platforms { get; } = new();
+    public BuildKitDestination Destination { get; private set; } = BuildKitDestination.Load;
+    public BuildKitCall Call { get; private set; } = BuildKitCall.Build;
+    public BuildCommandPreview Preview { get; }
     private readonly TextBox ociPath = Ui.Input("", "OCI archive path", true);
-    private readonly FrameworkElement ociRow;
-    private readonly List<NameValue> buildArgItems = new();
-    private readonly List<NameValue> labelItems = new();
+    private readonly TextBox exportFolder = Ui.Input("", "Export folder", true);
+    private readonly FrameworkElement ociRow, exportRow, destinationField;
     private readonly BuildKeyValueRows buildArgs, labels;
     private readonly TextBox cacheFrom = Ui.CodeBox("", 64), cacheTo = Ui.CodeBox("", 64);
-    private readonly StackPanel secretRows = new();
-    private readonly List<SecretRow> secrets = new();
+    private readonly BuildSecretFiles secrets;
+    private readonly BuildAdvancedOptions advanced;
     private readonly CheckBox pull, noCache;
     private readonly TextBlock platformNote = Ui.Caption("");
+    private readonly TextBlock callNote = Ui.Caption("");
     /// <summary>Raised when the user picks a new context folder.</summary>
     public event Action<string>? FolderChosen;
     /// <summary>Raised when the user asks to open a Dockerfile.</summary>
     public event Action? OpenRequested;
-
-    private sealed record SecretRow(TextBox Id, TextBox Path, FrameworkElement Element);
+    /// <summary>Raised when the call mode changes (the page relabels its Build button).</summary>
+    public event Action? CallChanged;
 
     public BuildOptionsPanel()
     {
+        Preview = new BuildCommandPreview(() => CreatePreview());
         DockerfilePath.IsReadOnly = true;
         DockerfilePath.ToolTip = Loc.T("The file Save writes to. Use Open or Save as to change it; editing a path never redirects a save.");
         var browse = Ui.IconButton(Icons.FolderOpen, "Browse for folder", BrowseFolder);
         var openFile = Ui.IconButton(Icons.FileExport, "Open Dockerfile", () => OpenRequested?.Invoke());
         ContextFolder.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter && Directory.Exists(ContextFolder.Text)) FolderChosen?.Invoke(Path.GetFullPath(ContextFolder.Text)); };
+        foreach (var box in new[] { ContextFolder, DockerfilePath, ociPath, exportFolder, cacheFrom, cacheTo }) box.TextChanged += (_, _) => Changed();
+        Tags.Changed += Changed;
+        Platforms.Changed += () => { UpdatePlatformNote(); Changed(); };
 
         Target.SetResourceReference(Control.FontFamilyProperty, "MonoFont");
         Target.ToolTip = Loc.T("Leave empty to build the final stage.");
-        Platform.SetResourceReference(Control.FontFamilyProperty, "MonoFont");
-        Platform.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((_, _) => UpdatePlatformNote()));
-        Platform.SelectionChanged += (_, _) => Dispatcher.BeginInvoke(UpdatePlatformNote);
+        Target.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((_, _) => Changed()));
+        Target.SelectionChanged += (_, _) => Dispatcher.BeginInvoke(Changed);
+
+        var call = Ui.Segmented(CallNames, CallNames[0], option =>
+        {
+            Call = (BuildKitCall)Array.IndexOf(CallNames, option);
+            callNote.Text = Loc.T(Call switch
+            {
+                BuildKitCall.Check => "Check evaluates the Dockerfile rules and reports warnings. Nothing is built or exported.",
+                BuildKitCall.Outline => "Outline lists the build arguments, secrets and SSH ids the chosen target uses. Nothing is built.",
+                BuildKitCall.Targets => "Targets lists the stages you can build, with their descriptions. Nothing is built.",
+                _ => ""
+            });
+            callNote.Visibility = Call == BuildKitCall.Build ? Visibility.Collapsed : Visibility.Visible;
+            destinationField!.Visibility = Call == BuildKitCall.Build ? Visibility.Visible : Visibility.Collapsed;
+            UpdateDestinationRows();
+            CallChanged?.Invoke();
+            Changed();
+        });
+        callNote.Visibility = Visibility.Collapsed;
 
         var destination = Ui.Segmented(DestinationNames, DestinationNames[0], option =>
         {
-            Destination = (BuildDestination)Array.IndexOf(DestinationNames, option);
-            ociRow!.Visibility = Destination == BuildDestination.Oci ? Visibility.Visible : Visibility.Collapsed;
+            Destination = (BuildKitDestination)Array.IndexOf(DestinationNames, option);
+            UpdateDestinationRows();
             UpdatePlatformNote();
+            Changed();
         });
+        destinationField = Ui.Field("Destination", destination, "Load locally puts the image in this engine. Push publishes every tag to its registry after confirmation. OCI archive writes a tar file. Export files writes the final filesystem to a folder (type=local) without creating an image.", null);
         var ociBrowse = Ui.IconButton(Icons.FolderOpen, "Choose OCI archive", () =>
         {
             var dialog = new SaveFileDialog { Filter = "OCI tar archive|*.tar", FileName = "image.oci.tar", OverwritePrompt = false };
             if (dialog.ShowDialog(Window.GetWindow(this)) == true) ociPath.Text = dialog.FileName;
         });
         ociRow = Ui.Field("OCI archive path", Ui.Columns(4, [1, 0], ociPath, ociBrowse), "The archive file BuildKit writes. An existing file is replaced only after you confirm.", @"C:\images\hello-api.oci.tar");
-        ociRow.Visibility = Visibility.Collapsed;
+        var exportBrowse = Ui.IconButton(Icons.FolderOpen, "Choose export folder", () =>
+        {
+            var dialog = new OpenFolderDialog { Title = Loc.T("Choose the folder for exported files") };
+            if (dialog.ShowDialog(Window.GetWindow(this)) == true) exportFolder.Text = dialog.FolderName;
+        });
+        exportRow = Ui.Field("Export folder", Ui.Columns(4, [1, 0], exportFolder, exportBrowse), "BuildKit writes the files of the final stage into this folder (--output type=local,dest=…). Files with the same names are replaced, so a non-empty folder asks for confirmation.", @"C:\Projects\hello-api\dist");
 
-        buildArgs = new BuildKeyValueRows(buildArgItems, "Argument name", "Argument value", "Add argument", ValidateArgName, () => { });
-        labels = new BuildKeyValueRows(labelItems, "Label key", "Label value", "Add label", ValidateLabelKey, () => { });
-        pull = Ui.Switch("Pull newer base images", false, _ => { }, "Always check the registry for newer FROM images (--pull).");
-        noCache = Ui.Switch("Ignore build cache", false, _ => { }, "Rebuild every step from scratch (--no-cache).");
+        buildArgs = new BuildKeyValueRows(new List<NameValue>(), "Argument name", "Argument value", "Add argument", ValidateArgName, Changed);
+        labels = new BuildKeyValueRows(new List<NameValue>(), "Label key", "Label value", "Add label", ValidateLabelKey, Changed);
+        pull = Ui.Switch("Pull newer base images", false, _ => Changed(), "Always check the registry for newer FROM images (--pull).");
+        noCache = Ui.Switch("Ignore build cache", false, _ => Changed(), "Rebuild every step from scratch (--no-cache).");
+        secrets = new BuildSecretFiles(Changed);
+        advanced = new BuildAdvancedOptions(Changed);
 
-        var addSecret = Ui.Button("Add secret file", Icons.Key, ButtonKind.Text, AddSecret);
-        addSecret.HorizontalAlignment = HorizontalAlignment.Left;
         var extras = Ui.VStack(14,
             Ui.Field("Image labels", labels, "Metadata stored in the image, one key and value per row (--label).", "org.opencontainers.image.version = 1.4.0"),
             Ui.Field("Cache from", cacheFrom, "One BuildKit cache source per line. Backends depend on the installed builder. Do not enter access keys or credentials.", "type=local,src=C:/cache\ntype=registry,ref=registry.example.com/team/cache"),
             Ui.Field("Cache to", cacheTo, "One cache export per line. Exporting writes to that destination, so the build asks for confirmation first.", "type=local,dest=C:/cache,mode=max"),
-            Ui.Field("BuildKit secret files", Ui.VStack(6, secretRows, addSecret),
-                "Choose an existing local file and the id used by RUN --mount=type=secret. Only the path is passed to BuildKit; this application never reads, logs or saves the file contents or the selection.",
-                "Id: npmrc  ·  File: C:\\Users\\me\\.npmrc\nRUN --mount=type=secret,id=npmrc,target=/root/.npmrc npm ci"));
+            secrets);
         var expander = new Expander { Header = Loc.T("Labels, cache and secrets"), Content = extras };
         System.Windows.Automation.AutomationProperties.SetName(expander, Loc.T("Labels, cache and secrets"));
 
@@ -94,31 +119,38 @@ public sealed class BuildOptionsPanel : StackPanel
             Ui.Field("Build context", Ui.Columns(4, [1, 0], ContextFolder, browse), "The folder sent to the builder. COPY and ADD paths are relative to it. Choosing a folder loads its Dockerfile when there is one.", @"C:\Projects\hello-api"),
             Ui.Field("Dockerfile", Ui.Columns(4, [1, 0], DockerfilePath, openFile), "The Dockerfile used for the build (--file). Save writes to this file.", @"C:\Projects\hello-api\Dockerfile"),
             Ui.VStack(4, Ui.Field("Tags", Tags, "One or more image references. Press Enter or comma after each tag. Push uses every tag as a destination.", "hello-api:latest, registry.example.com/team/hello-api:1.4.0"), Tags.ErrorText),
-            Ui.Columns(12, [1, 1],
-                Ui.Field("Target stage", Target, "Build only up to this named stage (--target). The list comes from the stages in the current editor source.", "runtime"),
-                Ui.Field("Platform", Platform, "Target platform (--platform). Separate several with commas; a local load supports only one.", "linux/amd64")),
-            platformNote,
-            Ui.Field("Destination", destination, "Load locally puts the image in this engine. Push publishes every tag to its registry after confirmation. OCI archive writes a tar file.", null),
-            ociRow,
+            Ui.Field("Target stage", Target, "Build only up to this named stage (--target). The list comes from the stages in the current editor source.", "runtime"),
+            Ui.VStack(4, Ui.Field("Platforms", Platforms, "Target platforms (--platform). Select none to use the builder's native platform. Load locally supports exactly one; choose Push, OCI archive or Export files for several.", "linux/amd64 + linux/arm64 with Push"), platformNote),
+            Ui.VStack(6, Ui.Field("Mode", call, "What buildx does with the Dockerfile (--call). Build runs the build. Check, Outline and Targets inspect it without building and show a structured result.", "--call=targets,format=json"), callNote),
+            destinationField, ociRow, exportRow,
             Ui.Field("Build arguments", buildArgs, "Values for ARG instructions (--build-arg). Names use letters, digits and underscores. Do not put secrets in build arguments; they are stored in the image history.", "NODE_VERSION = 22"),
-            pull, noCache, expander
+            pull, noCache, expander, advanced.ContextsSection, advanced.AttestationsSection, advanced.SandboxSection,
+            Ui.Card(Preview, 12, "SurfaceContainer", 14)
         }) Ui.Add(this, element, 14);
         platformNote.Visibility = Visibility.Collapsed;
+        UpdateDestinationRows();
+        Loaded += (_, _) => Preview.Invalidate();
     }
 
-    public static string? ValidateArgName(string name) => Regex.IsMatch(name, "^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.None, TimeSpan.FromMilliseconds(100)) ? null : "Use letters, digits and underscores, starting with a letter or underscore.";
+    public static string? ValidateArgName(string name) => BuildKitCommand.ValidateArgName(name);
     public static string? ValidateLabelKey(string key) => key.Length == 0 ? "Enter a label key." : key.StartsWith('-') ? "Label keys cannot begin with a hyphen." : key.Any(c => char.IsWhiteSpace(c) || char.IsControl(c) || c == '=') ? "Label keys cannot contain spaces or '='." : null;
+
+    private void Changed() => Preview?.Invalidate();
+
+    private void UpdateDestinationRows()
+    {
+        var build = Call == BuildKitCall.Build;
+        ociRow.Visibility = build && Destination == BuildKitDestination.Oci ? Visibility.Visible : Visibility.Collapsed;
+        exportRow.Visibility = build && Destination == BuildKitDestination.Local ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     private void UpdatePlatformNote()
     {
-        var count = PlatformList().Length;
-        var problem = Destination == BuildDestination.Load && count > 1;
-        platformNote.Text = problem ? Loc.T("Load locally supports one platform. Choose Push or OCI archive for a multi-platform build.") : "";
+        var problem = Call == BuildKitCall.Build && Destination == BuildKitDestination.Load && Platforms.Platforms.Count > 1;
+        platformNote.Text = problem ? Loc.T("Load locally supports one platform. Choose Push, OCI archive or Export files for a multi-platform build.") : "";
         platformNote.SetResourceReference(TextBlock.ForegroundProperty, "Error");
         platformNote.Visibility = problem ? Visibility.Visible : Visibility.Collapsed;
     }
-
-    public string[] PlatformList() => (Platform.Text ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     private void BrowseFolder()
     {
@@ -127,34 +159,6 @@ public sealed class BuildOptionsPanel : StackPanel
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
         ContextFolder.Text = dialog.FolderName;
         FolderChosen?.Invoke(dialog.FolderName);
-    }
-
-    private void AddSecret()
-    {
-        var picker = new OpenFileDialog { Title = Loc.T("Choose a BuildKit secret source file") };
-        if (picker.ShowDialog(Window.GetWindow(this)) != true) return;
-        var id = Ui.Input(SuggestSecretId(picker.FileName), "Secret ID", true);
-        var path = Ui.Input(picker.FileName, "Selected local file", true);
-        path.IsReadOnly = true;
-        SecretRow? row = null;
-        var replace = Ui.IconButton(Icons.FolderOpen, "Replace secret file", () =>
-        {
-            var replacement = new OpenFileDialog { Title = Loc.T("Replace the BuildKit secret source") };
-            if (replacement.ShowDialog(Window.GetWindow(this)) == true) path.Text = replacement.FileName;
-        });
-        var remove = Ui.IconButton(Icons.Delete, "Remove secret", () => { secrets.Remove(row!); secretRows.Children.Remove(row!.Element); });
-        var element = Ui.Card(Ui.VStack(8, Ui.Columns(8, [1, 0, 0], Ui.Field("Secret ID", id), replace, remove), Ui.Field("Selected local file", path)), 12, "SurfaceContainer", 12);
-        element.Margin = new Thickness(0, 0, 0, 8);
-        replace.VerticalAlignment = remove.VerticalAlignment = VerticalAlignment.Bottom;
-        row = new SecretRow(id, path, element);
-        secrets.Add(row);
-        secretRows.Children.Add(element);
-    }
-
-    private static string SuggestSecretId(string path)
-    {
-        var name = Regex.Replace(Path.GetFileName(path).TrimStart('.'), "[^A-Za-z0-9_.-]", "_", RegexOptions.None, TimeSpan.FromMilliseconds(100));
-        return name.Length > 0 && (char.IsLetter(name[0]) || name[0] == '_') ? name : "secret";
     }
 
     /// <summary>Fills the target list from the stage names of the current source, keeping the typed value.</summary>
@@ -168,55 +172,62 @@ public sealed class BuildOptionsPanel : StackPanel
         Target.Text = text;
     }
 
-    /// <summary>
-    /// Assembles and validates every argument. Returns null when the user declines a confirmation. Throws
-    /// ArgumentException with a clear message for invalid input. Secret file contents are never read.
-    /// </summary>
-    public async Task<List<string>?> CreateArgumentsAsync(string dockerfile)
+    /// <summary>What the result card needs to know about the request after the run.</summary>
+    public BuildKitRequestSummary Summary() => new(Destination, Tags.Tags.ToList(), advanced.Sbom, advanced.Provenance);
+
+    /// <summary>Reads every control into a request. Paths are made absolute; nothing is validated here.</summary>
+    private BuildKitRequest Snapshot(string dockerfile, string? metadataFile, bool preview)
     {
-        var tags = Tags.Tags.ToList();
-        foreach (var tag in tags) if (TagInput.Validate(tag) is { } problem) throw new ArgumentException(problem);
-        var platforms = PlatformList();
-        if (Destination == BuildDestination.Load && platforms.Length > 1) throw new ArgumentException("Local load supports one platform in this editor. Choose registry push or OCI export for a multi-platform build.");
-        if (!Directory.Exists(ContextFolder.Text)) throw new ArgumentException("Choose an existing build context folder.");
-        string? export = null;
-        if (Destination == BuildDestination.Oci)
+        static string Full(string path) => path.Trim().Length == 0 ? "" : Path.GetFullPath(path.Trim());
+        var context = Full(ContextFolder.Text);
+        var output = Destination == BuildKitDestination.Oci ? ociPath.Text : Destination == BuildKitDestination.Local ? exportFolder.Text : null;
+        return new BuildKitRequest
         {
-            if (string.IsNullOrWhiteSpace(ociPath.Text)) throw new ArgumentException("Choose where to write the OCI archive.");
-            var path = Path.GetFullPath(ociPath.Text);
-            if (!Directory.Exists(Path.GetDirectoryName(path))) throw new ArgumentException("Choose an OCI archive in an existing output directory.");
-            export = StructuredInputs.Export(path);
-            if (File.Exists(path) && !await Host.Overlay.ConfirmAsync("Replace existing OCI archive?", path, "Replace", true)) return null;
-        }
-        if (Destination == BuildDestination.Push && tags.Count == 0) throw new ArgumentException("Registry push requires at least one explicit destination tag.");
-        var target = (Target.Text ?? "").Trim();
-        var options = new BuildOptions
-        {
-            ContextPath = ContextFolder.Text, Dockerfile = dockerfile, Tags = tags,
-            Platforms = platforms.Length == 0 ? Array.Empty<string>() : [string.Join(',', platforms)],
-            Target = target.Length == 0 ? null : target,
-            BuildArguments = buildArgs.ToDictionary("Build arguments"), Labels = labels.ToDictionary("Image labels"),
+            ContextPath = preview && context.Length == 0 ? "<context folder>" : context,
+            Dockerfile = preview && dockerfile.Length == 0 ? "<Dockerfile>" : dockerfile,
+            Tags = Tags.Tags.ToList(), Platforms = Platforms.Platforms,
+            Target = (Target.Text ?? "").Trim() is { Length: > 0 } t ? t : null,
+            BuildArguments = buildArgs.Pairs(), Labels = labels.Pairs(),
             NoCache = noCache.IsChecked == true, Pull = pull.IsChecked == true,
-            Load = Destination == BuildDestination.Load, Push = Destination == BuildDestination.Push, Output = export
+            Destination = Destination, Call = Call,
+            OutputPath = string.IsNullOrWhiteSpace(output) ? (preview ? "<choose a destination>" : null) : Full(output),
+            CacheFrom = StructuredInputs.Lines(cacheFrom.Text), CacheTo = StructuredInputs.Lines(cacheTo.Text),
+            SecretFiles = secrets.Files, SecretEnvironment = secrets.EnvironmentSecrets,
+            NamedContexts = advanced.NamedContexts, SshDefault = advanced.SshDefault, SshKeys = advanced.SshKeys,
+            Sbom = advanced.Sbom, Provenance = advanced.Provenance, Annotations = advanced.Annotations,
+            Network = advanced.Network, ShmSize = advanced.ShmSize, Ulimits = advanced.Ulimits, ExtraHosts = advanced.ExtraHosts,
+            MetadataFile = metadataFile
         };
-        var args = DockerService.CreateBuildArguments(options).ToList();
-        var context = args[^1]; args.RemoveAt(args.Count - 1);
-        foreach (var spec in StructuredInputs.Lines(cacheFrom.Text)) args.AddRange(["--cache-from", StructuredInputs.Cache(spec)]);
-        var exportCaches = StructuredInputs.Lines(cacheTo.Text);
-        foreach (var spec in exportCaches) args.AddRange(["--cache-to", StructuredInputs.Cache(spec)]);
-        var ids = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var secret in secrets)
-        {
-            var id = secret.Id.Text.Trim();
-            if (!ids.Add(id)) throw new ArgumentException("BuildKit secret identifiers must be unique.");
-            if (!File.Exists(secret.Path.Text)) throw new ArgumentException("A selected BuildKit secret file is unavailable. Replace it or remove its row.");
-            args.AddRange(["--secret", StructuredInputs.Secret(id, secret.Path.Text)]);
-        }
-        if (Destination == BuildDestination.Push && !await Host.Overlay.ConfirmAsync("Publish image tags to their registries?", string.Join(Environment.NewLine, tags) + Environment.NewLine + Environment.NewLine + Loc.T("The build pushes with the existing Docker sign-in for each registry."), "Build and push"))
+    }
+
+    private IReadOnlyList<string> CreatePreview()
+    {
+        var request = Snapshot(DockerfilePath.Text.Trim(), "<temporary metadata file>", true);
+        foreach (var tag in request.Tags) if (TagInput.Validate(tag) is { } problem) throw new ArgumentException(problem);
+        return BuildKitCommand.Create(request, _ => true, _ => true);
+    }
+
+    /// <summary>
+    /// Assembles and validates every argument with real file checks, then asks the confirmations the destination
+    /// needs. Returns null when the user declines. Throws ArgumentException with a clear message for invalid input.
+    /// Secret file contents and environment values are never read.
+    /// </summary>
+    public async Task<List<string>?> CreateArgumentsAsync(string dockerfile, string? metadataFile)
+    {
+        var request = Snapshot(dockerfile, metadataFile, false);
+        foreach (var tag in request.Tags) if (TagInput.Validate(tag) is { } problem) throw new ArgumentException(problem);
+        var args = BuildKitCommand.Create(request, File.Exists, Directory.Exists);
+        foreach (var (_, variable) in request.SecretEnvironment)
+            if (Environment.GetEnvironmentVariable(variable) == null)
+                throw new ArgumentException($"The environment variable {variable} is not set for this application, so BuildKit would receive no secret. Set it and restart the application, or remove the row.");
+        if (request.Call != BuildKitCall.Build) return args;
+        if (request.Destination == BuildKitDestination.Oci && File.Exists(request.OutputPath) && !await Host.Overlay.ConfirmAsync("Replace existing OCI archive?", request.OutputPath!, "Replace", true)) return null;
+        if (request.Destination == BuildKitDestination.Local && Directory.EnumerateFileSystemEntries(request.OutputPath!).Any()
+            && !await Host.Overlay.ConfirmAsync("Export into a folder that is not empty?", request.OutputPath! + Environment.NewLine + Environment.NewLine + Loc.T("Files with the same names are replaced by the build output."), "Export", true)) return null;
+        if (request.Destination == BuildKitDestination.Push && !await Host.Overlay.ConfirmAsync("Publish image tags to their registries?", string.Join(Environment.NewLine, request.Tags) + Environment.NewLine + Environment.NewLine + Loc.T("The build pushes with the existing Docker sign-in for each registry."), "Build and push"))
             return null;
-        if (exportCaches.Length > 0 && !await Host.Overlay.ConfirmAsync("Export build cache to these destinations?", string.Join(Environment.NewLine, exportCaches), "Export cache"))
+        if (request.CacheTo.Count > 0 && !await Host.Overlay.ConfirmAsync("Export build cache to these destinations?", string.Join(Environment.NewLine, request.CacheTo), "Export cache"))
             return null;
-        args.Add(context);
         return args;
     }
 }

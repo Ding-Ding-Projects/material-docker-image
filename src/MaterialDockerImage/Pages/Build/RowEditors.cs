@@ -66,6 +66,19 @@ public sealed class BuildKeyValueRows : StackPanel
         return row;
     }
 
+    /// <summary>Non-empty rows in order, unvalidated (the caller validates, for example through BuildKitCommand).</summary>
+    public IReadOnlyList<KeyValuePair<string, string>> Pairs() =>
+        items.Where(i => i.Name.Length > 0 || i.Value.Length > 0).Select(i => new KeyValuePair<string, string>(i.Name.Trim(), i.Value)).ToList();
+
+    /// <summary>Replaces every row (used when a run or plan pre-fills values).</summary>
+    public void SetPairs(IEnumerable<KeyValuePair<string, string>> pairs)
+    {
+        items.Clear();
+        foreach (var (name, value) in pairs) items.Add(new NameValue { Name = name, Value = value });
+        Rebuild();
+        changed();
+    }
+
     /// <summary>Non-empty rows as a dictionary; throws ArgumentException naming the first problem.</summary>
     public Dictionary<string, string> ToDictionary(string what)
     {
