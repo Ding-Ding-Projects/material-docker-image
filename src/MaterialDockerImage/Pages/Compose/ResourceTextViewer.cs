@@ -172,8 +172,8 @@ public static class TextFind
         Regex? regex = null;
         if (search.RegexMode)
         {
-            try { regex = new Regex(search.Query, search.IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None, TimeSpan.FromMilliseconds(100)); }
-            catch (ArgumentException) { return Loc.T("Invalid pattern. Correct the expression to search."); }
+            regex = search.CreateRegex();
+            if (regex == null) return Loc.T("Invalid pattern. Correct the expression to search.");
         }
         var comparison = search.IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
         (int Index, int Length)? Find(int from, bool back)

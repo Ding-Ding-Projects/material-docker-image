@@ -339,8 +339,8 @@ public partial class MainWindow : Window
             if (!tab.Workspace) menu.Items.Add(Ui.MenuItem(tab.Pinned ? "Unpin tab" : "Pin tab", Icons.Keep, () => { tabs[index] = tab with { Pinned = !tab.Pinned }; Reorder(); }));
             if (!tab.Workspace) menu.Items.Add(Ui.MenuItem("Close tab", Icons.Close, () => CloseTab(index), "Ctrl+W"));
             menu.Items.Add(Ui.MenuItem("Close other tabs", Icons.Close, () => CloseWhere(t => t != tab)));
-            menu.Items.Add(Ui.MenuItem("Close tabs containing text…", Icons.FilterList, () => _ = CloseByText(true)));
-            menu.Items.Add(Ui.MenuItem("Close tabs not containing text…", Icons.FilterList, () => _ = CloseByText(false)));
+            menu.Items.Add(Ui.MenuItem("Close tabs containing text…", Icons.FilterList, () => CloseByText(true)));
+            menu.Items.Add(Ui.MenuItem("Close tabs not containing text…", Icons.FilterList, () => CloseByText(false)));
             menu.Items.Add(new Separator());
             if (i > 1) menu.Items.Add(Ui.MenuItem("Move left", Icons.ChevronLeft, () => Move(index, -1)));
             if (i > 0 && i < tabs.Count - 1) menu.Items.Add(Ui.MenuItem("Move right", Icons.ChevronRight, () => Move(index, 1)));
@@ -387,14 +387,58 @@ public partial class MainWindow : Window
         currentTab = Math.Max(0, tabs.IndexOf(current));
         ShowCurrent();
     }
-    private async Task CloseByText(bool containing)
+    /// <summary>
+    /// Close tabs containing (or not containing) text: one field with its own regex builder, a live preview and
+    /// count, an empty and invalid query guard. The workspace tab never closes; pinned tabs and tabs whose page has
+    /// unsaved work stay open unless pinned tabs are explicitly included.
+    /// </summary>
+    private void CloseByText(bool containing)
     {
-        var text = await overlay.PromptAsync(containing ? "Close tabs containing text" : "Close tabs not containing text", "Text to match", "", "Pinned tabs and the workspace tab are never closed. A preview is shown before anything closes.");
-        if (text == null) return;
-        var candidates = tabs.Where(t => !t.Workspace && !t.Pinned && TabTitle(t).Contains(text, StringComparison.OrdinalIgnoreCase) == containing).ToList();
-        if (candidates.Count == 0) { host.Notify.Info("No unpinned tabs match. Nothing was closed."); return; }
-        if (!await overlay.ConfirmAsync($"Close {candidates.Count} tab(s)?", string.Join(Environment.NewLine, candidates.Select(TabTitle)), "Close tabs")) return;
-        CloseWhere(candidates.Contains);
+        Action? close = null;
+        var search = new SearchFilter("Text to match in tab titles", 440) { Width = double.NaN };
+        var mode = containing;
+        var includePinned = false;
+        var preview = new ListBox { MinHeight = 120, MaxHeight = 260 };
+        AutomationProperties.SetName(preview, Loc.T("Preview of tabs that will close"));
+        var summary = Ui.Caption("");
+        summary.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
+        var selection = new TabCloseSelection(false, "", [], []);
+        var snapshot = new List<TabState>();
+        Button? confirm = null;
+        void Update()
+        {
+            snapshot = tabs.ToList();
+            var candidates = snapshot.Select((t, i) => new TabCloseCandidate(i, TabTitle(t), t.Pinned, t.Workspace, pages.TryGetValue(t.Destination, out var p) && p is IDirtyAware { IsDirty: true }));
+            selection = TabCloseSelector.Select(candidates, search.Predicate, mode, includePinned);
+            preview.Items.Clear();
+            foreach (var t in selection.ToClose) preview.Items.Add(new ListBoxItem { Content = t.Label });
+            foreach (var (t, reason) in selection.Kept) preview.Items.Add(new ListBoxItem { Content = t.Label + " · " + Loc.T("stays open:") + " " + Loc.T(reason), IsEnabled = false });
+            summary.Text = Loc.T(selection.Message);
+            if (confirm != null) confirm.IsEnabled = selection.Valid && selection.ToClose.Count > 0;
+        }
+        void Apply()
+        {
+            if (!selection.Valid || selection.ToClose.Count == 0) return;
+            var targets = selection.ToClose.Select(c => snapshot[c.Index]).Where(t => !t.Workspace).ToList();
+            close!();
+            var current = tabs[currentTab];
+            foreach (var t in targets) tabs.Remove(t);
+            currentTab = Math.Max(0, tabs.IndexOf(current));
+            ShowCurrent();
+            host.Notify.Info($"Closed {targets.Count} tab{(targets.Count == 1 ? "" : "s")}.");
+        }
+        search.Changed += Update;
+        search.Box.PreviewKeyDown += (_, e) => { if (e.Key == Key.Enter && confirm?.IsEnabled == true) { Apply(); e.Handled = true; } };
+        var modes = Ui.Segmented(["Containing", "Not containing"], mode ? "Containing" : "Not containing", v => { mode = v == "Containing"; Update(); });
+        var pinned = Ui.Switch("Include pinned tabs", false, v => { includePinned = v; Update(); }, "Off by default. The workspace tab and tabs with unsaved work always stay open.");
+        confirm = Ui.Button("Close matching tabs", Icons.Close, ButtonKind.Filled, Apply);
+        var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => close!()), confirm);
+        actions.HorizontalAlignment = HorizontalAlignment.Right;
+        Update();
+        close = overlay.Show(Ui.VStack(12, Ui.Title("Close tabs by text"),
+            Ui.Caption("Matches tab titles with plain text by default; turn on .* or open the builder (Alt+R) for a regular expression. Nothing closes until you confirm."),
+            modes, search, pinned, summary, preview, actions), 600);
+        Dispatcher.BeginInvoke(() => search.Box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
     /// <summary>New tab catalog: every destination with icons, its own plain-text search and adjacent regex builder.</summary>
@@ -446,6 +490,8 @@ public partial class MainWindow : Window
         c.Register(new AppCommand { Id = "tab.close", Title = "Close tab", Icon = Icons.Close, Gesture = new KeyGesture(Key.W, ModifierKeys.Control), Run = () => CloseTab(currentTab) });
         c.Register(new AppCommand { Id = "tab.next", Title = "Next tab", Icon = Icons.ChevronRight, Gesture = new KeyGesture(Key.Tab, ModifierKeys.Control), Run = () => { currentTab = (currentTab + 1) % tabs.Count; ShowCurrent(); } });
         c.Register(new AppCommand { Id = "tab.search", Title = "Search open tabs", Icon = Icons.Search, Gesture = new KeyGesture(Key.A, ModifierKeys.Control | ModifierKeys.Shift), Run = SearchTabs });
+        c.Register(new AppCommand { Id = "tab.close-containing", Title = "Close tabs containing text…", Icon = Icons.FilterList, Keywords = "bulk close tabs regex", Run = () => CloseByText(true) });
+        c.Register(new AppCommand { Id = "tab.close-not-containing", Title = "Close tabs not containing text…", Icon = Icons.FilterList, Keywords = "bulk close tabs regex", Run = () => CloseByText(false) });
         c.Register(new AppCommand { Id = "notifications", Title = "Show notification centre", Icon = Icons.Notifications, Run = ShowNotifications });
         c.Register(new AppCommand { Id = "accessibility", Title = "Accessibility tools", Icon = Icons.AccessibilityNew, Gesture = new KeyGesture(Key.F1, ModifierKeys.Alt), Run = ShowAccessibility });
         c.Register(new AppCommand { Id = "output.toggle", Title = "Show or hide the output panel", Icon = Icons.Terminal, Gesture = new KeyGesture(Key.J, ModifierKeys.Control), Run = () => { dock.SetExpanded(!dock.Expanded); settings.OutputDockOpen = dock.Expanded; host.SaveSettings(null); } });

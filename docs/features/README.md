@@ -1,6 +1,7 @@
 # User guides
 
 - [Workspace, navigation and command palette](workspace.md)
+- [Search and the regular expression builder](search-and-regex.md)
 - [Build and run](build-and-run.md)
 - [Dockerfile Creator](dockerfile-creator.md)
 - [Advanced builds, BuildKit timeline and Bake](advanced-build.md)
