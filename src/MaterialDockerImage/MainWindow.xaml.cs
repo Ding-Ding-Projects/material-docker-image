@@ -85,7 +85,7 @@ public partial class MainWindow : Window
         var narrow = ActualWidth > 0 && ActualWidth < 1180;
         PaletteSlot.Width = narrow ? 220 : 460;
         Provenance.Visibility = ActualWidth > 0 && ActualWidth < 1040 ? Visibility.Collapsed : Visibility.Visible;
-        var shortWindow = ActualHeight > 0 && ActualHeight < 900;
+        var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
         foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
         dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
     }
