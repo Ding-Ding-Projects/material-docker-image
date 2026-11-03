@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Run container editor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Images" hint-size="96px,912px"></dc-import>
+<main aria-hidden="true" style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; padding: 16px 16px 16px 0">
+<section style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; min-height: 0; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 22px; font-weight: 600; line-height: 1.3">Images</span><span style="font-size: 13px; color: #C4C6D0">14 images · 3.92 GB · refreshed 11:49:58</span></div>
+<span style="height: 40px; padding: 0 20px; border-radius: 20px; background: #ADC6FF; color: #002E69; font-weight: 600; display: flex; align-items: center">Pull image</span>
+</div>
+<div style="display: flex; flex-direction: column; padding: 0 12px">
+<sc-for list="{{bgRows}}" as="row" hint-placeholder-count="8">
+<div style="height: 52px; display: grid; grid-template-columns: minmax(0, 1.6fr) 150px 120px 90px 120px; align-items: center; gap: 12px; padding: 0 12px; border-radius: 10px; background: {{row.bg}}">
+<span style="font-weight: 600">{{row.name}}</span>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{row.id}}</span>
+<span style="color: #C4C6D0">linux/amd64</span>
+<span>{{row.size}}</span>
+<span style="color: #C4C6D0">{{row.created}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<aside style="background: #191C20; border-radius: 16px"></aside>
+</main>
+</div>
+<div style="position: absolute; inset: 0; background: rgba(0,0,0,.5)"></div>
+<div role="dialog" aria-modal="true" aria-labelledby="run-title" style="position: absolute; left: 150px; top: 72px; width: 1140px; height: 840px; background: #282A2F; border-radius: 28px; box-shadow: 0 12px 40px rgba(0,0,0,.55); display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 20px 16px 16px 28px">
+<div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 auto"><span id="run-title" style="font-size: 24px; font-weight: 400; line-height: 1.3">Run container from hello-api:1.4.0</span><span style="font-size: 13px; color: #C4C6D0">Image sha256:7f3c91a0e2b4 · exposes 8080/tcp · runs as user node</span></div>
+<button style="height: 36px; padding: 0 12px; border-radius: 18px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C8;</span>Load preset</button>
+<button aria-label="Close" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 22px">&#xE5CD;</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 232px minmax(0, 1fr); gap: 0; border-top: 1px solid #44474F">
+<nav aria-label="Sections" style="padding: 12px; display: flex; flex-direction: column; gap: 2px; border-right: 1px solid #44474F">
+<sc-for list="{{sections}}" as="s" hint-placeholder-count="9">
+<a href="#" aria-current="{{s.current}}" style="height: 44px; border-radius: 22px; display: flex; align-items: center; gap: 12px; padding: 0 14px; text-decoration: none; background: {{s.bg}}; color: {{s.ink}}; font-weight: {{s.weight}}"><span aria-hidden="true" style="font-family: {{s.font}}; font-size: 20px">{{s.icon}}</span><span style="flex: 1 1 auto">{{s.label}}</span><span style="font-size: 12px; color: {{s.ink}}">{{s.count}}</span></a>
+</sc-for>
+</nav>
+<div style="padding: 20px 28px; display: flex; flex-direction: column; gap: 18px; overflow: hidden">
+<section aria-labelledby="ports-h" style="display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span id="ports-h" style="font-size: 16px; font-weight: 600; flex: 1 1 auto">Ports</span><button aria-label="About published ports" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE88E;</button></div>
+<div style="display: grid; grid-template-columns: 170px 120px 130px 120px 32px; gap: 10px; font-size: 12px; color: #C4C6D0; font-weight: 600"><span>Bind address</span><span>Host port</span><span>Container port</span><span>Protocol</span><span></span></div>
+<sc-for list="{{ports}}" as="p" hint-placeholder-count="2">
+<div style="display: grid; grid-template-columns: 170px 120px 130px 120px 32px; gap: 10px; align-items: center">
+<input aria-label="Bind address" value="{{p.bind}}" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<input aria-label="Host port" value="{{p.host}}" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<input aria-label="Container port" value="{{p.ctr}}" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<button aria-label="Protocol" style="height: 40px; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 10px">{{p.proto}}<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></button>
+<button aria-label="Remove port" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE92E;</button>
+</div>
+</sc-for>
+<div style="display: flex; align-items: center; gap: 16px">
+<button style="height: 36px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 0 4px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Add port</button>
+<label style="display: flex; align-items: center; gap: 8px; height: 36px"><input type="checkbox" style="width: 18px; height: 18px; accent-color: #ADC6FF">Publish to all interfaces</label>
+</div>
+<div style="display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border-radius: 12px; background: #5C3F00; color: #FFDDB3; font-size: 13px; line-height: 1.45"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xF083;</span><span>Publishing to 0.0.0.0 makes the port reachable from other machines on your network and can bypass Windows Firewall rules. Keep 127.0.0.1 unless another device needs access.</span></div>
+</section>
+<section aria-labelledby="env-h" style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #44474F; padding-top: 14px">
+<div style="display: flex; align-items: center; gap: 8px"><span id="env-h" style="font-size: 16px; font-weight: 600; flex: 1 1 auto">Environment</span><button style="height: 32px; padding: 0 10px; border: none; border-radius: 16px; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Load .env file</button></div>
+<sc-for list="{{env}}" as="e" hint-placeholder-count="3">
+<div style="display: grid; grid-template-columns: 220px minmax(0, 1fr) 32px; gap: 10px; align-items: center">
+<input aria-label="Variable name" value="{{e.k}}" style="height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<input aria-label="Variable value" value="{{e.v}}" type="{{e.type}}" style="height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #1D2024; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<button aria-label="Remove variable" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE92E;</button>
+</div>
+</sc-for>
+</section>
+<section aria-labelledby="mnt-h" style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #44474F; padding-top: 14px">
+<span id="mnt-h" style="font-size: 16px; font-weight: 600">Mounts</span>
+<div style="display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr) 120px 32px; gap: 10px; align-items: center">
+<span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #3E4759; color: #DAE2F9; font-size: 12px; display: flex; align-items: center; justify-content: center">Bind</span>
+<span style="font: 13px 'Cascadia Mono',Consolas,monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">C:\Projects\hello-api\config</span>
+<span style="font: 13px 'Cascadia Mono',Consolas,monospace">/app/config</span>
+<label style="display: flex; align-items: center; gap: 8px; font-size: 13px"><input type="checkbox" checked style="width: 18px; height: 18px; accent-color: #ADC6FF">Read-only</label>
+<button aria-label="Remove mount" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE92E;</button>
+</div>
+</section>
+<section aria-labelledby="sec-h" style="display: flex; flex-direction: column; gap: 2px; border-top: 1px solid #44474F; padding-top: 14px">
+<span id="sec-h" style="font-size: 16px; font-weight: 600; margin-bottom: 4px">Security</span>
+<sc-for list="{{security}}" as="t" hint-placeholder-count="3">
+<label style="min-height: 44px; display: flex; align-items: center; gap: 12px"><span style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-family: 'Cascadia Mono',Consolas,monospace; font-size: 13px">{{t.label}}</span><span style="font-size: 12px; color: {{t.noteInk}}">{{t.note}}</span></span><span style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid {{t.trackBorder}}; background: {{t.track}}; position: relative; flex: 0 0 auto"><span style="position: absolute; left: {{t.left}}; top: {{t.top}}; width: {{t.size}}; height: {{t.size}}; border-radius: 12px; background: {{t.thumb}}"></span></span></label>
+</sc-for>
+</section>
+</div>
+</div>
+<div style="border-top: 1px solid #44474F; padding: 14px 20px 18px 28px; display: flex; align-items: center; gap: 12px">
+<div style="flex: 1 1 auto; min-width: 0; height: 44px; border-radius: 12px; background: #111318; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 14px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #8E9099">&#xEB8E;</span>
+<code style="flex: 1 1 auto; min-width: 0; font: 12px 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">docker container run --detach --name hello-api --publish 127.0.0.1:8080:8080/tcp --env NODE_ENV=production --env-file .env --mount type=bind,src=C:\Projects\hello-api\config,dst=/app/config,readonly --read-only --security-opt no-new-privileges hello-api:1.4.0</code>
+<button aria-label="Copy command" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE14D;</button>
+</div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Cancel</button>
+<button style="height: 40px; padding: 0 24px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE037;</span>Run</button>
+</div>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const bgRows = [
+ ['hello-api:1.4.0','7f3c91a0e2b4','182 MB','4 minutes ago',true],
+ ['hello-api:latest','7f3c91a0e2b4','182 MB','4 minutes ago',false],
+ ['hello-api-worker:1.4.0','2a90bc4417e0','164 MB','2 hours ago',false],
+ ['postgres:16','b0e8c2a7d413','432 MB','6 days ago',false],
+ ['redis:7-alpine','3c6f9e10a8b2','41.2 MB','9 days ago',false],
+ ['traefik:v3.2','e19d7a5c03f6','182 MB','2 weeks ago',false],
+ ['api-gateway:edge','c05e1f772b19','96.4 MB','3 days ago',false],
+ ['node:22-alpine','0f4b8e2c91d7','158 MB','3 weeks ago',false]
+].map(([name,id,size,created,sel]) => ({ name, id, size, created, bg: sel ? '#282A2F' : 'transparent' }));
+const sections = [
+ ['Identity','',''],['Command','',''],['Ports','','2'],['Environment','','3'],['Mounts','','1'],['Network','',''],['Resources','',''],['Restart and health','',''],['Security','','2']
+].map(([label,icon,count]) => { const on = label === 'Ports'; return { label, icon, count, current: on ? 'true' : 'false', bg: on ? '#3E4759' : 'transparent', ink: on ? '#DAE2F9' : '#C4C6D0', weight: on ? 600 : 400, font: on ? 'MSF' : 'MSO' }; });
+const ports = [
+ { bind: '127.0.0.1', host: '8080', ctr: '8080', proto: 'TCP' },
+ { bind: '127.0.0.1', host: '9464', ctr: '9464', proto: 'TCP' }
+];
+const env = [
+ { k: 'NODE_ENV', v: 'production', type: 'text' },
+ { k: 'DATABASE_URL', v: 'postgres://hello@hello-db:5432/hello', type: 'text' },
+ { k: 'SESSION_SECRET', v: 'hidden-value', type: 'password' }
+];
+const sw = (on) => on
+ ? { track: '#ADC6FF', trackBorder: '#ADC6FF', thumb: '#002E69', left: '22px', top: '2px', size: '24px' }
+ : { track: '#33353A', trackBorder: '#8E9099', thumb: '#8E9099', left: '6px', top: '6px', size: '16px' };
+const security = [
+ { label: 'no-new-privileges', note: 'Processes cannot gain privileges through setuid binaries', noteInk: '#C4C6D0', ...sw(true) },
+ { label: 'read-only root filesystem', note: 'Writes go only to mounts and tmpfs', noteInk: '#C4C6D0', ...sw(true) },
+ { label: 'privileged', note: 'Gives the container full access to the host. Leave off unless you trust the image completely.', noteInk: '#F9BD5C', ...sw(false) }
+];
+return { bgRows, sections, ports, env, security };
+}
+}
+</script>
+</body>
+</html>

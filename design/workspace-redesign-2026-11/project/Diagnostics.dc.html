@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Diagnostics</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Diagnostics" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 560px; gap: 12px; padding: 16px 16px 16px 0">
+<section aria-label="Checks" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 22px; font-weight: 600; line-height: 1.3">Diagnostics</span><span style="font-size: 13px; color: #C4C6D0">Read-only checks. Nothing on your system is changed. Last run 11:48:05.</span></div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF3B2;</span>Export sanitized report</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE037;</span>Run all checks</button>
+</div>
+<div style="margin: 0 20px 8px; display: flex; gap: 8px">
+<span style="height: 28px; padding: 0 12px; border-radius: 14px; display: flex; align-items: center; font-size: 12px; background: #005227; color: #9CF6B4">6 passed</span>
+<span style="height: 28px; padding: 0 12px; border-radius: 14px; display: flex; align-items: center; font-size: 12px; background: #5C3F00; color: #FFDDB3">1 warning</span>
+<span style="height: 28px; padding: 0 12px; border-radius: 14px; display: flex; align-items: center; font-size: 12px; background: #282A2F; color: #C4C6D0">0 failed</span>
+</div>
+<ul aria-label="Check results" style="list-style: none; margin: 0; padding: 0 12px; display: flex; flex-direction: column">
+<sc-for list="{{checks}}" as="c" hint-placeholder-count="7">
+<li style="min-height: 64px; display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: 12px; padding: 0 8px; border-bottom: 1px solid #282A2F">
+<span aria-hidden="true" style="font-family: MSF; font-size: 22px; color: {{c.ink}}">{{c.icon}}</span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font-weight: 600">{{c.label}}</span><span style="font-size: 12px; color: #C4C6D0">{{c.detail}}</span></span>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{c.value}}</span>
+<button aria-label="{{c.runLabel}}" style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Run</button>
+</li>
+</sc-for>
+</ul>
+<div style="flex: 1 1 auto"></div>
+<div style="margin: 12px; border-radius: 12px; background: #111318; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; border-bottom: 1px solid #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #ADC6FF">&#xEB8E;</span><span style="font-weight: 600; flex: 1 1 auto">Output · Disk free</span><button aria-label="Copy output" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE14D;</button></div>
+<pre style="margin: 0; padding: 10px 14px; font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: pre">&gt; docker system df
+TYPE            TOTAL     ACTIVE    SIZE      RECLAIMABLE
+Images          14        6         3.92GB    1.12GB (28%)
+Containers      7         4         286MB     41MB (14%)
+Local Volumes   6         4         1.84GB    218MB (11%)
+Build Cache     148       0         812MB     812MB
+<span style="color: #F9BD5C">C: has 18.2 GB free of 476 GB (3.8%). Builds may fail below 10 GB.</span></pre>
+</div>
+</section>
+<section aria-label="Engine events" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 16px; border-bottom: 1px solid #282A2F">
+<span style="width: 8px; height: 8px; border-radius: 4px; background: #7FD99A"></span>
+<span style="font-weight: 600; flex: 1 1 auto">Events <span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; font-weight: 400">docker events</span></span>
+<button aria-pressed="false" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Containers only</button>
+<button aria-label="Pause events" style="width: 40px; height: 40px; border: none; border-radius: 20px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE034;</button>
+</div>
+<div role="log" aria-label="Engine events" style="flex: 1 1 auto; display: flex; flex-direction: column; padding: 6px 8px; overflow: hidden">
+<sc-for list="{{events}}" as="e" hint-placeholder-count="14">
+<div style="display: grid; grid-template-columns: 64px 82px 96px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 36px; padding: 0 8px; border-radius: 8px; background: {{e.bg}}; font-size: 13px">
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{e.time}}</span>
+<span style="justify-self: start; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11px; display: flex; align-items: center; background: #282A2F; color: #C4C6D0">{{e.type}}</span>
+<span style="color: {{e.ink}}; font-weight: 600">{{e.action}}</span>
+<span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{e.target}}</span>
+</div>
+</sc-for>
+</div>
+<div style="padding: 10px 16px 14px; font-size: 12px; color: #C4C6D0; border-top: 1px solid #282A2F">Streaming since 11:40:00 · 214 events · keeps the last 1,000</div>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const ok = ['\uF0BE','#7FD99A'], warn = ['\uF083','#F9BD5C'];
+const checks = [
+ ['Docker CLI found','C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe','28.4.0',ok],
+ ['Engine reachable','npipe:////./pipe/dockerDesktopLinuxEngine · 12 ms','OK',ok],
+ ['API version','Client and server agree','1.51',ok],
+ ['Buildx available','docker buildx version','v0.29.1',ok],
+ ['Compose available','docker compose version','v2.40.0',ok],
+ ['Contexts','desktop-linux (current), default','2',ok],
+ ['Disk free','Drive C: · 3.8% free','18.2 GB',warn]
+].map(([label,detail,value,s]) => ({ label, detail, value, icon: s[0], ink: s[1], runLabel: 'Run check: ' + label }));
+const evData = [
+ ['11:49:42','container','exec_start','hello-api · sh -c node healthcheck.js','#82D3E0'],
+ ['11:49:42','container','health_status','hello-api · healthy','#7FD99A'],
+ ['11:49:20','image','pull','redis:7-alpine','#ADC6FF'],
+ ['11:48:55','network','connect','hello-stack_default ← hello-cache','#ADC6FF'],
+ ['11:48:54','container','start','hello-cache','#7FD99A'],
+ ['11:48:31','container','pause','hello-worker','#F9BD5C'],
+ ['11:47:51','container','exec_die','hello-api · exit 0','#C4C6D0'],
+ ['11:46:10','volume','mount','pgdata → hello-db','#ADC6FF'],
+ ['11:45:04','container','start','hello-api','#7FD99A'],
+ ['11:45:02','container','create','hello-api from hello-api:1.4.0','#ADC6FF'],
+ ['11:44:58','container','destroy','hello-api (previous)','#FFB4AB'],
+ ['11:44:57','container','stop','hello-api (previous)','#C4C6D0'],
+ ['11:44:20','image','tag','hello-api:1.4.0 → hello-api:latest','#ADC6FF'],
+ ['11:44:19','builder','prune','ci-multiarch · 0 B','#C4C6D0']
+];
+const events = evData.map(([time,type,action,target,ink], i) => ({ time, type, action, target, ink, bg: i === 0 ? '#282A2F' : 'transparent' }));
+return { checks, events };
+}
+}
+</script>
+</body>
+</html>

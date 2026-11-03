@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Setup wizard</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<main style="flex: 1 1 auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 24px">
+<section aria-labelledby="setup-h" style="width: 880px; background: #191C20; border-radius: 28px; padding: 32px 36px 28px; display: flex; flex-direction: column; gap: 24px; box-sizing: border-box">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 13px; color: #C4C6D0">Welcome to Material Docker Image</span>
+<h1 id="setup-h" style="margin: 0; font-size: 28px; font-weight: 600; line-height: 1.25">Choose an engine context</h1>
+<span style="color: #C4C6D0">The app talks to Docker through a context. You can switch at any time from the title bar.</span>
+</div>
+<ol aria-label="Setup steps" style="list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px">
+<sc-for list="{{steps}}" as="s" hint-placeholder-count="4">
+<li aria-current="{{s.current}}" style="display: flex; flex-direction: column; gap: 8px">
+<div style="height: 4px; border-radius: 2px; background: {{s.bar}}"></div>
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="width: 28px; height: 28px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-family: {{s.font}}; font-size: {{s.fs}}; font-weight: 600; background: {{s.dot}}; color: {{s.dotInk}}">{{s.mark}}</span><span style="font-size: 13px; color: {{s.ink}}; font-weight: {{s.weight}}">{{s.label}}</span></div>
+</li>
+</sc-for>
+</ol>
+<div style="padding: 12px 14px; border-radius: 12px; background: #1D2024; display: flex; flex-direction: column; gap: 8px">
+<div style="display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px; color: #7FD99A">&#xF0BE;</span><span style="font-weight: 600; flex: 1 1 auto">Step 1 · Docker detected</span><button style="height: 32px; padding: 0 10px; border: none; border-radius: 16px; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Run again</button></div>
+<div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; font-size: 12px">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #C4C6D0">Docker CLI</span><span style="font-family: 'Cascadia Mono',Consolas,monospace">28.4.0</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #C4C6D0">Engine API</span><span style="font-family: 'Cascadia Mono',Consolas,monospace">1.51</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #C4C6D0">Buildx</span><span style="font-family: 'Cascadia Mono',Consolas,monospace">v0.29.1</span></span>
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="color: #C4C6D0">Compose</span><span style="font-family: 'Cascadia Mono',Consolas,monospace">v2.40.0</span></span>
+</div>
+</div>
+<div role="radiogroup" aria-label="Engine context" style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<sc-for list="{{contexts}}" as="c" hint-placeholder-count="2">
+<button role="radio" aria-checked="{{c.checked}}" style="border-radius: 16px; border: {{c.border}}; background: {{c.bg}}; color: #E2E2E9; font: inherit; text-align: left; padding: 16px; display: flex; flex-direction: column; gap: 10px">
+<span style="display: flex; align-items: center; gap: 10px; width: 100%"><span aria-hidden="true" style="width: 20px; height: 20px; box-sizing: border-box; border-radius: 10px; border: 2px solid {{c.radioInk}}; display: flex; align-items: center; justify-content: center; flex: 0 0 auto"><span style="width: 10px; height: 10px; border-radius: 5px; background: {{c.radioDot}}"></span></span><span style="font-size: 16px; font-weight: 600; flex: 1 1 auto">{{c.name}}</span><span style="height: 24px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; font-size: 12px; background: {{c.chipBg}}; color: {{c.chipInk}}">{{c.status}}</span></span>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; word-break: break-all">{{c.endpoint}}</span>
+<span style="font-size: 13px; color: #C4C6D0">{{c.desc}}</span>
+</button>
+</sc-for>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding-top: 4px">
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE5C4;</span>Back</button>
+<div style="flex: 1 1 auto"></div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Skip for now</button>
+<button style="height: 40px; padding: 0 22px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px">Next<span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE5C8;</span></button>
+</div>
+</section>
+</main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const steps = [['Detect Docker','done'],['Choose engine context','now'],['Pick a project folder','todo'],['Personalize','todo']].map(([label,st], i) => ({
+ label, current: st === 'now' ? 'step' : 'false',
+ bar: st === 'todo' ? '#33353A' : '#ADC6FF',
+ dot: st === 'done' ? '#005227' : st === 'now' ? '#ADC6FF' : '#33353A',
+ dotInk: st === 'done' ? '#9CF6B4' : st === 'now' ? '#002E69' : '#C4C6D0',
+ mark: st === 'done' ? '' : String(i + 1), font: st === 'done' ? 'MSO' : 'inherit', fs: st === 'done' ? '18px' : '13px',
+ ink: st === 'todo' ? '#C4C6D0' : '#E2E2E9', weight: st === 'now' ? 600 : 400 }));
+const contexts = [
+ ['desktop-linux','npipe:////./pipe/dockerDesktopLinuxEngine','Docker Desktop with the WSL 2 Linux engine. Recommended for Linux images.','Reachable · current',true,true],
+ ['default','npipe:////./pipe/docker_engine','The Windows engine pipe. Used for Windows containers.','Not responding',false,false]
+].map(([name,endpoint,desc,status,sel,ok]) => ({ name, endpoint, desc, status,
+ checked: sel ? 'true' : 'false', border: sel ? '2px solid #ADC6FF' : '1px solid #44474F', bg: sel ? '#282A2F' : '#1D2024',
+ radioDot: sel ? '#ADC6FF' : 'transparent', radioInk: sel ? '#ADC6FF' : '#8E9099',
+ chipBg: ok ? '#005227' : '#282A2F', chipInk: ok ? '#9CF6B4' : '#C4C6D0' }));
+return { steps, contexts };
+}
+}
+</script>
+</body>
+</html>
