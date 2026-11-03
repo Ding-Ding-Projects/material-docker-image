@@ -427,4 +427,125 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     var repaired=AppearanceState.FromSettings(corrupt);
     Check(repaired.RadiusScale==1&&repaired.MotionLevel=="Standard"&&repaired.Roles.Count==0,"corrupt saved appearance is repaired, not applied");
 }
+
+// ---------------------------------------------------------------- Suggestions (Dockerfile and Compose)
+{
+    SuggestionResult At(string marked, SuggestionSources? src = null) { var c = marked.IndexOf('|'); return DockerfileCompletion.Complete(marked.Remove(c, 1), c, src); }
+    SuggestionResult ComposeAt(string marked, SuggestionSources? src = null) { var c = marked.IndexOf('|'); return ComposeCompletion.Complete(marked.Remove(c, 1), c, src); }
+    EditorValueSpan? KindAt(string marked) { var c = marked.IndexOf('|'); return DockerfileValueKinds.Detect(marked.Remove(c, 1), c); }
+    EditorValueSpan? ComposeKindAt(string marked) { var c = marked.IndexOf('|'); return ComposeValueKinds.Detect(marked.Remove(c, 1), c); }
+    bool Has(SuggestionResult r, string label) => r.Items.Any(i => i.Label == label);
+    IEnumerable<string> Labels(SuggestionResult r) => r.Items.Where(i => i.Kind != SuggestionKind.Picker).Select(i => i.Label);
+    var images = new SuggestionSources(new[] { new SuggestionLocalImage("myapp", "1.2", "sha256:" + new string('a', 64), "sha256:" + new string('b', 64), "120MB"), new SuggestionLocalImage("myapp", "dev", "<none>", "sha256:c", "1MB") }, new[] { "src/", "src/main.go", "go.mod", "README.md" });
+
+    var start = At("|");
+    Check(DockerfileCompletionData.Instructions.Length == 18 && DockerfileCompletionData.Instructions.All(i => Has(start, i.Name)), "start of line offers all 18 instructions");
+    Check(Has(start, "# syntax=") && Has(start, "RUN heredoc"), "start of file offers parser directives and snippets");
+    Check(!Has(At("FROM alpine\n|"), "# syntax="), "directives are not offered after the first instruction");
+    var fuzzy = SuggestionFuzzy.Filter(At("CO|").Items, "CO");
+    Check(fuzzy[0].Item.Label == "COPY" && fuzzy[0].Positions.SequenceEqual(new[] { 0, 1 }), "fuzzy prefix ranks COPY first and reports bold positions");
+    Check(SuggestionFuzzy.TryMatch("HEALTHCHECK", "hck", out var pos, out _) && pos.Length == 3 && !SuggestionFuzzy.TryMatch("RUN", "un", out _, out _), "fuzzy matching is subsequence anchored at the first character");
+    Check(SuggestionFuzzy.Filter(At("CO|").Items, "CO").Select(m => m.Item.Label).Contains("COPY heredoc"), "snippets are filtered with instructions");
+    var flags = At("COPY --|");
+    Check(Has(flags, "--from=") && Has(flags, "--chmod=") && Has(flags, "--link") && Has(flags, "--parents") && Has(flags, "--exclude="), "COPY flags after the keyword");
+    Check(!Has(At("COPY --link --|"), "--link") && Has(At("COPY --exclude=a --|"), "--exclude="), "used flags are hidden except repeatable ones");
+    Check(Has(At("ADD --|"), "--checksum=") && Has(At("ADD --|"), "--keep-git-dir") && Has(At("HEALTHCHECK --|"), "--start-interval=") && Has(At("RUN --|"), "--network=") && Has(At("FROM --|"), "--platform="), "flags per instruction");
+    var mount = At("RUN --mount=|");
+    Check(mount.Items[0].Label == "type=" && Has(mount, "target="), "mount offers type= first then bind keys");
+    Check(Labels(At("RUN --mount=type=|")).SequenceEqual(new[] { "bind", "cache", "tmpfs", "secret", "ssh" }), "mount type values");
+    var cacheKeys = At("RUN --mount=type=cache,|");
+    Check(Has(cacheKeys, "sharing=") && Has(cacheKeys, "uid=") && !Has(cacheKeys, "type=") && !Has(cacheKeys, "env="), "cache mount keys follow the type");
+    Check(Has(At("RUN --mount=type=secret,|"), "env=") && Has(At("RUN --mount=type=secret,|"), "required="), "secret mount keys");
+    Check(Labels(At("RUN --mount=type=cache,sharing=|")).SequenceEqual(new[] { "shared", "private", "locked" }), "sharing values");
+    var stages = "FROM golang:1.23 AS build\nRUN go build\nFROM alpine AS test\nFROM scratch\nCOPY --from=|";
+    var fromItems = At(stages, images);
+    Check(Has(fromItems, "build") && Has(fromItems, "test") && Has(fromItems, "myapp:1.2"), "--from offers earlier stages and local images");
+    Check(Has(At("FROM golang AS build\nFROM |"), "build") && Has(At("FROM |"), "alpine") && At("FROM |").Items.First(i => i.Label == "alpine").Detail == "Popular official images", "FROM offers stages and the labelled curated image list");
+    var tags = At("FROM myapp:|", images);
+    Check(Labels(tags).SequenceEqual(new[] { "1.2", "dev" }) && tags.Start == "FROM myapp:".Length, "tags after the colon come from local images");
+    Check(Has(At("FROM alpine |"), "AS"), "AS is offered after the image");
+    var scoped = "ARG VERSION=1\nARG BASE=alpine\nFROM ${|";
+    Check(Has(At(scoped), "VERSION") && Has(At(scoped), "TARGETPLATFORM") && At(scoped).Items.First(i => i.Label == "VERSION").Insert == "VERSION}", "global ARGs and platform ARGs in FROM, closing brace added");
+    var stageScope = "ARG GLOBAL=1\nFROM alpine AS one\nARG ONE\nENV HOME_DIR=/app\nRUN echo $|\nFROM alpine AS two\nARG TWO\nRUN echo $X";
+    var vars = At(stageScope);
+    Check(vars.Items.First(i => i.Label == "ONE").Detail == "ARG in this stage" && Has(vars, "HOME_DIR") && !Has(vars, "TWO") && vars.Items.First(i => i.Label == "GLOBAL").Detail.StartsWith("Declare ARG"), "stage scoping of ARG and ENV with global ARG redeclare hint");
+    var inherit = "FROM alpine AS base\nENV BASE_ENV=1\nFROM base\nRUN echo ${|}";
+    Check(Has(At(inherit), "BASE_ENV") && At(inherit).Items.First(i => i.Label == "BASE_ENV").Insert == "BASE_ENV", "ENV inherited from a parent stage; existing brace not duplicated");
+    Check(At("FROM alpine\nRUN echo \\$|").Items.Count == 0 || !Has(At("FROM alpine\nRUN echo \\$|"), "HTTP_PROXY"), "escaped dollar does not complete variables");
+    var paths = At("FROM alpine\nCOPY src/|", images);
+    Check(Labels(paths).SequenceEqual(new[] { "main.go" }) && paths.Items.First(i => i.Kind != SuggestionKind.Picker).Insert == "src/main.go", "COPY sources come from the context listing, one folder level at a time");
+    Check(Has(At("FROM alpine\nCOPY |", images), "src/") && Has(At("FROM alpine\nCOPY |", images), "--from="), "COPY offers folders and flags right after the keyword");
+    Check(!At("FROM alpine\nCOPY --from=build |", images).Items.Any(i => i.Kind is SuggestionKind.Path or SuggestionKind.Picker), "no context paths when copying from a stage");
+    Check(Has(At("EXPOSE |"), "8080") && Labels(At("EXPOSE 53/|")).SequenceEqual(new[] { "tcp", "udp" }), "EXPOSE ports and protocols");
+    Check(Has(At("STOPSIGNAL |"), "SIGTERM") && Has(At("SHELL |"), "[\"/bin/bash\", \"-o\", \"pipefail\", \"-c\"]"), "STOPSIGNAL and SHELL values");
+    Check(Has(At("FROM alpine\nRUN adduser -D appuser\nUSER |"), "appuser") && Has(At("USER |"), "root"), "USER offers users created in the stage");
+    Check(At("COPY --from=x |").Signature.StartsWith("COPY [--from=") && DockerfileCompletion.SignatureAt("HEALTHCHECK --interval=5s ", 26).StartsWith("HEALTHCHECK"), "signature help shows the instruction form");
+    Check(DockerfileCompletion.Hover("FROM alpine\nCOPY --chmod=755 a b", 19)?.Label == "--chmod" && DockerfileCompletion.Hover("FROM alpine", 1)?.Label == "FROM", "hover documents keywords and flags");
+    Check(DockerfileCompletion.Hover("RUN --mount=type=cache,sharing=locked x", 25)?.Label == "sharing", "hover documents mount options");
+    Check(At("# syntax=|").Items.Any(i => i.Label == "docker/dockerfile:1") && Has(At("# |"), "escape="), "directive names and values");
+
+    var noHeader = At("FROM alpine\nCOPY --|");
+    Check(noHeader.Items.First(i => i.Label == "--link").NeedsSyntaxUpgrade && noHeader.Items.First(i => i.Label == "--link").Badge == "1.4+" && !noHeader.Items.First(i => i.Label == "--from=").NeedsSyntaxUpgrade, "versioned flags carry a badge without a syntax header");
+    var old = At("# syntax=docker/dockerfile:1.4\nFROM alpine\nCOPY --|");
+    Check(!old.Items.First(i => i.Label == "--link").NeedsSyntaxUpgrade && old.Items.First(i => i.Label == "--parents").NeedsSyntaxUpgrade, "badge only when the declared syntax is older");
+    Check(!At("# syntax=docker/dockerfile:1.7-labs\nFROM alpine\nCOPY --|").Items.First(i => i.Label == "--parents").NeedsSyntaxUpgrade && !At("# syntax=docker/dockerfile:1\nCOPY --|").Items.Any(i => i.NeedsSyntaxUpgrade), "labs and floating 1 satisfy newer flags");
+    var insertEdit = DockerfileCompletion.SyntaxUpgradeEdit("FROM alpine\n")!.Value;
+    Check(insertEdit.Start == 0 && insertEdit.Length == 0 && insertEdit.Insert == "# syntax=docker/dockerfile:1\n", "syntax header is inserted when missing");
+    var upgradeText = "# syntax=docker/dockerfile:1.4\r\nFROM alpine\r\n";
+    var up = DockerfileCompletion.SyntaxUpgradeEdit(upgradeText)!.Value;
+    Check(upgradeText.Remove(up.Start, up.Length).Insert(up.Start, up.Insert) == "# syntax=docker/dockerfile:1\r\nFROM alpine\r\n" && DockerfileCompletion.SyntaxUpgradeEdit("# syntax=docker/dockerfile:1\nFROM a") == null, "old syntax header is upgraded in place, current one left alone");
+    var snippet = At("|").Items.First(i => i.Label == "RUN heredoc");
+    var applied = SuggestionText.Apply("  ", new SuggestionResult(2, 0, "", new[] { snippet }), snippet);
+    Check(applied.Insert.Contains("\n  set -eux") && !applied.Insert.Contains(SuggestionText.CaretMark) && applied.CaretAfter > 2, "snippets re-indent and place the caret");
+
+    Check(KindAt("FROM alpine\nCOPY --chmod=7|55 a b")?.Kind == EditorValueKind.Chmod && KindAt("COPY --chmod=755 a b".Insert(13, "|"))!.SymbolicAllowed, "chmod value kind");
+    Check(KindAt("FROM alpine\nCOPY sr|c/ /app/")?.Kind == EditorValueKind.Path && KindAt("FROM alpine\nCOPY src/ /ap|p/") == null, "COPY source is a path, destination is not");
+    Check(KindAt("RUN --mount=type=bind,source=./x|,target=/x make")?.Kind == EditorValueKind.Path && KindAt("RUN --mount=type=cache,sharing=lo|cked x")?.Kind == EditorValueKind.Choice, "mount source path and sharing choice");
+    Check(KindAt("RUN --mount=type=cache,mode=07|55,target=/c x")?.Kind == EditorValueKind.Chmod && KindAt("RUN --mount=type=cache,uid=10|00,target=/c x")?.Kind == EditorValueKind.User, "mount mode and uid kinds");
+    Check(KindAt("EXPOSE 80|80")?.Kind == EditorValueKind.Port && KindAt("HEALTHCHECK --interval=3|0s CMD true")?.Kind == EditorValueKind.Duration, "port and duration kinds");
+    Check(KindAt("USER ap|p")?.Kind == EditorValueKind.User && KindAt("FROM --platform=linux/am|d64 alpine")?.Kind == EditorValueKind.Platform && KindAt("FROM alp|ine")?.Kind == EditorValueKind.Image, "user, platform and image kinds");
+    Check(KindAt("STOPSIGNAL SIG|TERM")?.Options.Contains("SIGQUIT") == true && KindAt("LABEL brand.colour=\"#1A2b3|C\"")?.Kind == EditorValueKind.Colour && KindAt("# accent rgb(10, 20, 3|0)")?.Kind == EditorValueKind.Colour, "signal choice and colour kinds");
+    var secret = KindAt("FROM alpine\nARG NPM_TO|KEN=abc123\nRUN npm ci");
+    Check(secret?.Kind == EditorValueKind.Secret && secret.SecretName == "NPM_TOKEN" && KindAt("ARG NODE_VER|SION=22") == null, "secret-looking ARG names are detected");
+    var secretText = "FROM alpine\nENV API_KEY=hunter2 PORT=80\nRUN npm ci";
+    var rewrite = EditorValueFormats.SecretRewrite(secretText, DockerfileValueKinds.Detect(secretText, 18)!);
+    var rewritten = secretText.Remove(rewrite.Start, rewrite.Length).Insert(rewrite.Start, rewrite.Insert);
+    Check(!rewritten.Contains("hunter2") && rewritten.Contains("ENV PORT=80") && rewritten.Contains("RUN --mount=type=secret,id=api-key,env=API_KEY"), "secret rewrite drops the value and keeps other variables");
+    Check(At("FROM alpine\nCOPY s|").Items[0].Kind == SuggestionKind.Picker && SuggestionFuzzy.Filter(At("FROM alpine\nCOPY s|").Items, "s")[0].Item.Label == "Browse file…", "picker items stay on top of filtered results");
+
+    var bits = EditorValueFormats.ParsePermissions("750")!;
+    Check(EditorValueFormats.ToOctal(bits, false) == "750" && EditorValueFormats.ToSymbolic(bits) == "u=rwx,g=rx,o=" && EditorValueFormats.ToOctal(EditorValueFormats.ParsePermissions("u=rw,go=r")!, true) == "0644", "permission grid converts between octal and symbolic");
+    Check(EditorValueFormats.ParseDuration("1m30s") == TimeSpan.FromSeconds(90) && EditorValueFormats.FormatDuration(TimeSpan.FromSeconds(90)) == "1m30s" && EditorValueFormats.ParseDuration("abc") == null, "durations parse and format like Go");
+    var port = EditorValueFormats.ParsePort("127.0.0.1:8080:80/udp")!;
+    Check(port.Ip == "127.0.0.1" && port.Host == "8080" && port.Container == "80" && port.Protocol == "udp" && port.ToCompose() == "127.0.0.1:8080:80/udp" && EditorValueFormats.ParsePort("99999") == null, "Compose port specs round trip and are validated");
+    Check(EditorValueFormats.PublishedHostPorts("0.0.0.0:8080->80/tcp, [::]:8080->80/tcp, 0.0.0.0:9000-9001->9000-9001/udp").Distinct().Count() == 3, "published host ports are read from docker ps");
+    Check(EditorValueFormats.TryParseColour("#abc", out var cr, out var cg, out var cb) && cr == 0xAA && EditorValueFormats.FormatColour("#a1b2c3", 1, 2, 255) == "#0102ff" && EditorValueFormats.FormatColour("rgb(1,2,3)", 4, 5, 6) == "rgb(4, 5, 6)", "colours parse and keep their notation");
+    var ctxRoot = Path.Combine(Path.GetTempPath(), "mdi-ctx-" + Guid.NewGuid().ToString("N"));
+    try
+    {
+        Directory.CreateDirectory(Path.Combine(ctxRoot, "src")); Directory.CreateDirectory(Path.Combine(ctxRoot, "node_modules", "x"));
+        File.WriteAllText(Path.Combine(ctxRoot, "src", "app.js"), ""); File.WriteAllText(Path.Combine(ctxRoot, ".env"), "SECRET=1"); File.WriteAllText(Path.Combine(ctxRoot, "id_rsa"), "");
+        File.WriteAllText(Path.Combine(ctxRoot, "notes.log"), ""); File.WriteAllText(Path.Combine(ctxRoot, ".dockerignore"), "*.log\n");
+        var listed = DockerfileCompletionPaths.List(ctxRoot);
+        Check(listed.Contains("src/") && listed.Contains("src/app.js") && listed.Contains("node_modules/") && !listed.Any(l => l.StartsWith("node_modules/x")) && !listed.Contains(".env") && !listed.Contains("id_rsa") && !listed.Contains("notes.log"), "context listing skips secrets, ignored files and heavy folders");
+        Check(EditorValueFormats.TryRelativePath(ctxRoot, Path.Combine(ctxRoot, "src", "app.js"), false, out var rel, out _) && rel == "src/app.js" && !EditorValueFormats.TryRelativePath(ctxRoot, Path.GetTempPath(), false, out _, out var outsideError) && outsideError.Contains("outside the build context"), "browse paths are context relative and outside paths are refused");
+    }
+    finally { Directory.Delete(ctxRoot, true); }
+
+    var compose = "services:\n  web:\n    image: nginx\n    depends_on:\n      - |\n  db:\n    image: postgres\nvolumes:\n  data:\nnetworks:\n  front:\n";
+    Check(Labels(ComposeAt(compose)).SequenceEqual(new[] { "db" }), "depends_on list offers other services");
+    Check(Has(ComposeAt("|"), "services") && Has(ComposeAt("services:\n  web:\n    |"), "healthcheck") && Has(ComposeAt("services:\n  web:\n    |"), "develop"), "top-level and service keys by indentation");
+    Check(Has(ComposeAt("services:\n  web:\n    build:\n      |"), "dockerfile") && Has(ComposeAt("services:\n  web:\n    healthcheck:\n      |"), "start_period"), "build and healthcheck keys");
+    Check(Labels(ComposeAt("services:\n  web:\n    depends_on:\n      db:\n        condition: |")).SequenceEqual(new[] { "service_started", "service_healthy", "service_completed_successfully" }), "depends_on condition values");
+    Check(Has(ComposeAt("services:\n  web:\n    develop:\n      watch:\n        - action: sync\n          |"), "target") && Has(ComposeAt("services:\n  web:\n    develop:\n      watch:\n        - action: |"), "sync+restart"), "develop.watch rule keys and actions");
+    Check(Has(ComposeAt("services:\n  web:\n    volumes:\n      - |\nvolumes:\n  data:\n"), "data:") && Has(ComposeAt("services:\n  web:\n    networks:\n      - |\nnetworks:\n  front:\n"), "front"), "named volumes and networks for services");
+    Check(Has(ComposeAt("services:\n  web:\n    restart: |"), "unless-stopped") && Has(ComposeAt("services:\n  web:\n    deploy:\n      resources:\n        limits:\n          |"), "memory"), "restart values and nested deploy keys");
+    Check(Has(ComposeAt("services:\n  web:\n    depends_on:\n    - |\n  api:\n    image: x\n"), "api"), "compact list indentation is understood");
+    Check(Has(ComposeAt("services:\n  web:\n    image: my|", images), "myapp:1.2"), "Compose image offers local images");
+    Check(ComposeKindAt("services:\n  web:\n    ports:\n      - \"80|80:80\"")?.Kind == EditorValueKind.Port && ComposeKindAt("services:\n  web:\n    ports:\n      - \"8080:80\"".Insert(37, "|"))!.Text == "8080:80", "Compose port kind with the unquoted span");
+    Check(ComposeKindAt("services:\n  web:\n    build:\n      context: .|/app")?.FolderOnly == true && ComposeKindAt("services:\n  web:\n    env_file: .e|nv")?.Kind == EditorValueKind.Path, "Compose path kinds");
+    Check(ComposeKindAt("services:\n  web:\n    healthcheck:\n      interval: 3|0s")?.Kind == EditorValueKind.Duration && ComposeKindAt("services:\n  web:\n    tty: tr|ue")?.Kind == EditorValueKind.Choice && ComposeKindAt("services:\n  web:\n    labels:\n      color: \"#ff00|00\"")?.Kind == EditorValueKind.Colour, "Compose duration, boolean and colour kinds");
+    Check(ComposeKindAt("services:\n  web:\n    volumes:\n      - ./da|ta:/data")?.Text == "./data" && ComposeKindAt("services:\n  web:\n    volumes:\n      - data:/da|ta") == null, "Compose bind host path kind only on the host side");
+    Check(DockerfileSyntaxVersion.Parse("docker/dockerfile:1.4")!.Satisfies("1.4") && !DockerfileSyntaxVersion.Parse("docker/dockerfile:1.3")!.Satisfies("1.4") && DockerfileSyntaxVersion.Parse("example.com/custom:1")!.Satisfies("1.20"), "syntax version comparison");
+}
 Console.WriteLine($"UI state checks: {count} passed.");
