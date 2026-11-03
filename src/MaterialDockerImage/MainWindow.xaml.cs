@@ -93,6 +93,15 @@ public partial class MainWindow : Window
         dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
     }
 
+    /// <summary>Capture mode only: renders with the requested theme through the appearance runtime, without saving settings,
+    /// so later appearance refreshes keep the same theme instead of reverting to the saved one.</summary>
+    public void UseCaptureTheme(string theme)
+    {
+        if (!CaptureMode) return;
+        settings.Theme = theme;
+        ApplyAppearance();
+    }
+
     private void ApplyAppearance()
     {
         // Colours, shape, density, fonts, rail icons and the rainbow accent all come from the appearance settings.

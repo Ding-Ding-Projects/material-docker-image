@@ -62,8 +62,11 @@ public sealed partial class CreatorPage
             catch (System.Runtime.InteropServices.ExternalException) { Host.Notify.Warning("The clipboard is busy. Try again."); }
         });
         var buildCommand = Ui.IconButton(Icons.Terminal, "Copy as build command", CopyBuildCommand);
-        syntaxSwitch = Ui.Switch("Syntax header", true, v => { if (syncingSyntax) return; FlushCommit(); doc.SyntaxHeader = v; Changed(); }, "Adds # syntax=docker/dockerfile:1 so BuildKit uses the current Dockerfile frontend.");
-        colourSwitch = Ui.Switch("Coloured view", false, on => ShowMirror(on), "Read-only view with syntax colouring. Switch off to edit the text.");
+        // Compact switches (explanations in tooltips) so the editable source keeps most of the column height.
+        syntaxSwitch = Ui.Switch("Syntax header", true, v => { if (syncingSyntax) return; FlushCommit(); doc.SyntaxHeader = v; Changed(); });
+        syntaxSwitch.ToolTip = Loc.T("Adds # syntax=docker/dockerfile:1 so BuildKit uses the current Dockerfile frontend.");
+        colourSwitch = Ui.Switch("Coloured view", false, on => ShowMirror(on));
+        colourSwitch.ToolTip = Loc.T("Read-only view with syntax colouring. Switch off to edit the text.");
         previewFind.Search.Changed += () => { if (colourSwitch.IsChecked == true && previewFind.Search.Query.Length > 0) colourSwitch.IsChecked = false; };
 
         var editorHost = new Grid();
@@ -71,7 +74,8 @@ public sealed partial class CreatorPage
         editorHost.Children.Add(mirror);
         mirror.Visibility = Visibility.Collapsed;
         var dockerfilePanel = new DockPanel();
-        var hint = Ui.Caption("Type here or edit the cards: both stay in sync. Lines the Creator cannot model become Raw cards.");
+        var hint = Ui.Caption("Type here or edit the cards: both stay in sync.");
+        hint.ToolTip = Loc.T("Lines the Creator cannot model become Raw cards with Edit as text.");
         dockerfilePanel.Children.Add(hint.Dock(System.Windows.Controls.Dock.Top));
         previewFind.Margin = new Thickness(0, 8, 0, 8);
         dockerfilePanel.Children.Add(previewFind.Dock(System.Windows.Controls.Dock.Top));
@@ -97,7 +101,7 @@ public sealed partial class CreatorPage
         checksPanel.Children.Add(Ui.Scroll(checks));
         var checksCard = Ui.Card(checksPanel, 16, "SurfaceLow", 16);
 
-        return Ui.Rows(16, [3, 2], previewCard, checksCard);
+        return Ui.Rows(16, [5, 2], previewCard, checksCard);
     }
 
     private void ShowMirror(bool on)

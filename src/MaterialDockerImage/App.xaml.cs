@@ -41,7 +41,7 @@ public partial class App : Application
         if (capture)
         {
             var themeIndex = Array.IndexOf(e.Args, "--capture-theme");
-            if (themeIndex >= 0 && themeIndex + 1 < e.Args.Length) Services.Theme.Apply(Resources, e.Args[themeIndex + 1], "#3A6FD8", false);
+            if (themeIndex >= 0 && themeIndex + 1 < e.Args.Length) window.UseCaptureTheme(e.Args[themeIndex + 1]);
             var suffix = themeIndex >= 0 && themeIndex + 1 < e.Args.Length ? "-" + e.Args[themeIndex + 1].ToLowerInvariant() : "";
             double captureWidth = 1440, captureHeight = 960;
             var widthIndex = Array.IndexOf(e.Args, "--capture-size");
