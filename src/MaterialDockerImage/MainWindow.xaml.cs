@@ -62,6 +62,8 @@ public partial class MainWindow : Window
         BuildTitleBar();
         BuildRail();
         RegisterCommands();
+        AppearanceCommands.Register(host.Commands, OpenAppearanceEditor, () => OpenAppearancePanel(Keyboard.FocusedElement as DependencyObject));
+        SetUpAppearanceMenus();
         host.Commands.Bind(this);
         RestoreTabs();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
@@ -73,6 +75,7 @@ public partial class MainWindow : Window
         Loaded += async (_, _) =>
         {
             Adapt();
+            AppearanceRuntime.Refresh(); // motion-dependent appearance (rainbow accent) needs the host, which exists now
             await RefreshContexts();
             if (!CaptureMode) MaybeDimSum();
         };
@@ -92,9 +95,9 @@ public partial class MainWindow : Window
 
     private void ApplyAppearance()
     {
-        Services.Theme.Apply(Application.Current.Resources, settings.Theme, settings.SeedColor, settings.HighContrast);
+        // Colours, shape, density, fonts, rail icons and the rainbow accent all come from the appearance settings.
+        AppearanceRuntime.Apply(Application.Current.Resources, settings);
         FontSize = settings.FontSize;
-        Application.Current.Resources["TargetHeight"] = settings.LargerTargets ? 48.0 : 40.0;
         Title = settings.DisplayName;
         DisplayNameText.Text = settings.DisplayName;
         AppIcon.Text = Icons.DeployedCode;
@@ -150,6 +153,11 @@ public partial class MainWindow : Window
         host.SettingsChanged += () => access.Visibility = settings.AccessibilityMenuVisible ? Visibility.Visible : Visibility.Collapsed;
         foreach (var e in new FrameworkElement[] { bell, access }) WindowChrome.SetIsHitTestVisibleInChrome(e, true);
         clockText.Margin = new Thickness(0, 0, 12, 0);
+        // Right-clicking the app name opens the appearance panel for the title bar (the rest of the caption keeps the system menu).
+        Identity.Background = Brushes.Transparent;
+        WindowChrome.SetIsHitTestVisibleInChrome(Identity, true);
+        Identity.ContextMenu = new ContextMenu();
+        Identity.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(TitleBar, new[] { "Surface", "SurfaceHigh", "OnSurface", "Primary", "OnSurfaceVariant" }, "Title bar")));
         TitleActions.Children.Add(clockText);
         TitleActions.Children.Add(contextChip);
         TitleActions.Children.Add(bellGrid.Margin(8, 0, 0, 0));
@@ -198,12 +206,53 @@ public partial class MainWindow : Window
             item.Checked += (_, _) => { if (!navigating) Navigate(destination.Key); };
             item.ContextMenu = new ContextMenu();
             item.ContextMenu.Items.Add(Ui.MenuItem("Open in new tab", Icons.Tab, () => OpenTab(destination.Key, false)));
+            item.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(item, new[] { "SecondaryContainer", "OnSecondaryContainer", "OnSurfaceVariant", "Surface", "HoverLayer" }, "Navigation item"), "Ctrl+Shift+E"));
             railItems[destination.Key] = item;
             (destination.Key == "Settings" ? RailBottom : Rail).Children.Add(item);
         }
     }
 
+    // ----- Appearance -----
+    private DependencyObject? contextTarget;
+
+    /// <summary>Every page area gets "Edit appearance…" for the element under the pointer (elements with their own menu keep it).</summary>
+    private void SetUpAppearanceMenus()
+    {
+        PageHost.ContextMenuOpening += (_, e) => contextTarget = e.OriginalSource as DependencyObject;
+        PageHost.ContextMenu = new ContextMenu();
+        PageHost.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(contextTarget), "Ctrl+Shift+E"));
+    }
+
+    private void OpenAppearanceEditor()
+    {
+        Navigate("Settings");
+        Dispatcher.BeginInvoke(() => Page("Settings").FindTarget("theme"), DispatcherPriority.Loaded);
+    }
+
+    private void OpenAppearancePanel(DependencyObject? element) => AppearancePanel.Show(AppearanceTargeting.For(element, PageHost), OpenAppearanceEditor);
+
+    private void OpenAppearancePanel(FrameworkElement element, string[] roles, string title) => AppearancePanel.Show(new AppearanceTargeting.Target(element, title, roles), OpenAppearanceEditor);
+
+    // ----- Navigation -----
     private bool navigating;
+    private string? shownKey;
+    private int shownTab = -1;
+
+    /// <summary>
+    /// Material transition for the page host: shared axis X between tabs and between rail destinations (direction from
+    /// their order), fade through otherwise. Snaps instantly when motion is off.
+    /// </summary>
+    private void TransitionPage(string key)
+    {
+        if (shownKey == null || (shownKey == key && shownTab == currentTab)) { shownKey = key; shownTab = currentTab; return; }
+        var rail = Destinations.All.Where(d => d.OnRail).Select(d => d.Key).ToList();
+        int from = rail.IndexOf(shownKey), to = rail.IndexOf(key);
+        if (shownTab != currentTab && shownTab >= 0) Motion.SharedAxis(PageHost, MotionAxis.X, currentTab > shownTab);
+        else if (from >= 0 && to >= 0) Motion.SharedAxis(PageHost, MotionAxis.X, to > from);
+        else Motion.FadeThrough(PageHost);
+        shownKey = key; shownTab = currentTab;
+    }
+
     public void Navigate(string key)
     {
         if (Destinations.Find(key) is null) return;
@@ -231,6 +280,7 @@ public partial class MainWindow : Window
         var page = Page(key);
         if (page.Parent is ContentControl old && old != PageHost) old.Content = null;
         PageHost.Content = page;
+        TransitionPage(key);
         navigating = true;
         foreach (var pair in railItems) pair.Value.IsChecked = pair.Key == key;
         navigating = false;

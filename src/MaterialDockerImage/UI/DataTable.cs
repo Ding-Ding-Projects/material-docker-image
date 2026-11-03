@@ -51,6 +51,7 @@ public sealed class DataTable<T> : Grid
     private readonly List<(string Label, string? Icon, string? Gesture, Func<T, Task> Action, bool Danger)> rowActions = new();
     private readonly ObservableCollection<TableRow<T>> rows = new();
     private List<T> all = new();
+    private bool staggered;
     private readonly GridView view = new();
     public ListView List { get; } = new();
     public SearchFilter Search { get; }
@@ -217,6 +218,8 @@ public sealed class DataTable<T> : Grid
         var keep = Key == null ? new HashSet<string>() : Selected.Select(Key).ToHashSet();
         all = items.ToList();
         Apply();
+        // First real rows enter with a short stagger (skipped when motion is off or reduced).
+        if (!staggered && rows.Count > 0) { staggered = true; Motion.StaggerItems(List); }
         if (Key != null && keep.Count > 0) foreach (var row in rows.Where(r => keep.Contains(Key(r.Item)))) List.SelectedItems.Add(row);
         // Documentation captures show the inspector with the first real record instead of an empty selection.
         if (AppHost.Current?.IsCapture == true && List.SelectedIndex < 0 && rows.Count > 0) List.SelectedIndex = rows.Count - 1;

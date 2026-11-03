@@ -362,4 +362,69 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     Check(MaterialDockerImage.UI.RunMounts.AddPreset(mounts,"apt")==2&&mounts.All(m=>m.Sharing=="locked")&&MaterialDockerImage.UI.RunMounts.AddPreset(mounts,"apt")==0,"apt cache preset adds locked caches once");
     Check(MaterialDockerImage.UI.RunMounts.CachePresets.All(p=>p.Mounts.All(m=>MaterialDockerImage.UI.RunMounts.Validate(m).Count==0)),"every cache preset is valid");
 }
+// Appearance: colour conversions, contrast, presets and undo.
+{
+    var tolerance=1.0/255+1e-9;
+    var samples=new[]{"#3A6FD8","#000000","#FFFFFF","#FF0000","#00FF00","#0000FF","#7F7F7F","#C42B1C","#12345680","#FFD60A","#0B7A99","#E2582C"};
+    foreach(var hex in samples)
+    {
+        Check(AppearanceRgba.TryParseHex(hex,out var c),"hex parses "+hex);
+        Check(AppearanceRgba.TryParseHex(c.ToHex8(),out var c8)&&AppearanceRgba.Distance(c,c8)<=tolerance,"hex8 round trip "+hex);
+        var (h,s,l)=c.ToHsl(); Check(AppearanceRgba.Distance(c,AppearanceRgba.FromHsl(h,s,l,c.A))<=tolerance,"hsl round trip "+hex);
+        var (hv,sv,vv)=c.ToHsv(); Check(AppearanceRgba.Distance(c,AppearanceRgba.FromHsv(hv,sv,vv,c.A))<=tolerance,"hsv round trip "+hex);
+        var (hw,ww,bw)=c.ToHwb(); Check(AppearanceRgba.Distance(c,AppearanceRgba.FromHwb(hw,ww,bw,c.A))<=tolerance,"hwb round trip "+hex);
+        var (ol,oc,oh)=c.ToOklch(); var back=AppearanceRgba.FromOklch(ol,oc,oh,out var fits,c.A); Check(fits&&AppearanceRgba.Distance(c,back)<=tolerance,"oklch round trip "+hex);
+        var (cc,cm,cy,ck)=c.ToCmyk(); Check(AppearanceRgba.Distance(c.WithAlpha(1),AppearanceRgba.FromCmyk(cc,cm,cy,ck))<=tolerance,"cmyk round trip "+hex);
+        foreach(var format in Enum.GetValues<AppearanceColorFormat>())
+        {
+            var text=c.Format(format);
+            var expectAlpha=format is not (AppearanceColorFormat.Hex or AppearanceColorFormat.Cmyk);
+            Check(AppearanceRgba.TryParse(text,out var parsed,out _)&&AppearanceRgba.Distance(expectAlpha?c:c.WithAlpha(1),parsed)<=tolerance,$"{format} text round trip {hex} via {text}");
+        }
+    }
+    Check(AppearanceRgba.TryParseStorageHex("#80123456",out var storage)&&storage.A8==0x80&&storage.R8==0x12&&storage.ToStorageHex()=="#80123456","settings hex keeps Windows alpha-first order");
+    Check(Math.Abs(AppearanceRgba.ContrastRatio(new(0,0,0),new(1,1,1))-21)<1e-9,"black on white contrast is 21");
+    Check(Math.Abs(AppearanceRgba.ContrastRatio(new(.2,.4,.6),new(.2,.4,.6))-1)<1e-12,"same colour contrast is 1");
+    AppearanceRgba.TryParseHex("#767676",out var grey);
+    Check(Math.Abs(AppearanceRgba.ContrastRatio(grey,new(1,1,1))-4.54)<0.01,"#767676 on white is 4.54");
+    Check(AppearanceRgba.TryParse("oklch(70% 0.4 150)",out var clipped,out var gamutWarning)&&gamutWarning!=null&&clipped.InGamut(),"out-of-gamut OKLCH is mapped and warned");
+    Check(!AppearanceRgba.TryParse("rgb(300, 0, 0)",out _,out _)&&!AppearanceRgba.TryParse("#12",out _,out _)&&!AppearanceRgba.TryParse("hsl(nan, 1, 1)",out _,out _),"invalid colour text rejected");
+    Check(AppearanceRoles.ContrastPartner("OnPrimary")=="Primary"&&AppearanceRoles.ContrastPartner("SurfaceLow")=="OnSurface"&&AppearanceRoles.ContrastPartner("PrimaryContainer")=="OnPrimaryContainer","contrast partners");
+
+    Check(AppearanceMotion.Effective("Expressive",true,false,true,false)=="Reduced"&&AppearanceMotion.Effective("Standard",false,false,false,false)=="Off"&&AppearanceMotion.Effective("Expressive",false,false,true,true)=="Off"&&AppearanceMotion.Effective("Standard",false,true,true,false)=="Reduced","reduced motion, low stimulation, Windows setting and capture all stop motion");
+    Check(AppearanceMotion.Duration(AppearanceMotion.Medium2,"Reduced",1)==0&&AppearanceMotion.Duration(AppearanceMotion.Medium2,"Standard",2)==150&&AppearanceMotion.Duration(AppearanceMotion.Medium2,"Standard",0.5)==600,"durations snap when reduced and follow the speed multiplier");
+    Check(AppearanceMotion.RainbowHue(210,7,false)==210&&AppearanceMotion.RainbowHue(210,6,true)!=210,"rainbow settles on the saved hue without motion");
+
+    foreach(var preset in AppearancePresets.BuiltIn)
+    {
+        Check(preset.State.Validate().Count==0,"built-in preset valid: "+preset.Name);
+        var again=AppearancePresets.Import(AppearancePresets.Export(preset));
+        Check(again.Name==preset.Name&&again.State.SameAs(preset.State),"preset JSON round trip: "+preset.Name);
+    }
+    var good=AppearancePresets.Export(AppearancePresets.BuiltIn[3]);
+    foreach(var bad in new[]{good.Replace("material-docker-image.appearance","other"),good.Replace("\"version\": 1","\"version\": 2"),good.Replace("\"Tertiary\"","\"NotARole\""),good.Replace("\"radiusScale\": 1.15","\"radiusScale\": 9"),good.Replace("\"name\": \"Ocean\"","\"name\": \"\""),good.Replace("#0B7A99","blue"),"{",new string(' ',70000),good.Replace("\"theme\"","\"extra\": 1, \"theme\"")})
+    { try { AppearancePresets.Import(bad); throw new Exception("Expected refusal: invalid preset"); } catch(InvalidDataException) { count++; Console.WriteLine("PASS invalid preset rejected"); } }
+    var store=Path.Combine(Path.GetTempPath(),"mdi-presets-"+Guid.NewGuid().ToString("N")+".json");
+    try
+    {
+        AppearancePresets.SaveUser(store,new[]{new AppearancePreset("Mine",AppearancePresets.BuiltIn[5].State)});
+        var loadedPresets=AppearancePresets.LoadUser(store);
+        Check(loadedPresets.Count==1&&loadedPresets[0].Name=="Mine"&&loadedPresets[0].State.SameAs(AppearancePresets.BuiltIn[5].State),"user preset file round trip");
+    }
+    finally { File.Delete(store); }
+
+    var undo=new AppearanceUndoStack(3);
+    var states=Enumerable.Range(0,5).Select(i=>{var st=new AppearanceState{RadiusScale=0.5+i*0.1};st.Normalize();return st;}).ToList();
+    for(var i=0;i<4;i++) undo.Push(states[i]);
+    Check(undo.UndoCount==3,"undo stack is bounded");
+    var current=states[4];
+    var u1=undo.Undo(current)!; Check(u1.SameAs(states[3])&&undo.CanRedo,"undo returns the previous state");
+    var r1=undo.Redo(u1)!; Check(r1.SameAs(states[4]),"redo returns the undone state");
+    undo.Undo(r1); undo.Push(states[0]); Check(!undo.CanRedo,"a new change clears redo");
+    var settingsRoundTrip=new UserSettings(); AppearancePresets.BuiltIn[2].State.WriteTo(settingsRoundTrip);
+    Check(AppearanceState.FromSettings(settingsRoundTrip).SameAs(AppearancePresets.BuiltIn[2].State),"appearance round trips through settings");
+    var corrupt=new UserSettings{CornerScale=double.NaN,MotionLevel="Wild",RoleOverrides=new(){["Bogus"]="#FFF",["Primary"]="nope"}};
+    var repaired=AppearanceState.FromSettings(corrupt);
+    Check(repaired.RadiusScale==1&&repaired.MotionLevel=="Standard"&&repaired.Roles.Count==0,"corrupt saved appearance is repaired, not applied");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

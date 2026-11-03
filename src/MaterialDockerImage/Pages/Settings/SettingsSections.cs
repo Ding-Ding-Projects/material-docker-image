@@ -13,62 +13,8 @@ public sealed partial class SettingsPage
     private static IReadOnlyList<string>? voices;
     private UserSettings S => Host.Settings;
 
-    private void AppearanceSection()
-    {
-        rows.Add("theme", "Theme", "Chooses light or dark colours, or follows the Windows app theme.",
-            Ui.Segmented(["System", "Light", "Dark"], S.Theme, v => { S.Theme = v; Commit("Theme set to " + v); }), s => s.Theme,
-            "System reads the Windows \"app mode\" setting when the theme is applied (at start and whenever a setting changes).");
-
-        var swatch = new Border { Width = 40, Height = 40, CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1) };
-        swatch.SetResourceReference(Border.BorderBrushProperty, "Outline");
-        var seed = Ui.Input(S.SeedColor, "Seed colour", true);
-        seed.Width = 120;
-        var hue = SettingRows.Slider(0, 360, Theme.TryParse(S.SeedColor, out var c0) ? Math.Round(Theme.Hsl(c0).H) : 0, _ => { }, 240);
-        var seedError = Ui.Text("", 12, null, "Error");
-        var updating = false;
-        void Paint(Color c) => swatch.Background = new SolidColorBrush(c);
-        if (Theme.TryParse(S.SeedColor, out var initial)) Paint(initial);
-        seed.TextChanged += (_, _) =>
-        {
-            if (updating) return;
-            if (!System.Text.RegularExpressions.Regex.IsMatch(seed.Text.Trim(), "^#[0-9A-Fa-f]{6}$") || !Theme.TryParse(seed.Text, out var c)) { seedError.Text = Loc.T("Use a hex colour such as #3A6FD8."); return; }
-            seedError.Text = "";
-            Paint(c);
-            updating = true; hue.Value = Math.Round(Theme.Hsl(c).H); updating = false;
-            S.SeedColor = seed.Text.Trim().ToUpperInvariant();
-            Commit("Seed colour set to " + S.SeedColor, true);
-        };
-        hue.ValueChanged += (_, _) =>
-        {
-            if (updating) return;
-            var (_, sat, light) = Theme.TryParse(S.SeedColor, out var current) ? Theme.Hsl(current) : (0, .65, .54);
-            if (sat < .2) sat = .65;
-            var c = Theme.FromHsl(hue.Value, sat, Math.Clamp(light, .3, .7));
-            updating = true; seed.Text = Theme.Hex(c); updating = false;
-            seedError.Text = "";
-            Paint(c);
-            S.SeedColor = Theme.Hex(c);
-            Commit("Seed colour set to " + S.SeedColor, true);
-        };
-        System.Windows.Automation.AutomationProperties.SetName(hue, Loc.T("Seed hue"));
-        rows.Add("seed", "Seed colour", "Tints the primary and secondary colour roles. Type a hex colour or drag the hue slider (0-360 degrees).",
-            Ui.VStack(8, Ui.HStack(12, swatch, seed, Ui.Caption("Hue")), hue, seedError), s => s.SeedColor,
-            "Only the hue of the seed is used; lightness and saturation come from the theme so text stays readable. Error, warning and success colours never change.", true, null, "#3A6FD8");
-
-        rows.Add("density", "Density", "Saved preference for spacing. Most screens do not change spacing yet, so the visible effect is limited.",
-            Ui.Segmented(["Comfortable", "Compact"], S.Density == "Compact" ? "Compact" : "Comfortable", v => { S.Density = v; Commit("Density set to " + v); }), s => s.Density);
-
-        var sizeText = Ui.Text($"{S.FontSize:0} px", 13, null, "OnSurfaceVariant", false, false);
-        var size = SettingRows.Slider(12, 22, S.FontSize, v => { S.FontSize = v; sizeText.Text = $"{v:0} px"; Commit("Font size set to " + v.ToString("0"), true); });
-        rows.Add("fontsize", "Font size", "Sets the base text size of the window, from 12 to 22 pixels.", Ui.HStack(12, size, sizeText), s => s.FontSize, null, false, v => $"{v:0} px");
-
-        rows.Add("contrast", "High contrast", "Makes surfaces and outlines stronger so edges and secondary text are easier to see.",
-            SettingRows.Toggle(S.HighContrast, v => { S.HighContrast = v; Commit("High contrast " + (v ? "on" : "off")); }), s => s.HighContrast);
-        rows.Add("motion", "Reduced motion", "Turns off dialog slide and fade animations.",
-            SettingRows.Toggle(S.ReducedMotion, v => { S.ReducedMotion = v; Commit("Reduced motion " + (v ? "on" : "off")); }), s => s.ReducedMotion);
-        rows.Add("targets", "Larger targets", "Raises the shared target-height value from 40 to 48 pixels; controls that use it become easier to hit.",
-            SettingRows.Toggle(S.LargerTargets, v => { S.LargerTargets = v; Commit("Larger targets " + (v ? "on" : "off")); }), s => s.LargerTargets);
-    }
+    /// <summary>The Appearance section is built by the appearance editor (Pages/Settings/AppearanceEditor.cs).</summary>
+    private void AppearanceSection() => AppearanceEditorSection();
 
     private void LanguageSection()
     {
@@ -158,14 +104,14 @@ public sealed partial class SettingsPage
         var card = Ui.Card(Ui.VStack(8, Ui.Text("Keyboard shortcuts", 14, FontWeights.SemiBold), filter, list), 14, "SurfaceContainer", 12);
         card.Margin = new Thickness(0, 12, 0, 0);
         Extra(card);
-        Extra(Ui.Caption("Text size, high contrast, reduced motion and larger targets are under Appearance.").Margin(0, 10, 0, 0));
+        Extra(Ui.Caption("Text size, fonts, high contrast, motion, reduced motion and larger targets are under Appearance. Ctrl+Shift+E edits the appearance of the focused element.").Margin(0, 10, 0, 0));
     }
 
     private void FocusSection()
     {
         rows.Add("focusmode", "Focus", "Narrows the navigation rail and hides its labels, leaving more room for the page.",
             SettingRows.Toggle(S.FocusMode, v => { S.FocusMode = v; Commit("Focus " + (v ? "on" : "off")); }), s => s.FocusMode);
-        rows.Add("lowstim", "Low stimulation", "Turns off action sounds and dialog animations.",
+        rows.Add("lowstim", "Low stimulation", "Turns off action sounds and every animation (the interface snaps to each final state).",
             SettingRows.Toggle(S.LowStimulation, v => { S.LowStimulation = v; Commit("Low stimulation " + (v ? "on" : "off")); }), s => s.LowStimulation);
         rows.Add("time", "Time awareness", "Shows a clock in the title bar.",
             SettingRows.Toggle(S.TimeAwareness, v => { S.TimeAwareness = v; Commit("Time awareness " + (v ? "on" : "off")); }), s => s.TimeAwareness);

@@ -42,18 +42,62 @@ public static class Theme
 
     public static void Apply(ResourceDictionary resources, string mode, string seed, bool highContrast)
     {
-        IsDark = mode switch { "Light" => false, "System" => SystemPrefersDark(), _ => true };
+        var state = new MaterialDockerImage.UI.AppearanceState { Theme = mode, Seed = seed };
+        state.Normalize();
+        Apply(resources, state, highContrast);
+    }
+
+    /// <summary>Brushes created unfrozen for the animated rainbow accent, with the colour each one rotates from.</summary>
+    public static IReadOnlyList<(SolidColorBrush Brush, Color Base)> AnimatedBrushes => animated;
+    private static readonly List<(SolidColorBrush Brush, Color Base)> animated = new();
+
+    /// <summary>
+    /// Applies every colour role from an appearance: theme palette, seed hue (and chroma for near-grey seeds), surface
+    /// tint, high contrast and per-role overrides. When <paramref name="animateRainbow"/> is set, rainbow roles get
+    /// unfrozen brushes so the runtime can rotate their hue without replacing resources.
+    /// </summary>
+    public static void Apply(ResourceDictionary resources, MaterialDockerImage.UI.AppearanceState appearance, bool highContrast, bool animateRainbow = false)
+    {
+        IsDark = appearance.Theme switch { "Light" => false, "System" => SystemPrefersDark(), _ => true };
         var palette = IsDark ? Dark : Light;
-        double? seedHue = TryParse(seed, out var seedColor) ? Hsl(seedColor).H : null;
-        foreach (var pair in palette)
+        double? seedHue = null; var chroma = 1.0;
+        if (TryParse(appearance.Seed, out var seedColor)) { var (h, s, _) = Hsl(seedColor); seedHue = h; chroma = Math.Clamp(s / 0.35, 0, 1); }
+        Color Base(string key)
         {
-            var color = (Color)ColorConverter.ConvertFromString(pair.Value);
-            if (seedHue is { } hue && Array.IndexOf(SeedFollowers, pair.Key) >= 0) color = WithHue(color, hue);
-            if (highContrast) color = Contrast(pair.Key, color);
-            var brush = new SolidColorBrush(color); brush.Freeze();
-            resources[pair.Key] = brush;
+            var color = (Color)ColorConverter.ConvertFromString(palette[key]);
+            if (seedHue is { } hue && Array.IndexOf(SeedFollowers, key) >= 0) color = WithHue(color, hue, chroma);
+            return color;
+        }
+        var primary = Base("Primary");
+        animated.Clear();
+        foreach (var key in palette.Keys)
+        {
+            var color = Base(key);
+            if (appearance.SurfaceTint > 0 && key.StartsWith("Surface", StringComparison.Ordinal)) color = Mix(color, primary, appearance.SurfaceTint * 0.14);
+            if (highContrast) color = Contrast(key, color);
+            var rainbow = false;
+            if (appearance.Roles.TryGetValue(key, out var custom))
+            {
+                if (custom == MaterialDockerImage.UI.AppearanceRoles.Rainbow) { rainbow = true; var (_, s, l) = Hsl(color); if (s < 0.5) color = FromHsl(Hsl(color).H, 0.65, Math.Clamp(l, 0.25, 0.75), color.A); }
+                else if (MaterialDockerImage.UI.AppearanceRgba.TryParseStorageHex(custom, out var c)) color = Color.FromArgb(c.A8, c.R8, c.G8, c.B8);
+            }
+            if (appearance.Rainbow && Array.IndexOf(SeedFollowers, key) >= 0 && !appearance.Roles.ContainsKey(key)) rainbow = true;
+            if (!(rainbow && animateRainbow) && resources.Contains(key) && resources[key] is SolidColorBrush { IsFrozen: true } same && same.Color == color) continue; // unchanged: skip the tree-wide resource update
+            var brush = new SolidColorBrush(color);
+            if (rainbow && animateRainbow) animated.Add((brush, color)); else brush.Freeze();
+            resources[key] = brush;
         }
     }
+
+    public static Color Mix(Color a, Color b, double amount)
+    {
+        amount = Math.Clamp(amount, 0, 1);
+        byte M(byte x, byte y) => (byte)Math.Round(x + (y - x) * amount);
+        return Color.FromArgb(a.A, M(a.R, b.R), M(a.G, b.G), M(a.B, b.B));
+    }
+
+    /// <summary>Rotates the hue of a rainbow brush's base colour (used by the runtime timer).</summary>
+    public static Color RotateHue(Color color, double degrees) { var (h, s, l) = Hsl(color); return FromHsl(h + degrees, s, l, color.A); }
 
     private static Color Contrast(string role, Color color) => role switch
     {
@@ -89,7 +133,7 @@ public static class Theme
         return Color.FromArgb(alpha, (byte)Math.Round(Channel(h + 1.0 / 3) * 255), (byte)Math.Round(Channel(h) * 255), (byte)Math.Round(Channel(h - 1.0 / 3) * 255));
     }
 
-    private static Color WithHue(Color c, double hue) { var (_, s, l) = Hsl(c); return FromHsl(hue, s, l, c.A); }
+    private static Color WithHue(Color c, double hue, double chroma = 1) { var (_, s, l) = Hsl(c); return FromHsl(hue, s * chroma, l, c.A); }
 
     public static string Hex(Color c) => c.A == 255 ? $"#{c.R:X2}{c.G:X2}{c.B:X2}" : $"#{c.A:X2}{c.R:X2}{c.G:X2}{c.B:X2}";
 

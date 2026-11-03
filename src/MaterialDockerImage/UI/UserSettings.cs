@@ -47,6 +47,18 @@ public sealed class UserSettings
     public string ExternalEditor { get; set; } = "";
     public int MonitorIntervalSeconds { get; set; } = 2;
     public string PersonalVocabularyPath { get; set; } = "";
+    // Appearance editor values (see AppearanceState). Ranges are enforced by AppearanceState.Normalize.
+    public string MotionLevel { get; set; } = "Standard";
+    public double MotionSpeed { get; set; } = 1;
+    public double CornerScale { get; set; } = 1;
+    public string UiFontFamily { get; set; } = "";
+    public string MonoFontFamily { get; set; } = "";
+    public int HeadingWeight { get; set; } = 600;
+    public string RailIconStyle { get; set; } = "Outline";
+    public double ElevationScale { get; set; } = 1;
+    public double SurfaceTint { get; set; }
+    public bool RainbowAccent { get; set; }
+    public Dictionary<string, string> RoleOverrides { get; set; } = new();
     public static string DataDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "DingDingProjects", "MaterialDockerImage");
     private static string LegacyDirectory => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "MaterialDockerImage");
     public static string SettingsPath => Path.Combine(DataDirectory, "settings.json");
