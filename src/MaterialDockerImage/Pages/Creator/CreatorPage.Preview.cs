@@ -32,6 +32,8 @@ public sealed partial class CreatorPage
     private bool syncingSyntax, syncingPreview, textDirty;
     private IReadOnlyList<DockerfileLineSpan> previewMap = Array.Empty<DockerfileLineSpan>();
     private IReadOnlyList<string> parseWarnings = Array.Empty<string>();
+    /// <summary>The preview text with its line map and per-element rendering, used to patch only changed lines.</summary>
+    private DockerfileSourceState? sourceState;
     /// <summary>The card matching the preview caret (outlined, not expanded).</summary>
     private DockerInstruction? highlighted;
 
@@ -109,8 +111,10 @@ public sealed partial class CreatorPage
 
     private void RefreshPreview()
     {
+        if (TryPatchPreview()) { SyncSyntaxSwitch(); return; }
         var rendered = DockerfileModel.RenderWithMap(doc);
         previewMap = rendered.Lines;
+        sourceState = DockerfilePatch.FromRender(doc);
         if (preview.Text != rendered.Text)
         {
             parseTimer.Stop();
@@ -133,11 +137,45 @@ public sealed partial class CreatorPage
             HighlightLines(expanded ?? highlighted);
             if (mirror.Visibility == Visibility.Visible) mirror.Show(rendered.Text);
         }
+        SyncSyntaxSwitch();
+    }
+
+    private void SyncSyntaxSwitch()
+    {
         if (syntaxSwitch != null && syntaxSwitch.IsChecked != doc.SyntaxHeader)
         {
             syncingSyntax = true;
             try { syntaxSwitch.IsChecked = doc.SyntaxHeader; } finally { syncingSyntax = false; }
         }
+    }
+
+    /// <summary>
+    /// In-place GUI edits (a field of one card or stage) replace only that element's lines, so the user's comments,
+    /// blank lines and formatting elsewhere survive. Returns false when the structure changed and a full render is needed.
+    /// </summary>
+    private bool TryPatchPreview()
+    {
+        if (sourceState == null || textDirty || preview.Text != sourceState.Text) return false;
+        var patched = DockerfilePatch.TryPatch(sourceState, doc);
+        if (patched == null) return false;
+        sourceState = patched;
+        previewMap = patched.Lines;
+        if (patched.Text != preview.Text)
+        {
+            var caret = preview.Box.CaretIndex;
+            var offset = preview.Box.VerticalOffset;
+            syncingPreview = true;
+            try
+            {
+                preview.Text = patched.Text;
+                preview.Box.ScrollToVerticalOffset(offset);
+                preview.Box.Select(Math.Min(caret, patched.Text.Length), 0);
+            }
+            finally { syncingPreview = false; }
+            HighlightLines(expanded ?? highlighted);
+            if (mirror.Visibility == Visibility.Visible) mirror.Show(patched.Text);
+        }
+        return true;
     }
 
     /// <summary>The line to keep the caret on after a GUI edit: the open card, the highlighted card, or the selected stage's FROM.</summary>
@@ -212,6 +250,7 @@ public sealed partial class CreatorPage
         pendingCommit = false;
         doc = next;
         previewMap = result.LineMap;
+        sourceState = DockerfilePatch.FromParse(preview.Text, result);
         parseWarnings = result.Warnings;
         expanded = null; highlighted = null;
         if (history.Commit(doc)) SchedulePersist();
@@ -224,11 +263,7 @@ public sealed partial class CreatorPage
         UpdateSubtitle();
         UpdateUndoButtons();
         RefreshIgnoreEditor();
-        if (syntaxSwitch != null && syntaxSwitch.IsChecked != doc.SyntaxHeader)
-        {
-            syncingSyntax = true;
-            try { syntaxSwitch.IsChecked = doc.SyntaxHeader; } finally { syncingSyntax = false; }
-        }
+        SyncSyntaxSwitch();
     }
 
     private DockerfileLineSpan? CaretSpan()
@@ -322,6 +357,25 @@ public sealed partial class CreatorPage
         return row;
     }
 
+    /// <summary>Focuses the source editor with an instruction's lines selected ("Edit as text" on raw cards).</summary>
+    private void EditAsText(DockerInstruction instruction)
+    {
+        FlushCommit();
+        if (SpanOf(instruction) is not { } span) return;
+        previewTabs.SelectedItem = dockerfileTab;
+        if (colourSwitch?.IsChecked == true) colourSwitch.IsChecked = false;
+        var text = preview.Text;
+        var start = CharacterIndexOfLine(text, span.StartLine);
+        var end = Math.Min(text.Length, CharacterIndexOfLine(text, span.EndLine + 1));
+        if (end > start && text[end - 1] == '\n') end--;
+        if (end > start && text[end - 1] == '\r') end--;
+        preview.Box.Focus();
+        syncingPreview = true;
+        try { preview.Box.Select(start, Math.Max(0, end - start)); }
+        finally { syncingPreview = false; }
+        ScrollLineIntoView(span.StartLine);
+    }
+
     private void GoToSourceLine(int line)
     {
         previewTabs.SelectedItem = dockerfileTab;
@@ -340,9 +394,10 @@ public sealed partial class CreatorPage
         };
         var title = Ui.Text(result.Title, 14, FontWeights.SemiBold);
         var message = Ui.Text(result.Message, 13, null, "OnSurfaceVariant");
+        var id = result.Id + (DockerfileLint.BuildKitName(result.Id) is { } check ? " (" + check + ")" : "");
         var where = result.StageIndex >= 0 && result.StageIndex < doc.Stages.Count
-            ? Ui.Text($"{result.Id} · {(doc.Stages[result.StageIndex].Name.Trim().Length > 0 ? doc.Stages[result.StageIndex].Name.Trim() : "stage " + result.StageIndex)}" + (result.InstructionIndex >= 0 ? $" · {Loc.T("step")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false)
-            : Ui.Text(result.Id + (result.InstructionIndex >= 0 ? $" · {Loc.T("global")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false);
+            ? Ui.Text($"{id} · {(doc.Stages[result.StageIndex].Name.Trim().Length > 0 ? doc.Stages[result.StageIndex].Name.Trim() : "stage " + result.StageIndex)}" + (result.InstructionIndex >= 0 ? $" · {Loc.T("step")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false)
+            : Ui.Text(id + (result.InstructionIndex >= 0 ? $" · {Loc.T("global")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false);
         var text = Ui.VStack(2, title, message, where);
         var actions = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
         if (result.Fix != null)

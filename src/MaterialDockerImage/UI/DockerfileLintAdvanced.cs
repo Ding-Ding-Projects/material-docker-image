@@ -53,11 +53,40 @@ public static partial class DockerfileLint
             if (i.Excludes.Count > 0) yield return ("--exclude", 19);
             if (i.Checksum.Trim().Length > 0) yield return ("ADD --checksum", 6);
             if (i.Link) yield return ("--link", 4);
+            if (DockerfileModel.IsSymbolicChmod(i.Chmod)) yield return ("symbolic --chmod", 14);
         }
+    }
+
+    /// <summary>
+    /// BuildKit build check names for the rules that match one, so a # check=skip=Name directive hides the same
+    /// finding here as in docker build.
+    /// </summary>
+    private static readonly Dictionary<string, string> BuildKitNames = new(StringComparer.Ordinal)
+    {
+        ["DF031"] = "JSONArgsRecommended", ["DF060"] = "SecretsUsedInArgOrEnv", ["DF070"] = "DuplicateStageName", ["DF072"] = "WorkdirRelativePath",
+        ["DF073"] = "MultipleInstructionsDisallowed", ["DF110"] = "ExposeInvalidFormat", ["DF114"] = "MaintainerDeprecated",
+        ["DF121"] = "StageNameCasing", ["DF122"] = "ReservedStageName", ["DF123"] = "RedundantTargetPlatform", ["DF124"] = "FromPlatformFlagConstDisallowed",
+    };
+
+    /// <summary>The BuildKit check name for a rule id, or null when BuildKit has no equivalent check.</summary>
+    public static string? BuildKitName(string id) => BuildKitNames.TryGetValue(id, out var name) ? name : null;
+
+    /// <summary>Check names listed in # check=skip=… (case-sensitive like BuildKit); contains "all" when every check is skipped.</summary>
+    public static HashSet<string> SkippedChecks(DockerfileDocument document)
+    {
+        var set = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var part in document.CheckDirective.Split(';'))
+        {
+            var kv = part.Split('=', 2);
+            if (kv.Length == 2 && kv[0].Trim() == "skip")
+                foreach (var name in kv[1].Split(',').Select(x => x.Trim()).Where(x => x.Length > 0)) set.Add(name);
+        }
+        return set;
     }
 
     private static void CheckAdvanced(DockerfileDocument document, List<LintResult> results)
     {
+        CheckStageNames(document, results);
         CheckSyntaxHeader(document, results);
         if (document.Escape.Trim().Length > 0 && document.Escape.Trim() != "\\")
             results.Add(new("DF115", LintSeverity.Warning, "Escape directive changes the line continuation",
@@ -96,6 +125,49 @@ public static partial class DockerfileLint
             }
             CheckMergeableRuns(s, stage, results);
         }
+    }
+
+    private static void CheckStageNames(DockerfileDocument document, List<LintResult> results)
+    {
+        for (var s = 0; s < document.Stages.Count; s++)
+        {
+            var stage = document.Stages[s];
+            var name = stage.Name.Trim();
+            var index = s;
+            if (name.Length > 0 && name != name.ToLowerInvariant())
+                results.Add(new("DF121", LintSeverity.Info, "Stage name is not lowercase",
+                    $"Stage names are case-insensitive, and BuildKit recommends lowercase (StageNameCasing). Rename {name} to {name.ToLowerInvariant()}; references in FROM, COPY --from and the build target are updated too.", s, -1,
+                    new LintFix("Use lowercase", d => RenameStage(d, index, name.ToLowerInvariant()))));
+            if (name.Equals("scratch", StringComparison.OrdinalIgnoreCase) || name.Equals("context", StringComparison.OrdinalIgnoreCase))
+                results.Add(new("DF122", LintSeverity.Error, "Reserved stage name",
+                    $"\"{name}\" is reserved (ReservedStageName): scratch is the empty image and context names the build context. Choose another name.", s, -1,
+                    new LintFix("Rename", d => RenameStage(d, index, DockerfileModel.UniqueStageName(d, name.ToLowerInvariant() + "-stage")))));
+            var platform = stage.Platform.Trim();
+            if (platform is "$TARGETPLATFORM" or "${TARGETPLATFORM}")
+                results.Add(new("DF123", LintSeverity.Info, "Redundant --platform=$TARGETPLATFORM",
+                    "The target platform is already the default for FROM (RedundantTargetPlatform). Remove the flag.", s, -1,
+                    new LintFix("Remove flag", d => d.Stages[index].Platform = "")));
+        }
+    }
+
+    /// <summary>Renames a stage and every FROM, COPY --from, RUN --mount from= and build target reference to it.</summary>
+    public static void RenameStage(DockerfileDocument d, int index, string newName)
+    {
+        var old = d.Stages[index].Name.Trim();
+        d.Stages[index].Name = newName;
+        if (old.Length == 0) return;
+        bool Same(string value) => string.Equals(value.Trim(), old, StringComparison.OrdinalIgnoreCase);
+        foreach (var stage in d.Stages.Skip(index + 1))
+        {
+            if (Same(stage.BaseImage)) stage.BaseImage = newName;
+            foreach (var raw in stage.Instructions)
+            {
+                var i = raw.Kind == InstructionKind.OnBuild && raw.Inner != null ? raw.Inner : raw;
+                if (i.Kind == InstructionKind.Copy && Same(i.From)) i.From = newName;
+                foreach (var m in i.Mounts.Where(m => Same(m.From))) m.From = newName;
+            }
+        }
+        if (Same(d.Target)) d.Target = newName;
     }
 
     private static void CheckSyntaxHeader(DockerfileDocument document, List<LintResult> results)
@@ -151,8 +223,8 @@ public static partial class DockerfileLint
                 $"{Label(document, s)} uses TARGETOS, TARGETARCH or TARGETPLATFORM in its commands. Start it with FROM --platform=$BUILDPLATFORM so the compiler runs natively and only the output targets the requested platform; emulating the compiler is much slower.", s, -1,
                 new LintFix("Build on BUILDPLATFORM", d => DockerfilePlatform.UseBuildPlatform(d, s))));
         else if (platform.Length > 0 && !platform.Contains('$'))
-            results.Add(new("DF113", LintSeverity.Info, "Stage is pinned to one platform",
-                $"FROM --platform={platform} always uses that platform, so multi-platform builds produce the same image for every target. Use $BUILDPLATFORM for build tools or $TARGETPLATFORM for the runtime, or remove the flag.", s, -1));
+            results.Add(new("DF124", LintSeverity.Info, "Stage is pinned to one platform",
+                $"FROM --platform={platform} always uses that platform, so multi-platform builds produce the same image for every target (FromPlatformFlagConstDisallowed). Use $BUILDPLATFORM for build tools or $TARGETPLATFORM for the runtime, or remove the flag.", s, -1));
     }
 
     private static void CheckRunAdvanced(DockerfileDocument document, int s, int i, List<LintResult> results)

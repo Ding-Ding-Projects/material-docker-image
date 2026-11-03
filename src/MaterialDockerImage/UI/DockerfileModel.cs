@@ -532,7 +532,7 @@ public static class DockerfileModel
                     }
                     if (i.KeepGitDir && remote.Any(k => k != AddSourceKind.Git)) problems.Add("--keep-git-dir only applies to Git repository sources.");
                 }
-                if (i.Chmod.Trim().Length > 0 && !Regex.IsMatch(i.Chmod.Trim(), "^[0-7]{3,4}$", RegexOptions.None, RegexTimeout)) problems.Add("Permissions use octal notation, for example 755 or 0644.");
+                if (i.Chmod.Trim().Length > 0 && !IsChmod(i.Chmod.Trim())) problems.Add("Permissions use octal notation such as 755 or 0644, or symbolic notation such as u=rwx,go=rx (symbolic needs docker/dockerfile:1.14).");
                 if (i.Chown.Trim().Any(char.IsWhiteSpace) || i.From.Trim().Any(char.IsWhiteSpace)) problems.Add("Owner and source stage cannot contain spaces.");
                 foreach (var s in i.Sources) NoControl("Sources", s);
                 NoControl("Destination", i.Destination);
@@ -630,6 +630,10 @@ public static class DockerfileModel
             if (!lines[k].TrimEnd().EndsWith('\\')) { problems.Add("Each line of a multi-line command must end with a backslash (\\)."); return; }
         if (command.Any(c => char.IsControl(c) && c is not ('\n' or '\r' or '\t'))) problems.Add("The command cannot contain control characters.");
     }
+
+    /// <summary>Octal (755) or symbolic (u+x,go=rx) --chmod values, or a variable.</summary>
+    public static bool IsChmod(string value) => Regex.IsMatch(value, @"^([0-7]{3,4}|([ugoa]*[-+=]([rwxXst]*|[ugo]))(,[ugoa]*[-+=]([rwxXst]*|[ugo]))*|\$\{?[A-Za-z_][A-Za-z0-9_]*\}?)$", RegexOptions.None, RegexTimeout);
+    public static bool IsSymbolicChmod(string value) => value.Trim().Length > 0 && !Regex.IsMatch(value.Trim(), @"^([0-7]{3,4}|\$.*)$", RegexOptions.None, RegexTimeout);
 
     public static bool IsVariableName(string name) => Regex.IsMatch(name.Trim(), "^[A-Za-z_][A-Za-z0-9_]*$", RegexOptions.None, RegexTimeout);
     public static bool IsDuration(string value) => Regex.IsMatch(value, @"^(\d+(\.\d+)?(ns|us|µs|ms|s|m|h))+$", RegexOptions.None, RegexTimeout);

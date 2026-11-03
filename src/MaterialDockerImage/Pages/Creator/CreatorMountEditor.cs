@@ -37,9 +37,30 @@ public sealed class CreatorMountEditor : StackPanel
             System.Windows.Automation.AutomationProperties.SetName(b, Loc.T("Add " + type + " mount"));
             add.Children.Add(b);
         }
+        var presets = Ui.Combo(new[] { Loc.T("Cache preset…") }.Concat(RunMounts.CachePresets.Select(p => p.Name)), null);
+        presets.SelectedIndex = 0;
+        presets.HorizontalAlignment = HorizontalAlignment.Left; presets.MinWidth = 200;
+        System.Windows.Automation.AutomationProperties.SetName(presets, Loc.T("Add cache mounts for a package manager"));
+        presets.ToolTip = Loc.T("Adds the cache mounts for a package manager with its default cache paths.");
+        presets.SelectionChanged += (_, _) =>
+        {
+            if (presets.SelectedIndex <= 0 || presets.SelectedItem is not string name) return;
+            var added = RunMounts.AddPreset(mounts, name);
+            var note = RunMounts.CachePresets.First(p => p.Name == name).Note;
+            presets.SelectedIndex = 0;
+            if (added > 0) { Rebuild(); changed(); }
+            presetNote.Text = (added == 0 ? Loc.T("Those cache mounts are already present.") : $"{Loc.T("Added")} {added} {Loc.T(added == 1 ? "cache mount" : "cache mounts")} {Loc.T("for")} {name}.") + (note.Length > 0 ? " " + note : "");
+            presetNote.Visibility = Visibility.Visible;
+        };
         Children.Add(add);
+        Children.Add(presets);
+        presetNote.Visibility = Visibility.Collapsed;
+        presetNote.Margin = new Thickness(0, 6, 0, 0);
+        Children.Add(presetNote);
         Rebuild();
     }
+
+    private readonly TextBlock presetNote = Ui.Caption("");
 
     private void Rebuild()
     {

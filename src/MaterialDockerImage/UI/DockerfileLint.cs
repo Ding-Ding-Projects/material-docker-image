@@ -55,6 +55,8 @@ public static partial class DockerfileLint
         CheckFinalStage(document, results);
         CheckSecretNames(document, results);
         CheckAdvanced(document, results);
+        var skipped = SkippedChecks(document);
+        if (skipped.Count > 0) results.RemoveAll(r => skipped.Contains("all") || (BuildKitName(r.Id) is { } name && skipped.Contains(name)));
         return results.OrderBy(r => r.Severity).ThenBy(r => r.StageIndex).ThenBy(r => r.InstructionIndex).ToList();
     }
 

@@ -58,6 +58,47 @@ public static class RunMounts
         _ => []
     };
 
+    /// <summary>
+    /// Cache mount presets per package manager with the tool's default cache paths (Docker build cache guide and
+    /// the tools' own documentation). apt needs sharing=locked because it takes exclusive locks.
+    /// </summary>
+    public static readonly IReadOnlyList<(string Name, string Note, RunMount[] Mounts)> CachePresets =
+    [
+        ("apt", "Remove /etc/apt/apt.conf.d/docker-clean first so packages are kept.", [new() { Type = Cache, Target = "/var/cache/apt", Sharing = "locked" }, new() { Type = Cache, Target = "/var/lib/apt", Sharing = "locked" }]),
+        ("apk", "Use instead of apk add --no-cache to keep packages between builds.", [new() { Type = Cache, Target = "/var/cache/apk", Sharing = "locked" }]),
+        ("npm", "For a non-root USER, use that user's home and uid/gid.", [new() { Type = Cache, Target = "/root/.npm" }]),
+        ("pnpm", "Run pnpm install --store-dir /var/cache/pnpm.", [new() { Type = Cache, Id = "pnpm", Target = "/var/cache/pnpm" }]),
+        ("Yarn classic", "", [new() { Type = Cache, Target = "/usr/local/share/.cache/yarn" }]),
+        ("Yarn Berry", "", [new() { Type = Cache, Target = "/root/.yarn/berry/cache" }]),
+        ("Bun", "", [new() { Type = Cache, Target = "/root/.bun/install/cache" }]),
+        ("pip", "", [new() { Type = Cache, Target = "/root/.cache/pip" }]),
+        ("uv", "Set ENV UV_LINK_MODE=copy so packages are copied out of the cache.", [new() { Type = Cache, Target = "/root/.cache/uv" }]),
+        ("Go", "", [new() { Type = Cache, Target = "/go/pkg/mod" }, new() { Type = Cache, Target = "/root/.cache/go-build" }]),
+        ("Cargo", "target is a cache too: copy the binary out in the same RUN.", [new() { Type = Cache, Target = "/usr/local/cargo/registry" }, new() { Type = Cache, Target = "/usr/local/cargo/git" }]),
+        ("NuGet", "", [new() { Type = Cache, Target = "/root/.nuget/packages" }]),
+        ("Maven", "", [new() { Type = Cache, Target = "/root/.m2" }]),
+        ("Gradle", "", [new() { Type = Cache, Target = "/root/.gradle" }]),
+        ("Composer", "The official composer image uses COMPOSER_HOME=/tmp.", [new() { Type = Cache, Target = "/tmp/cache" }]),
+        ("Bundler", "", [new() { Type = Cache, Target = "/usr/local/bundle/cache" }]),
+    ];
+
+    /// <summary>Adds a preset's cache mounts that are not already present; uid/gid follow a numeric non-root user. Returns the number added.</summary>
+    public static int AddPreset(List<RunMount> mounts, string preset, string uid = "", string gid = "")
+    {
+        var entry = CachePresets.FirstOrDefault(p => string.Equals(p.Name, preset, StringComparison.OrdinalIgnoreCase));
+        if (entry.Mounts == null) return 0;
+        var added = 0;
+        foreach (var template in entry.Mounts)
+        {
+            if (mounts.Any(m => m.Type == Cache && m.Target.Trim() == template.Target)) continue;
+            var mount = template.Clone();
+            mount.Uid = uid; mount.Gid = gid;
+            mounts.Add(mount);
+            added++;
+        }
+        return added;
+    }
+
     public static void Normalize(RunMount m)
     {
         m.Type ??= Cache; m.Target ??= ""; m.Id ??= ""; m.Sharing ??= ""; m.From ??= ""; m.Source ??= "";

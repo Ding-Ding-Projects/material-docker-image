@@ -333,8 +333,10 @@ public sealed partial class CreatorPage
         var edit = Ui.IconButton(isOpen ? Icons.Check : Icons.Edit, isOpen ? "Done editing" : "Edit", () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); FocusCard(instruction); });
         var duplicate = Ui.IconButton(Icons.FilterNone, "Duplicate", () => { FlushCommit(); var copy = instruction.Clone(); list.Insert(index + 1, copy); expanded = copy; Changed(); });
         var delete = Ui.IconButton(Icons.Delete, "Delete (Del)", () => { FlushCommit(); list.RemoveAt(index); if (expanded == instruction) expanded = null; Changed(); Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it.")); });
-        foreach (var b in new[] { up, down, edit, duplicate, delete }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
-        var actions = Ui.HStack(0, up, down, duplicate, edit, delete);
+        var asText = Ui.IconButton(Icons.Code, "Edit as text", () => EditAsText(instruction));
+        asText.Visibility = instruction.Kind == InstructionKind.Raw ? Visibility.Visible : Visibility.Collapsed;
+        foreach (var b in new[] { up, down, edit, duplicate, delete, asText }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
+        var actions = Ui.HStack(0, asText, up, down, duplicate, edit, delete);
         actions.VerticalAlignment = VerticalAlignment.Top;
 
         var top = Ui.Columns(12, [0, 1, 0], chip, text, actions);
@@ -375,6 +377,7 @@ public sealed partial class CreatorPage
         card.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2 && !isOpen) { expanded = instruction; RebuildStageEditor(); e.Handled = true; } };
         card.ContextMenu = new ContextMenu();
         card.ContextMenu.Items.Add(Ui.MenuItem(isOpen ? "Done editing" : "Edit", Icons.Edit, () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); }, "Enter"));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Edit as text", Icons.Code, () => EditAsText(instruction)));
         card.ContextMenu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => Move(-1), "Alt+Up"));
         card.ContextMenu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => Move(1), "Alt+Down"));
         card.ContextMenu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => duplicate.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent))));

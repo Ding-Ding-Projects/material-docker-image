@@ -276,4 +276,34 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     }
     finally { foreach(var f in new[]{node,go}) try { Directory.Delete(f,true); } catch(IOException) { } }
 }
+
+// Minimal text patches keep the user's formatting when a card changes in place.
+{
+    var typed="# syntax=docker/dockerfile:1\r\n\r\n# Build stage\r\nFROM   golang:1.24-alpine   AS build\r\n\r\nWORKDIR /src\r\nRUN go mod download\r\n\r\n# Runtime\r\nFROM alpine:3.21\r\nCMD [\"/app\"]\r\n";
+    var parsed=MaterialDockerImage.UI.DockerfileModel.Parse(typed);
+    var state=MaterialDockerImage.UI.DockerfilePatch.FromParse(typed,parsed);
+    var doc=parsed.Document;
+    Check(MaterialDockerImage.UI.DockerfilePatch.TryPatch(state,doc)!.Text==typed,"an unchanged model leaves the typed text exactly as it was");
+    doc.Stages[0].Instructions[1].Mounts.Add(new MaterialDockerImage.UI.RunMount{Type="cache",Target="/go/pkg/mod"});
+    var patched=MaterialDockerImage.UI.DockerfilePatch.TryPatch(state,doc)!;
+    Check(patched.Text==typed.Replace("RUN go mod download","RUN --mount=type=cache,target=/go/pkg/mod go mod download"),"a card edit replaces only its own line and keeps comments, spacing and CRLF");
+    doc.Stages[0].Instructions[1].Command="go mod download && \\\n    go mod verify";
+    var multi=MaterialDockerImage.UI.DockerfilePatch.TryPatch(patched,doc)!;
+    Check(multi.Lines.Last().StartLine==patched.Lines.Last().StartLine+1&&multi.Text.Contains("# Runtime\r\nFROM alpine:3.21"),"a patch that adds lines shifts the following spans");
+    doc.Stages[1].Instructions.Add(new MaterialDockerImage.UI.DockerInstruction{Kind=MaterialDockerImage.UI.InstructionKind.User,Value="10001"});
+    Check(MaterialDockerImage.UI.DockerfilePatch.TryPatch(multi,doc)==null,"structural changes ask for a full render");
+}
+
+// BuildKit check names, skip directive, stage name checks, symbolic chmod and cache presets.
+{
+    var d=MaterialDockerImage.UI.DockerfileModel.Parse("# check=skip=JSONArgsRecommended\nFROM alpine:3.21 AS Build\nCMD echo hi\nFROM Build\nCOPY --from=Build --chmod=u=rwx,go=rx /a /b\n").Document;
+    var results=MaterialDockerImage.UI.DockerfileLint.Check(d);
+    Check(results.All(r=>r.Id!="DF031")&&MaterialDockerImage.UI.DockerfileLint.BuildKitName("DF031")=="JSONArgsRecommended","# check=skip hides the matching BuildKit check");
+    Check(d.Stages[1].Instructions[0].Chmod=="u=rwx,go=rx"&&MaterialDockerImage.UI.DockerfileModel.Validate(d.Stages[1].Instructions[0]).Count==0,"symbolic chmod parses and validates");
+    results.First(r=>r.Id=="DF121").Fix!.Apply!(d);
+    Check(d.Stages[0].Name=="build"&&d.Stages[1].BaseImage=="build"&&d.Stages[1].Instructions[0].From=="build","StageNameCasing fix renames every reference");
+    var mounts=new List<MaterialDockerImage.UI.RunMount>();
+    Check(MaterialDockerImage.UI.RunMounts.AddPreset(mounts,"apt")==2&&mounts.All(m=>m.Sharing=="locked")&&MaterialDockerImage.UI.RunMounts.AddPreset(mounts,"apt")==0,"apt cache preset adds locked caches once");
+    Check(MaterialDockerImage.UI.RunMounts.CachePresets.All(p=>p.Mounts.All(m=>MaterialDockerImage.UI.RunMounts.Validate(m).Count==0)),"every cache preset is valid");
+}
 Console.WriteLine($"UI state checks: {count} passed.");
