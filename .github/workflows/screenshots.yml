@@ -2,7 +2,7 @@ name: Tests and screenshots
 on:
   push:
     branches: ['**']
-    paths: ['src/**', 'tests/**', 'build/**', 'build.bat', 'global.json', '.github/workflows/screenshots.yml']
+    paths: ['src/**', 'tests/**', 'build/**', 'docs/**', 'website/**', 'scripts/**', 'build.bat', 'global.json', '.github/workflows/screenshots.yml']
   workflow_dispatch:
 permissions:
   contents: read
