@@ -66,7 +66,7 @@ internal static class DiagnosticReport
     {
         if (checks.All(c => c.Last == null)) { Host.Notify.Info("Run the checks first so the report has real results."); return; }
         var format = "Markdown";
-        var view = new SearchableText("Search report", 300, 460);
+        var view = new ReadOnlySearchText("Search report", 300, 460);
         var current = "";
         void Render() => view.Text = current = format == "JSON" ? Json(checks, context) : Markdown(checks, context);
         Render();

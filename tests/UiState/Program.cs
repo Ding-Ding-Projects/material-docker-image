@@ -100,4 +100,20 @@ try
     Check(!history.Record("x","escape",new Dictionary<string,string>{["../outside.txt"]="no"})&&!File.Exists(Path.Combine(historyRoot,"..","outside.txt")),"history refuses paths outside its folder");
 }
 finally { try { foreach(var f in Directory.EnumerateFiles(historyRoot,"*",SearchOption.AllDirectories)) File.SetAttributes(f,FileAttributes.Normal); Directory.Delete(historyRoot,true); } catch(IOException) { } }
+
+// Base64 toolkit: variants, padding, strict offsets, data URLs.
+{
+    var bytes=new byte[]{0xfb,0xff,0x01,0x02,0x03};
+    foreach(var variant in Enum.GetValues<MaterialDockerImage.UI.Base64Variant>())
+    foreach(var pad in new[]{true,false})
+    {
+        var text=MaterialDockerImage.UI.Base64Tools.Encode(bytes,variant,pad);
+        var back=MaterialDockerImage.UI.Base64Tools.Decode(text,variant,true,pad);
+        Check(back.Success&&back.Bytes.SequenceEqual(bytes),$"base64 round trip {variant} padding {pad}");
+    }
+    Check(MaterialDockerImage.UI.Base64Tools.Encode(bytes,MaterialDockerImage.UI.Base64Variant.UrlSafe,false)=="-_8BAgM","URL-safe alphabet without padding");
+    var strict=MaterialDockerImage.UI.Base64Tools.Decode("QUJD*REVG",MaterialDockerImage.UI.Base64Variant.Standard,true);
+    Check(!strict.Success&&strict.ErrorOffset==4,"strict decoding reports the exact offset of the bad character");
+    Check(MaterialDockerImage.UI.Base64Tools.TryParseDataUrl(MaterialDockerImage.UI.Base64Tools.BuildDataUrl("text/plain",new byte[]{104,105}),out var url,out _)&&url!.MimeType=="text/plain"&&url.Bytes.SequenceEqual(new byte[]{104,105}),"data URL builds and parses");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

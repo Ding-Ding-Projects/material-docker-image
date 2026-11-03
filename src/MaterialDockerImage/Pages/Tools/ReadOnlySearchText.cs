@@ -9,7 +9,7 @@ namespace MaterialDockerImage.Pages;
 /// Read-only monospace text with its own search. While a search is active only matching lines are shown,
 /// prefixed with their original line numbers, so long command output and diffs stay navigable.
 /// </summary>
-public sealed class SearchableText : DockPanel
+public sealed class ReadOnlySearchText : DockPanel
 {
     private string text = "";
     private readonly TextBox box;
@@ -17,7 +17,7 @@ public sealed class SearchableText : DockPanel
     public SearchFilter Search { get; }
     public string Text { get => text; set { text = value ?? ""; Apply(); } }
 
-    public SearchableText(string placeholder = "Search output", double minHeight = 160, double maxHeight = double.PositiveInfinity)
+    public ReadOnlySearchText(string placeholder = "Search output", double minHeight = 160, double maxHeight = double.PositiveInfinity)
     {
         LastChildFill = true;
         Search = new SearchFilter(placeholder, 280);

@@ -13,7 +13,7 @@ internal sealed class ActivityInspector
     private static AppHost Host => AppHost.Current;
     private readonly StackPanel details = new();
     private readonly StackPanel actions = new();
-    private readonly SearchableText diff = new("Search this diff", 220);
+    private readonly ReadOnlySearchText diff = new("Search this diff", 220);
     private readonly Action changed;
     public FrameworkElement Root { get; }
 

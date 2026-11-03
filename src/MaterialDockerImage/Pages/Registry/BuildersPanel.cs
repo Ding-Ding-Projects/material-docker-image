@@ -36,7 +36,7 @@ internal sealed class BuildersPanel
     private readonly Func<bool> isCurrent;
     private readonly Func<string?> snapshot;
     private readonly TextBlock state = Ui.Caption("");
-    private readonly SearchableText detail = new("Search builder output", 120, 360);
+    private readonly ReadOnlySearchText detail = new("Search builder output", 120, 360);
     private readonly TextBlock detailTitle = Ui.Text("Select a builder, then Inspect or Disk usage.", 14, FontWeights.SemiBold);
     public DataTable<BuilderRow> Table { get; }
     public Border Card { get; }
