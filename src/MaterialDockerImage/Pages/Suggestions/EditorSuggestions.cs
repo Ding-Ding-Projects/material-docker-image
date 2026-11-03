@@ -31,6 +31,8 @@ public sealed class EditorSuggestions
     public Func<string?> ContextFolder { get; }
 
     private readonly EditorSuggestionsList list = new();
+    /// <summary>Popups currently open (list, signature hint, hover), so capture mode can composite them into a screenshot.</summary>
+    internal IEnumerable<Popup> OpenPopups => new[] { list.Popup, hint, hover }.Where(p => p.IsOpen && p.Child != null);
     private readonly Popup hint;
     private readonly TextBlock hintText = Ui.Mono("", 12, "OnSurfaceVariant", true);
     private readonly Button hintAction;

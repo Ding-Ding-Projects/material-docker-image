@@ -106,6 +106,21 @@ public sealed partial class CreatorPage
         return Ui.Rows(16, [5, 2], previewCard, checksCard);
     }
 
+    /// <summary>Capture mode only: opens Suggestions inside the first cache mount of the source so the documentation shows the popup.</summary>
+    internal IEnumerable<System.Windows.Controls.Primitives.Popup> CaptureSuggestionPopups => preview.Suggestions?.OpenPopups ?? [];
+
+    internal bool CaptureSuggestionsDemo()
+    {
+        if (preview.Suggestions is not { } suggestions) return false;
+        var text = preview.Text;
+        var at = text.IndexOf("--mount=type=cache,", StringComparison.Ordinal);
+        if (at < 0) return false;
+        preview.Box.Focus();
+        preview.Box.CaretIndex = at + "--mount=type=cache,".Length;
+        suggestions.Open(true);
+        return true;
+    }
+
     private void ShowMirror(bool on)
     {
         if (on) { if (textDirty) { parseTimer.Stop(); ApplyPreviewText(); } mirror.Show(preview.Text); }

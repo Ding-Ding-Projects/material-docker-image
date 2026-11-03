@@ -602,7 +602,7 @@ public partial class MainWindow : Window
         Root.Width = width; Root.Height = height; Root.HorizontalAlignment = HorizontalAlignment.Left; Root.VerticalAlignment = VerticalAlignment.Top;
         Directory.CreateDirectory(directory);
         var written = 0;
-        async Task Shot(string name)
+        async Task Shot(string name, IEnumerable<System.Windows.Controls.Primitives.Popup>? popups = null)
         {
             host.Notify.ClearToasts();
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
@@ -614,6 +614,15 @@ public partial class MainWindow : Window
             var visual = new DrawingVisual();
             using (var dc = visual.RenderOpen()) { dc.DrawRectangle((Brush)FindResource("Surface"), null, new Rect(0, 0, width, height)); dc.DrawRectangle(new VisualBrush(Root) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top, ViewboxUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, width, height) }, null, new Rect(0, 0, width, height)); }
             bitmap.Render(visual);
+            // Popups live in their own windows, so draw each open one at its on-screen offset from the window content.
+            foreach (var popup in popups ?? [])
+            {
+                if (popup.Child is not FrameworkElement child || !child.IsVisible || PresentationSource.FromVisual(child) == null) continue;
+                var offset = child.PointToScreen(new Point(0, 0)) - Root.PointToScreen(new Point(0, 0));
+                var layer = new DrawingVisual();
+                using (var dc = layer.RenderOpen()) dc.DrawRectangle(new VisualBrush(child) { Stretch = Stretch.None }, null, new Rect(offset.X, offset.Y, child.ActualWidth, child.ActualHeight));
+                bitmap.Render(layer);
+            }
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
             await using var file = File.Create(Path.Combine(directory, $"{name}{suffix}.png"));
             encoder.Save(file);
@@ -632,6 +641,14 @@ public partial class MainWindow : Window
             try { await page.SafeRefresh().WaitAsync(TimeSpan.FromSeconds(30)); } catch (TimeoutException) { }
             if (d.Key == "Monitor") await Task.Delay(4000);
             await Shot(d.Key.ToLowerInvariant());
+        }
+        Navigate("Creator");
+        if (Page("Creator") is Pages.CreatorPage creator)
+        {
+            await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            try { if (creator.CaptureSuggestionsDemo()) { await Task.Delay(400); await Shot("creator-suggestions", creator.CaptureSuggestionPopups.ToList()); } }
+            catch (Exception e) when (e is InvalidOperationException or ArgumentException) { }
+            Keyboard.ClearFocus();
         }
         Navigate("Containers");
         OpenPalette();
