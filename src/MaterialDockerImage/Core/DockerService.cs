@@ -17,6 +17,16 @@ public sealed class DockerService(string executable = "docker", IDockerProcessRu
         foreach (var arg in arguments) { ValidateToken(arg); args.Add(arg); }
         return processRunner.RunAsync(executable, args, null, output, cancellationToken);
     }
+    /// <summary>Runs with standard input. The input is never added to arguments, output or logs.</summary>
+    public Task<CommandResult> ExecuteWithInputAsync(IReadOnlyList<string> arguments, string standardInput, string? context = null, IProgress<DockerOutput>? output = null, CancellationToken cancellationToken = default)
+    {
+        if (processRunner is not IDockerInputRunner inputRunner) throw new NotSupportedException("This runner cannot write standard input.");
+        if (arguments.Count >= 2 && arguments[0] == "context" && arguments[1] == "use") throw new ArgumentException("Global context changes are not supported.");
+        var args = new List<string>();
+        if (!string.IsNullOrWhiteSpace(context)) { ValidateOperand(context, nameof(context)); args.AddRange(["--context", context]); }
+        foreach (var arg in arguments) { ValidateToken(arg); args.Add(arg); }
+        return inputRunner.RunAsync(executable, args, null, output, cancellationToken, standardInput);
+    }
     public Task<CommandResult> VersionAsync(string? context = null, CancellationToken cancellationToken = default) => ExecuteAsync(["version", "--format", "{{json .}}"], context, cancellationToken: cancellationToken);
     public Task<CommandResult> InfoAsync(string? context = null, CancellationToken cancellationToken = default) => ExecuteAsync(["info", "--format", "{{json .}}"], context, cancellationToken: cancellationToken);
     private async Task<IReadOnlyList<T>> ListAsync<T>(string[] arguments, Func<JsonElement,T> convert, string? context, CancellationToken ct)
