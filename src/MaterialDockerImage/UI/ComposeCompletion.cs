@@ -150,6 +150,20 @@ public static class ComposeCompletion
         return new SuggestionResult(ctx.Start, Math.Max(0, caret - ctx.Start), text[ctx.Start..Math.Max(ctx.Start, caret)], all, signature) { AutoTrigger = items.Count > 0, Value = value };
     }
 
+    /// <summary>Documentation for the Compose key under <paramref name="index"/>, or null.</summary>
+    public static SuggestionItem? Hover(string text, int index)
+    {
+        if (index < 0 || index >= text.Length) return null;
+        var lineStart = SuggestionText.LineStart(text, index);
+        var parsed = Parse(text[lineStart..SuggestionText.LineEnd(text, index)], lineStart);
+        if (parsed.Key == null) return null;
+        var keyStart = lineStart + parsed.ContentIndent;
+        if (index < keyStart || index > keyStart + parsed.Key.Length + 1) return null;
+        var ctx = Analyse(text, keyStart);
+        var item = KeyItems(ctx, Lines(text)).FirstOrDefault(i => i.Label == parsed.Key && i.Kind == SuggestionKind.Key);
+        return item == null ? null : item with { Insert = "", Detail = "Compose key in " + (ctx.Path.Length == 0 ? "top level" : ctx.Path.Replace("/*", "/<name>").Replace("/-", "[]")) };
+    }
+
     private static SuggestionItem KeyItem(ComposeKeyInfo k)
     {
         var insert = k.Shape switch

@@ -49,6 +49,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
     {
         find = new TextFindBar(editor.Box, "Find in Dockerfile");
         System.Windows.Automation.AutomationProperties.SetName(editor.Box, Loc.T("Dockerfile source"));
+        editor.EnableSuggestions(EditorSuggestionLanguage.Dockerfile, () => options.ContextFolder.Text.Trim());
 
         check = Ui.AsyncButton("Check Dockerfile", Icons.PlaylistAddCheck, ButtonKind.Outlined, CheckAsync);
         check.ToolTip = Loc.T("Runs docker buildx build --check on the saved file. Nothing is built.");

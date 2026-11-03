@@ -41,6 +41,8 @@ public sealed partial class CreatorPage
     {
         previewFind = new TextFindBar(preview.Box, "Search Dockerfile");
         System.Windows.Automation.AutomationProperties.SetName(preview.Box, Loc.T("Dockerfile source (editable)"));
+        // Paths are suggested from the folder the draft was last saved to, or the Build context folder.
+        preview.EnableSuggestions(EditorSuggestionLanguage.Dockerfile, () => savedPath.Length > 0 ? Path.GetDirectoryName(savedPath) : Host.Settings.BuildFolder);
         preview.Box.TextChanged += (_, _) =>
         {
             if (syncingPreview) return;

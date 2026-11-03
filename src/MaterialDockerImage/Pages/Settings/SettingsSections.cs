@@ -88,6 +88,7 @@ public sealed partial class SettingsPage
         {
             ("Ctrl+Shift+F", "Command palette"), ("Ctrl+1 … Ctrl+9", "Go to destinations in rail order"), ("Ctrl+T", "New tab"), ("Ctrl+W", "Close tab"),
             ("Ctrl+Tab", "Next tab"), ("Ctrl+J", "Show or hide the output panel"), ("Alt+R", "Regular expression builder in a search box"),
+            ("Ctrl+Space", "Suggestions in the Dockerfile and Compose editors"), ("Ctrl+Shift+Space", "Value picker at the caret (colour, port, duration, permissions, user, platform, image, path)"),
             ("Enter", "Open or run the focused row's main action"), ("Delete", "Remove the focused row (where removal exists)"), ("Shift+F10 or Menu key", "Row context menu"), ("Escape", "Close dialogs and clear searches")
         };
         var filter = new SearchFilter("Search shortcuts", 240);

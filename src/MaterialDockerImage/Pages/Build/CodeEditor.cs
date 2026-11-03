@@ -62,6 +62,13 @@ public sealed class CodeEditor : Border
 
     public string Text { get => Box.Text; set => Box.Text = value; }
 
+    /// <summary>Suggestions attached with <see cref="EnableSuggestions"/>, or null.</summary>
+    public EditorSuggestions? Suggestions { get; private set; }
+
+    /// <summary>Attaches Suggestions (completion, hover, signature hint and value pickers) to this editor.</summary>
+    public EditorSuggestions EnableSuggestions(EditorSuggestionLanguage language, Func<string?> contextFolder) =>
+        Suggestions ??= EditorSuggestions.Attach(Box, language, contextFolder);
+
     private void UpdateNumbers()
     {
         var text = Box.Text;

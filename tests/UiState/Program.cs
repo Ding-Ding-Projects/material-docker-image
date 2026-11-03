@@ -546,6 +546,8 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     Check(ComposeKindAt("services:\n  web:\n    build:\n      context: .|/app")?.FolderOnly == true && ComposeKindAt("services:\n  web:\n    env_file: .e|nv")?.Kind == EditorValueKind.Path, "Compose path kinds");
     Check(ComposeKindAt("services:\n  web:\n    healthcheck:\n      interval: 3|0s")?.Kind == EditorValueKind.Duration && ComposeKindAt("services:\n  web:\n    tty: tr|ue")?.Kind == EditorValueKind.Choice && ComposeKindAt("services:\n  web:\n    labels:\n      color: \"#ff00|00\"")?.Kind == EditorValueKind.Colour, "Compose duration, boolean and colour kinds");
     Check(ComposeKindAt("services:\n  web:\n    volumes:\n      - ./da|ta:/data")?.Text == "./data" && ComposeKindAt("services:\n  web:\n    volumes:\n      - data:/da|ta") == null, "Compose bind host path kind only on the host side");
+    Check(ComposeCompletion.Hover("services:\n  web:\n    restart: always\n", 22)?.Label == "restart" && ComposeCompletion.Hover("services:\n  web:\n", 3)?.Label == "services", "Compose hover documents keys by context");
+    Check(new UserSettings().SuggestionsWhileTyping, "suggestions while typing default on");
     Check(DockerfileSyntaxVersion.Parse("docker/dockerfile:1.4")!.Satisfies("1.4") && !DockerfileSyntaxVersion.Parse("docker/dockerfile:1.3")!.Satisfies("1.4") && DockerfileSyntaxVersion.Parse("example.com/custom:1")!.Satisfies("1.20"), "syntax version comparison");
 }
 Console.WriteLine($"UI state checks: {count} passed.");
