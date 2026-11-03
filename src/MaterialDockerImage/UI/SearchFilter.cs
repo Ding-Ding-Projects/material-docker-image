@@ -9,26 +9,46 @@ using MaterialDockerImage.Services;
 namespace MaterialDockerImage.UI;
 
 /// <summary>
-/// Search bar with plain-text matching and an adjacent regular expression builder. Each instance keeps its own
-/// isolated query, mode and builder state.
+/// Search bar used by every search and filter field in the app: plain-text matching by default, an explicit
+/// regular expression opt-in (the .* toggle) and its own anchored builder popover (Builder button, right-click on
+/// .* or Alt+R). Each instance keeps its own query, mode, flags, sample text and recent patterns in memory.
+/// Register every new instance in <see cref="SearchSurfaceCatalogue"/>.
 /// </summary>
 public sealed class SearchFilter : Border
 {
-    private readonly TextBox query = new() { Style = (Style)Application.Current.FindResource("Field.Search"), MinWidth = 120 };
+    private readonly TextBox query = new() { Style = (Style)Application.Current.FindResource("Field.Search"), MinWidth = 96 };
     private readonly ToggleButton regexToggle = new() { Content = ".*", Width = 36, Height = 28, Cursor = Cursors.Hand, FocusVisualStyle = null };
+    private readonly Button builderButton;
     private readonly TextBlock placeholder;
+    private string placeholderText;
+    private RegexSearchQuery? predicate;
+    private SearchBuilderPopover? builder;
     private string status = "";
     public event Action? Changed;
-    public string Placeholder { set => placeholder.Text = Loc.T(value); }
+
+    /// <summary>In-memory builder state for this field only (flags, sample, replacement, recent patterns).</summary>
+    public RegexFieldState State { get; } = new();
+    public string Placeholder { get => placeholderText; set { placeholderText = value; placeholder.Text = Loc.T(value); AutomationProperties.SetName(query, Loc.T(value)); } }
     public string Query { get => query.Text; set => query.Text = value; }
     public bool RegexMode { get => regexToggle.IsChecked == true; set => regexToggle.IsChecked = value; }
-    public bool IgnoreCase { get; set; } = true;
+    public RegexBuilderFlags Flags
+    {
+        get => State.Flags;
+        set { if (State.Flags == value) return; State.Flags = value; predicate = null; Changed?.Invoke(); }
+    }
+    public bool IgnoreCase { get => Flags.IgnoreCase; set => Flags = Flags with { IgnoreCase = value }; }
     public bool IsActive => query.Text.Length > 0;
+    /// <summary>Message about the last filtering pass (invalid pattern or timeout); empty when fine.</summary>
     public string Status => status;
     public TextBox Box => query;
+    public bool BuilderOpen => builder != null;
+
+    /// <summary>The current predicate, rebuilt only when the query, mode or flags change.</summary>
+    public RegexSearchQuery Predicate => predicate ??= new RegexSearchQuery(query.Text, RegexMode, Flags);
 
     public SearchFilter(string placeholderText = "Search", double width = 320)
     {
+        this.placeholderText = placeholderText;
         CornerRadius = new CornerRadius(20);
         Height = 40;
         Width = width;
@@ -36,11 +56,10 @@ public sealed class SearchFilter : Border
         SetResourceReference(BackgroundProperty, "SurfaceHigh");
         placeholder = Ui.Text(placeholderText, 14, null, "Outline", false);
         placeholder.IsHitTestVisible = false;
+        placeholder.TextTrimming = TextTrimming.CharacterEllipsis;
         var grid = new Grid();
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        foreach (var w in new[] { GridLength.Auto, new GridLength(1, GridUnitType.Star), GridLength.Auto, GridLength.Auto, GridLength.Auto })
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = w });
         grid.Children.Add(Ui.Icon(Icons.Search, 18).Margin(0, 0, 6, 0));
         var field = new Grid(); field.Children.Add(placeholder); field.Children.Add(query); Grid.SetColumn(field, 1); grid.Children.Add(field);
         var clear = Ui.IconButton(Icons.Close, "Clear search", () => { query.Clear(); query.Focus(); });
@@ -48,22 +67,38 @@ public sealed class SearchFilter : Border
         Grid.SetColumn(clear, 2); grid.Children.Add(clear);
         regexToggle.Template = ToggleTemplate();
         regexToggle.SetResourceReference(Control.FontFamilyProperty, "MonoFont");
-        regexToggle.ToolTip = Loc.T("Regular expression mode. Right-click or Alt+R for the builder.");
+        regexToggle.ToolTip = Loc.T("Regular expression mode (off: plain text). Right-click or Alt+R opens the builder.");
         AutomationProperties.SetName(regexToggle, Loc.T("Regular expression mode"));
-        regexToggle.Checked += (_, _) => Changed?.Invoke(); regexToggle.Unchecked += (_, _) => Changed?.Invoke();
+        AutomationProperties.SetHelpText(regexToggle, Loc.T("Off matches the text as typed. On treats it as a .NET regular expression."));
+        regexToggle.Checked += (_, _) => { predicate = null; Changed?.Invoke(); };
+        regexToggle.Unchecked += (_, _) => { predicate = null; Changed?.Invoke(); };
         regexToggle.MouseRightButtonUp += (_, e) => { OpenBuilder(); e.Handled = true; };
         Grid.SetColumn(regexToggle, 3); grid.Children.Add(regexToggle);
+        builderButton = Ui.IconButton(Icons.Tune, "Regular expression builder (Alt+R)", OpenBuilder);
+        builderButton.Width = builderButton.Height = builderButton.MinHeight = 28; builderButton.FontSize = 16; builderButton.Margin = new Thickness(2, 0, 0, 0);
+        builderButton.ToolTip = Loc.T("Regular expression builder for this search (Alt+R)");
+        AutomationProperties.SetHelpText(builderButton, Loc.T("Opens a builder beside this field. Esc closes it and returns to the field."));
+        Grid.SetColumn(builderButton, 4); grid.Children.Add(builderButton);
         Child = grid;
         AutomationProperties.SetName(query, Loc.T(placeholderText));
-        query.TextChanged += (_, _) => { placeholder.Visibility = query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed; clear.Visibility = query.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible; status = ""; Changed?.Invoke(); };
-        query.PreviewKeyDown += (_, e) =>
+        AutomationProperties.SetHelpText(query, Loc.T("Plain text search. Alt+R opens the regular expression builder."));
+        query.TextChanged += (_, _) =>
         {
-            if (e.Key == Key.Escape && query.Text.Length > 0) { query.Clear(); e.Handled = true; }
-            else if (e.Key == Key.R && Keyboard.Modifiers == ModifierKeys.Alt) { OpenBuilder(); e.Handled = true; }
+            placeholder.Visibility = query.Text.Length == 0 ? Visibility.Visible : Visibility.Collapsed;
+            clear.Visibility = query.Text.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+            status = ""; predicate = null;
+            Changed?.Invoke();
+        };
+        query.PreviewKeyDown += (_, e) => { if (e.Key == Key.Escape && query.Text.Length > 0) { query.Clear(); e.Handled = true; } };
+        // Alt+R arrives as Key.System with SystemKey R; handled for the field, the toggle and the builder button.
+        PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == Key.System && e.SystemKey == Key.R && Keyboard.Modifiers == ModifierKeys.Alt) { OpenBuilder(); e.Handled = true; }
         };
         GotKeyboardFocus += (_, _) => SetResourceReference(BorderBrushProperty, "Primary");
         LostKeyboardFocus += (_, _) => BorderBrush = null;
         BorderThickness = new Thickness(2);
+        Unloaded += (_, _) => builder?.Close();
     }
 
     private static ControlTemplate ToggleTemplate()
@@ -88,62 +123,42 @@ public sealed class SearchFilter : Border
         return template;
     }
 
-    /// <summary>Anchored builder: pattern synchronized with this search, snippets, flags, live test and explanation.</summary>
+    /// <summary>Opens (or focuses) this field's anchored builder popover.</summary>
     public void OpenBuilder()
     {
-        var pattern = Ui.Input(query.Text, "Pattern", true);
-        var sample = Ui.CodeBox("", 90);
-        var result = Ui.Caption("");
-        var ignore = Ui.Check("Ignore case", IgnoreCase, v => { IgnoreCase = v; Changed?.Invoke(); });
-        var multiline = Ui.Check("Multiline anchors", false);
-        void Test()
+        if (builder != null) { builder.Focus(); return; }
+        builder = new SearchBuilderPopover(this);
+        builder.Closed += returnFocus =>
         {
-            try
-            {
-                var options = (IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None) | (multiline.IsChecked == true ? RegexOptions.Multiline : RegexOptions.None);
-                var matches = Regex.Matches(sample.Text, pattern.Text, options, TimeSpan.FromMilliseconds(100));
-                result.Text = matches.Count == 0 ? Loc.T("No match in the sample.") : $"{matches.Count} match(es); first at index {matches[0].Index}: \"{Trim(matches[0].Value)}\"" + (matches[0].Groups.Count > 1 ? $", {matches[0].Groups.Count - 1} capture group(s)" : "");
-            }
-            catch (ArgumentException e) { result.Text = "Invalid pattern: " + e.Message; }
-            catch (RegexMatchTimeoutException) { result.Text = "The pattern exceeded the 100 ms limit."; }
-        }
-        pattern.TextChanged += (_, _) => { if (query.Text != pattern.Text) query.Text = pattern.Text; RegexMode = true; Test(); };
-        sample.TextChanged += (_, _) => Test();
-        var snippets = new WrapPanel();
-        foreach (var (snippet, meaning) in new[] { ("^", "Start of text"), ("$", "End of text"), (".*", "Anything"), ("\\d+", "Digits"), ("[A-Za-z]+", "Letters"), ("\\b", "Word boundary"), ("(?:)", "Group"), ("|", "Or"), ("(?i)", "Ignore case inline"), ("[0-9a-f]{12}", "Short image ID") })
-        {
-            var b = Ui.Button(snippet, null, ButtonKind.Outlined, () => { pattern.SelectedText = snippet; pattern.CaretIndex = pattern.SelectionStart + snippet.Length; pattern.Focus(); }, false);
-            b.ToolTip = meaning; b.MinHeight = 32; b.Height = 32; b.Margin = new Thickness(0, 0, 6, 6); b.Padding = new Thickness(10, 0, 10, 0);
-            b.SetResourceReference(Control.FontFamilyProperty, "MonoFont");
-            snippets.Children.Add(b);
-        }
-        var body = Ui.VStack(10,
-            Ui.Text("Regular expression builder", 16, FontWeights.SemiBold),
-            Ui.Caption("Synchronized with this search only. Engine: .NET " + Environment.Version.ToString(2) + " regular expressions, 100 ms timeout per match."),
-            Ui.Field("Pattern", pattern), snippets, Ui.HStack(12, ignore, multiline),
-            Ui.Field("Test against a local sample", sample), result,
-            Ui.Caption("Replacement, flavour conversion, benchmarking and file search are separate workbench topics that are not implemented here."));
-        Ui.ShowPopup(regexToggle, body, 440);
-        Test();
+            builder = null;
+            if (returnFocus) Dispatcher.BeginInvoke(() => { query.Focus(); Keyboard.Focus(query); }, System.Windows.Threading.DispatcherPriority.Input);
+        };
+        builder.Open();
     }
-    private static string Trim(string s) => s.Length > 40 ? s[..40] + "…" : s;
 
+    /// <summary>True when the text matches. Plain text is a contains test; regex mode uses the bounded engine.</summary>
     public bool Matches(string text)
     {
-        if (string.IsNullOrEmpty(query.Text)) return true;
-        if (!RegexMode) return text.Contains(query.Text, IgnoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
-        try { return Regex.IsMatch(text, query.Text, IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None, TimeSpan.FromMilliseconds(100)); }
-        catch (ArgumentException) { status = "Invalid pattern. Correct the expression to filter results."; return false; }
-        catch (RegexMatchTimeoutException) { status = "Pattern exceeded the 100 ms limit. Simplify the expression."; return false; }
+        var p = Predicate;
+        var result = p.Matches(text);
+        status = !p.IsValid ? (p.Error ?? "Invalid pattern.") + " Correct the expression to filter results."
+            : p.TimedOut ? $"The pattern exceeded the {RegexBuilderEngine.MatchTimeout.TotalMilliseconds:0} ms limit on some items, which are hidden. Simplify the expression."
+            : "";
+        return result;
     }
 
     /// <summary>True when the current pattern can run (used to refuse bulk actions on invalid patterns).</summary>
-    public bool IsValid
+    public bool IsValid => Predicate.IsValid;
+
+    /// <summary>
+    /// A compiled regex for find-in-text consumers, honouring this field's flags (plus <paramref name="extra"/>
+    /// Multiline when requested). Null when regex mode is off, the query is empty, or the pattern is invalid.
+    /// </summary>
+    public Regex? CreateRegex(RegexOptions extra = RegexOptions.None)
     {
-        get
-        {
-            if (!RegexMode || query.Text.Length == 0) return true;
-            try { _ = new Regex(query.Text, RegexOptions.None, TimeSpan.FromMilliseconds(100)); return true; } catch (ArgumentException) { return false; }
-        }
+        if (!RegexMode || query.Text.Length == 0) return null;
+        var flags = Flags;
+        if (extra.HasFlag(RegexOptions.Multiline)) flags = flags with { Multiline = true };
+        return RegexBuilderEngine.Compile(query.Text, flags).Regex;
     }
 }

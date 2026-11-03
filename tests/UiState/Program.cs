@@ -427,4 +427,143 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     var repaired=AppearanceState.FromSettings(corrupt);
     Check(repaired.RadiusScale==1&&repaired.MotionLevel=="Standard"&&repaired.Roles.Count==0,"corrupt saved appearance is repaired, not applied");
 }
+// Regex builder: plain text by default, bounded .NET evaluation, explanation tree, library and catalogue guard.
+{
+    var ci=new RegexBuilderFlags(); var cs=ci with{IgnoreCase=false};
+    var plain=new RegexSearchQuery("a.b",false,ci);
+    Check(plain.Matches("xA.By")&&!plain.Matches("axb")&&plain.Engine=="Plain text","plain text is the default and treats . literally");
+    Check(!new RegexSearchQuery("A.B",false,cs).Matches("a.b"),"plain text honours case sensitivity");
+    Check(new RegexSearchQuery("",true,ci).Matches("anything")&&new RegexSearchQuery("a.b",true,ci).Matches("axb"),"empty query matches all and regex mode is an explicit opt-in");
+    var bad=RegexBuilderEngine.Compile("ab(cd",ci);
+    Check(!bad.Valid&&bad.ErrorIndex==5&&bad.Error!.Contains("position 5"),"invalid pattern reports the error position: "+bad.Error);
+    var bad2=RegexBuilderEngine.Compile("a[b",ci);
+    Check(!bad2.Valid&&bad2.ErrorIndex>=1,"unterminated set is invalid with a position");
+    var badQuery=new RegexSearchQuery("(",true,ci);
+    Check(!badQuery.IsValid&&!badQuery.Matches("(")&&badQuery.Error!=null,"invalid pattern never throws and matches nothing");
+    Check(RegexBuilderEngine.Compile(@"\d+",ci).Engine==RegexBuilderEngine.NonBacktrackingEngine,"NonBacktracking engine chosen when supported");
+    var look=RegexBuilderEngine.Compile(@"(?<=a)b",ci);
+    Check(look.Valid&&look.Engine==RegexBuilderEngine.BacktrackingEngine&&look.FallbackReason!=null&&look.Regex!.MatchTimeout==TimeSpan.FromMilliseconds(250),"lookbehind falls back to backtracking with a 250 ms timeout");
+    Check(RegexBuilderEngine.Compile(@"(a)\1",ci).Engine==RegexBuilderEngine.BacktrackingEngine,"backreference falls back to backtracking");
+    Check(new RegexSearchQuery("HELLO",true,ci).Matches("say hello")&&!new RegexSearchQuery("HELLO",true,cs).Matches("say hello"),"IgnoreCase flag");
+    Check(RegexBuilderEngine.Evaluate("^b$",ci with{Multiline=true},"a\nb\nc").Matches.Count==1&&RegexBuilderEngine.Evaluate("^b$",ci,"a\nb\nc").Matches.Count==0,"Multiline flag changes ^ and $");
+    Check(RegexBuilderEngine.Evaluate("a.c",ci with{Singleline=true},"a\nc").Matches.Count==1&&RegexBuilderEngine.Evaluate("a.c",ci,"a\nc").Matches.Count==0,"Singleline flag lets . match newline");
+    Check(RegexBuilderEngine.Evaluate("a b # comment",ci with{IgnorePatternWhitespace=true},"ab").Matches.Count==1,"IgnorePatternWhitespace flag ignores spaces and comments");
+    var explicitCap=RegexBuilderEngine.Evaluate("(a)(?<n>b)",ci with{ExplicitCapture=true},"ab");
+    Check(explicitCap.Matches[0].Groups.Count==1&&explicitCap.Matches[0].Groups[0].Name=="n","ExplicitCapture flag captures only named groups");
+    var prev=System.Globalization.CultureInfo.CurrentCulture;
+    try{System.Globalization.CultureInfo.CurrentCulture=new("tr-TR");
+        Check(new RegexSearchQuery("i",true,ci with{CultureInvariant=true}).Matches("I"),"CultureInvariant flag uses invariant case rules");}
+    finally{System.Globalization.CultureInfo.CurrentCulture=prev;}
+    var uni=RegexBuilderEngine.Evaluate(@"\p{Lu}\p{Ll}+",cs,"東京 Zürich Ωmega 😀x");
+    Check(uni.Matches.Select(m=>m.Value).SequenceEqual(new[]{"Zürich","Ωmega"}),"Unicode categories match non-ASCII letters");
+    Check(RegexBuilderEngine.Evaluate("x",ci,"😀x").Matches[0].Index==2,"indices are UTF-16 positions after a surrogate pair");
+    var caps=RegexBuilderEngine.Evaluate(@"(?<year>\d{4})-(\d{2})",ci,"on 2026-11 and 2027-01");
+    Check(caps.Matches.Count==2&&caps.Matches[0].Groups.Any(g=>g.Name=="year"&&g.Value=="2026"&&g.Index==3)&&caps.Matches[1].Groups.Any(g=>g.Number==1&&g.Value=="01"),"named and numbered captures with positions");
+    var zero=RegexBuilderEngine.Evaluate(@"\b",ci,"ab cd");
+    Check(zero.Matches.Count==4&&zero.Matches.All(m=>m.ZeroWidth)&&zero.Summary().Contains("zero-width"),"zero-width matches are counted and labelled");
+    var none=RegexBuilderEngine.Evaluate("xyz",ci,"abc");
+    Check(none.Valid&&none.Matches.Count==0&&none.Summary()=="No match in the sample.","no match state");
+    var evil=new string('a',40)+"!";
+    var sw=System.Diagnostics.Stopwatch.StartNew();
+    var linear=RegexBuilderEngine.Evaluate("(a+)+$",ci,evil);
+    Check(linear.Engine==RegexBuilderEngine.NonBacktrackingEngine&&linear.Matches.Count==0&&!linear.TimedOut&&sw.ElapsedMilliseconds<2000,"catastrophic pattern runs in linear time on NonBacktracking");
+    sw.Restart();
+    var timed=RegexBuilderEngine.Evaluate(@"^(a+)+\1$",ci,new string('a',36)+"!");
+    Check(timed.Engine==RegexBuilderEngine.BacktrackingEngine&&timed.TimedOut&&sw.ElapsedMilliseconds<3000&&timed.Summary().Contains("250 ms"),"adversarial backtracking pattern stops at the timeout ("+sw.ElapsedMilliseconds+" ms)");
+    Check(!new RegexSearchQuery(@"^(a+)+\1$",true,ci).Matches(new string('a',36)+"!"),"filter predicate treats a timeout as no match");
+    var big=new string('x',70000)+"é";
+    var bounded=RegexBuilderEngine.Evaluate("x",ci,big);
+    Check(bounded.SampleTruncated&&System.Text.Encoding.UTF8.GetByteCount(bounded.Sample)<=65536&&bounded.Matches.Count==2000&&bounded.MatchesTruncated,"sample capped at 64 KiB and highlights capped at 2000");
+    Check(RegexBuilderEngine.BoundSample(new string('é',40000),out var cut).Length==32768&&cut,"sample bound counts UTF-8 bytes");
+    Check(!RegexBuilderEngine.Compile(new string('a',5000),ci).Valid,"overlong pattern refused");
+    using(var cts=new CancellationTokenSource()){cts.Cancel();var c=RegexBuilderEngine.Evaluate("a",ci,"aaa",cts.Token);Check(c.Cancelled&&c.Matches.Count==0,"cancelled evaluation stops before matching");}
+    using(var cts=new CancellationTokenSource()){var task=Task.Run(()=>RegexBuilderEngine.Evaluate(@"\w",ci,new string('a',60000),cts.Token,int.MaxValue));cts.Cancel();var r=task.Result;Check(r.Cancelled||r.Matches.Count==60000,"evaluation off the calling thread observes cancellation");}
+    var rep=RegexBuilderEngine.Replace(@"(?<k>\w+)=(\w+)",ci,"a=1 b=2","$1:${k} $9");
+    Check(rep.Valid&&rep.Output=="1:a $9 2:b $9"&&rep.Replacements==2&&rep.Warnings.Count==1,"replace preview with numbered and named substitutions warns about unknown groups");
+    foreach(var literal in new[]{"a.b*c","C:\\path\\(x)","[tag]{1} $5 ^#","日本 😀 | ?"})
+        Check(RegexBuilderLibrary.Unescape(RegexBuilderLibrary.Literal(literal))==literal&&new RegexSearchQuery(RegexBuilderLibrary.Literal(literal),true,cs with{IgnorePatternWhitespace=true}).Matches("<"+literal+">"),"escaping round trip: "+literal);
+    Check(RegexBuilderEngine.ToCSharpVerbatim("a\"b\\d")=="@\"a\"\"b\\d\"","copy as C# verbatim string doubles quotes");
+    using(var json=System.Text.Json.JsonDocument.Parse(RegexBuilderEngine.ExportJson(@"\d+",ci with{Multiline=true},"x1")))
+        Check(json.RootElement.GetProperty("pattern").GetString()==@"\d+"&&json.RootElement.GetProperty("flags").GetProperty("multiline").GetBoolean()&&json.RootElement.GetProperty("sample").GetString()=="x1"&&json.RootElement.GetProperty("engine").GetString()=="NonBacktracking","export JSON has pattern, flags, engine and sample");
+    Check(RegexBuilderLibrary.CharacterSet(new[]{"a-z","\\d","]","^","-"},true)=="[^a-z\\d\\]\\^\\-]"&&new RegexSearchQuery(RegexBuilderLibrary.CharacterSet(new[]{"a-z","]"},false),true,cs).Matches("]"),"character set editor escapes members");
+    Reject(()=>RegexBuilderLibrary.CharacterSet(new[]{"z-a"},false),"reverse range refused");
+    Check(RegexBuilderLibrary.Quantifier(0,1,false)=="?"&&RegexBuilderLibrary.Quantifier(0,null,true)=="*?"&&RegexBuilderLibrary.Quantifier(3,3,false)=="{3}"&&RegexBuilderLibrary.Quantifier(2,null,false)=="{2,}"&&RegexBuilderLibrary.Quantifier(2,5,true)=="{2,5}?","quantifier composer");
+    Reject(()=>RegexBuilderLibrary.Quantifier(5,2,false),"quantifier max below min refused");
+    Check(RegexBuilderLibrary.NamedGroup("year",@"\d{4}")==@"(?<year>\d{4})"&&RegexBuilderLibrary.Backreference(2)==@"\2"&&RegexBuilderLibrary.Backreference("year")==@"\k<year>"&&RegexBuilderLibrary.Alternation(new[]{"a.b","c"})==@"(?:a\.b|c)"&&RegexBuilderLibrary.UnicodeCategory("Lu",true)==@"\P{Lu}","group, backreference, alternation and category composers");
+    Reject(()=>RegexBuilderLibrary.NamedGroup("1bad","x"),"invalid group name refused");
+    foreach(var t in RegexBuilderLibrary.Tokens) Check(RegexBuilderEngine.Validate(t.Family=="Quantifiers"?"a"+t.Prefix:t.Prefix+"a"+t.Suffix,ci).Valid,"token inserts a valid pattern: "+t.Label);
+    foreach(var s in RegexBuilderLibrary.Snippets)
+    {
+        var e=RegexBuilderEngine.Evaluate(s.Pattern,s.Flags??ci,s.Example);
+        Check(e.Valid&&e.Matches.Count>0&&e.Matches[0].Value==s.ExpectedMatch,"library "+s.Id+" matches its example ("+(e.Matches.Count>0?e.Matches[0].Value:e.Error)+")");
+        Check(RegexBuilderEngine.Evaluate(s.Pattern,s.Flags??ci,s.NonMatch).Matches.Count==0,"library "+s.Id+" rejects its counter-example");
+    }
+    Check(new RegexSearchQuery(RegexBuilderLibrary.Snippets.First(s=>s.Id=="ipv6").Pattern,true,ci).Matches("::1"),"IPv6 snippet matches loopback");
+    // Explanation tree: every token family is described.
+    var nodes=RegexExplainer.Flatten(RegexExplainer.Explain(@"^(?<y>\d{4})-(\d\d)?|[^a-c\s]+?\b(?=x)(?<!y)(?:z)\k<y>\1.\p{L}$",ci)).ToList();
+    var families=nodes.Select(n=>n.Node.Family).ToHashSet();
+    foreach(var fam in new[]{RegexTokenFamily.Anchor,RegexTokenFamily.Group,RegexTokenFamily.Quantifier,RegexTokenFamily.CharacterClass,RegexTokenFamily.Alternation,RegexTokenFamily.Branch,RegexTokenFamily.Lookaround,RegexTokenFamily.Backreference,RegexTokenFamily.Any,RegexTokenFamily.UnicodeCategory,RegexTokenFamily.Literal})
+        Check(families.Contains(fam),"explanation covers "+fam);
+    Check(nodes.All(n=>n.Node.Description.Length>0)&&!families.Contains(RegexTokenFamily.Error),"every explained token has a description and no false errors");
+    Check(nodes.Any(n=>n.Node.Description.StartsWith("Named capturing group 'y'")&&n.Node.Description.Contains("group number 2")),"named group numbered after unnamed groups like .NET");
+    Check(nodes.Any(n=>n.Node.Family==RegexTokenFamily.Quantifier&&n.Node.Description.Contains("lazy")),"lazy quantifier explained");
+    var lit=RegexExplainer.Explain(@"abc\.d",ci);
+    Check(lit.Count==1&&lit[0].Family==RegexTokenFamily.Literal&&lit[0].Description=="The exact text \"abc.d\".","adjacent literals and escaped characters merge");
+    var q=RegexExplainer.Explain("ab+",ci);
+    Check(q.Count==2&&q[1].Family==RegexTokenFamily.Quantifier&&q[1].Children[0].Text=="b","quantifier applies to the last character only");
+    Check(RegexExplainer.Flatten(RegexExplainer.Explain("(?i)a(?#note)",ci)).Any(n=>n.Node.Family==RegexTokenFamily.InlineOptions)&&RegexExplainer.Flatten(RegexExplainer.Explain("(?#note)",ci)).Any(n=>n.Node.Family==RegexTokenFamily.Comment),"inline options and comments explained");
+    foreach(var broken in new[]{"(ab","a)","[ab","*a",@"a\","a{3,1}",@"\q","(?<1x>a)"})
+        Check(RegexExplainer.Flatten(RegexExplainer.Explain(broken,ci)).Any(n=>n.Node.Family==RegexTokenFamily.Error)&&!RegexBuilderEngine.Validate(broken,ci).Valid,"explanation flags malformed "+broken);
+    var multi=RegexExplainer.Explain("^.$",ci with{Multiline=true,Singleline=true});
+    Check(multi[0].Description.Contains("line")&&multi[1].Description.Contains("including a newline"),"explanation reflects Multiline and Singleline");
+    // Saved patterns (explicit save only), recent list, independent field state.
+    var regexStore=Path.Combine(Path.GetTempPath(),"mdi-regex-"+Guid.NewGuid().ToString("N")+".json");
+    try
+    {
+        Check(RegexPatternStore.Load(regexStore).Count==0,"no saved patterns file is an empty library");
+        var lib=RegexPatternStore.Add(new List<RegexSavedPattern>(),new("Digits",@"\d+",ci with{Multiline=true},DateTimeOffset.UnixEpoch));
+        lib=RegexPatternStore.Add(lib,new("digits",@"\d{2}",ci,DateTimeOffset.UnixEpoch));
+        RegexPatternStore.Save(regexStore,lib);
+        var back=RegexPatternStore.Load(regexStore);
+        Check(back.Count==1&&back[0].Pattern==@"\d{2}","saved pattern round trip replaces same name");
+        Reject(()=>RegexPatternStore.Add(back,new("bad","(",ci,DateTimeOffset.UnixEpoch)),"invalid pattern cannot be saved");
+        var full=Enumerable.Range(0,200).Select(i=>new RegexSavedPattern("p"+i,"a",ci,DateTimeOffset.UnixEpoch)).ToList();
+        Reject(()=>RegexPatternStore.Add(full,new("p999","a",ci,DateTimeOffset.UnixEpoch)),"library bounded to 200 entries");
+        Check(RegexPatternStore.Remove(back,"DIGITS").Count==0,"saved pattern removable");
+        File.WriteAllText(regexStore,"{not json");
+        try{RegexPatternStore.Load(regexStore);throw new Exception("Expected refusal: corrupt saved patterns");}catch(InvalidDataException){count++;Console.WriteLine("PASS corrupt saved patterns file refused");}
+    }
+    finally{File.Delete(regexStore);}
+    var a=new RegexFieldState();var b=new RegexFieldState();
+    a.Recent.Add(@"\d",ci);a.Recent.Add("(",ci);a.Sample="x";a.Flags=a.Flags with{Multiline=true};
+    Check(a.Recent.Items.Count==1&&b.Recent.Items.Count==0&&b.Sample==""&&!b.Flags.Multiline,"field state and recent list are independent per field and skip invalid patterns");
+    for(var i=0;i<20;i++)a.Recent.Add("p"+i,ci);
+    Check(a.Recent.Items.Count==RegexRecentPatterns.Capacity&&a.Recent.Items[0]=="p19","recent list is bounded, newest first");
+    // Bulk tab close: one predicate, preview, guards, pinned and unsaved protection.
+    var tabList=new[]{new TabCloseCandidate(0,"Workspace · Build",false,true,false),new TabCloseCandidate(1,"Images",true,false,false),new TabCloseCandidate(2,"Image compare",false,false,false),new TabCloseCandidate(3,"Containers",false,false,false),new TabCloseCandidate(4,"Images draft",false,false,true)};
+    var closeIn=TabCloseSelector.Select(tabList,new RegexSearchQuery("image",false,ci),true);
+    Check(closeIn.Valid&&closeIn.ToClose.Select(t=>t.Index).SequenceEqual(new[]{2})&&closeIn.Kept.Count==2,"close containing keeps pinned and unsaved tabs");
+    Check(TabCloseSelector.Select(tabList,new RegexSearchQuery("image",false,ci),true,true).ToClose.Count==2,"pinned tabs close only when included");
+    var closeOut=TabCloseSelector.Select(tabList,new RegexSearchQuery("^Image",true,ci),false);
+    Check(closeOut.ToClose.Select(t=>t.Index).SequenceEqual(new[]{3})&&closeOut.Kept.Any(k=>k.Tab.Index==0),"close not containing uses the same predicate and never closes the workspace tab");
+    Check(!TabCloseSelector.Select(tabList,new RegexSearchQuery("",false,ci),true).Valid&&!TabCloseSelector.Select(tabList,new RegexSearchQuery("(",true,ci),false).Valid,"empty and invalid queries close nothing");
+    // Completeness guard: every search field in the app source is catalogued and built through SearchFilter.
+    var dir=new DirectoryInfo(AppContext.BaseDirectory);
+    while(dir!=null&&!Directory.Exists(Path.Combine(dir.FullName,"src","MaterialDockerImage"))) dir=dir.Parent;
+    var appSource=Path.Combine(dir!.FullName,"src","MaterialDockerImage");
+    var scan=SearchSurfaceCatalogue.Scan(appSource);
+    var problems=SearchSurfaceCatalogue.Verify(scan);
+    foreach(var problem in problems) Console.WriteLine("CATALOGUE "+problem);
+    Check(problems.Count==0&&scan.Count==SearchSurfaceCatalogue.All.Count,$"search surface catalogue complete ({SearchSurfaceCatalogue.All.Count} surfaces)");
+    Check(scan.Any(s=>s.File.StartsWith("Pages/"))&&scan.Any(s=>s.File.StartsWith("Shell/")),"guard scans Pages and Shell");
+    var fakeRoot=Path.Combine(Path.GetTempPath(),"mdi-guard-"+Guid.NewGuid().ToString("N"));
+    try
+    {
+        Directory.CreateDirectory(Path.Combine(fakeRoot,"Pages"));
+        File.WriteAllText(Path.Combine(fakeRoot,"Pages","New.cs"),"var s = new SearchFilter(\"Search widgets\", 200);\nvar t = new TextBox { Style = (Style)FindResource(\"Field.Search\") };\nvar u = Ui.Input(\"\", \"Filter rows\");");
+        var fake=SearchSurfaceCatalogue.Verify(SearchSurfaceCatalogue.Scan(fakeRoot));
+        Check(fake.Count(p=>p.StartsWith("Pages/New.cs"))==3,"guard fails for an unregistered search field and raw search text boxes");
+    }
+    finally{Directory.Delete(fakeRoot,true);}
+}
 Console.WriteLine($"UI state checks: {count} passed.");

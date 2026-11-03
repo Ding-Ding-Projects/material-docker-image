@@ -21,7 +21,7 @@ The palette lists every command, destination and setting. Rows for settings cont
 
 ## Search everywhere
 
-Every list, table, menu, log and source viewer has its own search field with a `.*` regular expression toggle. Right-click the toggle, or press `Alt+R` in the field, for the builder: synchronized pattern, snippets, case and multiline options, and a live test against your own sample text. Matching uses .NET regular expressions with a 100 ms timeout per match. Each search keeps its own state.
+Every list, table, menu, log and source viewer has its own search field. It matches plain text by default and has a `.*` regular expression toggle. The builder button next to the toggle, a right-click on the toggle, or `Alt+R` opens that field's own builder, which offers guided insertion, flags, an explanation tree, a bounded live test, a replace preview, a snippet library and saved patterns. Each search keeps its own state. See [Search and the regular expression builder](search-and-regex.md) for the engine, the limits and the tab bulk close commands.
 
 ## Lists
 

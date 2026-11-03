@@ -64,7 +64,8 @@ public sealed class TextFindBar : Grid
         {
             if (search.RegexMode)
             {
-                var regex = new Regex(query, search.IgnoreCase ? RegexOptions.IgnoreCase | RegexOptions.Multiline : RegexOptions.Multiline, TimeSpan.FromMilliseconds(200));
+                // The field's flags and engine (non-backtracking when possible); ^ and $ always work per line here.
+                var regex = search.CreateRegex(RegexOptions.Multiline) ?? throw new ArgumentException(search.Predicate.Error);
                 foreach (Match m in regex.Matches(text))
                 {
                     if (m.Length == 0) continue;
