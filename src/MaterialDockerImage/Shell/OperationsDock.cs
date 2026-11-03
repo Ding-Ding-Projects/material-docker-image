@@ -26,6 +26,8 @@ public sealed class OperationsDock : Border
     private string currentLabel = "";
     public event Action? CancelRequested;
     public bool Expanded { get; private set; } = true;
+    /// <summary>Short windows give the output panel less height so the page keeps its working space.</summary>
+    public bool CompactHeight { set => body.Height = value ? 96 : 170; }
     public string Transcript => transcript.ToString();
 
     public OperationsDock()

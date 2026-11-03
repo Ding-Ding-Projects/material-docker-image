@@ -152,7 +152,7 @@
     <Setter Property="Template">
       <Setter.Value>
         <ControlTemplate TargetType="RadioButton">
-          <Border x:Name="root" Background="Transparent" Width="80" Height="56" Margin="0,1">
+          <Border x:Name="root" Background="Transparent" Width="80" MinHeight="40" Padding="0,4" Margin="0,1">
             <StackPanel VerticalAlignment="Center">
               <Border x:Name="pill" Width="56" Height="32" CornerRadius="16" Background="Transparent" HorizontalAlignment="Center">
                 <Border.Child>

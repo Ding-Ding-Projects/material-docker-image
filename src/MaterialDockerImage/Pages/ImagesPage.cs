@@ -67,12 +67,7 @@ public sealed partial class ImagesPage : PageBase
         left.Children.Add(table.At(1));
         left.Children.Add(prune.At(2));
 
-        var body = new Grid();
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 360 });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        body.Children.Add(left);
-        body.Children.Add(inspector.At(0, 1));
-        body.SizeChanged += (_, e) => inspector.Width = e.NewSize.Width < 1000 ? 320 : 400;
+        var body = Ui.SplitInspector(left, inspector, 1100, 400);
         Layout(header, body);
     }
 

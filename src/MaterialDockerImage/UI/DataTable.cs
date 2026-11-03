@@ -81,11 +81,14 @@ public sealed class DataTable<T> : Grid
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         var toolbar = new DockPanel { Margin = new Thickness(0, 0, 0, 8), LastChildFill = true };
-        toolbar.Children.Add(Search.Dock(System.Windows.Controls.Dock.Left));
         var export = Ui.IconButton(Icons.FileExport, "Export visible rows", () => ExportMenu());
         toolbar.Children.Add(export.Dock(System.Windows.Controls.Dock.Right));
-        FilterBar.Margin = new Thickness(12, 0, 0, 0);
-        toolbar.Children.Add(FilterBar);
+        var searchAndFilters = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        Search.Margin = new Thickness(0, 0, 12, 4);
+        searchAndFilters.Children.Add(Search);
+        FilterBar.Margin = new Thickness(0, 4, 0, 4);
+        searchAndFilters.Children.Add(FilterBar);
+        toolbar.Children.Add(searchAndFilters);
         Children.Add(toolbar);
         var bulkContent = new DockPanel();
         var check = Ui.Icon(Icons.CheckBox, 20, true, "OnPrimaryContainer").Margin(0, 0, 10, 0);

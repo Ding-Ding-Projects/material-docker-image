@@ -79,12 +79,7 @@ public sealed partial class ContainersPage : PageBase
         left.Children.Add(errorHost);
         left.Children.Add(table.At(1));
 
-        var body = new Grid();
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 340 });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        body.Children.Add(left);
-        body.Children.Add(inspector.At(0, 1));
-        body.SizeChanged += (_, e) => inspector.Width = e.NewSize.Width < 1000 ? 360 : 420;
+        var body = Ui.SplitInspector(left, inspector, 1100, 420);
         Layout(header, body);
     }
 

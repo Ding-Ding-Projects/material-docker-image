@@ -299,6 +299,41 @@ public static class Ui
         return c;
     }
 
+    /// <summary>
+    /// A list beside an inspector on wide layouts; below the breakpoint the inspector moves under the list so
+    /// neither is squeezed.
+    /// </summary>
+    public static Grid SplitInspector(FrameworkElement list, FrameworkElement inspector, double breakpoint = 1100, double wideInspectorWidth = 400, double gap = 12)
+    {
+        var grid = new Grid();
+        grid.Children.Add(list); grid.Children.Add(inspector);
+        bool? wide = null;
+        void Arrange()
+        {
+            var now = grid.ActualWidth <= 0 || grid.ActualWidth >= breakpoint;
+            if (wide == now) return;
+            wide = now;
+            grid.ColumnDefinitions.Clear(); grid.RowDefinitions.Clear();
+            if (now)
+            {
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wideInspectorWidth + gap) });
+                list.At(0, 0); inspector.At(0, 1);
+                inspector.Width = wideInspectorWidth; inspector.Margin = new Thickness(gap, 0, 0, 0);
+            }
+            else
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1.2, GridUnitType.Star), MinHeight = 160 });
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 140 });
+                list.At(0, 0); inspector.At(1, 0);
+                inspector.Width = double.NaN; inspector.Margin = new Thickness(0, gap, 0, 0);
+            }
+        }
+        grid.SizeChanged += (_, _) => Arrange();
+        Arrange();
+        return grid;
+    }
+
     public static Border Divider(bool vertical = false)
     {
         var b = vertical ? new Border { Width = 1 } : new Border { Height = 1 };

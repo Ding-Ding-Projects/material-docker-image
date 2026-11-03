@@ -44,6 +44,7 @@ public partial class MainWindow : Window
     {
         CaptureMode = capture;
         InitializeComponent();
+        if (capture) SourceInitialized += (_, _) => System.Windows.Interop.HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle)?.AddHook(AllowLargerThanScreen);
         Loc.Language = settings.Language; Loc.FunnyEnglish = settings.FunnyEnglish; Loc.FunnyCantonese = settings.FunnyCantonese; Loc.DialogEmoji = settings.DialogEmoji; Loc.SchoolMode = settings.SchoolMode;
         if (!string.IsNullOrWhiteSpace(settings.PersonalVocabularyPath) && File.Exists(settings.PersonalVocabularyPath)) Loc.LoadVocabulary(settings.PersonalVocabularyPath);
         ApplyAppearance();
@@ -84,6 +85,9 @@ public partial class MainWindow : Window
         var narrow = ActualWidth > 0 && ActualWidth < 1180;
         PaletteSlot.Width = narrow ? 220 : 460;
         Provenance.Visibility = ActualWidth > 0 && ActualWidth < 1040 ? Visibility.Collapsed : Visibility.Visible;
+        var shortWindow = ActualHeight > 0 && ActualHeight < 900;
+        foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
+        dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
     }
 
     private void ApplyAppearance()
@@ -100,7 +104,7 @@ public partial class MainWindow : Window
         Provenance.Text = $"{Loc.T("Version")} {version} · {Loc.T("Updated")} " + (DateTimeOffset.TryParse(stamp, out var t) ? t.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") + " UTC" + t.ToLocalTime().ToString("zzz") : "provenance unavailable");
         RailColumn.Width = new GridLength(settings.FocusMode ? 72 : 96);
         clockText.Visibility = settings.TimeAwareness ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode ? Visibility.Collapsed : Visibility.Visible;
+        Adapt();
     }
 
     // ----- Title bar -----
@@ -489,6 +493,7 @@ public partial class MainWindow : Window
     public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960)
     {
         // Lay the window content out at the exact requested size, independent of the runner's screen size.
+        Width = width; Height = height;
         Root.Width = width; Root.Height = height; Root.HorizontalAlignment = HorizontalAlignment.Left; Root.VerticalAlignment = VerticalAlignment.Top;
         Directory.CreateDirectory(directory);
         var written = 0;
@@ -501,7 +506,7 @@ public partial class MainWindow : Window
             var width = (int)Math.Ceiling(Root.ActualWidth); var height = (int)Math.Ceiling(Root.ActualHeight);
             var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
             var visual = new DrawingVisual();
-            using (var dc = visual.RenderOpen()) { dc.DrawRectangle((Brush)FindResource("Surface"), null, new Rect(0, 0, width, height)); dc.DrawRectangle(new VisualBrush(Root), null, new Rect(0, 0, width, height)); }
+            using (var dc = visual.RenderOpen()) { dc.DrawRectangle((Brush)FindResource("Surface"), null, new Rect(0, 0, width, height)); dc.DrawRectangle(new VisualBrush(Root) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top, ViewboxUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, width, height) }, null, new Rect(0, 0, width, height)); }
             bitmap.Render(visual);
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
             await using var file = File.Create(Path.Combine(directory, $"{name}{suffix}.png"));
@@ -528,6 +533,20 @@ public partial class MainWindow : Window
         await Shot("notification-centre");
         host.Overlay.CloseAll();
         return written;
+    }
+
+    /// <summary>Capture mode only: lets the window be larger than the runner's screen so captures use real layout sizes.</summary>
+    private static IntPtr AllowLargerThanScreen(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        const int WM_GETMINMAXINFO = 0x0024;
+        if (message != WM_GETMINMAXINFO) return IntPtr.Zero;
+        // MINMAXINFO: ptReserved, ptMaxSize, ptMaxPosition, ptMinTrackSize, ptMaxTrackSize (each two 32-bit ints).
+        System.Runtime.InteropServices.Marshal.WriteInt32(lParam, 8, 4096);
+        System.Runtime.InteropServices.Marshal.WriteInt32(lParam, 12, 4096);
+        System.Runtime.InteropServices.Marshal.WriteInt32(lParam, 32, 4096);
+        System.Runtime.InteropServices.Marshal.WriteInt32(lParam, 36, 4096);
+        handled = true;
+        return IntPtr.Zero;
     }
 
     public void OpenDockerfile(string path)
