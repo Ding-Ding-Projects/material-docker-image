@@ -102,7 +102,7 @@ public sealed class HistoryStore
                 var labels = repo.Tags.Where(t => t.FriendlyName.StartsWith("label/", StringComparison.Ordinal))
                     .GroupBy(t => t.Target.Sha).ToDictionary(g => g.Key, g => (IReadOnlyList<string>)g.Select(t => t.FriendlyName[6..]).ToArray());
                 var result = new List<HistoryEntry>();
-                foreach (var commit in repo.Commits.QueryBy(new CommitFilter { SortBy = CommitSortStrategies.Time }).Take(limit))
+                foreach (var commit in repo.Commits.QueryBy(new CommitFilter { SortBy = CommitSortStrategies.Topological | CommitSortStrategies.Time }).Take(limit))
                 {
                     var action = commit.Message.Split('\n').FirstOrDefault(l => l.StartsWith("Action: ", StringComparison.Ordinal))?[8..].Trim() ?? "change";
                     var paths = new List<string>();

@@ -60,4 +60,44 @@ Reject(()=>StructuredInputs.Secret("id,env=other","C:/file"),"secret identifier 
 Reject(()=>StructuredInputs.Export("C:/image,compression=zstd.tar"),"OCI destination option injection rejected");
 Check(StructuredInputs.Cache("type=registry,ref=registry.example/team/cache").StartsWith("type=registry"),"explicit cache registry specification accepted");
 Reject(()=>StructuredInputs.Cache("--push"),"unstructured cache option rejected");
+
+// Personal wording overlay: validated in full, never applied partially.
+Check(MaterialDockerImage.Services.Loc.ParseVocabulary("{\"version\":1,\"entries\":{\"Build\":\"Make\"}}")["Build"]=="Make","personal wording file accepted");
+foreach(var bad in new[]{"[]","{\"entries\":{}}","{\"version\":2,\"entries\":{}}","{\"version\":1,\"entries\":{\"a\":1}}","{\"version\":1,\"entries\":{\"a\":\"x\",\"a\":\"y\"}}","{\"version\":1,\"entries\":{\""+new string('k',161)+"\":\"x\"}}","{\"version\":1,\"entries\":{\"k\":\""+new string('v',1001)+"\"}}"})
+{ try { MaterialDockerImage.Services.Loc.ParseVocabulary(bad); throw new Exception("Expected refusal: invalid personal wording "+bad[..Math.Min(30,bad.Length)]); } catch(Exception e) when (e is System.Text.Json.JsonException or InvalidDataException) { count++; Console.WriteLine("PASS invalid personal wording rejected"); } }
+MaterialDockerImage.Services.Loc.Language="Cantonese"; MaterialDockerImage.Services.Loc.FunnyCantonese=1;
+Check(MaterialDockerImage.Services.Loc.T("Images")=="映像","Cantonese label");
+Check(MaterialDockerImage.Services.Loc.Voice("Build completed.","Done!","搞掂！")=="Build completed.","funny level 1 states the fact only");
+MaterialDockerImage.Services.Loc.FunnyCantonese=5;
+Check(MaterialDockerImage.Services.Loc.Voice("Build completed.","Done!","搞掂！").EndsWith("Build completed."),"funny level 5 keeps the fact");
+MaterialDockerImage.Services.Loc.SchoolMode=true;
+Check(MaterialDockerImage.Services.Loc.T("Images")=="Images","school mode forces English");
+MaterialDockerImage.Services.Loc.SchoolMode=false; MaterialDockerImage.Services.Loc.Language="Bilingual";
+Check(MaterialDockerImage.Services.Loc.T("Images")=="Images · 映像","bilingual keeps the primary label first");
+MaterialDockerImage.Services.Loc.Language="English";
+
+// Local version history: append-only, restores are new revisions, labels and diffs work.
+var historyRoot=Path.Combine(Path.GetTempPath(),"mdi-history-"+Guid.NewGuid().ToString("N"));
+try
+{
+    var history=new MaterialDockerImage.Services.HistoryStore(historyRoot);
+    Check(history.Record("dockerfile","Saved first",new Dictionary<string,string>{["files/dockerfile/a.txt"]="FROM alpine\n"}),"history records a revision");
+    Check(history.Record("dockerfile","Saved second",new Dictionary<string,string>{["files/dockerfile/a.txt"]="FROM ubuntu\n"}),"history records a second revision");
+    var list=history.List();
+    Check(list.Count==3&&list[0].Summary.Contains("Saved second")&&list[0].Action=="dockerfile","history lists newest first with actions");
+    Check(list[0].Paths.Contains("files/dockerfile/a.txt"),"history names the changed file");
+    Check(history.Diff(list[0].Sha).Contains("+FROM ubuntu"),"history diff shows the change");
+    var restored=history.Restore(list[1].Sha,"files/dockerfile/a.txt");
+    Check(restored=="FROM alpine\n","restore returns the earlier content");
+    var after=history.List();
+    Check(after.Count==4&&after[0].Action=="restore","restore is a new revision");
+    Check(history.Restore(after[0].Sha,"files/dockerfile/a.txt")=="FROM alpine\n","a restore of a restore works");
+    Check(history.Label(after[0].Sha,"before upgrade")&&history.List().Any(e=>e.Labels.Contains("before_upgrade")),"labels attach to revisions");
+    var zip=Path.Combine(historyRoot,"..",Path.GetFileName(historyRoot)+".zip");
+    history.Export(history.List(),zip);
+    using(var archive=System.IO.Compression.ZipFile.OpenRead(zip)) Check(archive.Entries.Any(e=>e.FullName=="index.json")&&archive.Entries.Count(e=>e.FullName.StartsWith("patches/"))>=5,"history export holds an index and patches");
+    File.Delete(zip);
+    Check(!history.Record("x","escape",new Dictionary<string,string>{["../outside.txt"]="no"})&&!File.Exists(Path.Combine(historyRoot,"..","outside.txt")),"history refuses paths outside its folder");
+}
+finally { try { foreach(var f in Directory.EnumerateFiles(historyRoot,"*",SearchOption.AllDirectories)) File.SetAttributes(f,FileAttributes.Normal); Directory.Delete(historyRoot,true); } catch(IOException) { } }
 Console.WriteLine($"UI state checks: {count} passed.");
