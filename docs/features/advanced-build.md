@@ -40,6 +40,8 @@ After a successful build the metadata file is read to show the image digest, con
 
 The Bake destination opens a folder (Bake reads its default files such as `docker-bake.hcl` and `compose.yaml`) or a specific file. It lists groups and targets from `docker buildx bake --list=targets` and the resolved definition of each from `--print`. Select targets or a group, add `--set` overrides, choose Load, Push or the file's own outputs, and build with the same timeline as Build. Push asks first; Load refuses multi-platform targets unless you override the platform.
 
+![Bake targets](../../evidence/screenshots/bake.png)
+
 
 ## Limits and verification
 

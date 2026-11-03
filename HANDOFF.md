@@ -33,3 +33,11 @@ A native Windows WPF workspace for Docker with a complete Material 3 interface. 
 ## Next actions
 
 Exercise every destination interactively on a Windows machine with Docker Desktop, record receipts, update the capability inventory rows with that evidence, and extend localization to page copy.
+
+## Advanced v2 (November 2026)
+
+The second pass added Build v2 with a BuildKit timeline and Bake, image detail tabs and a Security destination (Docker Scout), engine contexts and Swarm, volume backup, restore and clone, more Compose tools, Dockerfile Creator v2 with an editable two-way source, editor suggestions with interactive value pickers, an advanced regular expression builder on all search fields, a motion system and appearance editor, and a Minecraft server manager.
+
+- Verification: 676 UI-state checks (including a search surface catalogue guard over 107 surfaces), 23 core checks and 13 documentation checks. `Tests and screenshots` run 41718216967 at source `40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e` rendered 24 surfaces in dark and light at 1440 x 960 and dark at 960 x 720 (72 captures in `evidence/screenshots/`), including the Creator with Suggestions open. The review found and fixed light-theme captures rendering dark and a squeezed Creator source editor before this run.
+- Not yet exercised interactively on Windows: popups and pickers (placement, focus), the regex builder popover, animations, Docker Scout analysis (the runner has no Scout plugin), Swarm with a real swarm, Minecraft servers against the itzg images, and Bake against a real bake file.
+- The Dockerfile Creator gap analysis is in `docs/research/dockerfile-creator-gap-analysis.md`.

@@ -43,3 +43,7 @@ Settings > Engine has **Show suggestions while typing** (on by default). `Ctrl+S
 ## Status
 
 Built and covered by UI-state checks for every suggestion context, scoping, fuzzy ranking, version badges, Compose indentation and each picker's value type. Popup placement, focus behaviour and the pickers have not yet been exercised interactively on Windows. `Ctrl+Space` can clash with the input-method toggle in some Chinese input setups; the palette command works there.
+
+## Screenshots
+
+![Suggestions open inside a cache mount in the Creator source](../../evidence/screenshots/creator-suggestions.png)

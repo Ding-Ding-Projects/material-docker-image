@@ -230,6 +230,8 @@ after a successful build the metadata file is read to show the image digest, con
 
 the bake destination opens a folder (bake reads its default files such as `docker-bake.hcl` and `compose.yaml`) or a specific file. it lists groups and targets from `docker buildx bake --list=targets` and the resolved definition of each from `--print`. select targets or a group, add `--set` overrides, choose load, push or the file&#39;s own outputs, and build with the same timeline as build. push asks first; load refuses multi-platform targets unless you override the platform.
 
+![bake targets](../../evidence/screenshots/bake.png)
+
 
 ## limits and verification
 
@@ -262,6 +264,7 @@ input validation has focused regression coverage. successful local builds have b
 <p class="source-item">• A live command preview with copy shows exactly what will run, or why the input is invalid.</p>
 <h4>Bake</h4>
 <p>The Bake destination opens a folder (Bake reads its default files such as <code>docker-bake.hcl</code> and <code>compose.yaml</code>) or a specific file. It lists groups and targets from <code>docker buildx bake --list=targets</code> and the resolved definition of each from <code>--print</code>. Select targets or a group, add <code>--set</code> overrides, choose Load, Push or the file&#39;s own outputs, and build with the same timeline as Build. Push asks first; Load refuses multi-platform targets unless you override the platform.</p>
+<p><img class="evidence-image" src="assets/2bb4892189c0ad460938103b450f775c2d2febb14d6644936897ed5a5fc9dc07.png" alt="Bake targets" width="1440" height="960" loading="lazy" decoding="async"></p>
 <h4>Limits and verification</h4>
 <p>Input validation has focused regression coverage. Successful local builds have been exercised separately from remote registry, cache-backend and multi-architecture acceptance. Those latter paths remain capability-dependent and are not inferred from a local build.</p>
 <h4>廣東話</h4>
@@ -357,8 +360,8 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>先揀內容資料夾同 Dockerfile，再檢查標籤、目標階段、平台同快取設定。建置時睇實輸出，成功退出唔等於服務健康。停止本機指令之後，要重新整理引擎狀態先再試。Compose 啟動前先驗證設定，刪除持久資料必須另外明確選擇。</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/923eb3c93b6b15644ccff2df93381f16234638ef2806b013cd94e332ef3eba6e.png" alt="Build workspace" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/b607671e885aca9e0843ddc929061d56646543e79e0d57f79b7b56a4eb37eaa1.png" alt="Build workspace in the light theme" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/f3f21e7b2e16f5d07cf56b666ac311e878c2808ae4e89ccd96698cc3bbab21be.png" alt="Build workspace" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/d9e14c97b8c583d46b7c82451e99a53504537fc98ec4bfb07302e32ae2140d99.png" alt="Build workspace in the light theme" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-canvas-md" class="article" data-search="canvas # canvas
 
 the canvas workspace provides a visual view of dockerfile stages and runtime container relationships. pan and zoom to inspect larger graphs, select a node to see its details, and return to the source editor for syntax that the current parser cannot safely round-trip.
@@ -390,7 +393,7 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>畫布顯示建置階段同容器關係。可以移動畫面、縮放同揀節點睇詳情。連線表示設定入面嘅關係，唔代表建置已經執行。未能安全轉換嘅 Dockerfile 語法要保留，唔可以因為畫面靚就偷偷改走。</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/43f2b673dfde2f9e02468efe1e0e4d98e07db3459443ee74da02b7344b186d4c.png" alt="Dockerfile stage graph with inspector" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/65a7d9eb936c0981be46d49a76eff9129e227900244701f3784b921839903972.png" alt="Dockerfile stage graph with inspector" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-capability-inventory-md" class="article" data-search="capability inventory # capability inventory
 
 implemented controls, focused checks, real native execution and complete acceptance are separate states. the productive application is native wpf. all 109 required identifiers below remain retained. no row claims complete acceptance from a partial workflow.
@@ -832,6 +835,11 @@ in storage, a volume can be backed up to a `.tar.gz` archive with a short-lived 
 
 compose projects gain watch (only when a service declares `develop.watch`; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for up and down.
 
+## screenshots
+
+![engine contexts](../../evidence/screenshots/contexts.png)
+
+![swarm](../../evidence/screenshots/swarm.png)
 "><h3>Engine contexts and Swarm</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/contexts-and-swarm.md">docs/features/contexts-and-swarm.md</a></p><h3>Engine contexts and Swarm</h3>
 <h4>Contexts</h4>
 <p>Contexts shows every Docker engine context as a card with its description, endpoint, transport, whether it is the CLI&#39;s current context and whether this window uses it. Every context is probed in parallel (ten-second limit) and shows its engine version, platform and API version, or the error.</p>
@@ -852,7 +860,10 @@ compose projects gain watch (only when a service declares `develop.watch`; other
 <h4>Volume backup, restore and clone</h4>
 <p>In Storage, a volume can be backed up to a <code>.tar.gz</code> archive with a short-lived helper container that has no network. Containers using the volume can be stopped for the backup and are always started again afterwards. Restore writes an archive into an existing or new volume; replacing current contents needs the super confirmation. Clone copies a volume into a new one without using a host folder, so it also works with remote engines.</p>
 <h4>Compose tools</h4>
-<p>Compose projects gain watch (only when a service declares <code>develop.watch</code>; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for Up and Down.</p></article>
+<p>Compose projects gain watch (only when a service declares <code>develop.watch</code>; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for Up and Down.</p>
+<h4>Screenshots</h4>
+<p><img class="evidence-image" src="assets/4b5cab20a834c174aedbd0cbff70d7d595bddf408a889e41c8b3f61ecf9bef20.png" alt="Engine contexts" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/ffb38b8343d92c2571dfdc46a7d38aab7327acb7f5fca75d97ff10a44a9cc7e9.png" alt="Swarm" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-diagnostics-md" class="article" data-search="diagnostics and safety # diagnostics and safety
 
 diagnostics records actual cli and engine responses. separate read-only inspection from a smoke test that creates resources. controlled smoke tests use unique owned names, labels, and exact teardown targets. failed teardown remains an unsuccessful overall result.
@@ -960,8 +971,8 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>Undo and Redo keep the last 200 changes. The draft is saved automatically in the application data folder and recorded in local history after two seconds without changes. Save as writes a Dockerfile you choose. Open in Build sends the text to the Build destination as an unsaved draft together with the selected target stage, so you can review it and build.</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/8a25c8b90acbf9949cbb9072737f57535df6b262316a8fbcc2af4b39d03d5888.png" alt="Dockerfile Creator with the Node.js starter" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/c2959d85e147bfac0bd90ac993f4a8e04f0e547b6138e26f0a1d523f7f2c369d.png" alt="Dockerfile Creator at the minimum window size" width="960" height="720" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/79344255750ebc7d6eed25a5fbc395c962615b8343673f6e2097e066ba5e1417.png" alt="Dockerfile Creator with the Node.js starter" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/5bc976d5e3ca59932e57dc328f373d94a8f614cb177bb629ee647f87e37a5211.png" alt="Dockerfile Creator at the minimum window size" width="960" height="720" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-editor-suggestions-md" class="article" data-search="editor suggestions and value pickers # editor suggestions and value pickers
 
 the build dockerfile editor, the creator&#39;s editable source and the compose file editor share one suggestion engine.
@@ -1027,6 +1038,10 @@ settings &gt; engine has **show suggestions while typing** (on by default). `ctr
 ## status
 
 built and covered by ui-state checks for every suggestion context, scoping, fuzzy ranking, version badges, compose indentation and each picker&#39;s value type. popup placement, focus behaviour and the pickers have not yet been exercised interactively on windows. `ctrl+space` can clash with the input-method toggle in some chinese input setups; the palette command works there.
+
+## screenshots
+
+![suggestions open inside a cache mount in the creator source](../../evidence/screenshots/creator-suggestions.png)
 "><h3>Editor suggestions and value pickers</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/editor-suggestions.md">docs/features/editor-suggestions.md</a></p><h3>Editor suggestions and value pickers</h3>
 <p>The Build Dockerfile editor, the Creator&#39;s editable source and the Compose file editor share one suggestion engine.</p>
 <h4>Suggestions</h4>
@@ -1057,7 +1072,9 @@ built and covered by ui-state checks for every suggestion context, scoping, fuzz
 <h4>Settings and commands</h4>
 <p>Settings &gt; Engine has <strong>Show suggestions while typing</strong> (on by default). <code>Ctrl+Space</code> and <code>Ctrl+Shift+Space</code> always work. The command palette has Trigger suggestions, Pick value at caret and a switch for the setting.</p>
 <h4>Status</h4>
-<p>Built and covered by UI-state checks for every suggestion context, scoping, fuzzy ranking, version badges, Compose indentation and each picker&#39;s value type. Popup placement, focus behaviour and the pickers have not yet been exercised interactively on Windows. <code>Ctrl+Space</code> can clash with the input-method toggle in some Chinese input setups; the palette command works there.</p></article>
+<p>Built and covered by UI-state checks for every suggestion context, scoping, fuzzy ranking, version badges, Compose indentation and each picker&#39;s value type. Popup placement, focus behaviour and the pickers have not yet been exercised interactively on Windows. <code>Ctrl+Space</code> can clash with the input-method toggle in some Chinese input setups; the palette command works there.</p>
+<h4>Screenshots</h4>
+<p><img class="evidence-image" src="assets/0fbd8e29bf9b32322f81ee39814ec546cb7053f7c6efc503910547e818faaf3b.png" alt="Suggestions open inside a cache mount in the Creator source" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-feature-checklist-md" class="article" data-search="feature completion checklist # feature completion checklist
 
 the documentation home page starts with a maintainer-owned completion checklist. it retains all 109 required capability identifiers, the 10 existing product workflows, and four explicit milestones: the checklist itself, container health checks, device mappings and gpu access. these last three container controls remain planned work.
@@ -1159,6 +1176,9 @@ the images list also has a statistics strip (images, total size, dangling, unuse
 
 the security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. filter by critical or high, fixable only, not analysed or failed. scans run one image at a time in the background, can be cancelled, and stop early if scout is missing or needs sign-in. results are kept for the session per engine context and image, and are shared with the vulnerabilities tab. export findings saves json or csv; csv cells are protected against spreadsheet formula injection.
 
+## screenshots
+
+![security destination](../../evidence/screenshots/security.png)
 "><h3>Image detail and security</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/images-and-security.md">docs/features/images-and-security.md</a></p><h3>Image detail and security</h3>
 <h4>Image detail</h4>
 <p>Select an image in Images to open its detail beside the list (below the list on narrow windows). The detail has six tabs; each loads the first time you open it and the chosen tab is kept when you select another image.</p>
@@ -1171,7 +1191,9 @@ the security destination lists tagged local images with critical, high, medium a
 <p>If Docker Scout is not installed, not signed in, or the analysis fails, the tab says so and shows the exact output. No finding or count is shown unless an analysis really ran.</p>
 <p>The Images list also has a statistics strip (images, total size, dangling, unused) and the row actions Retag to multiple, Push all tags of repository and Copy pull command.</p>
 <h4>Security</h4>
-<p>The Security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. Filter by critical or high, fixable only, not analysed or failed. Scans run one image at a time in the background, can be cancelled, and stop early if Scout is missing or needs sign-in. Results are kept for the session per engine context and image, and are shared with the Vulnerabilities tab. Export findings saves JSON or CSV; CSV cells are protected against spreadsheet formula injection.</p></article>
+<p>The Security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. Filter by critical or high, fixable only, not analysed or failed. Scans run one image at a time in the background, can be cancelled, and stop early if Scout is missing or needs sign-in. Results are kept for the session per engine context and image, and are shared with the Vulnerabilities tab. Export findings saves JSON or CSV; CSV cells are protected against spreadsheet formula injection.</p>
+<h4>Screenshots</h4>
+<p><img class="evidence-image" src="assets/8daa49d209faf04a29bfaed5144939b3d8529dfc8d82a326b22d85e1f6dabade.png" alt="Security destination" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-local-history-md" class="article" data-search="local history # local history
 
 every meaningful change is recorded in a local version history so it can be reviewed, compared and restored.
@@ -1224,7 +1246,7 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>If the history cannot be opened or written, the Activity destination says so. A history failure never fails the operation you were running.</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/3a70ce6671fb870d8e22c9143523a60747c171dc679199232a33994888147a04.png" alt="Activity with a revision and its diff" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/acc5947a6a129157522bf4613c966a12625ab9d3ccd4e4db08b20498225adaa9.png" alt="Activity with a revision and its diff" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-minecraft-md" class="article" data-search="minecraft servers # minecraft servers
 
 the minecraft destination creates and runs minecraft servers as containers using the community `itzg/minecraft-server` (java) and `itzg/minecraft-bedrock-server` (bedrock) images. it lists only containers and volumes labelled `material-docker-image.minecraft`, so your other containers are never touched.
@@ -1258,6 +1280,7 @@ stop saves the world and then stops the container with a 60-second grace period.
 
 built and covered by ui-state checks for versions, image tags, settings, secret handling and output parsing. the pages have not yet been exercised against a real engine; bedrock settings names, chunky output and the java 25 tag for 26.x versions need confirmation on a real server.
 
+![minecraft servers](../../evidence/screenshots/minecraft.png)
 "><h3>Minecraft servers</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/minecraft.md">docs/features/minecraft.md</a></p><h3>Minecraft servers</h3>
 <p>The Minecraft destination creates and runs Minecraft servers as containers using the community <code>itzg/minecraft-server</code> (Java) and <code>itzg/minecraft-bedrock-server</code> (Bedrock) images. It lists only containers and volumes labelled <code>material-docker-image.minecraft</code>, so your other containers are never touched.</p>
 <h4>Create a server</h4>
@@ -1279,7 +1302,8 @@ built and covered by ui-state checks for versions, image tags, settings, secret 
 <p class="source-item">• <strong>World</strong>: draw an area on a chunk grid and pre-generate it with the Chunky plugin, with progress from the log. Export the world to a folder or a ZIP file.</p>
 <p>Stop saves the world and then stops the container with a 60-second grace period. Removing a server asks first; deleting the world volume as well is off by default and needs the super confirmation.</p>
 <h4>Status</h4>
-<p>Built and covered by UI-state checks for versions, image tags, settings, secret handling and output parsing. The pages have not yet been exercised against a real engine; Bedrock settings names, Chunky output and the Java 25 tag for 26.x versions need confirmation on a real server.</p></article>
+<p>Built and covered by UI-state checks for versions, image tags, settings, secret handling and output parsing. The pages have not yet been exercised against a real engine; Bedrock settings names, Chunky output and the Java 25 tag for 26.x versions need confirmation on a real server.</p>
+<p><img class="evidence-image" src="assets/050fe023b71511f325618553e97463c623b42e2709fb01427433f85a76d48e67.png" alt="Minecraft servers" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-operations-and-tools-md" class="article" data-search="monitoring, cleanup, registries and tools # monitoring, cleanup, registries and tools
 
 ## monitor
@@ -1348,13 +1372,13 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>Settings are grouped into Appearance, Language, Accessibility, Focus modes, Sounds and narration, Engine, Data and privacy, and About, with a search across sections and individual settings. Each setting explains what it does and says whether its value is the built-in default or was saved. Changes apply immediately and are recorded in local history. Settings can be exported, imported after a preview, and reset behind the super confirmation.</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/6009a60de45fa9c4a961e007e2b5144f8af22fae09cdb3ebb1c804e7d8e90e54.png" alt="Live monitor" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/700abc9feca030982cf9caa9ebe4c78b46f0e6bc9a008ed51186d4cb4321083c.png" alt="System disk usage and cleanup" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/33a156d592b4c5978e11b852f6f59839c6329431ea948a2ba1183de52f4725bf.png" alt="Volumes" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/9c1a94122e3a2a713f79f7d3511e6bb6090bd809adf15a3d3417f7128f45a64f.png" alt="Registry sign-in and signed-in registries" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/9ebc27497d4b03d227076498004b60937a675f976584e8e446ccce35d6e7ba24.png" alt="Diagnostics checks and events" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/bb78d8734ae1c8d29eb07343af5b07f9854f72a478360a5b01dfbd5d33d52c56.png" alt="Base64 toolkit" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/2c48c11e4657cb2d81414ea1c7a4e5d5027e22f48f3d47790ccc987b3287b377.png" alt="Settings" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/9a92016c0319189fdadb9870add45399d976461af3f239cdfd60931e048b71d4.png" alt="Live monitor" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/cc04452292a34905c420be2e642d141cde071d08b6a1e21d4e81057d1a81d97e.png" alt="System disk usage and cleanup" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/dd6f3ab03e3e4f37c68a676f0b47f4efe83e2572927de67af069b801b6628a57.png" alt="Volumes" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/7fdd5748e9eb1bb34d701b52cd8ffc97c0a2d64242baffe1d28e26b45e639141.png" alt="Registry sign-in and signed-in registries" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/f81daf62bb05f497d125708d2aca11ba167ca08466d80115374954b8ba962b6b.png" alt="Diagnostics checks and events" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/01ccd8ae4a765650246e118f49738ea7c4170a045fb37309b3242945ace75814.png" alt="Base64 toolkit" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/9c3d1f1fc4f20288aef21257e9ec937edf09114f87b3745d0a7352911674e4b4.png" alt="Settings" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-resources-md" class="article" data-search="images, containers, storage and networks # images, containers, storage and networks
 
 refresh inventories from the selected engine. inspect an exact record before acting on it. image tags can move and external tools can delete or replace resources, so refresh after every mutation.
@@ -1384,9 +1408,9 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>先重新整理清單，再檢查要操作嗰個項目。標籤可以改指向，其他工具亦可以改動引擎，所以每次操作完都要再讀狀態。資料卷可能有重要資料，刪除前必須清楚確認，唔好用大範圍清理代替逐項選擇。</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/4b4570f967e1f98771604e42993501af9401875090e34e23c15192a7843b13ee.png" alt="Images with the inspector" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/b3052bf629a706abba5b2c198b5b9876dd2387e5efb40329f622594aadbe5bd2.png" alt="Containers with the inspector" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/e3ec79c514c39710962de2c66a55a3b7df22051e36cf19a423b4723fc09eb5ea.png" alt="Compose projects" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/5248660b3907c4e3198d125d7380c9764a04714fbdde706c0ce591e910f805f1.png" alt="Images with the inspector" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/d676654f04a995bc08408ea01f2e87ec42bd1f8ba4bbfe6ba8fc539710c9c198.png" alt="Containers with the inspector" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/40b1ad1f2e5ee6cb2f297aa6bb90812d126e9b6a2e4831cb0bfc508197bb5578.png" alt="Compose projects" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-docs-features-search-and-regex-md" class="article" data-search="search and the regular expression builder # search and the regular expression builder
 
 every search and filter field in the application, including lists, tables, logs, source viewers, pickers, menus, settings, the command palette and tab search, uses the same search field. each field has its own regular expression builder beside it.
@@ -1592,10 +1616,10 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <p>Long operations stream their real output into the collapsible panel at the bottom (<code>Ctrl+J</code>) with elapsed time, a Cancel button and its own search. Only one foreground operation runs at a time. Cancellation is reported as cancellation, never as success.</p>
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
-<p><img class="evidence-image" src="assets/73bd40d85e1fe0da11be308147aa227e3e3ee7494cedd105438d4082ed16d966.png" alt="Command palette with commands and their shortcuts" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/a0e68865f9163fbe7213d59a1189013a6c92991ec38fd49b85dd82bbeebb367f.png" alt="Notification centre" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/a41900aa6958054c68ce568494bafda7a8ae74d406a4aa6549a788af9d02b418.png" alt="Two-key super confirmation" width="1440" height="960" loading="lazy" decoding="async"></p>
-<p><img class="evidence-image" src="assets/3e2fcf1eaa3991d390bcf5b26ab0076908d1abfe69e8406fbc6bbafb5c07f8df.png" alt="Setup wizard after Docker detection" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<p><img class="evidence-image" src="assets/6d6ef513b243f5227659f976b4e21cb2e5ba79537a389708fdea79bd5e3f48d8.png" alt="Command palette with commands and their shortcuts" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/f542af7241be91a85582bb145fcfdddc1682adf270032b789d13a704fa047e8b.png" alt="Notification centre" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/46b73baf6c936f4b2caf9f2f84155b59d81dfe80120c63c4262e13d949109b58.png" alt="Two-key super confirmation" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/7783e2525b9ee9a95b86212b1bac0fa4d386886d6c9bb21332fb506bdca3c44f.png" alt="Setup wizard after Docker detection" width="1440" height="960" loading="lazy" decoding="async"></p></article>
 <article id="doc-readme-md" class="article" data-search="material docker image # material docker image
 
 a native windows wpf workspace for docker: build images, create dockerfiles step by step, run and manage containers, operate compose projects, watch live statistics, clean up safely and keep a local history of every change. the whole interface follows material 3 in a frameless window.
@@ -1606,9 +1630,10 @@ a native windows wpf workspace for docker: build images, create dockerfiles step
 
 ## what it does
 
-- **workspace**: custom title bar with version and build time, engine context selector that never changes the global docker context, navigation rail, workspace and utility tabs, a `ctrl+shift+f` command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. every list and viewer has its own search with a regular expression builder.
+- **workspace**: custom title bar with version and build time, engine context selector that never changes the global docker context, navigation rail, workspace and utility tabs, a `ctrl+shift+f` command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. every one of the 100+ search and filter fields has its own anchored regular expression builder (`alt+r`) with a token palette, plain-english explanation, live tester, captures, replace preview and a pattern library, guarded by a completeness test.
 - **build and bake**: context folder, dockerfile editor, tags, target stage, platform chips, build arguments, labels, cache import and export, secret files and environment secrets (never read), ssh forwarding, named contexts, sbom and provenance attestations, local load, push, oci archive or exported files, buildkit check, outline and targets modes, a live command preview, a step-by-step buildkit timeline with cache hits and durations, a result card with digests, recent builds from buildx history, and a bake destination for `docker-bake.hcl` and compose targets with overrides.
 - **dockerfile creator**: project detection like `docker init`, starters for node.js, python, .net, go, java, rust and static sites, stages and structured instruction cards for every modern dockerfile feature (all `run --mount` types with package-manager cache presets, heredocs, `copy --parents` and `--exclude`, `add` from urls and git with checksums, global and platform arguments, parser directives), a live editable source that syncs both ways while keeping your comments and formatting, a .dockerignore editor with a live context check, 40+ best-practice checks matching buildkit check names, with automatic fixes, undo history and hand-off to build.
+- **editor suggestions**: intellisense-style suggestions in the dockerfile and compose editors (instructions, flags, mount options, stages, variables in scope, local images, build-context files, compose keys), hover documentation, version-aware `# syntax` upgrades, and interactive pickers for paths, colours, ports, durations, permissions, users, platforms and images (`ctrl+space`, `ctrl+shift+space`).
 - **images and security**: image detail tabs for layers with size bars, platforms and attestations from the registry manifest, docker scout vulnerabilities, sbom packages and side-by-side compare, plus a security destination that scans every local image.
 - **images and containers**: inventory with usage, pull, import, load, tag, push, save, prune; a run editor covering command, ports, environment, mounts, networks, resources, restart and health, security and advanced options with an exact command preview; container lifecycle, logs with follow and search, statistics, processes, file changes and copy, one-shot exec and a terminal window.
 - **compose, storage and canvas**: compose projects with profiles, services, a path-bound source editor, watch, top, events, copy, exec, environment files and dry run; volumes and networks with create, connect, inspect, prune, backup, restore and clone; a native dockerfile stage graph and runtime topology.
@@ -1630,7 +1655,9 @@ all captures come from the built application on a windows server 2025 runner wit
 | ![containers with the inspector overview of a running container](evidence/screenshots/containers.png) | ![dockerfile canvas with three stages and their relationships](evidence/screenshots/canvas.png) |
 | ![live monitor with cpu and memory charts](evidence/screenshots/monitor.png) | ![system disk usage, cleanup and engine information](evidence/screenshots/system.png) |
 | ![command palette over the containers destination](evidence/screenshots/command-palette.png) | ![two-key super confirmation for removing unused data](evidence/screenshots/super-confirmation.png) |
-| ![settings with appearance options and provenance lines](evidence/screenshots/settings.png) | ![build workspace in the light theme](evidence/screenshots/build-light.png) |
+| ![settings with the appearance editor and live preview](evidence/screenshots/settings.png) | ![build workspace in the light theme](evidence/screenshots/build-light.png) |
+| ![suggestions open inside a cache mount in the creator source](evidence/screenshots/creator-suggestions.png) | ![security destination with severity tiles](evidence/screenshots/security-light.png) |
+| ![engine contexts with reachability](evidence/screenshots/contexts.png) | ![minecraft servers destination](evidence/screenshots/minecraft-light.png) |
 
 ## build
 
@@ -1644,15 +1671,16 @@ commands use structured arguments without a host shell. the global docker contex
 
 ## verification state
 
-the ui-state checks (113), core engine checks (23) and documentation checklist checks (13) pass through `build.bat -tests` on windows. the screenshots above show real engine data. interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the [capability inventory](docs/features/capability-inventory.md) and [handoff](handoff.md).
+the ui-state checks (676), core engine checks (23) and documentation checklist checks (13) pass through `build.bat -tests` on windows. the screenshots above show real engine data. interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the [capability inventory](docs/features/capability-inventory.md) and [handoff](handoff.md).
 "><h3>Material Docker Image</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/README.md">README.md</a></p><h3>Material Docker Image</h3>
 <p>A native Windows WPF workspace for Docker: build images, create Dockerfiles step by step, run and manage containers, operate Compose projects, watch live statistics, clean up safely and keep a local history of every change. The whole interface follows Material 3 in a frameless window.</p>
 <p><a href="https://ding-ding-projects.github.io/material-docker-image/">Documentation</a> · <a href="https://github.com/Ding-Ding-Projects/material-docker-image/releases">Downloads</a> · <a href="#doc-docs-features-readme-md">User guides</a> · <a href="#doc-docs-features-capability-inventory-md">Capability inventory</a> · Design <span class="muted">(document unavailable)</span></p>
-<p><img class="evidence-image" src="assets/923eb3c93b6b15644ccff2df93381f16234638ef2806b013cd94e332ef3eba6e.png" alt="Build workspace with a multi-stage Dockerfile created by the Dockerfile Creator" width="1440" height="960" loading="lazy" decoding="async"></p>
+<p><img class="evidence-image" src="assets/f3f21e7b2e16f5d07cf56b666ac311e878c2808ae4e89ccd96698cc3bbab21be.png" alt="Build workspace with a multi-stage Dockerfile created by the Dockerfile Creator" width="1440" height="960" loading="lazy" decoding="async"></p>
 <h4>What it does</h4>
-<p class="source-item">• <strong>Workspace</strong>: custom title bar with version and build time, engine context selector that never changes the global Docker context, navigation rail, workspace and utility tabs, a <code>Ctrl+Shift+F</code> command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. Every list and viewer has its own search with a regular expression builder.</p>
+<p class="source-item">• <strong>Workspace</strong>: custom title bar with version and build time, engine context selector that never changes the global Docker context, navigation rail, workspace and utility tabs, a <code>Ctrl+Shift+F</code> command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. Every one of the 100+ search and filter fields has its own anchored regular expression builder (<code>Alt+R</code>) with a token palette, plain-English explanation, live tester, captures, replace preview and a pattern library, guarded by a completeness test.</p>
 <p class="source-item">• <strong>Build and Bake</strong>: context folder, Dockerfile editor, tags, target stage, platform chips, build arguments, labels, cache import and export, secret files and environment secrets (never read), SSH forwarding, named contexts, SBOM and provenance attestations, local load, push, OCI archive or exported files, BuildKit check, outline and targets modes, a live command preview, a step-by-step BuildKit timeline with cache hits and durations, a result card with digests, recent builds from Buildx history, and a Bake destination for <code>docker-bake.hcl</code> and Compose targets with overrides.</p>
 <p class="source-item">• <strong>Dockerfile Creator</strong>: project detection like <code>docker init</code>, starters for Node.js, Python, .NET, Go, Java, Rust and static sites, stages and structured instruction cards for every modern Dockerfile feature (all <code>RUN --mount</code> types with package-manager cache presets, heredocs, <code>COPY --parents</code> and <code>--exclude</code>, <code>ADD</code> from URLs and Git with checksums, global and platform arguments, parser directives), a live editable source that syncs both ways while keeping your comments and formatting, a .dockerignore editor with a live context check, 40+ best-practice checks matching BuildKit check names, with automatic fixes, undo history and hand-off to Build.</p>
+<p class="source-item">• <strong>Editor suggestions</strong>: IntelliSense-style suggestions in the Dockerfile and Compose editors (instructions, flags, mount options, stages, variables in scope, local images, build-context files, Compose keys), hover documentation, version-aware <code># syntax</code> upgrades, and interactive pickers for paths, colours, ports, durations, permissions, users, platforms and images (<code>Ctrl+Space</code>, <code>Ctrl+Shift+Space</code>).</p>
 <p class="source-item">• <strong>Images and security</strong>: image detail tabs for layers with size bars, platforms and attestations from the registry manifest, Docker Scout vulnerabilities, SBOM packages and side-by-side compare, plus a Security destination that scans every local image.</p>
 <p class="source-item">• <strong>Images and containers</strong>: inventory with usage, pull, import, load, tag, push, save, prune; a run editor covering command, ports, environment, mounts, networks, resources, restart and health, security and advanced options with an exact command preview; container lifecycle, logs with follow and search, statistics, processes, file changes and copy, one-shot exec and a terminal window.</p>
 <p class="source-item">• <strong>Compose, storage and canvas</strong>: Compose projects with profiles, services, a path-bound source editor, watch, top, events, copy, exec, environment files and dry run; volumes and networks with create, connect, inspect, prune, backup, restore and clone; a native Dockerfile stage graph and runtime topology.</p>
@@ -1667,18 +1695,20 @@ the ui-state checks (113), core engine checks (23) and documentation checklist c
 <p>All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine (inventory <span class="muted">(document unavailable)</span>). Light-theme and 960 x 720 minimum-size captures of every screen are in [<code>evidence/screenshots</code>](evidence/screenshots).</p>
 <p>| | |</p>
 <p>| --- | --- |</p>
-<p>| <img class="evidence-image" src="assets/8a25c8b90acbf9949cbb9072737f57535df6b262316a8fbcc2af4b39d03d5888.png" alt="Dockerfile Creator with the Node.js starter, instruction cards, live preview and checks" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/4b4570f967e1f98771604e42993501af9401875090e34e23c15192a7843b13ee.png" alt="Images with an inspector showing platform, layers and tags" width="1440" height="960" loading="lazy" decoding="async"> |</p>
-<p>| <img class="evidence-image" src="assets/b3052bf629a706abba5b2c198b5b9876dd2387e5efb40329f622594aadbe5bd2.png" alt="Containers with the inspector overview of a running container" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/43f2b673dfde2f9e02468efe1e0e4d98e07db3459443ee74da02b7344b186d4c.png" alt="Dockerfile canvas with three stages and their relationships" width="1440" height="960" loading="lazy" decoding="async"> |</p>
-<p>| <img class="evidence-image" src="assets/6009a60de45fa9c4a961e007e2b5144f8af22fae09cdb3ebb1c804e7d8e90e54.png" alt="Live monitor with CPU and memory charts" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/700abc9feca030982cf9caa9ebe4c78b46f0e6bc9a008ed51186d4cb4321083c.png" alt="System disk usage, cleanup and engine information" width="1440" height="960" loading="lazy" decoding="async"> |</p>
-<p>| <img class="evidence-image" src="assets/73bd40d85e1fe0da11be308147aa227e3e3ee7494cedd105438d4082ed16d966.png" alt="Command palette over the Containers destination" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/a41900aa6958054c68ce568494bafda7a8ae74d406a4aa6549a788af9d02b418.png" alt="Two-key super confirmation for removing unused data" width="1440" height="960" loading="lazy" decoding="async"> |</p>
-<p>| <img class="evidence-image" src="assets/2c48c11e4657cb2d81414ea1c7a4e5d5027e22f48f3d47790ccc987b3287b377.png" alt="Settings with appearance options and provenance lines" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/b607671e885aca9e0843ddc929061d56646543e79e0d57f79b7b56a4eb37eaa1.png" alt="Build workspace in the light theme" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/79344255750ebc7d6eed25a5fbc395c962615b8343673f6e2097e066ba5e1417.png" alt="Dockerfile Creator with the Node.js starter, instruction cards, live preview and checks" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/5248660b3907c4e3198d125d7380c9764a04714fbdde706c0ce591e910f805f1.png" alt="Images with an inspector showing platform, layers and tags" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/d676654f04a995bc08408ea01f2e87ec42bd1f8ba4bbfe6ba8fc539710c9c198.png" alt="Containers with the inspector overview of a running container" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/65a7d9eb936c0981be46d49a76eff9129e227900244701f3784b921839903972.png" alt="Dockerfile canvas with three stages and their relationships" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/9a92016c0319189fdadb9870add45399d976461af3f239cdfd60931e048b71d4.png" alt="Live monitor with CPU and memory charts" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/cc04452292a34905c420be2e642d141cde071d08b6a1e21d4e81057d1a81d97e.png" alt="System disk usage, cleanup and engine information" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/6d6ef513b243f5227659f976b4e21cb2e5ba79537a389708fdea79bd5e3f48d8.png" alt="Command palette over the Containers destination" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/46b73baf6c936f4b2caf9f2f84155b59d81dfe80120c63c4262e13d949109b58.png" alt="Two-key super confirmation for removing unused data" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/9c3d1f1fc4f20288aef21257e9ec937edf09114f87b3745d0a7352911674e4b4.png" alt="Settings with the appearance editor and live preview" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/d9e14c97b8c583d46b7c82451e99a53504537fc98ec4bfb07302e32ae2140d99.png" alt="Build workspace in the light theme" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/0fbd8e29bf9b32322f81ee39814ec546cb7053f7c6efc503910547e818faaf3b.png" alt="Suggestions open inside a cache mount in the Creator source" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/fb76ea6f95bdff00988f807921f176f06b06d7c609402364c0b67c95fda8763a.png" alt="Security destination with severity tiles" width="1440" height="960" loading="lazy" decoding="async"> |</p>
+<p>| <img class="evidence-image" src="assets/4b5cab20a834c174aedbd0cbff70d7d595bddf408a889e41c8b3f61ecf9bef20.png" alt="Engine contexts with reachability" width="1440" height="960" loading="lazy" decoding="async"> | <img class="evidence-image" src="assets/a5f9df21f63a8a14f70ac45ea72fa3aef19043a6463dd583fabf1381398c30d8.png" alt="Minecraft servers destination" width="1440" height="960" loading="lazy" decoding="async"> |</p>
 <h4>Build</h4>
 <p>Run <code>build.bat</code> to publish the self-contained application, <code>build.bat -Tests</code> for the engine, UI-state and documentation checks, <code>build.bat -DockerSmoke</code> for an explicitly mutating local-engine smoke test, and <code>build-installer.bat</code> for the unsigned Squirrel.Windows package. Docker operations need the Docker CLI and a reachable engine; editors, the Creator, history and settings work offline.</p>
 <p><code>MaterialDockerImage.exe --capture &lt;folder&gt;</code> renders every destination, the command palette, the super confirmation and the notification centre to PNG files and exits. Add <code>--capture-theme Light</code> or <code>--capture-size 960x720</code>, and <code>--software-rendering</code> on machines without a GPU. The <code>Tests and screenshots</code> workflow runs the tests and these captures on every change.</p>
 <h4>Safety</h4>
 <p>Commands use structured arguments without a host shell. The global Docker context and default Buildx builder are never changed. Registry passwords are passed on standard input and never stored or logged, and BuildKit secret files are never read. Removing data needs the two-key super confirmation; every operation reports its real exit status, and cancellation is never reported as success. Local history lives in the application data folder and never inside your projects.</p>
 <h4>Verification state</h4>
-<p>The UI-state checks (113), core engine checks (23) and documentation checklist checks (13) pass through <code>build.bat -Tests</code> on Windows. The screenshots above show real engine data. Interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the <a href="#doc-docs-features-capability-inventory-md">capability inventory</a> and <a href="#doc-handoff-md">handoff</a>.</p></article>
+<p>The UI-state checks (676), core engine checks (23) and documentation checklist checks (13) pass through <code>build.bat -Tests</code> on Windows. The screenshots above show real engine data. Interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the <a href="#doc-docs-features-capability-inventory-md">capability inventory</a> and <a href="#doc-handoff-md">handoff</a>.</p></article>
 <article id="doc-roadmap-md" class="article" data-search="roadmap # roadmap
 
 ## material 3 workspace rewrite (november 2026)
@@ -1814,6 +1844,14 @@ a native windows wpf workspace for docker with a complete material 3 interface. 
 ## next actions
 
 exercise every destination interactively on a windows machine with docker desktop, record receipts, update the capability inventory rows with that evidence, and extend localization to page copy.
+
+## advanced v2 (november 2026)
+
+the second pass added build v2 with a buildkit timeline and bake, image detail tabs and a security destination (docker scout), engine contexts and swarm, volume backup, restore and clone, more compose tools, dockerfile creator v2 with an editable two-way source, editor suggestions with interactive value pickers, an advanced regular expression builder on all search fields, a motion system and appearance editor, and a minecraft server manager.
+
+- verification: 676 ui-state checks (including a search surface catalogue guard over 107 surfaces), 23 core checks and 13 documentation checks. `tests and screenshots` run 41718216967 at source `40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e` rendered 24 surfaces in dark and light at 1440 x 960 and dark at 960 x 720 (72 captures in `evidence/screenshots/`), including the creator with suggestions open. the review found and fixed light-theme captures rendering dark and a squeezed creator source editor before this run.
+- not yet exercised interactively on windows: popups and pickers (placement, focus), the regex builder popover, animations, docker scout analysis (the runner has no scout plugin), swarm with a real swarm, minecraft servers against the itzg images, and bake against a real bake file.
+- the dockerfile creator gap analysis is in `docs/research/dockerfile-creator-gap-analysis.md`.
 "><h3>Implementation handoff</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md">HANDOFF.md</a></p><h3>Implementation handoff</h3>
 <h4>Objective</h4>
 <p>A native Windows WPF workspace for Docker with a complete Material 3 interface. The November 2026 rewrite replaced every window surface, added the Dockerfile Creator, live monitoring, cleanup, registry, diagnostics, tools, settings and local history destinations, and replaced every screenshot with captures of the built application.</p>
@@ -1838,7 +1876,12 @@ exercise every destination interactively on a windows machine with docker deskto
 <p class="source-item">• The capability inventory statuses were not changed by this rewrite; health checks, devices, GPUs and terminals now have controls in the run editor and the Containers inspector and need status review with evidence.</p>
 <p class="source-item">• Full theme, language and 100 to 200 percent scale matrix acceptance remains open.</p>
 <h4>Next actions</h4>
-<p>Exercise every destination interactively on a Windows machine with Docker Desktop, record receipts, update the capability inventory rows with that evidence, and extend localization to page copy.</p></article>
+<p>Exercise every destination interactively on a Windows machine with Docker Desktop, record receipts, update the capability inventory rows with that evidence, and extend localization to page copy.</p>
+<h4>Advanced v2 (November 2026)</h4>
+<p>The second pass added Build v2 with a BuildKit timeline and Bake, image detail tabs and a Security destination (Docker Scout), engine contexts and Swarm, volume backup, restore and clone, more Compose tools, Dockerfile Creator v2 with an editable two-way source, editor suggestions with interactive value pickers, an advanced regular expression builder on all search fields, a motion system and appearance editor, and a Minecraft server manager.</p>
+<p class="source-item">• Verification: 676 UI-state checks (including a search surface catalogue guard over 107 surfaces), 23 core checks and 13 documentation checks. <code>Tests and screenshots</code> run 41718216967 at source <code>40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e</code> rendered 24 surfaces in dark and light at 1440 x 960 and dark at 960 x 720 (72 captures in <code>evidence/screenshots/</code>), including the Creator with Suggestions open. The review found and fixed light-theme captures rendering dark and a squeezed Creator source editor before this run.</p>
+<p class="source-item">• Not yet exercised interactively on Windows: popups and pickers (placement, focus), the regex builder popover, animations, Docker Scout analysis (the runner has no Scout plugin), Swarm with a real swarm, Minecraft servers against the itzg images, and Bake against a real bake file.</p>
+<p class="source-item">• The Dockerfile Creator gap analysis is in <code>docs/research/dockerfile-creator-gap-analysis.md</code>.</p></article>
 <article id="doc-wiki-home-md" class="article" data-search="material docker image wiki # material docker image wiki
 
 this source wiki is bundled with the documentation website. it documents the native windows application and remains separate from evidence of runtime behavior.

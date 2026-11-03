@@ -362,8 +362,21 @@ public sealed class EditorSuggestions
         if (rect.IsEmpty) rect = new Rect(8, 8, 1, 16);
         popup.PlacementTarget = Box;
         popup.Placement = PlacementMode.Relative;
-        popup.HorizontalOffset = Math.Max(0, rect.Left - (alignIcon ? 36 : 0));
-        popup.VerticalOffset = rect.Bottom + 2;
+        var x = Math.Max(0, rect.Left - (alignIcon ? 36 : 0));
+        var y = rect.Bottom + 2;
+        // Keep the popup inside the window: shift it left when it would run past the right edge, and open it above the
+        // caret line when there is not enough room below.
+        if (Window.GetWindow(Box) is { } window && popup.Child is FrameworkElement child && window.Content is UIElement content)
+        {
+            child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var size = child.DesiredSize;
+            var origin = Box.TranslatePoint(new Point(0, 0), content);
+            var room = content.RenderSize;
+            if (origin.X + x + size.Width > room.Width - 8) x = Math.Max(-origin.X + 8, room.Width - 8 - size.Width - origin.X);
+            if (origin.Y + y + size.Height > room.Height - 8 && origin.Y + rect.Top - 2 - size.Height >= 8) y = rect.Top - 2 - size.Height;
+        }
+        popup.HorizontalOffset = x;
+        popup.VerticalOffset = y;
     }
 
     private void CloseList() { list.Close(); current = null; explicitOpen = false; }
