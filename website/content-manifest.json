@@ -16,7 +16,7 @@
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "150c977dd1692f89d2180a36c3f7b00ab94d347d079d1bf6264975f184cfcf38"
+      "sha256": "44930c269b3776e02d34cfa9155e13b83ff34b8e67ec06fa4dd1568b9fd7958b"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -79,8 +79,12 @@
       "sha256": "b05544828e459d4147ad2de5a25c360b3c7a140dbc1e9c79902aa09d2742e1a9"
     },
     {
+      "path": "docs/features/search-and-regex.md",
+      "sha256": "23ab101baaed4407d89e1ea0e7122fab3e1bb155a8f8f6f55360364469328c0d"
+    },
+    {
       "path": "docs/features/workspace.md",
-      "sha256": "40602c1fad294bcd5242c03a6876903109c6aee0fc265d3e4c6ad1f593f49974"
+      "sha256": "3e5877030f8f5abf6f416c0e06238ef6c62655867acbbcc913e26e4a8d9b45cc"
     },
     {
       "path": "README.md",
