@@ -36,6 +36,13 @@ jobs:
           docker container create --name screenshot-job --label material-docker-image.capture=true --mount type=volume,source=screenshot-data,target=C:\data screenshot-sample/hello-api:1.4.0 cmd /c echo done
           docker container logs screenshot-web
           docker container ls --all
+      - name: Use a 1920x1080 desktop so windows are not limited by the runner screen
+        shell: powershell
+        continue-on-error: true
+        run: |
+          Set-DisplayResolution -Width 1920 -Height 1080 -Force
+          Add-Type -AssemblyName System.Windows.Forms
+          [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
       - name: Capture every surface
         shell: pwsh
         run: |
