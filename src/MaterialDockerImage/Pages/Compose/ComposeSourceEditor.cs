@@ -41,6 +41,8 @@ public sealed class ComposeSourceEditor : Grid
     {
         System.Windows.Automation.AutomationProperties.SetName(editor, Loc.T("Compose source"));
         editor.IsEnabled = false;
+        // Paths are relative to the loaded Compose file's folder.
+        EditorSuggestions.Attach(editor, EditorSuggestionLanguage.Compose, () => loadedPath.Length > 0 ? Path.GetDirectoryName(loadedPath) : null);
         editor.TextChanged += (_, _) => { if (!loading) { UpdateState(); DirtyChanged?.Invoke(); } };
         editor.PreviewKeyDown += (_, e) =>
         {

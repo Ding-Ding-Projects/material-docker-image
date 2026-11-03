@@ -45,3 +45,7 @@ The second pass added boards for the deeper features, laid out below the origina
 - `Minecraft.dc.html`: Minecraft server cards, console with RCON and server properties.
 
 Every board uses the current Material Symbols subset (221 icons) so rail and page icons render.
+- `Suggestions.dc.html` and `SuggestionPickers.dc.html`: editor suggestions with documentation and the interactive value pickers (path, colour, port, duration, permissions, image).
+- `RegexBuilder.dc.html`: the anchored regular expression builder available on every search field.
+
+The canvas is organised into six numbered sections (build and author, images and security, run, engine and operations, shell and settings, Minecraft) with the shared components beside them.

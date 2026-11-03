@@ -45,6 +45,8 @@ public sealed class UserSettings
     public string TabDock { get; set; } = "Top";
     public Dictionary<string, bool> CollapsedFilters { get; set; } = new();
     public string ExternalEditor { get; set; } = "";
+    /// <summary>Opens Suggestions automatically while typing in the Dockerfile and Compose editors. Ctrl+Space always works.</summary>
+    public bool SuggestionsWhileTyping { get; set; } = true;
     public int MonitorIntervalSeconds { get; set; } = 2;
     public string PersonalVocabularyPath { get; set; } = "";
     // Appearance editor values (see AppearanceState). Ranges are enforced by AppearanceState.Normalize.

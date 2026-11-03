@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Regex builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Images" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 16px 16px 16px 0; gap: 12px">
+<div style="display: flex; align-items: center; gap: 8px">
+<div style="height: 40px; width: 420px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F; outline: 2px solid #ADC6FF"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Filter images" value="^hello-api:(?&lt;ver&gt;\d+\.\d+\.\d+)$" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: 13px 'Cascadia Mono',monospace; outline: none"><button aria-label="Regular expression on" aria-pressed="true" style="height: 28px; padding: 0 8px; border-radius: 14px; border: none; background: #ADC6FF; color: #002E69; font: 700 12px 'Cascadia Mono',monospace">.*</button><button aria-label="Open regex builder (Alt+R)" aria-expanded="true" style="height: 28px; padding: 0 10px; border-radius: 14px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Segoe UI',sans-serif">Builder</button></div>
+<span style="font-size: 13px; color: #C4C6D0">2 of 14 images match</span>
+</div>
+<div role="dialog" aria-label="Regex builder for Filter images" style="position: absolute; left: 112px; top: 120px; width: 1300px; height: 800px; background: #1D2024; border-radius: 20px; box-shadow: 0 14px 36px rgba(0,0,0,.55); display: grid; grid-template-columns: 260px minmax(0, 1fr) 340px; overflow: hidden">
+<aside aria-label="Tokens and library" style="background: #191C20; padding: 16px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+<div style="height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 18px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 16px; color: #C4C6D0">&#xEF7A;</span><span style="color: #8E9099; font-size: 13px">Search tokens and patterns</span></div>
+<sc-for list="{{groups}}" as="g" hint-placeholder-count="5">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">{{g.name}}</span><div style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{g.chips}}" as="c" hint-placeholder-count="4"><span style="height: 26px; padding: 0 8px; border-radius: 6px; background: #282A2F; font: 12px 'Cascadia Mono',monospace; display: flex; align-items: center">{{c}}</span></sc-for></div></div>
+</sc-for>
+</aside>
+<section aria-label="Pattern" style="padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600; font-size: 16px; flex: 1 1 auto">Pattern</span><span style="height: 24px; padding: 0 10px; border-radius: 12px; background: #005227; color: #9CF6B4; font-size: 12px; font-weight: 600; display: flex; align-items: center">Valid · NonBacktracking engine</span><button aria-label="Copy pattern" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE14D;</button></div>
+<pre style="margin: 0; padding: 12px 14px; border-radius: 10px; background: #111318; font: 16px/1.5 'Cascadia Mono',monospace"><span style="color: #F9BD5C">^</span>hello-api:<span style="color: #82D3E0">(?&lt;ver&gt;</span><span style="color: #ADC6FF">\d+</span>\.<span style="color: #ADC6FF">\d+</span>\.<span style="color: #ADC6FF">\d+</span><span style="color: #82D3E0">)</span><span style="color: #F9BD5C">$</span></pre>
+<div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{flags}}" as="f" hint-placeholder-count="6"><span style="height: 30px; padding: 0 12px; border-radius: 8px; background: {{f.bg}}; color: {{f.ink}}; border: {{f.border}}; font-size: 12px; display: flex; align-items: center">{{f.name}}</span></sc-for></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Explanation</span>
+<div style="background: #191C20; border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; font-size: 13px">
+<sc-for list="{{explain}}" as="e" hint-placeholder-count="6"><div style="display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 10px; padding-left: {{e.indent}}"><span style="font-family: 'Cascadia Mono',monospace; color: {{e.ink}}">{{e.tok}}</span><span style="color: #C4C6D0">{{e.text}}</span></div></sc-for>
+</div></div>
+<div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 auto; min-height: 0"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Test text · 2 matches</span>
+<pre style="margin: 0; flex: 1 1 auto; padding: 12px 14px; border-radius: 10px; background: #111318; font: 13px/1.7 'Cascadia Mono',monospace; color: #C4C6D0"><span style="background: #004494; color: #D8E2FF">hello-api:1.4.0</span>
+hello-api:latest
+<span style="background: #004494; color: #D8E2FF">hello-api:1.3.12</span>
+hello-api-worker:1.4.0</pre></div>
+</section>
+<aside aria-label="Captures and actions" style="background: #191C20; padding: 18px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Captures</span>
+<div style="display: grid; grid-template-columns: 50px 60px minmax(0, 1fr); gap: 6px; font-size: 13px"><span style="color: #C4C6D0">Match</span><span style="color: #C4C6D0">Group</span><span style="color: #C4C6D0">Value</span><span>1</span><span style="font-family: 'Cascadia Mono',monospace">ver</span><span style="font-family: 'Cascadia Mono',monospace">1.4.0</span><span>2</span><span style="font-family: 'Cascadia Mono',monospace">ver</span><span style="font-family: 'Cascadia Mono',monospace">1.3.12</span></div>
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Replace preview</span>
+<div style="height: 36px; border-radius: 8px; border: 1px solid #44474F; display: flex; align-items: center; padding: 0 10px; font: 13px 'Cascadia Mono',monospace">registry.example.com/api:${ver}</div>
+<div style="flex: 1 1 auto"></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Save to my patterns</button>
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Copy as C# string</button>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600">Apply to filter</button>
+</div>
+<span style="font-size: 12px; color: #8E9099">.NET regular expressions · 250 ms limit when backtracking · test text up to 64 KiB · Esc returns to the search field</span>
+</aside>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const groups = [['Characters',['\\d','\\w','\\s','.','[abc]','[^abc]','\\p{L}']],['Anchors',['^','$','\\b','\\A','\\z']],['Groups',['( )','(?<n> )','(?: )','(?= )','(?! )','(?<= )']],['Quantifiers',['?','*','+','{n}','{n,m}','+?']],['Library',['image ref','digest','semver','IPv4','port','container id','ISO date']]].map(([name, chips]) => ({ name, chips }));
+const flags = [['Ignore case',true],['Multiline',false],['Single line',false],['Ignore whitespace',false],['Explicit capture',false],['Culture invariant',false]].map(([name, on]) => ({ name, bg: on ? '#3E4759' : 'transparent', ink: on ? '#DAE2F9' : '#C4C6D0', border: on ? 'none' : '1px solid #44474F' }));
+const explain = [['^','Start of the text','#F9BD5C',0],['hello-api:','The literal text "hello-api:"','#E2E2E9',0],['(?<ver> … )','Named group "ver"','#82D3E0',0],['\\d+','One or more digits','#ADC6FF',16],['\\.','A literal dot','#E2E2E9',16],['$','End of the text','#F9BD5C',0]].map(([tok, text, ink, ind]) => ({ tok, text, ink, indent: ind + 'px' }));
+return { groups, flags, explain };
+}
+}
+</script>
+</body>
+</html>

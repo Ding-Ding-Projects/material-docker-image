@@ -4,6 +4,7 @@
 - [Search and the regular expression builder](search-and-regex.md)
 - [Build and run](build-and-run.md)
 - [Dockerfile Creator](dockerfile-creator.md)
+- [Editor suggestions and value pickers](editor-suggestions.md)
 - [Advanced builds, BuildKit timeline and Bake](advanced-build.md)
 - [Image detail and security](images-and-security.md)
 - [Engine contexts, Swarm, volume backup and Compose tools](contexts-and-swarm.md)

@@ -1,264 +1,343 @@
 {
   "v": 3,
-  "createdOnFiles": {
-    "v": 1,
-    "at": "2026-11-03T16:58:00Z"
+  "attachments": {},
+  "boards": {
+    "Appearance.dc.html": {
+      "h": 960,
+      "title": "Appearance studio and motion",
+      "w": 1440,
+      "x": 4560,
+      "y": 9540
+    },
+    "Bake.dc.html": {
+      "h": 960,
+      "title": "Bake targets",
+      "w": 1440,
+      "x": 3040,
+      "y": 300
+    },
+    "BuildV2.dc.html": {
+      "h": 960,
+      "title": "Build v2 with BuildKit timeline",
+      "w": 1440,
+      "x": 1520,
+      "y": 300
+    },
+    "Canvas.dc.html": {
+      "h": 960,
+      "title": "Dockerfile canvas",
+      "w": 1440,
+      "x": 4560,
+      "y": 1380
+    },
+    "Compose.dc.html": {
+      "h": 960,
+      "title": "Compose projects",
+      "w": 1440,
+      "x": 3040,
+      "y": 4380
+    },
+    "Containers.dc.html": {
+      "h": 960,
+      "title": "Containers and detail",
+      "w": 1440,
+      "x": 1520,
+      "y": 4380
+    },
+    "Contexts.dc.html": {
+      "h": 960,
+      "title": "Engine contexts and plugins",
+      "w": 1440,
+      "x": 0,
+      "y": 6960
+    },
+    "Creator.dc.html": {
+      "h": 960,
+      "title": "Dockerfile Creator",
+      "w": 1440,
+      "x": 4560,
+      "y": 300
+    },
+    "CreatorV2.dc.html": {
+      "h": 960,
+      "title": "Dockerfile Creator v2",
+      "w": 1440,
+      "x": 0,
+      "y": 1380
+    },
+    "Diagnostics.dc.html": {
+      "h": 960,
+      "title": "Diagnostics",
+      "w": 1440,
+      "x": 0,
+      "y": 8040
+    },
+    "Images.dc.html": {
+      "h": 960,
+      "title": "Images",
+      "w": 1440,
+      "x": 0,
+      "y": 2880
+    },
+    "ImagesV2.dc.html": {
+      "h": 960,
+      "title": "Image detail: layers, platforms, Scout",
+      "w": 1440,
+      "x": 1520,
+      "y": 2880
+    },
+    "Main.dc.html": {
+      "h": 960,
+      "title": "Build workspace",
+      "w": 1440,
+      "x": 0,
+      "y": 300
+    },
+    "Minecraft.dc.html": {
+      "h": 960,
+      "title": "Minecraft servers",
+      "w": 1440,
+      "x": 0,
+      "y": 12120
+    },
+    "Monitor.dc.html": {
+      "h": 960,
+      "title": "Live monitor",
+      "w": 1440,
+      "x": 3040,
+      "y": 6960
+    },
+    "Palette.dc.html": {
+      "h": 960,
+      "title": "Command palette",
+      "w": 1440,
+      "x": 0,
+      "y": 9540
+    },
+    "Rail.dc.html": {
+      "h": 912,
+      "title": "Component: navigation rail",
+      "w": 96,
+      "x": 6240,
+      "y": 428
+    },
+    "Registry.dc.html": {
+      "h": 960,
+      "title": "Registry and builders",
+      "w": 1440,
+      "x": 4560,
+      "y": 2880
+    },
+    "RunContainer.dc.html": {
+      "h": 960,
+      "title": "Run container editor",
+      "w": 1440,
+      "x": 0,
+      "y": 4380
+    },
+    "Security.dc.html": {
+      "h": 960,
+      "title": "Image security",
+      "w": 1440,
+      "x": 3040,
+      "y": 2880
+    },
+    "Settings.dc.html": {
+      "h": 960,
+      "title": "Settings",
+      "w": 1440,
+      "x": 3040,
+      "y": 9540
+    },
+    "Setup.dc.html": {
+      "h": 960,
+      "title": "Setup wizard",
+      "w": 1440,
+      "x": 1520,
+      "y": 9540
+    },
+    "Storage.dc.html": {
+      "h": 960,
+      "title": "Volumes and networks",
+      "w": 1440,
+      "x": 4560,
+      "y": 4380
+    },
+    "Swarm.dc.html": {
+      "h": 960,
+      "title": "Swarm",
+      "w": 1440,
+      "x": 1520,
+      "y": 6960
+    },
+    "System.dc.html": {
+      "h": 960,
+      "title": "System cleanup with super confirmation",
+      "w": 1440,
+      "x": 4560,
+      "y": 6960
+    },
+    "TitleBar.dc.html": {
+      "h": 48,
+      "title": "Component: title bar",
+      "w": 1440,
+      "x": 6240,
+      "y": 300
+    },
+    "Tools.dc.html": {
+      "h": 960,
+      "title": "Tools and offline docs",
+      "w": 1440,
+      "x": 1520,
+      "y": 8040
+    },
+    "VolumeBackup.dc.html": {
+      "h": 960,
+      "title": "Volume backup and restore",
+      "w": 1440,
+      "x": 0,
+      "y": 5460
+    },
+    "Suggestions.dc.html": {
+      "x": 1520,
+      "y": 1380,
+      "w": 1440,
+      "h": 960,
+      "title": "Dockerfile suggestions"
+    },
+    "SuggestionPickers.dc.html": {
+      "x": 3040,
+      "y": 1380,
+      "w": 1440,
+      "h": 960,
+      "title": "Interactive suggestion pickers"
+    },
+    "RegexBuilder.dc.html": {
+      "x": 0,
+      "y": 10620,
+      "w": 1440,
+      "h": 960,
+      "title": "Advanced regex builder on every search bar"
+    }
   },
-  "title": "Material Docker Image redesign",
+  "createdOnFiles": {
+    "at": "2026-11-03T16:58:00Z",
+    "v": 1
+  },
+  "designSystems": [],
   "launch": {
     "view": "canvas"
   },
-  "pages": [],
-  "boards": {
-    "Main.dc.html": {
-      "x": 0,
-      "y": 0,
-      "w": 1440,
-      "h": 960,
-      "title": "Build workspace"
-    },
-    "Images.dc.html": {
-      "x": 1520,
-      "y": 0,
-      "w": 1440,
-      "h": 960,
-      "title": "Images"
-    },
-    "Containers.dc.html": {
-      "x": 3040,
-      "y": 0,
-      "w": 1440,
-      "h": 960,
-      "title": "Containers and detail"
-    },
-    "RunContainer.dc.html": {
-      "x": 0,
-      "y": 1080,
-      "w": 1440,
-      "h": 960,
-      "title": "Run container editor"
-    },
-    "Compose.dc.html": {
-      "x": 1520,
-      "y": 1080,
-      "w": 1440,
-      "h": 960,
-      "title": "Compose projects"
-    },
-    "Canvas.dc.html": {
-      "x": 3040,
-      "y": 1080,
-      "w": 1440,
-      "h": 960,
-      "title": "Dockerfile canvas"
-    },
-    "Storage.dc.html": {
-      "x": 0,
-      "y": 2160,
-      "w": 1440,
-      "h": 960,
-      "title": "Volumes and networks"
-    },
-    "Monitor.dc.html": {
-      "x": 1520,
-      "y": 2160,
-      "w": 1440,
-      "h": 960,
-      "title": "Live monitor"
-    },
-    "System.dc.html": {
-      "x": 3040,
-      "y": 2160,
-      "w": 1440,
-      "h": 960,
-      "title": "System cleanup with super confirmation"
-    },
-    "Registry.dc.html": {
-      "x": 0,
-      "y": 3240,
-      "w": 1440,
-      "h": 960,
-      "title": "Registry and builders"
-    },
-    "Diagnostics.dc.html": {
-      "x": 1520,
-      "y": 3240,
-      "w": 1440,
-      "h": 960,
-      "title": "Diagnostics"
-    },
-    "Tools.dc.html": {
-      "x": 3040,
-      "y": 3240,
-      "w": 1440,
-      "h": 960,
-      "title": "Tools and offline docs"
-    },
-    "Settings.dc.html": {
-      "x": 0,
-      "y": 4320,
-      "w": 1440,
-      "h": 960,
-      "title": "Settings"
-    },
-    "Palette.dc.html": {
-      "x": 1520,
-      "y": 4320,
-      "w": 1440,
-      "h": 960,
-      "title": "Command palette"
-    },
-    "Setup.dc.html": {
-      "x": 3040,
-      "y": 4320,
-      "w": 1440,
-      "h": 960,
-      "title": "Setup wizard"
-    },
-    "Creator.dc.html": {
-      "x": 0,
-      "y": 5400,
-      "w": 1440,
-      "h": 960,
-      "title": "Dockerfile Creator"
-    },
-    "TitleBar.dc.html": {
-      "x": 4600,
-      "y": 0,
-      "w": 1440,
-      "h": 48,
-      "title": "Component: title bar"
-    },
-    "Rail.dc.html": {
-      "x": 4600,
-      "y": 128,
-      "w": 96,
-      "h": 912,
-      "title": "Component: navigation rail"
-    },
-    "BuildV2.dc.html": {
-      "x": 0,
-      "y": 6720,
-      "w": 1440,
-      "h": 960,
-      "title": "Build v2 with BuildKit timeline"
-    },
-    "Bake.dc.html": {
-      "x": 1520,
-      "y": 6720,
-      "w": 1440,
-      "h": 960,
-      "title": "Bake targets"
-    },
-    "ImagesV2.dc.html": {
-      "x": 3040,
-      "y": 6720,
-      "w": 1440,
-      "h": 960,
-      "title": "Image detail: layers, platforms, Scout"
-    },
-    "Security.dc.html": {
-      "x": 0,
-      "y": 7800,
-      "w": 1440,
-      "h": 960,
-      "title": "Image security"
-    },
-    "Contexts.dc.html": {
-      "x": 1520,
-      "y": 7800,
-      "w": 1440,
-      "h": 960,
-      "title": "Engine contexts and plugins"
-    },
-    "Swarm.dc.html": {
-      "x": 3040,
-      "y": 7800,
-      "w": 1440,
-      "h": 960,
-      "title": "Swarm"
-    },
-    "CreatorV2.dc.html": {
-      "x": 0,
-      "y": 8880,
-      "w": 1440,
-      "h": 960,
-      "title": "Dockerfile Creator v2"
-    },
-    "VolumeBackup.dc.html": {
-      "x": 1520,
-      "y": 8880,
-      "w": 1440,
-      "h": 960,
-      "title": "Volume backup and restore"
-    },
-    "Appearance.dc.html": {
-      "x": 3040,
-      "y": 8880,
-      "w": 1440,
-      "h": 960,
-      "title": "Appearance studio and motion"
-    },
-    "Minecraft.dc.html": {
-      "x": 0,
-      "y": 9960,
-      "w": 1440,
-      "h": 960,
-      "title": "Minecraft servers"
-    }
-  },
-  "order": [
-    "Main.dc.html",
-    "Images.dc.html",
-    "Containers.dc.html",
-    "RunContainer.dc.html",
-    "Compose.dc.html",
-    "Canvas.dc.html",
-    "Storage.dc.html",
-    "Monitor.dc.html",
-    "System.dc.html",
-    "Registry.dc.html",
-    "Diagnostics.dc.html",
-    "Tools.dc.html",
-    "Settings.dc.html",
-    "Palette.dc.html",
-    "Setup.dc.html",
-    "Creator.dc.html",
-    "TitleBar.dc.html",
-    "Rail.dc.html",
-    "BuildV2.dc.html",
-    "Bake.dc.html",
-    "ImagesV2.dc.html",
-    "Security.dc.html",
-    "Contexts.dc.html",
-    "Swarm.dc.html",
-    "CreatorV2.dc.html",
-    "VolumeBackup.dc.html",
-    "Appearance.dc.html",
-    "Minecraft.dc.html"
+  "noteOrder": [
+    "intro",
+    "g_build",
+    "g_images",
+    "g_run",
+    "g_engine",
+    "g_shell",
+    "g_fun",
+    "g_comp",
+    "tokens"
   ],
   "notes": {
     "intro": {
-      "x": 0,
-      "y": -300,
-      "text": "Material Docker Image: native workspace redesign",
       "kind": "title1",
-      "maxW": 4480
+      "maxW": 6000,
+      "text": "Material Docker Image: native workspace redesign",
+      "w": 240,
+      "x": 0,
+      "y": -600
+    },
+    "g_build": {
+      "x": 0,
+      "y": 0,
+      "text": "1 · Build images and author Dockerfiles",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_images": {
+      "x": 0,
+      "y": 2580,
+      "text": "2 · Images, security and registries",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_run": {
+      "x": 0,
+      "y": 4080,
+      "text": "3 · Run containers, Compose and storage",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_engine": {
+      "x": 0,
+      "y": 6660,
+      "text": "4 · Engine, Swarm and operations",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_shell": {
+      "x": 0,
+      "y": 9240,
+      "text": "5 · Shell, search, settings and appearance",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_fun": {
+      "x": 0,
+      "y": 11820,
+      "text": "6 · Minecraft",
+      "kind": "title1",
+      "maxW": 6000
+    },
+    "g_comp": {
+      "x": 6240,
+      "y": 0,
+      "text": "Components",
+      "kind": "title1",
+      "maxW": 1600
     },
     "tokens": {
-      "x": 4600,
-      "y": 1120,
-      "w": 420,
+      "fill": "blue",
       "text": "Look: Material 3 dark, blue seed. Surface #111318, containers #191C20 / #1D2024 / #282A2F, primary #ADC6FF on #002E69, primary container #004494, tertiary #82D3E0, success #7FD99A, warning #F9BD5C, error #FFB4AB. Type: Segoe UI Variable. Icons: Material Symbols Rounded (subset, outline + filled). Shape: 12 px cards, 20 px pills, 28 px dialogs. Light theme mirrors these roles.",
-      "fill": "blue"
-    },
-    "advanced": {
-      "x": 0,
-      "y": 6420,
-      "text": "Advanced v2: deeper Docker, Dockerfile, Minecraft and appearance features",
-      "kind": "title1",
-      "maxW": 4480
+      "w": 420,
+      "x": 6420,
+      "y": 428
     }
   },
-  "designSystems": []
+  "order": [
+    "TitleBar.dc.html",
+    "Rail.dc.html",
+    "Main.dc.html",
+    "BuildV2.dc.html",
+    "Bake.dc.html",
+    "Creator.dc.html",
+    "CreatorV2.dc.html",
+    "Suggestions.dc.html",
+    "SuggestionPickers.dc.html",
+    "Canvas.dc.html",
+    "Images.dc.html",
+    "ImagesV2.dc.html",
+    "Security.dc.html",
+    "Registry.dc.html",
+    "RunContainer.dc.html",
+    "Containers.dc.html",
+    "Compose.dc.html",
+    "Storage.dc.html",
+    "VolumeBackup.dc.html",
+    "Contexts.dc.html",
+    "Swarm.dc.html",
+    "Monitor.dc.html",
+    "System.dc.html",
+    "Diagnostics.dc.html",
+    "Tools.dc.html",
+    "Palette.dc.html",
+    "Setup.dc.html",
+    "Settings.dc.html",
+    "Appearance.dc.html",
+    "RegexBuilder.dc.html",
+    "Minecraft.dc.html"
+  ],
+  "pages": [],
+  "title": "Material Docker Image redesign"
 }

@@ -19,5 +19,8 @@
     <Compile Include="../../src/MaterialDockerImage/UI/Appearance*.cs" LinkBase="Appearance"/>
     <Compile Include="../../src/MaterialDockerImage/UI/RegexBuilder*.cs" LinkBase="RegexBuilder"/>
     <Compile Include="../../src/MaterialDockerImage/UI/SearchSurfaceCatalogue.cs" LinkBase="RegexBuilder"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/DockerfileCompletion*.cs" LinkBase="Suggestions"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/DockerfileValue*.cs" LinkBase="Suggestions"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/ComposeCompletion*.cs" LinkBase="Suggestions"/>
   </ItemGroup>
 </Project>

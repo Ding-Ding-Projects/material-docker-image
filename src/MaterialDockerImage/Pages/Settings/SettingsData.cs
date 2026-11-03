@@ -44,6 +44,9 @@ public sealed partial class SettingsPage
         var reset = Ui.Button("Use system default", null, ButtonKind.Text, () => { editor.Text = ""; SaveEditor(""); });
         rows.Add("editor", "External editor", "The program used when you choose Open in editor. Leave empty to use the Windows default for the file type.",
             Ui.VStack(6, Ui.HStack(8, editor, browse, reset), editorError), s => s.ExternalEditor, null, true, v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "system default", @"C:\Program Files\Microsoft VS Code\Code.exe");
+        rows.Add("suggestions", "Show suggestions while typing", "Opens Suggestions automatically in the Dockerfile and Compose editors as you type. Ctrl+Space always opens them and Ctrl+Shift+Space opens the value picker at the caret.",
+            SettingRows.Toggle(S.SuggestionsWhileTyping, v => { S.SuggestionsWhileTyping = v; Commit("Suggestions while typing " + (v ? "on" : "off")); }), s => s.SuggestionsWhileTyping,
+            "Suggestions come from the Dockerfile reference built into the app, the stages and variables in the file, local images on the selected engine context and file names in the build context folder. Secret-looking files are never listed and nothing is sent anywhere.");
         var setup = Ui.Button("Run setup again", Icons.RocketLaunch, ButtonKind.Tonal, () => Host.Navigate("Setup"));
         rows.Add("setup", "Setup wizard", "Detect Docker, choose the engine context and project folder again. Your other settings are kept.", setup, null);
     }

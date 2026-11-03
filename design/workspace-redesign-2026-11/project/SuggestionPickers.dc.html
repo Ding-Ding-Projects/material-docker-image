@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Suggestion pickers</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/28fd57aaf616f10e48ec5a006964590d") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/f56d5dedbdf2c9525a3831a178857862") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; box-sizing: border-box; padding: 32px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 24px; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px">
+<sc-for list="{{cards}}" as="c" hint-placeholder-count="6">
+<section aria-label="{{c.title}}" style="background: #191C20; border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 10px"><span aria-hidden="true" style="width: 36px; height: 36px; border-radius: 10px; background: #004494; color: #D8E2FF; font-family: MSF; font-size: 20px; display: flex; align-items: center; justify-content: center">{{c.icon}}</span><span style="display: flex; flex-direction: column"><span style="font-weight: 600; font-size: 15px">{{c.title}}</span><span style="font-size: 12px; color: #C4C6D0">{{c.when}}</span></span></div>
+<pre style="margin: 0; padding: 10px 12px; border-radius: 8px; background: #111318; font: 13px/1.6 'Cascadia Mono',Consolas,monospace; white-space: pre-wrap">{{c.line}}<span style="border-left: 2px solid #ADC6FF"></span></pre>
+<div style="flex: 1 1 auto; background: #282A2F; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 8px 24px rgba(0,0,0,.45)">
+<sc-for list="{{c.rows}}" as="r" hint-placeholder-count="3">
+<div style="min-height: 34px; display: flex; align-items: center; gap: 10px; padding: 0 10px; border-radius: 8px; background: {{r.bg}}; font-size: 13px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #82D3E0">{{r.icon}}</span><span style="flex: 1 1 auto; font-family: {{r.font}}">{{r.text}}</span><span style="font-size: 12px; color: #C4C6D0">{{r.hint}}</span></div>
+</sc-for>
+</div>
+</section>
+</sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const mono = "'Cascadia Mono',Consolas,monospace", ui = "'Segoe UI',system-ui,sans-serif";
+const row = (icon, text, hint, on, isMono) => ({ icon, text, hint, bg: on ? '#3E4759' : 'transparent', font: isMono ? mono : ui });
+const cards = [
+['','File or folder path','COPY, ADD, mount source, Compose build and env_file','COPY ',[row('','Browse… (opens at the build context)','Enter',true,false),row('','src/','folder',false,true),row('','package.json','file',false,true)]],
+['','Colour','A hex or rgb() value in a label, comment or ENV','LABEL org.example.accent="#4A7FE0',[row('','Open colour picker (hue, saturation, hex, contrast)','Enter',true,false),row('','#4A7FE0 · current','',false,true),row('','#82D3E0 · recent','',false,true)]],
+['','Port','EXPOSE and Compose ports','EXPOSE ',[row('','Port editor: 8080 / tcp','Enter',true,false),row('','80/tcp · HTTP','',false,true),row('','443/tcp · HTTPS','',false,true)]],
+['','Duration','HEALTHCHECK and Compose healthcheck timings','HEALTHCHECK --interval=',[row('','Duration picker: number + unit','Enter',true,false),row('','30s · default','',false,true),row('','1m','',false,true)]],
+['','Permissions','--chmod','COPY --chmod=',[row('','Permission grid (owner, group, other × r w x)','Enter',true,false),row('','755 · rwxr-xr-x','',false,true),row('','u=rwx,go=rx','symbolic, 1.14+',false,true)]],
+['','Image reference','FROM and Compose image','FROM node:22-alpine',[row('','Pick a local image and tag','Enter',true,false),row('','Pin digest @sha256:… (from local repo digest)','',false,false),row('','node:22.11-alpine3.20 · local','',false,true)]]
+].map(([icon, title, when, line, rows]) => ({ icon, title, when, line, rows }));
+return { cards };
+}
+}
+</script>
+</body>
+</html>

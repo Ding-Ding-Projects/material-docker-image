@@ -117,6 +117,7 @@ public static class SearchSurfaceCatalogue
         T("minecraft.servers", "Minecraft", "Pages/MinecraftPage.cs", "Minecraft servers"),
         C("minecraft.logs", "Minecraft", "Pages/MinecraftPage.cs", "ResourceTextViewer.ShowStream", "\"Logs: \" + s.Name"),
         C("minecraft.console", "Minecraft", "Pages/Minecraft/MinecraftConsoleTab.cs", "ResourceTextViewer", "Server console"),
+        F("editor.image-picker", "Editors", "Pages/Suggestions/EditorValuePickers.cs", "Search local images"),
         C("minecraft.replies", "Minecraft", "Pages/Minecraft/MinecraftWorldTab.cs", "ReadOnlySearchText", "Search replies"),
         T("minecraft.backups", "Minecraft", "Pages/Minecraft/MinecraftBackupsTab.cs", "Backups"),
         T("minecraft.files", "Minecraft", "Pages/Minecraft/MinecraftFilesTab.cs", "Server files"),

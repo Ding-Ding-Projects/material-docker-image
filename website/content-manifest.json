@@ -16,7 +16,7 @@
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "44930c269b3776e02d34cfa9155e13b83ff34b8e67ec06fa4dd1568b9fd7958b"
+      "sha256": "430ec6df86331fcb5952f42b1fc1a0210c575d38645c95aabb7b3cf7d7c51d8c"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -53,6 +53,10 @@
     {
       "path": "docs/features/dockerfile-creator.md",
       "sha256": "6d4ef9b06fc17329e7535b587372ea06401f89f52c33f56021878c9402bbc996"
+    },
+    {
+      "path": "docs/features/editor-suggestions.md",
+      "sha256": "8888c376d8ebd187478b1ad735d4c8c9015bf3706ace2e4247f5eb636970d2e0"
     },
     {
       "path": "docs/features/feature-checklist.md",
