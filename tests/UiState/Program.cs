@@ -116,4 +116,25 @@ finally { try { foreach(var f in Directory.EnumerateFiles(historyRoot,"*",Search
     Check(!strict.Success&&strict.ErrorOffset==4,"strict decoding reports the exact offset of the bad character");
     Check(MaterialDockerImage.UI.Base64Tools.TryParseDataUrl(MaterialDockerImage.UI.Base64Tools.BuildDataUrl("text/plain",new byte[]{104,105}),out var url,out _)&&url!.MimeType=="text/plain"&&url.Bytes.SequenceEqual(new byte[]{104,105}),"data URL builds and parses");
 }
+
+// Dockerfile Creator model: every starter renders, parses back to identical text, and survives JSON.
+foreach(var starter in MaterialDockerImage.UI.DockerfileStarters.All)
+{
+    var document=starter.Create();
+    var text=MaterialDockerImage.UI.DockerfileModel.Render(document);
+    var parsed=MaterialDockerImage.UI.DockerfileModel.Parse(text);
+    Check(MaterialDockerImage.UI.DockerfileModel.Render(parsed.Document)==text,$"starter {starter.Id} round trips through the parser");
+    Check(MaterialDockerImage.UI.DockerfileModel.Render(MaterialDockerImage.UI.DockerfileModel.Deserialize(MaterialDockerImage.UI.DockerfileModel.Serialize(document)))==text,$"starter {starter.Id} survives draft JSON");
+    if(starter.Id!="blank") Check(DockerfileGraph.Parse(text).Stages.Count==document.Stages.Count,$"starter {starter.Id} is readable by the canvas parser");
+}
+Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\" \\ value"})=="[\"echo\", \"a \\\"quoted\\\" \\\\ value\"]","exec form escapes quotes and backslashes");
+{
+    var bad=MaterialDockerImage.UI.DockerfileModel.Parse("FROM ubuntu\nRUN apt-get update\nADD . /app\nENV API_TOKEN=x\nCMD node server.js\n").Document;
+    var ids=MaterialDockerImage.UI.DockerfileLint.Check(bad).Where(r=>r.Severity!=MaterialDockerImage.UI.LintSeverity.Pass).Select(r=>r.Title).ToList();
+    Check(ids.Count>=5,"lint flags an unpinned base, root user, missing health check, ADD, secret-like ENV and shell-form CMD");
+    var fixable=MaterialDockerImage.UI.DockerfileLint.Check(bad).First(r=>r.Fix?.Apply!=null);
+    var before=MaterialDockerImage.UI.DockerfileLint.CountProblems(MaterialDockerImage.UI.DockerfileLint.Check(bad));
+    fixable.Fix!.Apply!(bad);
+    Check(MaterialDockerImage.UI.DockerfileLint.CountProblems(MaterialDockerImage.UI.DockerfileLint.Check(bad))<before,"an automatic lint fix removes its finding");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

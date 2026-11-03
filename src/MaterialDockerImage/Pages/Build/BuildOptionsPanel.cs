@@ -30,7 +30,7 @@ public sealed class BuildOptionsPanel : StackPanel
     private readonly FrameworkElement ociRow;
     private readonly List<NameValue> buildArgItems = new();
     private readonly List<NameValue> labelItems = new();
-    private readonly KeyValueRows buildArgs, labels;
+    private readonly BuildKeyValueRows buildArgs, labels;
     private readonly TextBox cacheFrom = Ui.CodeBox("", 64), cacheTo = Ui.CodeBox("", 64);
     private readonly StackPanel secretRows = new();
     private readonly List<SecretRow> secrets = new();
@@ -71,8 +71,8 @@ public sealed class BuildOptionsPanel : StackPanel
         ociRow = Ui.Field("OCI archive path", Ui.Columns(4, [1, 0], ociPath, ociBrowse), "The archive file BuildKit writes. An existing file is replaced only after you confirm.", @"C:\images\hello-api.oci.tar");
         ociRow.Visibility = Visibility.Collapsed;
 
-        buildArgs = new KeyValueRows(buildArgItems, "Argument name", "Argument value", "Add argument", ValidateArgName, () => { });
-        labels = new KeyValueRows(labelItems, "Label key", "Label value", "Add label", ValidateLabelKey, () => { });
+        buildArgs = new BuildKeyValueRows(buildArgItems, "Argument name", "Argument value", "Add argument", ValidateArgName, () => { });
+        labels = new BuildKeyValueRows(labelItems, "Label key", "Label value", "Add label", ValidateLabelKey, () => { });
         pull = Ui.Switch("Pull newer base images", false, _ => { }, "Always check the registry for newer FROM images (--pull).");
         noCache = Ui.Switch("Ignore build cache", false, _ => { }, "Rebuild every step from scratch (--no-cache).");
 

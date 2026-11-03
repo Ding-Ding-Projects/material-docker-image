@@ -86,11 +86,11 @@ public sealed class InstructionForm : StackPanel
                 yield return Ui.Switch("Has a default value", i.HasValue, v => { i.HasValue = v; changed(); });
                 break;
             case InstructionKind.Env:
-                yield return Ui.Field("Variables", new KeyValueRows(i.Pairs, "Name", "Value", "Add variable", n => DockerfileModel.IsVariableName(n) ? null : "Use letters, digits and underscores, starting with a letter or underscore.", changed),
+                yield return Ui.Field("Variables", new BuildKeyValueRows(i.Pairs, "Name", "Value", "Add variable", n => DockerfileModel.IsVariableName(n) ? null : "Use letters, digits and underscores, starting with a letter or underscore.", changed),
                     "Environment variables set in the image and every container started from it. Never put secrets here.", "NODE_ENV = production");
                 break;
             case InstructionKind.Label:
-                yield return Ui.Field("Labels", new KeyValueRows(i.Pairs, "Key", "Value", "Add label", BuildOptionsPanel.ValidateLabelKey, changed),
+                yield return Ui.Field("Labels", new BuildKeyValueRows(i.Pairs, "Key", "Value", "Add label", BuildOptionsPanel.ValidateLabelKey, changed),
                     "Image metadata. OCI keys such as org.opencontainers.image.source are understood by registries.", "org.opencontainers.image.source = https://example.com/repo");
                 break;
             case InstructionKind.Workdir:

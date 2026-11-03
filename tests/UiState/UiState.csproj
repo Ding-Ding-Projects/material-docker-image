@@ -11,5 +11,7 @@
     <Compile Include="../../src/MaterialDockerImage/Services/Loc.cs" Link="Loc.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/HistoryStore.cs" Link="HistoryStore.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/Base64Tools.cs" Link="Base64Tools.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/DockerfileModel*.cs" LinkBase="Dockerfile"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/DockerfileLint.cs" Link="DockerfileLint.cs"/>
   </ItemGroup>
 </Project>

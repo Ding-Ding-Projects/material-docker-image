@@ -9,7 +9,7 @@ namespace MaterialDockerImage.Pages;
 /// Editable NAME=value rows bound to a live list. Each edit updates the list and calls <c>changed</c>; invalid names
 /// are flagged inline under the row.
 /// </summary>
-public sealed class KeyValueRows : StackPanel
+public sealed class BuildKeyValueRows : StackPanel
 {
     private readonly List<NameValue> items;
     private readonly StackPanel rows = new();
@@ -19,7 +19,7 @@ public sealed class KeyValueRows : StackPanel
 
     public IReadOnlyList<NameValue> Items => items;
 
-    public KeyValueRows(List<NameValue> items, string nameLabel, string valueLabel, string addLabel, Func<string, string?> validateName, Action changed)
+    public BuildKeyValueRows(List<NameValue> items, string nameLabel, string valueLabel, string addLabel, Func<string, string?> validateName, Action changed)
     {
         this.items = items; this.nameLabel = nameLabel; this.valueLabel = valueLabel; this.validateName = validateName; this.changed = changed;
         Children.Add(rows);
