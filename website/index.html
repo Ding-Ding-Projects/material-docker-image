@@ -146,12 +146,16 @@
 <details class="feature-row" data-feature-id="container-gpu-access" data-category="milestones" data-status="planned"><summary><span class="feature-name" data-en="Container GPU access" data-zh="容器 GPU 存取">Container GPU access</span><span class="feature-status status-planned" data-en="Planned" data-zh="計劃中">Planned</span><code>container-gpu-access</code></summary><div class="feature-detail"><p  data-en="GPU access controls and supported-host runtime acceptance are planned." data-zh="GPU 存取控制同支援主機嘅執行驗收仍在計劃中。">GPU access controls and supported-host runtime acceptance are planned.</p><h3  data-en="Remaining actions" data-zh="待辦事項">Remaining actions</h3><p  data-en="Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine." data-zh="實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。">Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.</p><h3  data-en="Sources and bounded evidence" data-zh="來源與有限範圍證據">Sources and bounded evidence</h3><ul><li><a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/container-configuration.md"><span  data-en="Source reference" data-zh="來源參考">Source reference</span></a> <span  data-en="Source reference only, not full verification." data-zh="只係來源參考，唔代表完整驗證。">Source reference only, not full verification.</span></li></ul></div></details></div><p><a href="#doc-docs-features-feature-checklist-md" data-en="How this checklist is maintained" data-zh="清單維護方式">How this checklist is maintained</a> · <a href="feature-inventory.json" data-en="Source inventory (JSON)" data-zh="來源清單（JSON）">Source inventory (JSON)</a></p></section>
 <section id="learn"><h2 data-en="One task, one clear next step" data-zh="每項工作，都有清楚下一步">One task, one clear next step</h2><div class="layout"><div class="panel"><div class="tabs" role="group" aria-label="Choose walkthrough"><button data-task="build" aria-pressed="true">Build / 建置</button><button data-task="run" aria-pressed="false">Run / 執行</button><button data-task="canvas" aria-pressed="false">Canvas / 畫布</button></div><p id="step-count" class="eyebrow"></p><div class="progress" aria-hidden="true"><span id="step-bar"></span></div><h3 id="step-title"></h3><p id="step-body"></p><div class="graph" id="step-graph" aria-label="Illustrative build stages"><span class="node">Source</span><span aria-hidden="true">→</span><span class="node">Build stage</span><span aria-hidden="true">→</span><span class="node">Runtime image</span></div><p class="muted" data-en="Guide only. These steps do not control or execute the installed application." data-zh="只供指引。呢度嘅步驟唔會操作或執行已安裝程式。">Guide only. These steps do not control or execute the installed application.</p><div class="step-controls"><button id="previous" data-en="Previous" data-zh="上一步">Previous</button><a id="related" href="#doc-docs-features-build-and-run-md" data-en="Read the full guide" data-zh="閱讀完整指南">Read the full guide</a><button id="next" class="primary" data-en="Next" data-zh="下一步">Next</button></div></div><aside class="panel"><h3 data-en="Your preparation checklist" data-zh="你嘅準備清單">Your preparation checklist</h3><p data-en="Saved in this browser only. Ticking a box records your progress, not a test result." data-zh="只儲存喺呢個瀏覽器。剔選只係記錄你嘅進度，唔係測試結果。">Saved in this browser only. Ticking a box records your progress, not a test result.</p><div class="check"><input type="checkbox" id="check-engine"><label for="check-engine" data-en="I have checked the selected engine." data-zh="已檢查所選引擎。">I have checked the selected engine.</label></div><div class="check"><input type="checkbox" id="check-source"><label for="check-source" data-en="I have reviewed the build source." data-zh="已檢查建置來源。">I have reviewed the build source.</label></div><div class="check"><input type="checkbox" id="check-storage"><label for="check-storage" data-en="I understand which mounts are writable." data-zh="已確認邊啲掛載可以寫入。">I understand which mounts are writable.</label></div><div class="check"><input type="checkbox" id="check-result"><label for="check-result" data-en="I will inspect the actual result and logs." data-zh="會檢查實際結果同記錄。">I will inspect the actual result and logs.</label></div><button id="reset" data-en="Reset my checklist" data-zh="重設準備清單">Reset my checklist</button><p id="storage-status" role="status" class="muted"></p></aside></div></section>
 <section id="example" class="panel"><h2 data-en="Explore the command shape" data-zh="了解指令格式">Explore the command shape</h2><p class="notice" data-en="Interactive demonstration. Nothing is executed, built, downloaded or published." data-zh="互動示範：唔會執行、建置、下載或發佈任何內容。">Interactive demonstration. Nothing is executed, built, downloaded or published.</p><div class="fields"><label>Image tag / 映像標籤<input id="tag" value="example/web:local" maxlength="100" spellcheck="false"></label><label>Target stage / 目標階段<select id="stage"><option value="">Default / 預設</option><option value="build">build</option><option value="runtime">runtime</option></select></label><label>Cache / 快取<select id="cache"><option value="yes">Use cache / 使用快取</option><option value="no">No cache / 不用快取</option></select></label><label>Context / 內容資料夾<input value="." readonly aria-describedby="context-note"></label></div><p id="context-note" class="muted" data-en="The demonstration uses a fixed relative context and no credentials." data-zh="示範固定使用相對內容資料夾，唔涉及憑證。">The demonstration uses a fixed relative context and no credentials.</p><pre id="command" aria-live="polite"></pre><p id="example-status" role="status"></p></section>
-<section id="articles"><h2 data-en="Complete documentation, right here" data-zh="完整文件，就喺呢度">Complete documentation, right here</h2><p data-en="The articles below include the complete checked-in guide text. Source links are optional reference links." data-zh="以下包含已儲存指南嘅完整文字。來源連結只供額外參考。">The articles below include the complete checked-in guide text. Source links are optional reference links.</p><div class="search-row"><input id="search" type="search" aria-label="Search documentation" placeholder="Search documentation / 搜尋文件"><button id="regex-toggle" aria-expanded="false" aria-controls="regex-panel">Regex options / 正則選項</button><button id="clear-search">Clear / 清除</button></div><div id="regex-panel" class="regex" hidden><label><input id="regex-mode" type="checkbox"> Use restricted regex / 使用受限正則</label><p>Supports literal text, <code>.</code>, <code>^</code>, <code>$</code> and simple character classes. Maximum 120 characters. Repetition, groups, alternation and escapes are unsupported. This bounded local builder is not full RegexBuddy parity.</p><label>Pattern / 模式<input id="regex-pattern" maxlength="120"></label><label><input id="regex-case" type="checkbox" checked> Ignore case / 忽略大小寫</label><p>只支援文字、單字元、開頭結尾同簡單字元集合。未達完整 RegexBuddy 功能。</p></div><p id="search-status" role="status"></p><div class="article-links"><a href="#doc-docs-features-readme-md">README.md</a><a href="#doc-docs-features-advanced-build-md">advanced-build.md</a><a href="#doc-docs-features-build-and-run-md">build-and-run.md</a><a href="#doc-docs-features-canvas-md">canvas.md</a><a href="#doc-docs-features-capability-inventory-md">capability-inventory.md</a><a href="#doc-docs-features-container-configuration-md">container-configuration.md</a><a href="#doc-docs-features-diagnostics-md">diagnostics.md</a><a href="#doc-docs-features-dockerfile-creator-md">dockerfile-creator.md</a><a href="#doc-docs-features-feature-checklist-md">feature-checklist.md</a><a href="#doc-docs-features-local-history-md">local-history.md</a><a href="#doc-docs-features-operations-and-tools-md">operations-and-tools.md</a><a href="#doc-docs-features-resources-md">resources.md</a><a href="#doc-docs-features-workspace-md">workspace.md</a><a href="#doc-readme-md">README.md</a><a href="#doc-roadmap-md">ROADMAP.md</a><a href="#doc-handoff-md">HANDOFF.md</a><a href="#doc-wiki-home-md">wiki/Home.md</a></div><article id="doc-docs-features-readme-md" class="article" data-search="user guides # user guides
+<section id="articles"><h2 data-en="Complete documentation, right here" data-zh="完整文件，就喺呢度">Complete documentation, right here</h2><p data-en="The articles below include the complete checked-in guide text. Source links are optional reference links." data-zh="以下包含已儲存指南嘅完整文字。來源連結只供額外參考。">The articles below include the complete checked-in guide text. Source links are optional reference links.</p><div class="search-row"><input id="search" type="search" aria-label="Search documentation" placeholder="Search documentation / 搜尋文件"><button id="regex-toggle" aria-expanded="false" aria-controls="regex-panel">Regex options / 正則選項</button><button id="clear-search">Clear / 清除</button></div><div id="regex-panel" class="regex" hidden><label><input id="regex-mode" type="checkbox"> Use restricted regex / 使用受限正則</label><p>Supports literal text, <code>.</code>, <code>^</code>, <code>$</code> and simple character classes. Maximum 120 characters. Repetition, groups, alternation and escapes are unsupported. This bounded local builder is not full RegexBuddy parity.</p><label>Pattern / 模式<input id="regex-pattern" maxlength="120"></label><label><input id="regex-case" type="checkbox" checked> Ignore case / 忽略大小寫</label><p>只支援文字、單字元、開頭結尾同簡單字元集合。未達完整 RegexBuddy 功能。</p></div><p id="search-status" role="status"></p><div class="article-links"><a href="#doc-docs-features-readme-md">README.md</a><a href="#doc-docs-features-advanced-build-md">advanced-build.md</a><a href="#doc-docs-features-appearance-and-motion-md">appearance-and-motion.md</a><a href="#doc-docs-features-build-and-run-md">build-and-run.md</a><a href="#doc-docs-features-canvas-md">canvas.md</a><a href="#doc-docs-features-capability-inventory-md">capability-inventory.md</a><a href="#doc-docs-features-container-configuration-md">container-configuration.md</a><a href="#doc-docs-features-contexts-and-swarm-md">contexts-and-swarm.md</a><a href="#doc-docs-features-diagnostics-md">diagnostics.md</a><a href="#doc-docs-features-dockerfile-creator-md">dockerfile-creator.md</a><a href="#doc-docs-features-feature-checklist-md">feature-checklist.md</a><a href="#doc-docs-features-images-and-security-md">images-and-security.md</a><a href="#doc-docs-features-local-history-md">local-history.md</a><a href="#doc-docs-features-minecraft-md">minecraft.md</a><a href="#doc-docs-features-operations-and-tools-md">operations-and-tools.md</a><a href="#doc-docs-features-resources-md">resources.md</a><a href="#doc-docs-features-workspace-md">workspace.md</a><a href="#doc-readme-md">README.md</a><a href="#doc-roadmap-md">ROADMAP.md</a><a href="#doc-handoff-md">HANDOFF.md</a><a href="#doc-wiki-home-md">wiki/Home.md</a></div><article id="doc-docs-features-readme-md" class="article" data-search="user guides # user guides
 
 - [workspace, navigation and command palette](workspace.md)
 - [build and run](build-and-run.md)
 - [dockerfile creator](dockerfile-creator.md)
-- [advanced builds](advanced-build.md)
+- [advanced builds, buildkit timeline and bake](advanced-build.md)
+- [image detail and security](images-and-security.md)
+- [engine contexts, swarm, volume backup and compose tools](contexts-and-swarm.md)
+- [minecraft servers](minecraft.md)
+- [appearance and motion](appearance-and-motion.md)
 - [container configuration](container-configuration.md)
 - [canvas](canvas.md)
 - [resource management](resources.md)
@@ -166,7 +170,11 @@ the application uses the local docker cli. it exposes no http api, so a postman 
 <p class="source-item">• <a href="#doc-docs-features-workspace-md">Workspace, navigation and command palette</a></p>
 <p class="source-item">• <a href="#doc-docs-features-build-and-run-md">Build and run</a></p>
 <p class="source-item">• <a href="#doc-docs-features-dockerfile-creator-md">Dockerfile Creator</a></p>
-<p class="source-item">• <a href="#doc-docs-features-advanced-build-md">Advanced builds</a></p>
+<p class="source-item">• <a href="#doc-docs-features-advanced-build-md">Advanced builds, BuildKit timeline and Bake</a></p>
+<p class="source-item">• <a href="#doc-docs-features-images-and-security-md">Image detail and security</a></p>
+<p class="source-item">• <a href="#doc-docs-features-contexts-and-swarm-md">Engine contexts, Swarm, volume backup and Compose tools</a></p>
+<p class="source-item">• <a href="#doc-docs-features-minecraft-md">Minecraft servers</a></p>
+<p class="source-item">• <a href="#doc-docs-features-appearance-and-motion-md">Appearance and motion</a></p>
 <p class="source-item">• <a href="#doc-docs-features-container-configuration-md">Container configuration</a></p>
 <p class="source-item">• <a href="#doc-docs-features-canvas-md">Canvas</a></p>
 <p class="source-item">• <a href="#doc-docs-features-resources-md">Resource management</a></p>
@@ -200,6 +208,25 @@ add a secret row, choose an existing local file, and enter the identifier used b
 
 **check dockerfile with buildkit** invokes the installed builder&#39;s actual `--check` route against the saved dockerfile. unsupported builder versions report their real error. a check is distinct from a successful build, image load, registry publication or container health result.
 
+## buildkit timeline
+
+builds run with `--progress=plain` and the output is parsed into a timeline: one row per step with its stage, status (running, cached, done, failed, cancelled), a duration bar scaled to the longest step and the step&#39;s own log. statistics tiles show total time, cached steps, step count and the resulting digest. click a step to filter the log to it. a failure shows the &quot;failed to solve&quot; summary as a banner.
+
+after a successful build the metadata file is read to show the image digest, config digest, names and attestations, with run, push and copy digest. recent builds combines this session&#39;s builds with `docker buildx history ls` when the installed buildx supports it, and says so when it does not.
+
+## more options
+
+- platform chips for common platforms plus any other platform; a local load refuses more than one.
+- mode: build, check, outline (build arguments and secrets the dockerfile uses) and targets (stages you can build, with use as target).
+- export files writes the result to a local folder and asks before writing into a non-empty one.
+- named build contexts, ssh agent forwarding, environment-variable secrets (the value is never read or shown), sbom and provenance attestations, annotations, run network mode (host needs the network.host entitlement), shared memory size, ulimits and extra hosts.
+- a live command preview with copy shows exactly what will run, or why the input is invalid.
+
+## bake
+
+the bake destination opens a folder (bake reads its default files such as `docker-bake.hcl` and `compose.yaml`) or a specific file. it lists groups and targets from `docker buildx bake --list=targets` and the resolved definition of each from `--print`. select targets or a group, add `--set` overrides, choose load, push or the file&#39;s own outputs, and build with the same timeline as build. push asks first; load refuses multi-platform targets unless you override the platform.
+
+
 ## limits and verification
 
 input validation has focused regression coverage. successful local builds have been exercised separately from remote registry, cache-backend and multi-architecture acceptance. those latter paths remain capability-dependent and are not inferred from a local build.
@@ -220,10 +247,67 @@ input validation has focused regression coverage. successful local builds have b
 <p>Add a secret row, choose an existing local file, and enter the identifier used by the Dockerfile&#39;s <code>RUN --mount=type=secret</code> instruction. The application passes the selected path to BuildKit without reading or persisting the file&#39;s contents. Selections remain in the current window only. The Dockerfile itself must avoid printing secrets or copying them into an image.</p>
 <h4>Check before building</h4>
 <p><strong>Check Dockerfile with BuildKit</strong> invokes the installed builder&#39;s actual <code>--check</code> route against the saved Dockerfile. Unsupported builder versions report their real error. A check is distinct from a successful build, image load, registry publication or container health result.</p>
+<h4>BuildKit timeline</h4>
+<p>Builds run with <code>--progress=plain</code> and the output is parsed into a timeline: one row per step with its stage, status (running, cached, done, failed, cancelled), a duration bar scaled to the longest step and the step&#39;s own log. Statistics tiles show total time, cached steps, step count and the resulting digest. Click a step to filter the log to it. A failure shows the &quot;failed to solve&quot; summary as a banner.</p>
+<p>After a successful build the metadata file is read to show the image digest, config digest, names and attestations, with Run, Push and Copy digest. Recent builds combines this session&#39;s builds with <code>docker buildx history ls</code> when the installed Buildx supports it, and says so when it does not.</p>
+<h4>More options</h4>
+<p class="source-item">• Platform chips for common platforms plus any other platform; a local load refuses more than one.</p>
+<p class="source-item">• Mode: Build, Check, Outline (build arguments and secrets the Dockerfile uses) and Targets (stages you can build, with Use as target).</p>
+<p class="source-item">• Export files writes the result to a local folder and asks before writing into a non-empty one.</p>
+<p class="source-item">• Named build contexts, SSH agent forwarding, environment-variable secrets (the value is never read or shown), SBOM and provenance attestations, annotations, RUN network mode (host needs the network.host entitlement), shared memory size, ulimits and extra hosts.</p>
+<p class="source-item">• A live command preview with copy shows exactly what will run, or why the input is invalid.</p>
+<h4>Bake</h4>
+<p>The Bake destination opens a folder (Bake reads its default files such as <code>docker-bake.hcl</code> and <code>compose.yaml</code>) or a specific file. It lists groups and targets from <code>docker buildx bake --list=targets</code> and the resolved definition of each from <code>--print</code>. Select targets or a group, add <code>--set</code> overrides, choose Load, Push or the file&#39;s own outputs, and build with the same timeline as Build. Push asks first; Load refuses multi-platform targets unless you override the platform.</p>
 <h4>Limits and verification</h4>
 <p>Input validation has focused regression coverage. Successful local builds have been exercised separately from remote registry, cache-backend and multi-architecture acceptance. Those latter paths remain capability-dependent and are not inferred from a local build.</p>
 <h4>廣東話</h4>
 <p>建置頁可以揀載入本機引擎、發布去登錄服務，或者匯出 OCI 封存檔。發布同覆寫都會清楚確認目的地。標籤值保留原本空格，唔經主機命令殼層。快取支援程度由實際建置器決定。秘密檔案只傳路徑畀 BuildKit，介面唔讀取內容；Dockerfile 本身亦唔可以印出或者複製秘密。檢查通過唔等於建置、發布或者服務健康已經通過。</p></article>
+<article id="doc-docs-features-appearance-and-motion-md" class="article" data-search="appearance and motion # appearance and motion
+
+## appearance editor
+
+settings &gt; appearance opens the appearance editor with a live preview. every change applies immediately, is saved, and is recorded in local history; undo and redo keep the last 100 changes.
+
+- **presets**: seven built-in presets plus your own. apply, save as, rename, delete, export to a file and import from one (validated, 64 kib limit, unknown fields rejected), and copy or paste a style.
+- **colour**: theme (light, dark, system), seed colour, chroma, surface tint and per-role overrides. the colour picker has a saturation and value field usable with the keyboard, hue and alpha sliders, and editable values in hex, rgb, hsl, hsv, hwb, cmyk, oklab and oklch with copy buttons. contrast badges show the wcag ratio against each role&#39;s partner; colours outside srgb are brought back into range with a warning.
+- **shape and density**: corner radius scale and density, which change buttons, fields, chips, menus, cards and dialogs.
+- **typography**: interface and code fonts from a searchable list of installed fonts, each drawn in its own font, plus heading weight.
+- **effects**: elevation strength and an optional rainbow accent that settles on the saved colour when motion is off.
+
+each setting has its own reset button. right-click the app name, any rail item or the page area and choose edit appearance, or press `ctrl+shift+e`, to open a floating panel for the element under focus: it finds the colour roles that element uses and edits them in place.
+
+## motion
+
+motion follows material 3 easing and duration tokens. choose off, reduced, standard or expressive and a speed from 0.5x to 2x.
+
+- moving between rail destinations slides in the direction of the rail; other page changes fade through. tabs slide.
+- dialogs grow in over a fading scrim, notifications slide in and fade out, and the output panel animates its height.
+- the rail indicator grows from its centre, buttons respond to presses, switches slide and expanders reveal their content.
+- table rows fade in on first load.
+
+reduced motion, low stimulation, the windows animation setting and capture mode always win over the saved level. every animation ends on the element&#39;s normal state, so an interrupted animation never leaves anything hidden or moved.
+
+## status
+
+built and covered by ui-state checks for colour conversions, contrast, presets, import validation and undo. the animations, templates and floating panel have not yet been exercised interactively on windows.
+"><h3>Appearance and motion</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/appearance-and-motion.md">docs/features/appearance-and-motion.md</a></p><h3>Appearance and motion</h3>
+<h4>Appearance editor</h4>
+<p>Settings &gt; Appearance opens the appearance editor with a live preview. Every change applies immediately, is saved, and is recorded in local history; Undo and Redo keep the last 100 changes.</p>
+<p class="source-item">• <strong>Presets</strong>: seven built-in presets plus your own. Apply, save as, rename, delete, export to a file and import from one (validated, 64 KiB limit, unknown fields rejected), and copy or paste a style.</p>
+<p class="source-item">• <strong>Colour</strong>: theme (light, dark, system), seed colour, chroma, surface tint and per-role overrides. The colour picker has a saturation and value field usable with the keyboard, hue and alpha sliders, and editable values in HEX, RGB, HSL, HSV, HWB, CMYK, OKLab and OKLCH with copy buttons. Contrast badges show the WCAG ratio against each role&#39;s partner; colours outside sRGB are brought back into range with a warning.</p>
+<p class="source-item">• <strong>Shape and density</strong>: corner radius scale and density, which change buttons, fields, chips, menus, cards and dialogs.</p>
+<p class="source-item">• <strong>Typography</strong>: interface and code fonts from a searchable list of installed fonts, each drawn in its own font, plus heading weight.</p>
+<p class="source-item">• <strong>Effects</strong>: elevation strength and an optional rainbow accent that settles on the saved colour when motion is off.</p>
+<p>Each setting has its own reset button. Right-click the app name, any rail item or the page area and choose Edit appearance, or press <code>Ctrl+Shift+E</code>, to open a floating panel for the element under focus: it finds the colour roles that element uses and edits them in place.</p>
+<h4>Motion</h4>
+<p>Motion follows Material 3 easing and duration tokens. Choose Off, Reduced, Standard or Expressive and a speed from 0.5x to 2x.</p>
+<p class="source-item">• Moving between rail destinations slides in the direction of the rail; other page changes fade through. Tabs slide.</p>
+<p class="source-item">• Dialogs grow in over a fading scrim, notifications slide in and fade out, and the output panel animates its height.</p>
+<p class="source-item">• The rail indicator grows from its centre, buttons respond to presses, switches slide and expanders reveal their content.</p>
+<p class="source-item">• Table rows fade in on first load.</p>
+<p>Reduced motion, Low stimulation, the Windows animation setting and capture mode always win over the saved level. Every animation ends on the element&#39;s normal state, so an interrupted animation never leaves anything hidden or moved.</p>
+<h4>Status</h4>
+<p>Built and covered by UI-state checks for colour conversions, contrast, presets, import validation and undo. The animations, templates and floating panel have not yet been exercised interactively on Windows.</p></article>
 <article id="doc-docs-features-build-and-run-md" class="article" data-search="build and run # build and run
 
 ## build a local project
@@ -712,6 +796,59 @@ a controlled native gui build/run test verified exact fixture output, a read-onl
 <p>A controlled native GUI build/run test verified exact fixture output, a read-only filesystem, disabled networking and owned resource removal. Input regressions cover argument separation, whitespace, IPv4/IPv6 ports, mount-option injection, remote bind paths, CPU/memory validation and supported label keys. Separate engines and resource combinations require their own runtime checks.</p>
 <h4>廣東話</h4>
 <p>先喺重新整理過嘅映像清單揀項目，再開 Run。對話框會綁定原本引擎，轉咗引擎就要重新整理。連接埠預設只綁回環位址，額外欄位可以逐項揀位址、連接埠同協定。掛載路徑屬於引擎主機，唔一定係呢部電腦。參數用 JSON 字串陣列，環境值保留等號後面所有字元。資源限制同安全選項都會實際傳畀引擎；未有嘅 GPU、裝置、健康檢查編輯同互動終端會繼續列為未完成。</p></article>
+<article id="doc-docs-features-contexts-and-swarm-md" class="article" data-search="engine contexts and swarm # engine contexts and swarm
+
+## contexts
+
+contexts shows every docker engine context as a card with its description, endpoint, transport, whether it is the cli&#39;s current context and whether this window uses it. every context is probed in parallel (ten-second limit) and shows its engine version, platform and api version, or the error.
+
+- **use in this window** switches only this window and records the change in local history. the app never runs `docker context use`.
+- **create** offers endpoint presets for named pipe, unix socket, tcp and ssh, tls certificate pickers and a live command preview.
+- **update**, **inspect** (sanitized), **export** (with a warning about key material) and **import** are available. **remove** asks first and refuses the default context and the one this window uses.
+- **plugins** lists the cli plugins, failed plugins and cli warnings, with search. a note shows where the cli configuration lives and warns when `docker_host` or `docker_context` is set.
+
+## swarm
+
+swarm reads the engine&#39;s swarm state and shows what fits it.
+
+- **not in a swarm**: init (optional advertise address) and join (token in a password field) with confirmation.
+- **workers, pending or locked nodes**: an explanation and leave. leave asks first; forced leave needs the super confirmation.
+- **managers**: a statistics strip and tabs:
+  - **services**: replica chips, a task timeline from `docker service ps`, logs with follow, scale, update image, rollback, remove and a create form with ports, environment and constraints. environment values are masked in the preview and never stored.
+  - **stacks**: deploy from a compose file, list services and remove with a super confirmation listing them.
+  - **nodes**: availability (active, pause, drain), promote, demote and inspect.
+  - **secrets**: create from a typed value sent on standard input or from a file the cli reads; inspect shows metadata only.
+  - **configs**: create from a file, view decoded content, inspect and remove.
+
+## volume backup, restore and clone
+
+in storage, a volume can be backed up to a `.tar.gz` archive with a short-lived helper container that has no network. containers using the volume can be stopped for the backup and are always started again afterwards. restore writes an archive into an existing or new volume; replacing current contents needs the super confirmation. clone copies a volume into a new one without using a host folder, so it also works with remote engines.
+
+## compose tools
+
+compose projects gain watch (only when a service declares `develop.watch`; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for up and down.
+
+"><h3>Engine contexts and Swarm</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/contexts-and-swarm.md">docs/features/contexts-and-swarm.md</a></p><h3>Engine contexts and Swarm</h3>
+<h4>Contexts</h4>
+<p>Contexts shows every Docker engine context as a card with its description, endpoint, transport, whether it is the CLI&#39;s current context and whether this window uses it. Every context is probed in parallel (ten-second limit) and shows its engine version, platform and API version, or the error.</p>
+<p class="source-item">• <strong>Use in this window</strong> switches only this window and records the change in local history. The app never runs <code>docker context use</code>.</p>
+<p class="source-item">• <strong>Create</strong> offers endpoint presets for named pipe, Unix socket, TCP and SSH, TLS certificate pickers and a live command preview.</p>
+<p class="source-item">• <strong>Update</strong>, <strong>Inspect</strong> (sanitized), <strong>Export</strong> (with a warning about key material) and <strong>Import</strong> are available. <strong>Remove</strong> asks first and refuses the default context and the one this window uses.</p>
+<p class="source-item">• <strong>Plugins</strong> lists the CLI plugins, failed plugins and CLI warnings, with search. A note shows where the CLI configuration lives and warns when <code>DOCKER_HOST</code> or <code>DOCKER_CONTEXT</code> is set.</p>
+<h4>Swarm</h4>
+<p>Swarm reads the engine&#39;s swarm state and shows what fits it.</p>
+<p class="source-item">• <strong>Not in a swarm</strong>: Init (optional advertise address) and Join (token in a password field) with confirmation.</p>
+<p class="source-item">• <strong>Workers, pending or locked nodes</strong>: an explanation and Leave. Leave asks first; forced leave needs the super confirmation.</p>
+<p class="source-item">• <strong>Managers</strong>: a statistics strip and tabs:</p>
+<p>  - <strong>Services</strong>: replica chips, a task timeline from <code>docker service ps</code>, logs with follow, scale, update image, rollback, remove and a create form with ports, environment and constraints. Environment values are masked in the preview and never stored.</p>
+<p>  - <strong>Stacks</strong>: deploy from a Compose file, list services and remove with a super confirmation listing them.</p>
+<p>  - <strong>Nodes</strong>: availability (active, pause, drain), promote, demote and inspect.</p>
+<p>  - <strong>Secrets</strong>: create from a typed value sent on standard input or from a file the CLI reads; inspect shows metadata only.</p>
+<p>  - <strong>Configs</strong>: create from a file, view decoded content, inspect and remove.</p>
+<h4>Volume backup, restore and clone</h4>
+<p>In Storage, a volume can be backed up to a <code>.tar.gz</code> archive with a short-lived helper container that has no network. Containers using the volume can be stopped for the backup and are always started again afterwards. Restore writes an archive into an existing or new volume; replacing current contents needs the super confirmation. Clone copies a volume into a new one without using a host folder, so it also works with remote engines.</p>
+<h4>Compose tools</h4>
+<p>Compose projects gain watch (only when a service declares <code>develop.watch</code>; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for Up and Down.</p></article>
 <article id="doc-docs-features-diagnostics-md" class="article" data-search="diagnostics and safety # diagnostics and safety
 
 diagnostics records actual cli and engine responses. separate read-only inspection from a smoke test that creates resources. controlled smoke tests use unique owned names, labels, and exact teardown targets. failed teardown remains an unsuccessful overall result.
@@ -748,7 +885,9 @@ the creator builds a dockerfile from structured steps, shows the exact text as y
 
 ## start
 
-choose a starter: node.js service, python with pip, python with uv, .net (asp.net), go static binary, java (maven build with a jre runtime), rust, static site served by an unprivileged nginx, or blank. each starter states what it creates. applying a starter replaces the current draft; the previous draft is recorded in local history first so it can be restored from activity. you can also import an existing dockerfile: simple instructions become structured steps, and anything the editor cannot represent (heredocs, unknown flags or instructions) is kept as raw lines and reported.
+choose a starter: node.js service, python with pip, python with uv, .net (asp.net), go static binary, java (maven build with a jre runtime), rust, static site served by an unprivileged nginx, or blank. each starter states what it creates. applying a starter replaces the current draft; the previous draft is recorded in local history first so it can be restored from activity. you can also import an existing dockerfile: instructions become structured steps, and anything the editor cannot represent is kept as a raw card with edit as text.
+
+the detected project card inspects a folder like `docker init`: node (npm, yarn, pnpm), python (pip, uv, poetry; fastapi, flask, django), go, .net, rust, java (maven, gradle) and static sites, plus existing dockerfile, compose and .dockerignore files. each finding shows its evidence file. apply suggestion replaces the draft (the old draft goes to local history first), and write to folder asks before replacing any file.
 
 ## stages
 
@@ -759,19 +898,25 @@ the left column lists the stages. add, rename, duplicate, delete (with confirmat
 each instruction is a card with its keyword, a summary and a hint. expand a card to edit it with a form specific to its kind:
 
 - `arg`, `env` and `label` as name and value rows.
-- `copy` and `add` with sources, destination, `--from` stage, `--chown`, `--chmod` and `--link`.
-- `run` as shell or exec form, with an optional cache mount target and secret mount id.
+- `copy` with sources, destination, `--from` stage, `--chown`, `--chmod` (numeric or symbolic), `--link`, `--parents`, repeated `--exclude` and an inline file written as a heredoc.
+- `add` from a local path, a url or a git repository, with `--checksum` and `--keep-git-dir`.
+- `run` as shell or exec form or as a heredoc script with an interpreter, plus a mounts editor for all five mount types (bind, cache, tmpfs, secret, ssh) with every option, cache presets for apt, npm, pip, uv, go, cargo, nuget, maven and gradle, and `--network` and `--security` (insecure warns about the entitlement it needs).
+- global build arguments before the first stage, one-click `targetplatform` and `buildplatform` helpers, build on buildplatform for cross-compilation, and the `# syntax`, `# escape` and `# check` directives.
 - `user`, `workdir`, `expose` (port and protocol), `volume`, `stopsignal`, `shell`, `onbuild` and comments.
 - `entrypoint` and `cmd` in exec form with one field per argument.
 - `healthcheck` with command, interval, timeout, retries and start period.
 
 fields are validated as you type. move steps with the arrow buttons or alt+up and alt+down; duplicate or delete them from the card or its context menu. add instruction opens a searchable list, and quick-add chips insert a cached `run`, a `healthcheck`, a non-root `user` or an `expose`.
 
-## preview and checks
+## live, editable source
 
-the live preview shows the exact dockerfile, rendered deterministically with correct exec-form escaping and an optional `# syntax` header. it has its own search and a copy button.
+the source on the right is an editor, not just a preview. type in it and, 300 ms after you stop (or when it loses focus), the stages and cards are rebuilt from your text without moving the caret or scroll position. editing a card replaces only that instruction&#39;s lines, so your comments, blank lines, spacing and crlf line endings are kept. opening a card selects its lines in the source; moving the caret selects the matching stage and outlines its card. lines the model cannot represent become raw cards with edit as text, and parse notes appear in checks with a link to the line. adding, removing or moving steps and editing directives still re-render the whole file.
 
-the checks panel reports, among others: an unpinned base image, a final stage that runs as root, no health check, `apt-get update` without an install in the same step, missing `--no-install-recommends` or cleanup, `add` used for local files, shell-form `cmd` or `entrypoint`, a web service without `expose`, `copy . .` before dependency installation, secret-looking `arg` or `env` names, duplicate stage names, `copy --from` pointing to an unknown or later stage, a relative `workdir`, and several `cmd` instructions. most findings have a fix button; fixes that need a value (such as a tag or digest to pin) ask for it first.
+the source has search, a coloured read-only view, copy as build command (`docker buildx build` with target, entitlements, secret ids and ssh, never secret values), a .dockerignore tab with language presets and a live check against a context folder, and a compose.yaml tab when one is generated.
+
+## checks
+
+the checks panel reports, among others: an unpinned base image, a final stage that runs as root, no health check, `apt-get update` without an install in the same step, missing `--no-install-recommends` or cleanup, `add` used for local files, shell-form `cmd` or `entrypoint`, a web service without `expose`, `copy . .` before dependency installation, secret-looking `arg` or `env` names, duplicate stage names, `copy --from` pointing to an unknown or later stage, a relative `workdir`, and several `cmd` instructions. rules df100 to df124 add mount, heredoc, platform and syntax-version checks; df116 offers to add or upgrade the `# syntax` header when a feature needs a newer dockerfile frontend. findings that match a buildkit check show its name, and `# check=skip=` hides them here too. most findings have a fix button; fixes that need a value (such as a tag or digest to pin) ask for it first.
 
 ## saving and building
 
@@ -787,21 +932,26 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 "><h3>Dockerfile Creator</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/dockerfile-creator.md">docs/features/dockerfile-creator.md</a></p><h3>Dockerfile Creator</h3>
 <p>The Creator builds a Dockerfile from structured steps, shows the exact text as you work, and checks it against common best practices.</p>
 <h4>Start</h4>
-<p>Choose a starter: Node.js service, Python with pip, Python with uv, .NET (ASP.NET), Go static binary, Java (Maven build with a JRE runtime), Rust, static site served by an unprivileged nginx, or Blank. Each starter states what it creates. Applying a starter replaces the current draft; the previous draft is recorded in local history first so it can be restored from Activity. You can also import an existing Dockerfile: simple instructions become structured steps, and anything the editor cannot represent (heredocs, unknown flags or instructions) is kept as raw lines and reported.</p>
+<p>Choose a starter: Node.js service, Python with pip, Python with uv, .NET (ASP.NET), Go static binary, Java (Maven build with a JRE runtime), Rust, static site served by an unprivileged nginx, or Blank. Each starter states what it creates. Applying a starter replaces the current draft; the previous draft is recorded in local history first so it can be restored from Activity. You can also import an existing Dockerfile: instructions become structured steps, and anything the editor cannot represent is kept as a raw card with Edit as text.</p>
+<p>The Detected project card inspects a folder like <code>docker init</code>: Node (npm, yarn, pnpm), Python (pip, uv, poetry; FastAPI, Flask, Django), Go, .NET, Rust, Java (Maven, Gradle) and static sites, plus existing Dockerfile, Compose and .dockerignore files. Each finding shows its evidence file. Apply suggestion replaces the draft (the old draft goes to local history first), and Write to folder asks before replacing any file.</p>
 <h4>Stages</h4>
 <p>The left column lists the stages. Add, rename, duplicate, delete (with confirmation), reorder, or set a stage as the build target. Each stage has a base image (editable, with common images suggested), a name and an optional platform.</p>
 <h4>Steps</h4>
 <p>Each instruction is a card with its keyword, a summary and a hint. Expand a card to edit it with a form specific to its kind:</p>
 <p class="source-item">• <code>ARG</code>, <code>ENV</code> and <code>LABEL</code> as name and value rows.</p>
-<p class="source-item">• <code>COPY</code> and <code>ADD</code> with sources, destination, <code>--from</code> stage, <code>--chown</code>, <code>--chmod</code> and <code>--link</code>.</p>
-<p class="source-item">• <code>RUN</code> as shell or exec form, with an optional cache mount target and secret mount id.</p>
+<p class="source-item">• <code>COPY</code> with sources, destination, <code>--from</code> stage, <code>--chown</code>, <code>--chmod</code> (numeric or symbolic), <code>--link</code>, <code>--parents</code>, repeated <code>--exclude</code> and an inline file written as a heredoc.</p>
+<p class="source-item">• <code>ADD</code> from a local path, a URL or a Git repository, with <code>--checksum</code> and <code>--keep-git-dir</code>.</p>
+<p class="source-item">• <code>RUN</code> as shell or exec form or as a heredoc script with an interpreter, plus a mounts editor for all five mount types (bind, cache, tmpfs, secret, ssh) with every option, cache presets for apt, npm, pip, uv, Go, Cargo, NuGet, Maven and Gradle, and <code>--network</code> and <code>--security</code> (insecure warns about the entitlement it needs).</p>
+<p class="source-item">• Global build arguments before the first stage, one-click <code>TARGETPLATFORM</code> and <code>BUILDPLATFORM</code> helpers, Build on BUILDPLATFORM for cross-compilation, and the <code># syntax</code>, <code># escape</code> and <code># check</code> directives.</p>
 <p class="source-item">• <code>USER</code>, <code>WORKDIR</code>, <code>EXPOSE</code> (port and protocol), <code>VOLUME</code>, <code>STOPSIGNAL</code>, <code>SHELL</code>, <code>ONBUILD</code> and comments.</p>
 <p class="source-item">• <code>ENTRYPOINT</code> and <code>CMD</code> in exec form with one field per argument.</p>
 <p class="source-item">• <code>HEALTHCHECK</code> with command, interval, timeout, retries and start period.</p>
 <p>Fields are validated as you type. Move steps with the arrow buttons or Alt+Up and Alt+Down; duplicate or delete them from the card or its context menu. Add instruction opens a searchable list, and quick-add chips insert a cached <code>RUN</code>, a <code>HEALTHCHECK</code>, a non-root <code>USER</code> or an <code>EXPOSE</code>.</p>
-<h4>Preview and checks</h4>
-<p>The live preview shows the exact Dockerfile, rendered deterministically with correct exec-form escaping and an optional <code># syntax</code> header. It has its own search and a copy button.</p>
-<p>The Checks panel reports, among others: an unpinned base image, a final stage that runs as root, no health check, <code>apt-get update</code> without an install in the same step, missing <code>--no-install-recommends</code> or cleanup, <code>ADD</code> used for local files, shell-form <code>CMD</code> or <code>ENTRYPOINT</code>, a web service without <code>EXPOSE</code>, <code>COPY . .</code> before dependency installation, secret-looking <code>ARG</code> or <code>ENV</code> names, duplicate stage names, <code>COPY --from</code> pointing to an unknown or later stage, a relative <code>WORKDIR</code>, and several <code>CMD</code> instructions. Most findings have a Fix button; fixes that need a value (such as a tag or digest to pin) ask for it first.</p>
+<h4>Live, editable source</h4>
+<p>The source on the right is an editor, not just a preview. Type in it and, 300 ms after you stop (or when it loses focus), the stages and cards are rebuilt from your text without moving the caret or scroll position. Editing a card replaces only that instruction&#39;s lines, so your comments, blank lines, spacing and CRLF line endings are kept. Opening a card selects its lines in the source; moving the caret selects the matching stage and outlines its card. Lines the model cannot represent become raw cards with Edit as text, and parse notes appear in Checks with a link to the line. Adding, removing or moving steps and editing directives still re-render the whole file.</p>
+<p>The source has search, a coloured read-only view, Copy as build command (<code>docker buildx build</code> with target, entitlements, secret ids and SSH, never secret values), a .dockerignore tab with language presets and a live check against a context folder, and a compose.yaml tab when one is generated.</p>
+<h4>Checks</h4>
+<p>The Checks panel reports, among others: an unpinned base image, a final stage that runs as root, no health check, <code>apt-get update</code> without an install in the same step, missing <code>--no-install-recommends</code> or cleanup, <code>ADD</code> used for local files, shell-form <code>CMD</code> or <code>ENTRYPOINT</code>, a web service without <code>EXPOSE</code>, <code>COPY . .</code> before dependency installation, secret-looking <code>ARG</code> or <code>ENV</code> names, duplicate stage names, <code>COPY --from</code> pointing to an unknown or later stage, a relative <code>WORKDIR</code>, and several <code>CMD</code> instructions. Rules DF100 to DF124 add mount, heredoc, platform and syntax-version checks; DF116 offers to add or upgrade the <code># syntax</code> header when a feature needs a newer Dockerfile frontend. Findings that match a BuildKit check show its name, and <code># check=skip=</code> hides them here too. Most findings have a Fix button; fixes that need a value (such as a tag or digest to pin) ask for it first.</p>
 <h4>Saving and building</h4>
 <p>Undo and Redo keep the last 200 changes. The draft is saved automatically in the application data folder and recorded in local history after two seconds without changes. Save as writes a Dockerfile you choose. Open in Build sends the text to the Build destination as an unsaved draft together with the selected target stage, so you can review it and build.</p>
 <h4>Screenshots</h4>
@@ -888,6 +1038,40 @@ a later live check at `5d96573` verified all 41 internal anchors, 13 complete ar
 <p>呢份清單唔會俾訪客剔選完成。下面嘅準備清單仍然只儲存你自己嘅進度，原有儲存資料同重設功能保留。功能篩選只維持本次瀏覽，唔會寫入準備清單資料。</p>
 <p>維護者修改 JSON 來源清單，再執行產生指令，同步首頁、功能摘要同內容雜湊。來源連結只係參考，完整驗證需要同一版本嘅檢查、實際操作同畫面證據。格式檢查唔能夠證明證據內容屬實，仍然要獨立檢查。</p>
 <p>原候選版本已通過 12 組寬度、語言同主題組合，以及真實鍵盤展開、篩選、空白結果、重設焦點同準備進度保留。15 張畫面已檢查。來源參考嘅額外驗證資料曾有 HTML 轉義缺口，已修正並以先失敗後成功嘅測試確認。瀏覽器、伺服器、連接埠同指定隱藏桌面已確認結束；隔離設定目錄刪除被自動審核拒絕，所以完整清理同畫面正式採納仍未完成，唔會將有限驗證當成全產品驗收。</p></article>
+<article id="doc-docs-features-images-and-security-md" class="article" data-search="image detail and security # image detail and security
+
+## image detail
+
+select an image in images to open its detail beside the list (below the list on narrow windows). the detail has six tabs; each loads the first time you open it and the chosen tab is kept when you select another image.
+
+- **overview**: identity, size, platform, tags and environment variable names. values stay hidden.
+- **layers**: one row per build step with the instruction keyword, the cleaned instruction, size, age and a size bar relative to the largest layer. hide empty layers, search and copy are available.
+- **platforms**: the local platform and repository digests, and the registry manifest read with `docker buildx imagetools inspect --raw`. each platform is a card, attestation manifests are matched to the platform they describe, and the raw manifest has its own viewer. images without a digest only query the registry when you ask.
+- **vulnerabilities**: runs `docker scout cves` and shows severity tiles and a findings table with severity, fixable-only and search filters and export. a finding opens a detail card; advisories open only after you confirm.
+- **sbom**: the package list from `docker scout sbom` with counts per package type, and an export of the exact json.
+- **compare**: pick another local image to compare size, layers, platform, user, working directory, entrypoint, command, environment names, ports and labels side by side, or run `docker scout compare`.
+
+if docker scout is not installed, not signed in, or the analysis fails, the tab says so and shows the exact output. no finding or count is shown unless an analysis really ran.
+
+the images list also has a statistics strip (images, total size, dangling, unused) and the row actions retag to multiple, push all tags of repository and copy pull command.
+
+## security
+
+the security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. filter by critical or high, fixable only, not analysed or failed. scans run one image at a time in the background, can be cancelled, and stop early if scout is missing or needs sign-in. results are kept for the session per engine context and image, and are shared with the vulnerabilities tab. export findings saves json or csv; csv cells are protected against spreadsheet formula injection.
+
+"><h3>Image detail and security</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/images-and-security.md">docs/features/images-and-security.md</a></p><h3>Image detail and security</h3>
+<h4>Image detail</h4>
+<p>Select an image in Images to open its detail beside the list (below the list on narrow windows). The detail has six tabs; each loads the first time you open it and the chosen tab is kept when you select another image.</p>
+<p class="source-item">• <strong>Overview</strong>: identity, size, platform, tags and environment variable names. Values stay hidden.</p>
+<p class="source-item">• <strong>Layers</strong>: one row per build step with the instruction keyword, the cleaned instruction, size, age and a size bar relative to the largest layer. Hide empty layers, search and copy are available.</p>
+<p class="source-item">• <strong>Platforms</strong>: the local platform and repository digests, and the registry manifest read with <code>docker buildx imagetools inspect --raw</code>. Each platform is a card, attestation manifests are matched to the platform they describe, and the raw manifest has its own viewer. Images without a digest only query the registry when you ask.</p>
+<p class="source-item">• <strong>Vulnerabilities</strong>: runs <code>docker scout cves</code> and shows severity tiles and a findings table with severity, fixable-only and search filters and export. A finding opens a detail card; advisories open only after you confirm.</p>
+<p class="source-item">• <strong>SBOM</strong>: the package list from <code>docker scout sbom</code> with counts per package type, and an export of the exact JSON.</p>
+<p class="source-item">• <strong>Compare</strong>: pick another local image to compare size, layers, platform, user, working directory, entrypoint, command, environment names, ports and labels side by side, or run <code>docker scout compare</code>.</p>
+<p>If Docker Scout is not installed, not signed in, or the analysis fails, the tab says so and shows the exact output. No finding or count is shown unless an analysis really ran.</p>
+<p>The Images list also has a statistics strip (images, total size, dangling, unused) and the row actions Retag to multiple, Push all tags of repository and Copy pull command.</p>
+<h4>Security</h4>
+<p>The Security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. Filter by critical or high, fixable only, not analysed or failed. Scans run one image at a time in the background, can be cancelled, and stop early if Scout is missing or needs sign-in. Results are kept for the session per engine context and image, and are shared with the Vulnerabilities tab. Export findings saves JSON or CSV; CSV cells are protected against spreadsheet formula injection.</p></article>
 <article id="doc-docs-features-local-history-md" class="article" data-search="local history # local history
 
 every meaningful change is recorded in a local version history so it can be reviewed, compared and restored.
@@ -941,6 +1125,61 @@ captured from the built application ([inventory](../../evidence/inventory.json))
 <h4>Screenshots</h4>
 <p>Captured from the built application (inventory <span class="muted">(document unavailable)</span>).</p>
 <p><img class="evidence-image" src="assets/3a70ce6671fb870d8e22c9143523a60747c171dc679199232a33994888147a04.png" alt="Activity with a revision and its diff" width="1440" height="960" loading="lazy" decoding="async"></p></article>
+<article id="doc-docs-features-minecraft-md" class="article" data-search="minecraft servers # minecraft servers
+
+the minecraft destination creates and runs minecraft servers as containers using the community `itzg/minecraft-server` (java) and `itzg/minecraft-bedrock-server` (bedrock) images. it lists only containers and volumes labelled `material-docker-image.minecraft`, so your other containers are never touched.
+
+## create a server
+
+a six-step wizard with back and next:
+
+1. **where**: the local engine or an ssh engine context.
+2. **edition and version**: latest, snapshot or preview, or a typed version. refresh versions downloads the official version list through a pinned helper container.
+3. **server type**: vanilla, paper, purpur, fabric, forge, neoforge and the other types the image supports, or a custom server jar.
+4. **resources and network**: memory, port and listen address (127.0.0.1 by default, with a warning for 0.0.0.0). bedrock uses 19132/udp.
+5. **game settings**: typed controls for server.properties, operators, whitelist, and modrinth or spigot plugins where the type supports them.
+6. **review**: the exact command preview and the minecraft eula. the server is only told the eula is accepted when you tick the box.
+
+the rcon password is passed in a temporary environment file that is deleted straight away, and is shown as dots in the preview. the java runtime image tag is chosen from the version.
+
+## manage a server
+
+- **overview**: live statistics, uptime and the connect address.
+- **console**: follows the server log with search and command history, and sends commands through rcon (bedrock through the image&#39;s command helper).
+- **players**: online players, operators and whitelist, with op, deop, whitelist and kick.
+- **properties**: shows the differences, then recreates the container with the new settings. the old container is kept until the new one starts, and the world volume and password are kept.
+- **files**: browse `/data` and copy files in and out, confirming before overwriting.
+- **backups**: pauses saving, archives the world in a helper container, copies it to the folder you choose and resumes saving. restore needs the super confirmation and writes a safety backup first.
+- **world**: draw an area on a chunk grid and pre-generate it with the chunky plugin, with progress from the log. export the world to a folder or a zip file.
+
+stop saves the world and then stops the container with a 60-second grace period. removing a server asks first; deleting the world volume as well is off by default and needs the super confirmation.
+
+## status
+
+built and covered by ui-state checks for versions, image tags, settings, secret handling and output parsing. the pages have not yet been exercised against a real engine; bedrock settings names, chunky output and the java 25 tag for 26.x versions need confirmation on a real server.
+
+"><h3>Minecraft servers</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/minecraft.md">docs/features/minecraft.md</a></p><h3>Minecraft servers</h3>
+<p>The Minecraft destination creates and runs Minecraft servers as containers using the community <code>itzg/minecraft-server</code> (Java) and <code>itzg/minecraft-bedrock-server</code> (Bedrock) images. It lists only containers and volumes labelled <code>material-docker-image.minecraft</code>, so your other containers are never touched.</p>
+<h4>Create a server</h4>
+<p>A six-step wizard with Back and Next:</p>
+<p>1. <strong>Where</strong>: the local engine or an SSH engine context.</p>
+<p>2. <strong>Edition and version</strong>: latest, snapshot or preview, or a typed version. Refresh versions downloads the official version list through a pinned helper container.</p>
+<p>3. <strong>Server type</strong>: Vanilla, Paper, Purpur, Fabric, Forge, NeoForge and the other types the image supports, or a custom server jar.</p>
+<p>4. <strong>Resources and network</strong>: memory, port and listen address (127.0.0.1 by default, with a warning for 0.0.0.0). Bedrock uses 19132/udp.</p>
+<p>5. <strong>Game settings</strong>: typed controls for server.properties, operators, whitelist, and Modrinth or Spigot plugins where the type supports them.</p>
+<p>6. <strong>Review</strong>: the exact command preview and the Minecraft EULA. The server is only told the EULA is accepted when you tick the box.</p>
+<p>The RCON password is passed in a temporary environment file that is deleted straight away, and is shown as dots in the preview. The Java runtime image tag is chosen from the version.</p>
+<h4>Manage a server</h4>
+<p class="source-item">• <strong>Overview</strong>: live statistics, uptime and the connect address.</p>
+<p class="source-item">• <strong>Console</strong>: follows the server log with search and command history, and sends commands through RCON (Bedrock through the image&#39;s command helper).</p>
+<p class="source-item">• <strong>Players</strong>: online players, operators and whitelist, with op, deop, whitelist and kick.</p>
+<p class="source-item">• <strong>Properties</strong>: shows the differences, then recreates the container with the new settings. The old container is kept until the new one starts, and the world volume and password are kept.</p>
+<p class="source-item">• <strong>Files</strong>: browse <code>/data</code> and copy files in and out, confirming before overwriting.</p>
+<p class="source-item">• <strong>Backups</strong>: pauses saving, archives the world in a helper container, copies it to the folder you choose and resumes saving. Restore needs the super confirmation and writes a safety backup first.</p>
+<p class="source-item">• <strong>World</strong>: draw an area on a chunk grid and pre-generate it with the Chunky plugin, with progress from the log. Export the world to a folder or a ZIP file.</p>
+<p>Stop saves the world and then stops the container with a 60-second grace period. Removing a server asks first; deleting the world volume as well is off by default and needs the super confirmation.</p>
+<h4>Status</h4>
+<p>Built and covered by UI-state checks for versions, image tags, settings, secret handling and output parsing. The pages have not yet been exercised against a real engine; Bedrock settings names, Chunky output and the Java 25 tag for 26.x versions need confirmation on a real server.</p></article>
 <article id="doc-docs-features-operations-and-tools-md" class="article" data-search="monitoring, cleanup, registries and tools # monitoring, cleanup, registries and tools
 
 ## monitor
@@ -1139,14 +1378,18 @@ a native windows wpf workspace for docker: build images, create dockerfiles step
 ## what it does
 
 - **workspace**: custom title bar with version and build time, engine context selector that never changes the global docker context, navigation rail, workspace and utility tabs, a `ctrl+shift+f` command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. every list and viewer has its own search with a regular expression builder.
-- **build**: context folder, dockerfile editor with line numbers and search, tags, target stage from the parsed file, platform, build arguments, labels, cache import and export, buildkit secret files (paths only), local load, registry push or oci archive, buildkit checks, and build and run.
-- **dockerfile creator**: starters for node.js, python, .net, go, java, rust and static sites; stages and structured instruction cards with validation; live preview; best-practice checks with automatic fixes; undo history; import of existing dockerfiles; hand-off to build.
+- **build and bake**: context folder, dockerfile editor, tags, target stage, platform chips, build arguments, labels, cache import and export, secret files and environment secrets (never read), ssh forwarding, named contexts, sbom and provenance attestations, local load, push, oci archive or exported files, buildkit check, outline and targets modes, a live command preview, a step-by-step buildkit timeline with cache hits and durations, a result card with digests, recent builds from buildx history, and a bake destination for `docker-bake.hcl` and compose targets with overrides.
+- **dockerfile creator**: project detection like `docker init`, starters for node.js, python, .net, go, java, rust and static sites, stages and structured instruction cards for every modern dockerfile feature (all `run --mount` types with package-manager cache presets, heredocs, `copy --parents` and `--exclude`, `add` from urls and git with checksums, global and platform arguments, parser directives), a live editable source that syncs both ways while keeping your comments and formatting, a .dockerignore editor with a live context check, 40+ best-practice checks matching buildkit check names, with automatic fixes, undo history and hand-off to build.
+- **images and security**: image detail tabs for layers with size bars, platforms and attestations from the registry manifest, docker scout vulnerabilities, sbom packages and side-by-side compare, plus a security destination that scans every local image.
 - **images and containers**: inventory with usage, pull, import, load, tag, push, save, prune; a run editor covering command, ports, environment, mounts, networks, resources, restart and health, security and advanced options with an exact command preview; container lifecycle, logs with follow and search, statistics, processes, file changes and copy, one-shot exec and a terminal window.
-- **compose, storage and canvas**: compose projects with profiles, services and a path-bound source editor; volumes and networks with create, connect, inspect and prune; a native dockerfile stage graph and runtime topology.
+- **compose, storage and canvas**: compose projects with profiles, services, a path-bound source editor, watch, top, events, copy, exec, environment files and dry run; volumes and networks with create, connect, inspect, prune, backup, restore and clone; a native dockerfile stage graph and runtime topology.
+- **contexts and swarm**: engine context cards with live reachability, create, update, import and export without ever changing the global context, cli plugins; swarm init and join, services with task timelines, stacks, nodes, secrets and configs.
+- **minecraft servers**: create java or bedrock servers on the itzg images with a six-step wizard, then manage console and rcon, players, properties, files, backups and world pre-generation.
 - **monitor and system**: live cpu and memory charts, disk usage, engine information and category-by-category cleanup behind a two-key super confirmation.
 - **registry, diagnostics and tools**: registry sign-in with the password on standard input only, docker hub search, buildx builders, read-only checks with sanitized reports, a live events stream, a base64 toolkit and the offline documentation.
 - **local history**: an append-only history of settings, saved files, drafts and operations, kept in the application&#39;s own data folder, with diffs, restores, labels and export.
-- **settings**: appearance (theme, seed colour, font size, contrast, motion), english, cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. each setting explains itself and says whether it is the default.
+- **appearance and motion**: an appearance editor with presets, a colour picker in eight colour formats with contrast badges, per-role colour overrides, shape, density, fonts and effects, a floating per-element editor (`ctrl+shift+e`), and material 3 motion for pages, tabs, dialogs, notifications and controls with off, reduced, standard and expressive levels.
+- **settings**: english, cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. each setting explains itself and says whether it is the default.
 
 ## screenshots
 
@@ -1179,14 +1422,18 @@ the ui-state checks (113), core engine checks (23) and documentation checklist c
 <p><img class="evidence-image" src="assets/923eb3c93b6b15644ccff2df93381f16234638ef2806b013cd94e332ef3eba6e.png" alt="Build workspace with a multi-stage Dockerfile created by the Dockerfile Creator" width="1440" height="960" loading="lazy" decoding="async"></p>
 <h4>What it does</h4>
 <p class="source-item">• <strong>Workspace</strong>: custom title bar with version and build time, engine context selector that never changes the global Docker context, navigation rail, workspace and utility tabs, a <code>Ctrl+Shift+F</code> command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. Every list and viewer has its own search with a regular expression builder.</p>
-<p class="source-item">• <strong>Build</strong>: context folder, Dockerfile editor with line numbers and search, tags, target stage from the parsed file, platform, build arguments, labels, cache import and export, BuildKit secret files (paths only), local load, registry push or OCI archive, BuildKit checks, and Build and run.</p>
-<p class="source-item">• <strong>Dockerfile Creator</strong>: starters for Node.js, Python, .NET, Go, Java, Rust and static sites; stages and structured instruction cards with validation; live preview; best-practice checks with automatic fixes; undo history; import of existing Dockerfiles; hand-off to Build.</p>
+<p class="source-item">• <strong>Build and Bake</strong>: context folder, Dockerfile editor, tags, target stage, platform chips, build arguments, labels, cache import and export, secret files and environment secrets (never read), SSH forwarding, named contexts, SBOM and provenance attestations, local load, push, OCI archive or exported files, BuildKit check, outline and targets modes, a live command preview, a step-by-step BuildKit timeline with cache hits and durations, a result card with digests, recent builds from Buildx history, and a Bake destination for <code>docker-bake.hcl</code> and Compose targets with overrides.</p>
+<p class="source-item">• <strong>Dockerfile Creator</strong>: project detection like <code>docker init</code>, starters for Node.js, Python, .NET, Go, Java, Rust and static sites, stages and structured instruction cards for every modern Dockerfile feature (all <code>RUN --mount</code> types with package-manager cache presets, heredocs, <code>COPY --parents</code> and <code>--exclude</code>, <code>ADD</code> from URLs and Git with checksums, global and platform arguments, parser directives), a live editable source that syncs both ways while keeping your comments and formatting, a .dockerignore editor with a live context check, 40+ best-practice checks matching BuildKit check names, with automatic fixes, undo history and hand-off to Build.</p>
+<p class="source-item">• <strong>Images and security</strong>: image detail tabs for layers with size bars, platforms and attestations from the registry manifest, Docker Scout vulnerabilities, SBOM packages and side-by-side compare, plus a Security destination that scans every local image.</p>
 <p class="source-item">• <strong>Images and containers</strong>: inventory with usage, pull, import, load, tag, push, save, prune; a run editor covering command, ports, environment, mounts, networks, resources, restart and health, security and advanced options with an exact command preview; container lifecycle, logs with follow and search, statistics, processes, file changes and copy, one-shot exec and a terminal window.</p>
-<p class="source-item">• <strong>Compose, storage and canvas</strong>: Compose projects with profiles, services and a path-bound source editor; volumes and networks with create, connect, inspect and prune; a native Dockerfile stage graph and runtime topology.</p>
+<p class="source-item">• <strong>Compose, storage and canvas</strong>: Compose projects with profiles, services, a path-bound source editor, watch, top, events, copy, exec, environment files and dry run; volumes and networks with create, connect, inspect, prune, backup, restore and clone; a native Dockerfile stage graph and runtime topology.</p>
+<p class="source-item">• <strong>Contexts and Swarm</strong>: engine context cards with live reachability, create, update, import and export without ever changing the global context, CLI plugins; Swarm init and join, services with task timelines, stacks, nodes, secrets and configs.</p>
+<p class="source-item">• <strong>Minecraft servers</strong>: create Java or Bedrock servers on the itzg images with a six-step wizard, then manage console and RCON, players, properties, files, backups and world pre-generation.</p>
 <p class="source-item">• <strong>Monitor and System</strong>: live CPU and memory charts, disk usage, engine information and category-by-category cleanup behind a two-key super confirmation.</p>
 <p class="source-item">• <strong>Registry, Diagnostics and Tools</strong>: registry sign-in with the password on standard input only, Docker Hub search, Buildx builders, read-only checks with sanitized reports, a live events stream, a Base64 toolkit and the offline documentation.</p>
 <p class="source-item">• <strong>Local history</strong>: an append-only history of settings, saved files, drafts and operations, kept in the application&#39;s own data folder, with diffs, restores, labels and export.</p>
-<p class="source-item">• <strong>Settings</strong>: appearance (theme, seed colour, font size, contrast, motion), English, Cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. Each setting explains itself and says whether it is the default.</p>
+<p class="source-item">• <strong>Appearance and motion</strong>: an appearance editor with presets, a colour picker in eight colour formats with contrast badges, per-role colour overrides, shape, density, fonts and effects, a floating per-element editor (<code>Ctrl+Shift+E</code>), and Material 3 motion for pages, tabs, dialogs, notifications and controls with Off, Reduced, Standard and Expressive levels.</p>
+<p class="source-item">• <strong>Settings</strong>: English, Cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. Each setting explains itself and says whether it is the default.</p>
 <h4>Screenshots</h4>
 <p>All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine (inventory <span class="muted">(document unavailable)</span>). Light-theme and 960 x 720 minimum-size captures of every screen are in [<code>evidence/screenshots</code>](evidence/screenshots).</p>
 <p>| | |</p>

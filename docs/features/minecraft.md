@@ -31,4 +31,3 @@ Stop saves the world and then stops the container with a 60-second grace period.
 
 Built and covered by UI-state checks for versions, image tags, settings, secret handling and output parsing. The pages have not yet been exercised against a real engine; Bedrock settings names, Chunky output and the Java 25 tag for 26.x versions need confirmation on a real server.
 
-![Minecraft servers](../../evidence/screenshots/minecraft.png)

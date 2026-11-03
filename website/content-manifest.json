@@ -16,11 +16,15 @@
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "b4cccfd3594d00fc5cfef0a0954ae6150776064eb7b6ea452776b6dfb00f9e50"
+      "sha256": "150c977dd1692f89d2180a36c3f7b00ab94d347d079d1bf6264975f184cfcf38"
     },
     {
       "path": "docs/features/advanced-build.md",
-      "sha256": "ba406f3a4ca2eda62f33a4c4c7032790947be75d6b416c9693fc3718afd76d54"
+      "sha256": "481ea3cac41f3f94e57c215ecf142f6ee0366005b44aba2e01532493e699d6f5"
+    },
+    {
+      "path": "docs/features/appearance-and-motion.md",
+      "sha256": "48b9c2077bda74c2dc4cc2031bc3340cc954ddb2243b4a7fc1d28fced6ba3bae"
     },
     {
       "path": "docs/features/build-and-run.md",
@@ -39,20 +43,32 @@
       "sha256": "76350cdee9f44c74661a27c213fd55c85bd6d51d6a58958b8bd958d4db41cd9a"
     },
     {
+      "path": "docs/features/contexts-and-swarm.md",
+      "sha256": "0491d47356c1daf2768f5d47b0c127b4d8b03ae44fe3adb0dde1fde7a6042fd0"
+    },
+    {
       "path": "docs/features/diagnostics.md",
       "sha256": "3f1d495469f3e661fca6dd182acd4b2d945bb835b1557f701b75a887f7227b44"
     },
     {
       "path": "docs/features/dockerfile-creator.md",
-      "sha256": "01f68941b25a9d78f1bcd4b714c9be86fcd4545316068da09ff7e396fdfa818a"
+      "sha256": "6d4ef9b06fc17329e7535b587372ea06401f89f52c33f56021878c9402bbc996"
     },
     {
       "path": "docs/features/feature-checklist.md",
       "sha256": "8defafd166e8de5bb9c63b53717f69e4f3f5d62c693544d86ad39c673135f092"
     },
     {
+      "path": "docs/features/images-and-security.md",
+      "sha256": "81a659e72943fb623b4e055636b00f4513b2eee541ef693fce570f216e38aefd"
+    },
+    {
       "path": "docs/features/local-history.md",
       "sha256": "d2c3c68f6b347317fdb09c426f5572e16f4e2e88ed216b42508deab65f838eff"
+    },
+    {
+      "path": "docs/features/minecraft.md",
+      "sha256": "bcc03ac6c1dcd7c74f563be1ea3c3cd49e7ac0d008111c4a5448c05346e542e2"
     },
     {
       "path": "docs/features/operations-and-tools.md",
@@ -68,7 +84,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "db4856482237ce67a97faf3d7cc9b39d32ccbe499a0462ec3497a5e458fcd2c1"
+      "sha256": "5fab7e5a49cd12147376a95d0337ba1000249015d52627b6c167e563ca43d21a"
     },
     {
       "path": "ROADMAP.md",

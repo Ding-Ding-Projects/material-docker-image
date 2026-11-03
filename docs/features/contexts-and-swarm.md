@@ -30,8 +30,3 @@ In Storage, a volume can be backed up to a `.tar.gz` archive with a short-lived 
 
 Compose projects gain watch (only when a service declares `develop.watch`; otherwise a worked example explains how), top, images, a live events list, copy files in both directions, one-shot exec, extra environment files and a dry-run switch for Up and Down.
 
-## Screenshots
-
-![Engine contexts](../../evidence/screenshots/contexts.png)
-
-![Swarm](../../evidence/screenshots/swarm.png)

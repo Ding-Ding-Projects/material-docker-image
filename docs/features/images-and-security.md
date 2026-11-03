@@ -19,6 +19,3 @@ The Images list also has a statistics strip (images, total size, dangling, unuse
 
 The Security destination lists tagged local images with critical, high, medium and low counts, the fixable count and when each was analysed. Filter by critical or high, fixable only, not analysed or failed. Scans run one image at a time in the background, can be cancelled, and stop early if Scout is missing or needs sign-in. Results are kept for the session per engine context and image, and are shared with the Vulnerabilities tab. Export findings saves JSON or CSV; CSV cells are protected against spreadsheet formula injection.
 
-## Screenshots
-
-![Security destination](../../evidence/screenshots/security.png)
