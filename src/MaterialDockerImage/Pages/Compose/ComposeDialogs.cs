@@ -5,7 +5,8 @@ using MaterialDockerImage.UI;
 
 namespace MaterialDockerImage.Pages;
 
-public sealed record ComposeUpOptions(bool Build, bool RemoveOrphans, string PullPolicy, bool ForceRecreate);
+public sealed record ComposeUpOptions(bool Build, bool RemoveOrphans, string PullPolicy, bool ForceRecreate, bool DryRun = false);
+public sealed record ComposeDownOptions(bool Volumes, bool Orphans, bool DryRun);
 public sealed record ComposeLogOptions(int Tail, bool Follow, bool Timestamps);
 
 /// <summary>Option dialogs for Compose actions. They only collect choices; the page runs the commands.</summary>
@@ -24,34 +25,36 @@ public static class ComposeDialogs
         var orphans = Ui.Switch("Remove orphans", false, _ => { }, "--remove-orphans: remove containers of services no longer in the file");
         var recreate = Ui.Switch("Force recreate", false, _ => { }, "--force-recreate: recreate containers even when nothing changed");
         var pull = Ui.Combo(["Default (missing)", "always", "missing", "never"], "Default (missing)");
+        var dryRun = Ui.Switch("Dry run", false, _ => { }, "--dry-run: Compose reports what it would do without changing containers, networks or volumes");
         var body = Ui.VStack(14,
             Ui.Title(service == null ? "Up" : "Up " + service, 20),
             Ui.Caption("Starts in the background (--detach). " + target),
-            build, orphans, recreate,
+            build, orphans, recreate, dryRun,
             Ui.Field("Pull policy", pull, "When to pull images before starting. always pulls every time, missing pulls only absent images, never uses local images only. Default leaves the choice to Compose (missing).", "--pull always"),
             Actions(() => { done.TrySetResult(null); close!(); }, "Up", Icons.PlayArrow, ButtonKind.Filled, () =>
             {
                 var policy = pull.SelectedIndex <= 0 ? "" : (string)pull.SelectedItem;
-                done.TrySetResult(new ComposeUpOptions(build.IsChecked == true, orphans.IsChecked == true, policy, recreate.IsChecked == true)); close!();
+                done.TrySetResult(new ComposeUpOptions(build.IsChecked == true, orphans.IsChecked == true, policy, recreate.IsChecked == true, dryRun.IsChecked == true)); close!();
             }));
         close = Host.Overlay.Show(body, 540, () => done.TrySetResult(null));
         return done.Task;
     }
 
-    /// <summary>Returns (removeVolumes, removeOrphans) or null when canceled. Volume removal needs a separate super confirmation by the caller.</summary>
-    public static Task<(bool Volumes, bool Orphans)?> DownAsync(string project, string target)
+    /// <summary>Returns the choices or null when canceled. Volume removal needs a separate super confirmation by the caller unless it is a dry run.</summary>
+    public static Task<ComposeDownOptions?> DownAsync(string project, string target)
     {
-        var done = new TaskCompletionSource<(bool, bool)?>();
+        var done = new TaskCompletionSource<ComposeDownOptions?>();
         Action? close = null;
         var orphans = Ui.Switch("Remove orphans", false, _ => { }, "Also remove containers of services no longer in the file");
         var volumes = Ui.Switch("Also remove volumes", false, _ => { }, "Deletes named volumes declared in the file and anonymous volumes. Needs a second, two-key confirmation.");
         volumes.SetResourceReference(Control.ForegroundProperty, "Error");
+        var dryRun = Ui.Switch("Dry run", false, _ => { }, "--dry-run: Compose reports what it would stop and remove without changing anything");
         var body = Ui.VStack(14,
             Ui.Title("Down " + project, 20),
             Ui.Text("Stops and removes the project's containers and networks. Images are kept. Volumes are kept unless you choose to remove them.", 14, null, "OnSurfaceVariant", true, false),
             Ui.Caption(target),
-            orphans, volumes,
-            Actions(() => { done.TrySetResult(null); close!(); }, "Down", Icons.Stop, ButtonKind.Danger, () => { done.TrySetResult((volumes.IsChecked == true, orphans.IsChecked == true)); close!(); }));
+            orphans, volumes, dryRun,
+            Actions(() => { done.TrySetResult(null); close!(); }, "Down", Icons.Stop, ButtonKind.Danger, () => { done.TrySetResult(new ComposeDownOptions(volumes.IsChecked == true, orphans.IsChecked == true, dryRun.IsChecked == true)); close!(); }));
         close = Host.Overlay.Show(body, 540, () => done.TrySetResult(null));
         return done.Task;
     }

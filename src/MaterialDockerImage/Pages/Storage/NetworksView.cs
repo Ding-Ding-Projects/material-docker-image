@@ -24,6 +24,8 @@ public sealed class NetworksView : Grid
     private readonly Func<bool> isCurrent;
     private readonly Action<string> setSummary;
     public Func<Task>? Reload { get; set; }
+    /// <summary>Raised after each load with the number of networks.</summary>
+    public event Action<int>? CountChanged;
 
     public NetworksView(Func<string?> boundContext, Func<bool> current, Action<string> summary)
     {
@@ -110,6 +112,7 @@ public sealed class NetworksView : Grid
                 has && CliValues.Bool(d, "Attachable"), subnets, containers, CliValues.Str(r, "CreatedAt"));
         }).ToList();
         table.SetItems(items);
+        CountChanged?.Invoke(items.Count);
         setSummary($"{items.Count} network{(items.Count == 1 ? "" : "s")} · {items.Count(i => i.BuiltIn)} built-in · {items.Count(i => !i.BuiltIn && i.Containers.Count == 0)} user-defined without containers");
     }
 

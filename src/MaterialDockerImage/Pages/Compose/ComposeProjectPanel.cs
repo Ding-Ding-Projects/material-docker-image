@@ -12,7 +12,7 @@ namespace MaterialDockerImage.Pages;
 /// and the last action's real output. Every action is refused while the source has unsaved edits or the engine
 /// context changed since the list was loaded.
 /// </summary>
-public sealed class ComposeProjectPanel : Grid
+public sealed partial class ComposeProjectPanel : Grid
 {
     private static AppHost Host => AppHost.Current;
     private readonly TextBlock title = Ui.Text("", 22, FontWeights.SemiBold, "OnSurface", false, false);
@@ -28,6 +28,7 @@ public sealed class ComposeProjectPanel : Grid
     private readonly Border lastActionCard;
     private readonly HashSet<string> activeProfiles = new(StringComparer.Ordinal);
     private readonly List<Button> fileOnly = new();
+    private readonly WrapPanel tools = new();
     private ComposeEntry? entry;
     private ComposeTarget? target;
     private int loadVersion;
@@ -56,6 +57,7 @@ public sealed class ComposeProjectPanel : Grid
         Act("Restart", Icons.RestartAlt, ButtonKind.Tonal, () => Simple("Restart", false, "restart"), false);
         Act("Down", Icons.Stop, ButtonKind.Outlined, DownAsync, false);
         Act("Up", Icons.PlayArrow, ButtonKind.Filled, () => UpAsync(null), true);
+        BuildTools();
 
         services.Key = s => s.Service + "/" + s.Container;
         services.EmptyTitle = "No services";
@@ -82,7 +84,9 @@ public sealed class ComposeProjectPanel : Grid
         var header = Ui.VStack(4, Ui.HStack(10, title, status), meta, actions);
         var headerCard = Ui.Card(header, 16, "SurfaceLow");
 
-        var profiles = Ui.VStack(6, Ui.HStack(8, Ui.Overline("Profiles"), Ui.InfoButton("Profiles", "Profiles turn on optional services. Services without a profile always run. Selected profiles are passed as --profile to every action of a file-based project.", "--profile observability")), profileChips, profileNote);
+        var profiles = Ui.VStack(6, Ui.HStack(8, Ui.Overline("Profiles"), Ui.InfoButton("Profiles", "Profiles turn on optional services. Services without a profile always run. Selected profiles are passed as --profile to every action of a file-based project.", "--profile observability")), profileChips, profileNote,
+            Ui.HStack(8, Ui.Overline("Environment files"), Ui.InfoButton("Environment files", "Compose substitutes ${VARIABLES} in the file from .env in the project directory. Choosing env files replaces that default with --env-file for every action.", "--env-file .env.staging")).Margin(0, 6, 0, 0), envChips,
+            Ui.HStack(8, Ui.Overline("Inspect and tools")).Margin(0, 6, 0, 0), tools);
         var servicesHeader = new DockPanel();
         servicesHeader.Children.Add(runningText.Dock(Dock.Right));
         servicesHeader.Children.Add(Ui.Text("Services", 16, FontWeights.SemiBold));
@@ -111,13 +115,15 @@ public sealed class ComposeProjectPanel : Grid
         if (!sameProject) { activeProfiles.Clear(); lastActionCard.Visibility = Visibility.Collapsed; }
         if (selected == null) { target = null; return; }
         var files = selected.HasLocalFiles ? selected.Files.Select(Path.GetFullPath).ToList() : new List<string>();
-        target = new ComposeTarget(selected.Listed ? selected.Name : null, files);
+        if (!sameProject) envFiles.Clear();
+        target = new ComposeTarget(selected.Listed ? selected.Name : null, files) { EnvFiles = envFiles.ToList() };
+        RenderEnvFiles();
         title.Text = selected.Name;
         var newBadge = Ui.Badge(selected.Status, selected.StatusTone);
         var child = newBadge.Child; newBadge.Child = null; status.Child = child;
         status.SetResourceReference(Border.BackgroundProperty, Ui.ToneKeys(selected.StatusTone).Background);
         meta.Text = target.HasFiles ? string.Join(" · ", target.Files) : selected.Files.Count > 0 ? "Files reported by the engine are not on this computer: " + string.Join(", ", selected.Files) : "No config files reported";
-        foreach (var b in fileOnly) { b.IsEnabled = target.HasFiles; b.ToolTip = target.HasFiles ? null : Loc.T("Needs the project's Compose file on this computer. Open it with Open Compose file."); }
+        foreach (var b in fileOnly.Concat(fileOnlyTools)) { b.IsEnabled = target.HasFiles; b.ToolTip = target.HasFiles ? null : Loc.T("Needs the project's Compose file on this computer. Open it with Open Compose file."); }
         await LoadDetailsAsync();
     }
 
@@ -237,28 +243,30 @@ public sealed class ComposeProjectPanel : Grid
         if (await ComposeDialogs.UpAsync(target!.Describe, service) is not { } o) return;
         if (Refuse(true)) return;
         var tail = new List<string> { "up", "--detach" };
+        if (o.DryRun) tail.Insert(0, "--dry-run");
         if (o.Build) tail.Add("--build");
         if (o.RemoveOrphans) tail.Add("--remove-orphans");
         if (o.ForceRecreate) tail.Add("--force-recreate");
         if (o.PullPolicy.Length > 0) tail.AddRange(["--pull", o.PullPolicy]);
         if (service != null) { DockerService.ValidateOperand(service, "service"); tail.Add(service); }
-        await Run(service == null ? "Up" : "Up " + service, target.Args(activeProfiles, [.. tail]));
+        await Run((o.DryRun ? "Dry run · " : "") + (service == null ? "Up" : "Up " + service), target.Args(activeProfiles, [.. tail]));
     }
 
     private async Task DownAsync()
     {
         if (Refuse(false)) return;
         if (await ComposeDialogs.DownAsync(entry!.Name, target!.Describe) is not { } choice) return;
-        if (choice.Volumes)
+        if (choice.Volumes && !choice.DryRun)
         {
             var volumes = await VolumesOfProject();
             if (!await Host.Overlay.SuperConfirmAsync("Down and remove volumes", $"Stops and removes {entry.Name}'s containers and networks and deletes its volumes and the data in them. This cannot be undone.", volumes)) return;
         }
         if (Refuse(false)) return;
         var tail = new List<string> { "down" };
+        if (choice.DryRun) tail.Insert(0, "--dry-run");
         if (choice.Volumes) tail.Add("--volumes");
         if (choice.Orphans) tail.Add("--remove-orphans");
-        await Run(choice.Volumes ? "Down with volumes" : "Down", target.Args(activeProfiles, [.. tail]));
+        await Run((choice.DryRun ? "Dry run · " : "") + (choice.Volumes ? "Down with volumes" : "Down"), target.Args(activeProfiles, [.. tail]));
     }
 
     /// <summary>Lists volumes labelled with this project so the super confirmation names them.</summary>

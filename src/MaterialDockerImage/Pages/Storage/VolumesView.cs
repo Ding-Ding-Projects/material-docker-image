@@ -23,6 +23,8 @@ public sealed class VolumesView : Grid
     private readonly Func<bool> isCurrent;
     private readonly Action<string> setSummary;
     public Func<Task>? Reload { get; set; }
+    /// <summary>Raised after each load with the volume count, total reported size (null when unknown) and unused count.</summary>
+    public event Action<int, double?, int>? StatsChanged;
 
     public VolumesView(Func<string?> boundContext, Func<bool> current, Action<string> summary)
     {
@@ -39,18 +41,26 @@ public sealed class VolumesView : Grid
             .Filter("Unused", v => !v.InUse)
             .Filter("Anonymous", v => v.Anonymous)
             .RowAction("Inspect", Icons.DataObject, InspectAsync, "Enter")
+            .RowAction("Back up…", Icons.Backup, v => Stale() ? Task.CompletedTask : VolumeBackupDialog.ShowAsync(v, context, isCurrent))
+            .RowAction("Restore into…", Icons.Restore, v => { if (!Stale()) VolumeRestoreDialog.Show(v.Name, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing); return Task.CompletedTask; })
+            .RowAction("Clone…", Icons.FilterNone, v => VolumeRestoreDialog.CloneAsync(v, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing))
             .RowAction("Copy name", Icons.ContentCopy, v => { Clipboard.SetText(v.Name); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
         table.Activated += v => _ = Guarded(() => InspectAsync(v));
         var create = Ui.Button("Create volume", Icons.Add, ButtonKind.Filled, () => VolumeCreateForm.Show(context, isCurrent, () => Reload?.Invoke() ?? Task.CompletedTask));
         var prune = Ui.AsyncButton("Prune…", Icons.CleaningServices, ButtonKind.Outlined, PruneAsync);
-        var toolbar = Ui.Wrap(8, create, prune);
+        var backup = Ui.AsyncButton("Back up…", Icons.Backup, ButtonKind.Tonal, () => table.Focused is { } v ? (Stale() ? Task.CompletedTask : VolumeBackupDialog.ShowAsync(v, context, isCurrent)) : SelectFirst());
+        var restore = Ui.Button("Restore from archive…", Icons.Restore, ButtonKind.Tonal, () => { if (!Stale()) VolumeRestoreDialog.Show(table.Focused?.Name, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing); });
+        var toolbar = Ui.Wrap(8, create, backup, restore, prune);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         Children.Add(toolbar);
         Children.Add(table.At(1));
     }
+
+    private Task ReloadOrNothing() => Reload?.Invoke() ?? Task.CompletedTask;
+    private static Task SelectFirst() { Host.Notify.Info("Select a volume to back up first."); return Task.CompletedTask; }
 
     private static async Task Guarded(Func<Task> action)
     {
@@ -117,6 +127,7 @@ public sealed class VolumesView : Grid
         table.SetItems(items);
         var total = items.Where(i => i.SizeBytes.HasValue).Sum(i => i.SizeBytes!.Value);
         var unused = items.Count(i => !i.InUse);
+        StatsChanged?.Invoke(items.Count, sizes.Count > 0 ? total : null, unused);
         setSummary($"{items.Count} volume{(items.Count == 1 ? "" : "s")}" + (sizes.Count > 0 ? $" · {Ui.FormatBytes(total)}" : " · sizes not reported by this engine") + $" · {unused} not used by any container");
     }
 
