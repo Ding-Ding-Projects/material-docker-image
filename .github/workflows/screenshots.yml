@@ -31,7 +31,7 @@ jobs:
           docker image pull $image
           docker image tag $image screenshot-sample/hello-api:1.4.0
           docker volume create --label material-docker-image.capture=true screenshot-data
-          docker network create --label material-docker-image.capture=true screenshot-net
+          docker network create --driver nat --label material-docker-image.capture=true screenshot-net
           docker container run --detach --name screenshot-web --label material-docker-image.capture=true --network screenshot-net screenshot-sample/hello-api:1.4.0 ping -t localhost
           docker container create --name screenshot-job --label material-docker-image.capture=true --mount type=volume,source=screenshot-data,target=C:\data screenshot-sample/hello-api:1.4.0 cmd /c echo done
           docker container logs screenshot-web
