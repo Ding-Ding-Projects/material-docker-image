@@ -1,5 +1,17 @@
 # Roadmap
 
+## Material 3 workspace rewrite (November 2026)
+
+- [x] Design every window surface on a design canvas and record it in `design/workspace-redesign-2026-11`.
+- [x] Replace the window with a frameless Material 3 shell: title bar with provenance, rail, workspace and utility tabs, command palette, notifications, accessibility tools, operation panel.
+- [x] Rebuild every destination and add the Dockerfile Creator, Monitor, System, Registry, Tools and Activity destinations.
+- [x] Add search with a regular expression builder to every list, menu and viewer.
+- [x] Add append-only local history beside the application data with diff, restore, labels and export.
+- [x] Replace every screenshot with captures of the built application on Windows with a real engine (dark, light and minimum size).
+- [ ] Exercise every destination interactively on a personal Windows machine and record receipts.
+- [ ] Localize page-specific copy in Cantonese and bilingual modes.
+- [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
+
 ## Delivered and bounded verification
 
 - [x] Implement native WPF Build, Images, Containers, Compose, Canvas, Volumes, Networks, Diagnostics, Settings and Setup workspaces.

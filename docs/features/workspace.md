@@ -38,3 +38,15 @@ Removing data uses a two-key super confirmation: it names the action and every a
 ## Operation panel
 
 Long operations stream their real output into the collapsible panel at the bottom (`Ctrl+J`) with elapsed time, a Cancel button and its own search. Only one foreground operation runs at a time. Cancellation is reported as cancellation, never as success.
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Command palette with commands and their shortcuts](../../evidence/screenshots/command-palette.png)
+
+![Notification centre](../../evidence/screenshots/notification-centre.png)
+
+![Two-key super confirmation](../../evidence/screenshots/super-confirmation.png)
+
+![Setup wizard after Docker detection](../../evidence/screenshots/setup.png)

@@ -32,3 +32,11 @@ The Checks panel reports, among others: an unpinned base image, a final stage th
 ## Saving and building
 
 Undo and Redo keep the last 200 changes. The draft is saved automatically in the application data folder and recorded in local history after two seconds without changes. Save as writes a Dockerfile you choose. Open in Build sends the text to the Build destination as an unsaved draft together with the selected target stage, so you can review it and build.
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Dockerfile Creator with the Node.js starter](../../evidence/screenshots/creator.png)
+
+![Dockerfile Creator at the minimum window size](../../evidence/screenshots/creator-960x720.png)

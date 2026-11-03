@@ -25,3 +25,9 @@ The Activity destination lists revisions with time, action and summary. Filter b
 - **Export** writes the selected or visible revisions to a ZIP file with a JSON index and one patch per revision.
 
 If the history cannot be opened or written, the Activity destination says so. A history failure never fails the operation you were running.
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Activity with a revision and its diff](../../evidence/screenshots/activity.png)

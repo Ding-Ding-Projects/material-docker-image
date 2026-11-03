@@ -9,3 +9,13 @@ Removal is destructive and requires confirmation. A volume may contain irreplace
 ## 廣東話
 
 先重新整理清單，再檢查要操作嗰個項目。標籤可以改指向，其他工具亦可以改動引擎，所以每次操作完都要再讀狀態。資料卷可能有重要資料，刪除前必須清楚確認，唔好用大範圍清理代替逐項選擇。
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Images with the inspector](../../evidence/screenshots/images.png)
+
+![Containers with the inspector](../../evidence/screenshots/containers.png)
+
+![Compose projects](../../evidence/screenshots/compose.png)

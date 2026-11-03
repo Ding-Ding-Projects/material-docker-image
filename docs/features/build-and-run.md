@@ -21,3 +21,11 @@ An unavailable engine, missing build context, invalid tag, unsupported platform,
 ## 廣東話
 
 先揀內容資料夾同 Dockerfile，再檢查標籤、目標階段、平台同快取設定。建置時睇實輸出，成功退出唔等於服務健康。停止本機指令之後，要重新整理引擎狀態先再試。Compose 啟動前先驗證設定，刪除持久資料必須另外明確選擇。
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Build workspace](../../evidence/screenshots/build.png)
+
+![Build workspace in the light theme](../../evidence/screenshots/build-light.png)

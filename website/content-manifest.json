@@ -24,11 +24,11 @@
     },
     {
       "path": "docs/features/build-and-run.md",
-      "sha256": "065d2f1193be50d0c9ce079eaf08fceacf60cdc2eaae9bce13982fa024065c98"
+      "sha256": "3ccba1bf07601abc490205d122aa4c95d1c14b5145a03eb461f95926a92febfe"
     },
     {
       "path": "docs/features/canvas.md",
-      "sha256": "6d532f005505e2c1582d0126eee9fe345662c0089315a1586aed602a643d9c2a"
+      "sha256": "4d7021098ac2ad91e882bcf04255f9675b8815930602ef622e47dd4df5ec160d"
     },
     {
       "path": "docs/features/capability-inventory.md",
@@ -44,7 +44,7 @@
     },
     {
       "path": "docs/features/dockerfile-creator.md",
-      "sha256": "4d1824843c4100e7e3af18720ad5a9c1c7237003a135b19fdb636287c865f97e"
+      "sha256": "01f68941b25a9d78f1bcd4b714c9be86fcd4545316068da09ff7e396fdfa818a"
     },
     {
       "path": "docs/features/feature-checklist.md",
@@ -52,31 +52,31 @@
     },
     {
       "path": "docs/features/local-history.md",
-      "sha256": "c5385f52e0c8e83e2e166dd602db83b511a4453eed8b59b73816ee096fcf5574"
+      "sha256": "d2c3c68f6b347317fdb09c426f5572e16f4e2e88ed216b42508deab65f838eff"
     },
     {
       "path": "docs/features/operations-and-tools.md",
-      "sha256": "22f6a0c9209c10833a037b4cb625756f06260f013fa8af6982dcc9f9a6ad8c79"
+      "sha256": "526be70275a85b161cba1965b283a426e5a2f1b1f1c4d48f8c30726f492c12e4"
     },
     {
       "path": "docs/features/resources.md",
-      "sha256": "73b0d6058ef327326050426ffc84a7dcff2f7ef7642ee2bc18bce046b12a208f"
+      "sha256": "b05544828e459d4147ad2de5a25c360b3c7a140dbc1e9c79902aa09d2742e1a9"
     },
     {
       "path": "docs/features/workspace.md",
-      "sha256": "17dca837fad4d63ed74b3f626757b8f3cbd14231908faf5617e8560e2becf18e"
+      "sha256": "40602c1fad294bcd5242c03a6876903109c6aee0fc265d3e4c6ad1f593f49974"
     },
     {
       "path": "README.md",
-      "sha256": "53847d25f4bba9a5b83835fba3245bac62d25c54752960b4ee074c870fe4d515"
+      "sha256": "db4856482237ce67a97faf3d7cc9b39d32ccbe499a0462ec3497a5e458fcd2c1"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "5aebe8169e5200afe8184c985c44f8818c906fc784969cdd7a702ce47955b177"
+      "sha256": "3574d9fcfc89899d32db4a475c40b20bc3395c07b558da95aec59678adbeb07c"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "e150bd015f3bf2e094c751d110827a40c1a7f244fe22c3a113d0df4ceb54c47b"
+      "sha256": "e972eb140091aa471f98c50f74c6266a9be9c60c671ed7af7a4455b4d541b791"
     },
     {
       "path": "wiki/Home.md",
@@ -91,25 +91,144 @@
   ],
   "images": [
     {
-      "path": "evidence/build-workspace.png",
-      "destination": "assets/17b3b1916f74e3535769e068b8696cb3904d97445bd7855065fae73ae8d65ea2.png",
-      "sha256": "17b3b1916f74e3535769e068b8696cb3904d97445bd7855065fae73ae8d65ea2",
+      "path": "evidence/screenshots/build.png",
+      "destination": "assets/923eb3c93b6b15644ccff2df93381f16234638ef2806b013cd94e332ef3eba6e.png",
+      "sha256": "923eb3c93b6b15644ccff2df93381f16234638ef2806b013cd94e332ef3eba6e",
       "width": 1440,
       "height": 960
     },
     {
-      "path": "evidence/dockerfile-canvas.png",
-      "destination": "assets/3e0090c548786a96240a0a473a3a25d10afcb0ed96251e026a638e8fdddcb799.png",
-      "sha256": "3e0090c548786a96240a0a473a3a25d10afcb0ed96251e026a638e8fdddcb799",
+      "path": "evidence/screenshots/build-light.png",
+      "destination": "assets/b607671e885aca9e0843ddc929061d56646543e79e0d57f79b7b56a4eb37eaa1.png",
+      "sha256": "b607671e885aca9e0843ddc929061d56646543e79e0d57f79b7b56a4eb37eaa1",
       "width": 1440,
       "height": 960
     },
     {
-      "path": "evidence/dockerfile-canvas-minimum.png",
-      "destination": "assets/0c92a65d3d4846da8ae18e3cae1f8c24c2a67632f07513cf1e41bfe2ca002d32.png",
-      "sha256": "0c92a65d3d4846da8ae18e3cae1f8c24c2a67632f07513cf1e41bfe2ca002d32",
+      "path": "evidence/screenshots/canvas.png",
+      "destination": "assets/43f2b673dfde2f9e02468efe1e0e4d98e07db3459443ee74da02b7344b186d4c.png",
+      "sha256": "43f2b673dfde2f9e02468efe1e0e4d98e07db3459443ee74da02b7344b186d4c",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/creator.png",
+      "destination": "assets/8a25c8b90acbf9949cbb9072737f57535df6b262316a8fbcc2af4b39d03d5888.png",
+      "sha256": "8a25c8b90acbf9949cbb9072737f57535df6b262316a8fbcc2af4b39d03d5888",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/creator-960x720.png",
+      "destination": "assets/c2959d85e147bfac0bd90ac993f4a8e04f0e547b6138e26f0a1d523f7f2c369d.png",
+      "sha256": "c2959d85e147bfac0bd90ac993f4a8e04f0e547b6138e26f0a1d523f7f2c369d",
       "width": 960,
       "height": 720
+    },
+    {
+      "path": "evidence/screenshots/activity.png",
+      "destination": "assets/3a70ce6671fb870d8e22c9143523a60747c171dc679199232a33994888147a04.png",
+      "sha256": "3a70ce6671fb870d8e22c9143523a60747c171dc679199232a33994888147a04",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/monitor.png",
+      "destination": "assets/6009a60de45fa9c4a961e007e2b5144f8af22fae09cdb3ebb1c804e7d8e90e54.png",
+      "sha256": "6009a60de45fa9c4a961e007e2b5144f8af22fae09cdb3ebb1c804e7d8e90e54",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/system.png",
+      "destination": "assets/700abc9feca030982cf9caa9ebe4c78b46f0e6bc9a008ed51186d4cb4321083c.png",
+      "sha256": "700abc9feca030982cf9caa9ebe4c78b46f0e6bc9a008ed51186d4cb4321083c",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/storage.png",
+      "destination": "assets/33a156d592b4c5978e11b852f6f59839c6329431ea948a2ba1183de52f4725bf.png",
+      "sha256": "33a156d592b4c5978e11b852f6f59839c6329431ea948a2ba1183de52f4725bf",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/registry.png",
+      "destination": "assets/9c1a94122e3a2a713f79f7d3511e6bb6090bd809adf15a3d3417f7128f45a64f.png",
+      "sha256": "9c1a94122e3a2a713f79f7d3511e6bb6090bd809adf15a3d3417f7128f45a64f",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/diagnostics.png",
+      "destination": "assets/9ebc27497d4b03d227076498004b60937a675f976584e8e446ccce35d6e7ba24.png",
+      "sha256": "9ebc27497d4b03d227076498004b60937a675f976584e8e446ccce35d6e7ba24",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/tools.png",
+      "destination": "assets/bb78d8734ae1c8d29eb07343af5b07f9854f72a478360a5b01dfbd5d33d52c56.png",
+      "sha256": "bb78d8734ae1c8d29eb07343af5b07f9854f72a478360a5b01dfbd5d33d52c56",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/settings.png",
+      "destination": "assets/2c48c11e4657cb2d81414ea1c7a4e5d5027e22f48f3d47790ccc987b3287b377.png",
+      "sha256": "2c48c11e4657cb2d81414ea1c7a4e5d5027e22f48f3d47790ccc987b3287b377",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/images.png",
+      "destination": "assets/4b4570f967e1f98771604e42993501af9401875090e34e23c15192a7843b13ee.png",
+      "sha256": "4b4570f967e1f98771604e42993501af9401875090e34e23c15192a7843b13ee",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/containers.png",
+      "destination": "assets/b3052bf629a706abba5b2c198b5b9876dd2387e5efb40329f622594aadbe5bd2.png",
+      "sha256": "b3052bf629a706abba5b2c198b5b9876dd2387e5efb40329f622594aadbe5bd2",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/compose.png",
+      "destination": "assets/e3ec79c514c39710962de2c66a55a3b7df22051e36cf19a423b4723fc09eb5ea.png",
+      "sha256": "e3ec79c514c39710962de2c66a55a3b7df22051e36cf19a423b4723fc09eb5ea",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/command-palette.png",
+      "destination": "assets/73bd40d85e1fe0da11be308147aa227e3e3ee7494cedd105438d4082ed16d966.png",
+      "sha256": "73bd40d85e1fe0da11be308147aa227e3e3ee7494cedd105438d4082ed16d966",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/notification-centre.png",
+      "destination": "assets/a0e68865f9163fbe7213d59a1189013a6c92991ec38fd49b85dd82bbeebb367f.png",
+      "sha256": "a0e68865f9163fbe7213d59a1189013a6c92991ec38fd49b85dd82bbeebb367f",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/super-confirmation.png",
+      "destination": "assets/a41900aa6958054c68ce568494bafda7a8ae74d406a4aa6549a788af9d02b418.png",
+      "sha256": "a41900aa6958054c68ce568494bafda7a8ae74d406a4aa6549a788af9d02b418",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/screenshots/setup.png",
+      "destination": "assets/3e2fcf1eaa3991d390bcf5b26ab0076908d1abfe69e8406fbc6bbafb5c07f8df.png",
+      "sha256": "3e2fcf1eaa3991d390bcf5b26ab0076908d1abfe69e8406fbc6bbafb5c07f8df",
+      "width": 1440,
+      "height": 960
     }
   ]
 }

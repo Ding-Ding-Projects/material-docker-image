@@ -29,3 +29,21 @@ Read-only checks for the CLI, engine, API version, Buildx, Compose, contexts, di
 ## Settings
 
 Settings are grouped into Appearance, Language, Accessibility, Focus modes, Sounds and narration, Engine, Data and privacy, and About, with a search across sections and individual settings. Each setting explains what it does and says whether its value is the built-in default or was saved. Changes apply immediately and are recorded in local history. Settings can be exported, imported after a preview, and reset behind the super confirmation.
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Live monitor](../../evidence/screenshots/monitor.png)
+
+![System disk usage and cleanup](../../evidence/screenshots/system.png)
+
+![Volumes](../../evidence/screenshots/storage.png)
+
+![Registry sign-in and signed-in registries](../../evidence/screenshots/registry.png)
+
+![Diagnostics checks and events](../../evidence/screenshots/diagnostics.png)
+
+![Base64 toolkit](../../evidence/screenshots/tools.png)
+
+![Settings](../../evidence/screenshots/settings.png)

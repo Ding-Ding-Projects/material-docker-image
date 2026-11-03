@@ -1,65 +1,45 @@
 # Material Docker Image
 
-A native Windows WPF workspace for building Docker images, running containers, managing resources, and exploring Dockerfile stages and container relationships on an interactive native canvas.
+A native Windows WPF workspace for Docker: build images, create Dockerfiles step by step, run and manage containers, operate Compose projects, watch live statistics, clean up safely and keep a local history of every change. The whole interface follows Material 3 in a frameless window.
 
-Advanced Build and Run controls are implemented. Focused checks pass, and a real native build/run workflow has been exercised. Complete required-feature acceptance remains open.
+[Documentation](https://ding-ding-projects.github.io/material-docker-image/) · [Downloads](https://github.com/Ding-Ding-Projects/material-docker-image/releases) · [User guides](docs/features/README.md) · [Capability inventory](docs/features/capability-inventory.md) · [Design](design/workspace-redesign-2026-11/HANDOFF.md)
 
-[Documentation](https://ding-ding-projects.github.io/material-docker-image/) · [Downloads](https://github.com/Ding-Ding-Projects/material-docker-image/releases) · [Capability inventory](docs/features/capability-inventory.md) · [Progress](https://github.com/Ding-Ding-Projects/material-docker-image/discussions/2)
+![Build workspace with a multi-stage Dockerfile created by the Dockerfile Creator](evidence/screenshots/build.png)
 
-The documentation includes a [feature completion checklist](docs/features/feature-checklist.md) with category/status filters, bilingual evidence details and maintainer-owned state. Its 123 entries preserve 109 required capabilities, 10 existing workflows and four milestones. Implementation and full verification are distinct; no row currently claims full verification. The separate visitor preparation checklist retains its existing browser-local progress.
+## What it does
 
-The checklist passed 12 hidden-browser width/language/theme combinations, native keyboard disclosure, filtering, reset focus and preparation-state persistence. The exact build entrypoint passes 23 core, 51 UI-state and 13 checklist checks. A reviewed metadata-escaping repair protects future inventory edits. [Bounded verification details](evidence/checklist-verification.json) retain the original source bindings and explicit limits. New checklist captures remain private pending the complete cleanup/promotion receipt; no new image acceptance is implied.
+- **Workspace**: custom title bar with version and build time, engine context selector that never changes the global Docker context, navigation rail, workspace and utility tabs, a `Ctrl+Shift+F` command palette with live setting controls, toasts with a notification centre, accessibility tools, and an operation panel with the real output of the running command. Every list and viewer has its own search with a regular expression builder.
+- **Build**: context folder, Dockerfile editor with line numbers and search, tags, target stage from the parsed file, platform, build arguments, labels, cache import and export, BuildKit secret files (paths only), local load, registry push or OCI archive, BuildKit checks, and Build and run.
+- **Dockerfile Creator**: starters for Node.js, Python, .NET, Go, Java, Rust and static sites; stages and structured instruction cards with validation; live preview; best-practice checks with automatic fixes; undo history; import of existing Dockerfiles; hand-off to Build.
+- **Images and containers**: inventory with usage, pull, import, load, tag, push, save, prune; a run editor covering command, ports, environment, mounts, networks, resources, restart and health, security and advanced options with an exact command preview; container lifecycle, logs with follow and search, statistics, processes, file changes and copy, one-shot exec and a terminal window.
+- **Compose, storage and canvas**: Compose projects with profiles, services and a path-bound source editor; volumes and networks with create, connect, inspect and prune; a native Dockerfile stage graph and runtime topology.
+- **Monitor and System**: live CPU and memory charts, disk usage, engine information and category-by-category cleanup behind a two-key super confirmation.
+- **Registry, Diagnostics and Tools**: registry sign-in with the password on standard input only, Docker Hub search, Buildx builders, read-only checks with sanitized reports, a live events stream, a Base64 toolkit and the offline documentation.
+- **Local history**: an append-only history of settings, saved files, drafts and operations, kept in the application's own data folder, with diffs, restores, labels and export.
+- **Settings**: appearance (theme, seed colour, font size, contrast, motion), English, Cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. Each setting explains itself and says whether it is the default.
 
-The documentation declares a local SVG browser icon, included in its deterministic asset manifest, to avoid an implicit missing root icon request.
+## Screenshots
 
-## Build and run workflows
+All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine ([inventory](evidence/inventory.json)). Light-theme and 960 x 720 minimum-size captures of every screen are in [`evidence/screenshots`](evidence/screenshots).
 
-- Build local Dockerfiles with multiple tags, target stages, platforms, build arguments, image labels, pull/no-cache choices, and explicit local-load, registry-push or OCI-archive destinations.
-- Configure BuildKit cache import/export and selected local secret files. Registry publication, cache export and existing OCI-file replacement require confirmation. Secret file contents are not read, logged or persisted by the application.
-- Run images with explicit JSON argument arrays, non-secret environment rows, entrypoint, user, working directory, CPU/memory limits and restart policy.
-- Add port and mount rows with explicit addresses, protocols and read-only choices. Ports default to loopback; additional mounts default to read-only. Remote bind paths refer to the selected engine host.
-- Pull, inspect, tag, import, export and remove images; start, stop, restart, inspect and read logs/statistics for containers.
-- Edit and operate Compose projects with loaded-save-path protection, and inspect volumes and networks on the selected engine.
-
-OCI export, registry publication, cache backends and secret-file builds are implemented controls with focused input checks. Their complete runtime combinations have not been exercised. Health-check configuration, devices, GPU controls and interactive terminals remain gaps.
-
-## Native canvas
-
-Parse the current Dockerfile into selectable stages and dependency edges. Inspect stage source, change a supported stage alias/base, select an aliased build target, or jump back to its source line. Pan with middle-drag, scroll with arrow keys, zoom with Ctrl+wheel or buttons, and select through the keyboard-accessible object list. A compact header and separately scrolling inspector preserve graph space at the minimum supported window size.
-
-Runtime topology reads actual container inspections and network/volume memberships. It is a bounded snapshot, not a live service-health guarantee. Unsupported Dockerfile constructs remain source-only without being rewritten or truncated. A parsed graph never claims the build ran.
-
-## Current visual evidence
-
-The retained and inspected native captures below belong to source `3ce1ed7895253edf8e0ccf99e6aaaca8a70ef22a`, local version 0.5.0. Build shows the restored example Dockerfile; advanced controls remain below the visible scroll position. The populated Canvas has two stages and one relationship. At minimum size, the graph supports intentional panning and the inspector scrolls.
-
-![Native WPF Build workspace with the restored example Dockerfile](evidence/build-workspace.png)
-
-![Native WPF Dockerfile Canvas with stage graph, object list and inspector at normal window size](evidence/dockerfile-canvas.png)
-
-![Native WPF Dockerfile Canvas at the minimum supported window size](evidence/dockerfile-canvas-minimum.png)
-
-Actual visual scope is English, dark theme and 100% display scaling at normal and minimum sizes. The complete language, theme and scale matrix remains incomplete.
-
-## Verification and release state
-
-- 23 core checks and 51 UI-state/parser checks passed through the exact build entrypoint.
-- Source [f370d66](https://github.com/Ding-Ding-Projects/material-docker-image/commit/f370d66133ffc3fe5f80967f5bafb33c28bc74f2) completed a real native build/run workflow, including exact image-label and environment-value whitespace preservation.
-- Normal release [v0.5.1](https://github.com/Ding-Ding-Projects/material-docker-image/releases/tag/v0.5.1) is the verified delivery baseline at source [ad5d3ac](https://github.com/Ding-Ding-Projects/material-docker-image/commit/ad5d3ac5c02588e8efcc926715119b87a9c7c6d5). Its [Windows build and release run](https://github.com/Ding-Ding-Projects/material-docker-image/actions/runs/39112649034) succeeded. The exact tag source and all five downloadable asset sizes/digests were verified.
-- That baseline includes source [3ce1ed7](https://github.com/Ding-Ding-Projects/material-docker-image/commit/3ce1ed7895253edf8e0ccf99e6aaaca8a70ef22a), which restores the saved Build workspace. A real native Build resolved the relative example folder, and restart from another working directory without an open-file argument restored the saved folder and exact example source after line-ending normalization. The screenshots above retain their original 3ce1ed7/0.5.0 provenance.
-- The existing installation was updated through its supported updater to 0.5.1.0, with the installed executable matching the published package and settings preserved. A hidden-desktop installed launch successfully detected Docker, exercised Setup Back/Next/Finish, persisted completion at step 2 and opened the productive Build workspace. This is bounded current-host update/launch/setup proof, not fresh-install or complete installer lifecycle acceptance.
-- The [documentation deployment run](https://github.com/Ding-Ding-Projects/material-docker-image/actions/runs/39112649029) succeeded for ad5d3ac. The live documentation contains 12 articles, 109 neutral capability identifiers and three byte-identical source captures. Widths of 1440 and 320 pixels had no horizontal overflow; guide progress, checklist, theme and bilingual-choice persistence passed. The exact repository About homepage was read back as the documentation URL linked above.
-
-All 109 required identifiers remain in the [capability inventory](docs/features/capability-inventory.md). Portable documentation/build companions, complete RegexBuddy parity and the full required-feature set remain incomplete.
+| | |
+| --- | --- |
+| ![Dockerfile Creator with the Node.js starter, instruction cards, live preview and checks](evidence/screenshots/creator.png) | ![Images with an inspector showing platform, layers and tags](evidence/screenshots/images.png) |
+| ![Containers with the inspector overview of a running container](evidence/screenshots/containers.png) | ![Dockerfile canvas with three stages and their relationships](evidence/screenshots/canvas.png) |
+| ![Live monitor with CPU and memory charts](evidence/screenshots/monitor.png) | ![System disk usage, cleanup and engine information](evidence/screenshots/system.png) |
+| ![Command palette over the Containers destination](evidence/screenshots/command-palette.png) | ![Two-key super confirmation for removing unused data](evidence/screenshots/super-confirmation.png) |
+| ![Settings with appearance options and provenance lines](evidence/screenshots/settings.png) | ![Build workspace in the light theme](evidence/screenshots/build-light.png) |
 
 ## Build
 
-Run `build.bat`. Docker operations require Docker CLI and a reachable selected engine. Editors and saved workspaces remain usable offline.
+Run `build.bat` to publish the self-contained application, `build.bat -Tests` for the engine, UI-state and documentation checks, `build.bat -DockerSmoke` for an explicitly mutating local-engine smoke test, and `build-installer.bat` for the unsigned Squirrel.Windows package. Docker operations need the Docker CLI and a reachable engine; editors, the Creator, history and settings work offline.
 
-Run `build.bat -Tests` for focused engine and UI-state/parser checks, `build.bat -DockerSmoke` for an explicitly mutating, uniquely owned local-engine smoke, and `build-installer.bat` for the genuine unsigned Squirrel.Windows package. The smoke uses the local `desktop-linux` context and cached `debian:bookworm-slim` base image.
-
-Native hidden-desktop verification can use `MaterialDockerImage.exe --software-rendering`. This selects WPF's supported software-rendering route and does not change Docker behavior.
+`MaterialDockerImage.exe --capture <folder>` renders every destination, the command palette, the super confirmation and the notification centre to PNG files and exits. Add `--capture-theme Light` or `--capture-size 960x720`, and `--software-rendering` on machines without a GPU. The `Tests and screenshots` workflow runs the tests and these captures on every change.
 
 ## Safety
 
-Commands use structured arguments without a host command shell. Existing Docker contexts and credential helpers remain owned by Docker. Destructive operations require explicit confirmation. Review Dockerfiles, writable mounts and registry destinations, and keep credentials out of ordinary environment rows and build arguments.
+Commands use structured arguments without a host shell. The global Docker context and default Buildx builder are never changed. Registry passwords are passed on standard input and never stored or logged, and BuildKit secret files are never read. Removing data needs the two-key super confirmation; every operation reports its real exit status, and cancellation is never reported as success. Local history lives in the application data folder and never inside your projects.
+
+## Verification state
+
+The UI-state checks (113), core engine checks (23) and documentation checklist checks (13) pass through `build.bat -Tests` on Windows. The screenshots above show real engine data. Interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the [capability inventory](docs/features/capability-inventory.md) and [handoff](HANDOFF.md).
