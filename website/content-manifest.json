@@ -16,7 +16,7 @@
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "0d33e2472a29c4bc5a08a1880307800832e3497c1c8a2c9f1625d0cb134bcd14"
+      "sha256": "b4cccfd3594d00fc5cfef0a0954ae6150776064eb7b6ea452776b6dfb00f9e50"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -43,12 +43,28 @@
       "sha256": "3f1d495469f3e661fca6dd182acd4b2d945bb835b1557f701b75a887f7227b44"
     },
     {
+      "path": "docs/features/dockerfile-creator.md",
+      "sha256": "4d1824843c4100e7e3af18720ad5a9c1c7237003a135b19fdb636287c865f97e"
+    },
+    {
       "path": "docs/features/feature-checklist.md",
       "sha256": "8defafd166e8de5bb9c63b53717f69e4f3f5d62c693544d86ad39c673135f092"
     },
     {
+      "path": "docs/features/local-history.md",
+      "sha256": "c5385f52e0c8e83e2e166dd602db83b511a4453eed8b59b73816ee096fcf5574"
+    },
+    {
+      "path": "docs/features/operations-and-tools.md",
+      "sha256": "22f6a0c9209c10833a037b4cb625756f06260f013fa8af6982dcc9f9a6ad8c79"
+    },
+    {
       "path": "docs/features/resources.md",
       "sha256": "73b0d6058ef327326050426ffc84a7dcff2f7ef7642ee2bc18bce046b12a208f"
+    },
+    {
+      "path": "docs/features/workspace.md",
+      "sha256": "17dca837fad4d63ed74b3f626757b8f3cbd14231908faf5617e8560e2becf18e"
     },
     {
       "path": "README.md",
