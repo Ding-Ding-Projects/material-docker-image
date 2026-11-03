@@ -1,0 +1,306 @@
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using MaterialDockerImage.Services;
+using MaterialDockerImage.UI;
+
+namespace MaterialDockerImage.Pages;
+
+/// <summary>Centre column: stage fields, instruction cards with inline forms, the Add instruction menu and quick-add chips.</summary>
+public sealed partial class CreatorPage
+{
+    public static readonly string[] CommonImages =
+    [
+        "alpine:3.21", "debian:bookworm-slim", "ubuntu:24.04", "node:22-alpine", "node:22-slim", "python:3.13-slim", "python:3.13-alpine",
+        "golang:1.24-alpine", "rust:1-slim", "eclipse-temurin:21-jre", "maven:3-eclipse-temurin-21", "mcr.microsoft.com/dotnet/sdk:9.0",
+        "mcr.microsoft.com/dotnet/aspnet:9.0", "nginxinc/nginx-unprivileged:1.27-alpine", "nginx:1.27-alpine", "gcr.io/distroless/static-debian12:nonroot",
+        "gcr.io/distroless/base-debian12:nonroot", "scratch",
+    ];
+    private static readonly string[] Platforms = ["", "linux/amd64", "linux/arm64", "linux/arm/v7", "$BUILDPLATFORM", "$TARGETPLATFORM"];
+
+    private static readonly (InstructionKind Kind, string Description)[] Catalog =
+    [
+        (InstructionKind.Run, "Run a command while building (supports cache and secret mounts)"),
+        (InstructionKind.Copy, "Copy files from the context or another stage"),
+        (InstructionKind.Workdir, "Set the working directory"),
+        (InstructionKind.Env, "Set environment variables"),
+        (InstructionKind.Arg, "Declare a build argument"),
+        (InstructionKind.Expose, "Document a listening port"),
+        (InstructionKind.User, "Switch to a user"),
+        (InstructionKind.Cmd, "Default command for the container"),
+        (InstructionKind.Entrypoint, "Program the container always runs"),
+        (InstructionKind.Healthcheck, "Tell the engine how to check readiness"),
+        (InstructionKind.Label, "Add image metadata"),
+        (InstructionKind.Volume, "Declare data mount points"),
+        (InstructionKind.Add, "Add files, URLs or archives"),
+        (InstructionKind.StopSignal, "Signal used to stop the container"),
+        (InstructionKind.Shell, "Change the shell for shell-form instructions"),
+        (InstructionKind.OnBuild, "Instruction for images built FROM this one"),
+        (InstructionKind.Comment, "A comment line"),
+        (InstructionKind.Raw, "Any instruction written by hand"),
+    ];
+
+    private readonly ComboBox baseImage = Ui.Combo(CommonImages, null, true);
+    private readonly TextBox stageName = Ui.Input("", "Stage name", true);
+    private readonly ComboBox stagePlatform = Ui.Combo(Platforms, "", true);
+    private readonly TextBlock stageProblems = Ui.Text("", 13, null, "Error");
+    private readonly StackPanel cards = new();
+    private readonly StackPanel preambleCards = new();
+    private FrameworkElement preambleSection = null!;
+    private FrameworkElement stageFields = null!;
+    private FrameworkElement noStage = null!;
+    private ScrollViewer editorScroll = null!;
+    private readonly List<(DockerInstruction Instruction, TextBlock Summary, TextBlock Hint, Border Card)> cardViews = new();
+    private bool syncingStage;
+    private Button? addInstruction;
+
+    private UIElement BuildEditorColumn()
+    {
+        foreach (var c in new[] { baseImage, stagePlatform }) c.SetResourceReference(Control.FontFamilyProperty, "MonoFont");
+        baseImage.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((_, _) => StageFieldChanged()));
+        baseImage.SelectionChanged += (_, _) => Dispatcher.BeginInvoke(StageFieldChanged);
+        stagePlatform.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent, new TextChangedEventHandler((_, _) => StageFieldChanged()));
+        stagePlatform.SelectionChanged += (_, _) => Dispatcher.BeginInvoke(StageFieldChanged);
+        stagePlatform.ToolTip = Loc.T("Empty means any: the build platform decides.");
+        stageName.TextChanged += (_, _) => StageFieldChanged();
+
+        stageFields = Ui.VStack(12,
+            Ui.Field("Base image", baseImage, "The image this stage starts from, or the name of an earlier stage. Pin a version tag or digest for repeatable builds.", "node:22-alpine\nnode:22-alpine@sha256:…\ndeps"),
+            Ui.Columns(12, [1, 1],
+                Ui.Field("Stage name", stageName, "Name used by COPY --from, later FROM lines and the build target. Letters, digits, '.', '_' and '-'.", "runtime"),
+                Ui.Field("Platform", stagePlatform, "Optional FROM --platform. Leave empty for any; $BUILDPLATFORM runs build tools natively during cross-builds.", "$BUILDPLATFORM")),
+            stageProblems);
+        stageProblems.Visibility = Visibility.Collapsed;
+
+        preambleSection = Ui.VStack(8, Ui.Overline("Before the first stage"), preambleCards);
+        preambleSection.Visibility = Visibility.Collapsed;
+
+        addInstruction = Ui.Button("Add instruction", Icons.Add, ButtonKind.Tonal, () => OpenAddMenu(addInstruction!));
+        addInstruction.ToolTip = Loc.T("Choose an instruction to add after the open card, or at the end.");
+        var quick = Ui.Wrap(6,
+            QuickChip("RUN with cache mount", () => new DockerInstruction { Kind = InstructionKind.Run, Command = "echo build", CacheTargets = { "/root/.cache" } }, false),
+            QuickChip("HEALTHCHECK", () => DockerfileModel.Create(InstructionKind.Healthcheck), true),
+            QuickChip("Non-root USER", () => new DockerInstruction { Kind = InstructionKind.User, Value = "10001" }, true),
+            QuickChip("EXPOSE", () => DockerfileModel.Create(InstructionKind.Expose), true));
+        var addRow = Ui.Wrap(8, addInstruction, quick);
+
+        noStage = Ui.EmptyState(Icons.Layers, "No stages yet", "Pick a starter on the left, open an existing Dockerfile, or add a stage.",
+            Ui.Button("Add stage", Icons.Add, ButtonKind.Filled, AddStage));
+        noStage.Visibility = Visibility.Collapsed;
+
+        var stack = Ui.VStack(14, preambleSection, stageFields, Ui.Divider(), cards, addRow);
+        var grid = new Grid();
+        editorScroll = Ui.Scroll(stack);
+        grid.Children.Add(editorScroll);
+        grid.Children.Add(noStage);
+        return grid;
+    }
+
+    private Button QuickChip(string label, Func<DockerInstruction> create, bool beforeStart)
+    {
+        var b = Ui.Button(label, Icons.Add, ButtonKind.Outlined, () =>
+        {
+            if (doc.Stages.Count == 0) { Host.Notify.Warning("Add a stage first."); return; }
+            FlushCommit();
+            var instruction = create();
+            var stage = doc.Stages[selectedStage];
+            if (beforeStart) DockerfileLint.InsertBeforeStart(stage, instruction); else InsertAfterExpanded(stage, instruction);
+            expanded = instruction;
+            Changed();
+        });
+        b.MinHeight = 32; b.Height = 32; b.Padding = new Thickness(12, 0, 12, 0);
+        return b;
+    }
+
+    private void InsertAfterExpanded(DockerfileStage stage, DockerInstruction instruction)
+    {
+        var at = expanded == null ? -1 : stage.Instructions.IndexOf(expanded);
+        if (at < 0)
+        {
+            // Default position: before the start instructions so new build steps do not land after CMD.
+            var start = stage.Instructions.FindIndex(x => x.Kind is InstructionKind.Cmd or InstructionKind.Entrypoint or InstructionKind.Healthcheck);
+            if (start < 0 || instruction.Kind is InstructionKind.Cmd or InstructionKind.Entrypoint) stage.Instructions.Add(instruction); else stage.Instructions.Insert(start, instruction);
+        }
+        else stage.Instructions.Insert(at + 1, instruction);
+    }
+
+    private void OpenAddMenu(FrameworkElement anchor)
+    {
+        if (doc.Stages.Count == 0) { Host.Notify.Warning("Add a stage first."); return; }
+        var search = new SearchFilter("Search instructions", 300);
+        var list = new ListBox { MaxHeight = 360 };
+        System.Windows.Automation.AutomationProperties.SetName(list, Loc.T("Instructions"));
+        System.Windows.Controls.Primitives.Popup? popup = null;
+        void Fill()
+        {
+            list.Items.Clear();
+            foreach (var (kind, description) in Catalog)
+            {
+                var keyword = DockerfileModel.Keyword(kind);
+                if (!search.Matches(keyword + " " + description)) continue;
+                var item = new ListBoxItem { Tag = kind, Content = Ui.VStack(0, Ui.Mono(keyword == "#" ? "# comment" : keyword == "RAW" ? "Raw instruction" : keyword, 13, "Primary"), Ui.Text(description, 12, null, "OnSurfaceVariant", true)) };
+                System.Windows.Automation.AutomationProperties.SetName(item, keyword + ". " + description);
+                list.Items.Add(item);
+            }
+            if (list.Items.Count > 0) list.SelectedIndex = 0;
+        }
+        void Pick()
+        {
+            if (list.SelectedItem is not ListBoxItem { Tag: InstructionKind kind }) return;
+            popup!.IsOpen = false;
+            FlushCommit();
+            var instruction = DockerfileModel.Create(kind);
+            InsertAfterExpanded(doc.Stages[selectedStage], instruction);
+            expanded = instruction;
+            Changed();
+        }
+        search.Changed += Fill;
+        search.Box.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.Down && list.Items.Count > 0) { list.SelectedIndex = Math.Min(list.Items.Count - 1, list.SelectedIndex + 1); e.Handled = true; }
+            else if (e.Key == System.Windows.Input.Key.Up && list.Items.Count > 0) { list.SelectedIndex = Math.Max(0, list.SelectedIndex - 1); e.Handled = true; }
+            else if (e.Key == System.Windows.Input.Key.Enter) { Pick(); e.Handled = true; }
+        };
+        list.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { Pick(); e.Handled = true; } };
+        list.PreviewMouseLeftButtonUp += (_, e) => { if (e.OriginalSource is DependencyObject d && ItemsControl.ContainerFromElement(list, d) is ListBoxItem) Pick(); };
+        Fill();
+        popup = Ui.ShowPopup(anchor, Ui.VStack(10, Ui.Text("Add instruction", 16, FontWeights.SemiBold), search, list), 360);
+        search.Box.Dispatcher.BeginInvoke(() => search.Box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
+    }
+
+    // ----------------------------------------------------------------- stage fields
+
+    private void StageFieldChanged()
+    {
+        if (syncingStage || doc.Stages.Count == 0) return;
+        var stage = doc.Stages[selectedStage];
+        if (stage.BaseImage == (baseImage.Text ?? "") && stage.Platform == (stagePlatform.Text ?? "") && stage.Name == stageName.Text) return;
+        var oldName = stage.Name.Trim();
+        stage.BaseImage = baseImage.Text ?? "";
+        stage.Platform = stagePlatform.Text ?? "";
+        stage.Name = stageName.Text;
+        if (oldName.Length > 0 && string.Equals(doc.Target.Trim(), oldName, StringComparison.OrdinalIgnoreCase)) doc.Target = stage.Name.Trim();
+        ShowStageProblems();
+        Touched();
+    }
+
+    private void ShowStageProblems()
+    {
+        var problems = doc.Stages.Count == 0 ? [] : DockerfileModel.ValidateStage(doc.Stages[selectedStage]);
+        stageProblems.Text = string.Join(Environment.NewLine, problems);
+        stageProblems.Visibility = problems.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private void RebuildStageEditor()
+    {
+        var has = doc.Stages.Count > 0;
+        noStage.Visibility = has ? Visibility.Collapsed : Visibility.Visible;
+        editorScroll.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
+        cards.Children.Clear(); preambleCards.Children.Clear(); cardViews.Clear();
+        preambleSection.Visibility = doc.Preamble.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        for (var i = 0; i < doc.Preamble.Count; i++) preambleCards.Children.Add(Card(doc.Preamble, i, -1));
+        if (!has) return;
+        var stage = doc.Stages[selectedStage];
+        syncingStage = true;
+        try
+        {
+            baseImage.Text = stage.BaseImage;
+            stagePlatform.Text = stage.Platform;
+            stageName.Text = stage.Name;
+        }
+        finally { syncingStage = false; }
+        ShowStageProblems();
+        if (stage.Instructions.Count == 0) cards.Children.Add(Ui.Caption("This stage has no instructions yet. Use Add instruction or a quick-add chip below."));
+        for (var i = 0; i < stage.Instructions.Count; i++) cards.Children.Add(Card(stage.Instructions, i, selectedStage));
+    }
+
+    private void UpdateCardSummaries()
+    {
+        foreach (var (instruction, summary, hint, card) in cardViews)
+        {
+            summary.Text = DockerfileModel.Summary(instruction);
+            hint.Text = Loc.T(DockerfileModel.Hint(instruction));
+            var invalid = DockerfileModel.Validate(instruction).Count > 0;
+            card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : expanded == instruction ? "Primary" : "OutlineVariant");
+        }
+    }
+
+    /// <summary>Earlier stage names a COPY in the selected stage may reference.</summary>
+    private IReadOnlyList<string> EarlierStageNames() => doc.Stages.Take(selectedStage).Select(s => s.Name.Trim()).Where(n => n.Length > 0).ToList();
+
+    private Border Card(List<DockerInstruction> list, int index, int stageIndex)
+    {
+        var instruction = list[index];
+        var isOpen = expanded == instruction;
+        var keyword = DockerfileModel.Keyword(instruction.Kind);
+        var chip = new Border { Child = Ui.Mono(keyword, 12, "OnTertiaryContainer"), CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 2, 8, 2), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 0, 0), MinWidth = 64 };
+        chip.SetResourceReference(Border.BackgroundProperty, instruction.Kind is InstructionKind.Comment or InstructionKind.Raw ? "SurfaceHighest" : "TertiaryContainer");
+        ((TextBlock)chip.Child).TextAlignment = TextAlignment.Center;
+        var summary = Ui.Mono(DockerfileModel.Summary(instruction), 13, "OnSurface", true);
+        var hint = Ui.Caption(DockerfileModel.Hint(instruction));
+        var text = Ui.VStack(2, summary, hint);
+
+        void Move(int delta)
+        {
+            var to = index + delta;
+            if (to < 0 || to >= list.Count) return;
+            FlushCommit();
+            (list[index], list[to]) = (list[to], list[index]);
+            Changed();
+            FocusCard(instruction);
+        }
+        var up = Ui.IconButton(Icons.ExpandLess, "Move up (Alt+Up)", () => Move(-1));
+        var down = Ui.IconButton(Icons.ExpandMore, "Move down (Alt+Down)", () => Move(1));
+        up.IsEnabled = index > 0; down.IsEnabled = index < list.Count - 1;
+        var edit = Ui.IconButton(isOpen ? Icons.Check : Icons.Edit, isOpen ? "Done editing" : "Edit", () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); FocusCard(instruction); });
+        var duplicate = Ui.IconButton(Icons.FilterNone, "Duplicate", () => { FlushCommit(); var copy = instruction.Clone(); list.Insert(index + 1, copy); expanded = copy; Changed(); });
+        var delete = Ui.IconButton(Icons.Delete, "Delete (Del)", () => { FlushCommit(); list.RemoveAt(index); if (expanded == instruction) expanded = null; Changed(); Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it.")); });
+        foreach (var b in new[] { up, down, edit, duplicate, delete }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
+        var actions = Ui.HStack(0, up, down, duplicate, edit, delete);
+        actions.VerticalAlignment = VerticalAlignment.Top;
+
+        var top = Ui.Columns(12, [0, 1, 0], chip, text, actions);
+        var body = new StackPanel();
+        body.Children.Add(top);
+        if (isOpen)
+        {
+            var form = new InstructionForm(instruction, EarlierStageNames, Touched) { Margin = new Thickness(0, 14, 0, 0) };
+            var done = Ui.Button("Done", null, ButtonKind.Text, () => { FlushCommit(); expanded = null; RebuildStageEditor(); FocusCard(instruction); });
+            done.HorizontalAlignment = HorizontalAlignment.Right;
+            body.Children.Add(Ui.Divider().Margin(0, 12, 0, 0));
+            body.Children.Add(Ui.Caption($"{Loc.T("Editing step")} {index + 1}").Margin(0, 10, 0, 0));
+            body.Children.Add(form);
+            body.Children.Add(done);
+        }
+        var card = new Border { Child = body, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), BorderThickness = new Thickness(isOpen ? 2 : 1), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction };
+        card.SetResourceReference(Border.BackgroundProperty, isOpen ? "SurfaceHigh" : "SurfaceContainer");
+        card.SetResourceReference(Border.BorderBrushProperty, DockerfileModel.Validate(instruction).Count > 0 ? "Error" : isOpen ? "Primary" : "OutlineVariant");
+        card.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
+        System.Windows.Automation.AutomationProperties.SetName(card, $"{Loc.T("Step")} {index + 1}: {keyword} {summary.Text}");
+        card.PreviewKeyDown += (_, e) =>
+        {
+            var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+            if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Up) { Move(-1); e.Handled = true; }
+            else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { Move(1); e.Handled = true; }
+            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Enter) { edit.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); e.Handled = true; }
+            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Delete) { delete.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); e.Handled = true; }
+        };
+        card.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2 && !isOpen) { expanded = instruction; RebuildStageEditor(); e.Handled = true; } };
+        card.ContextMenu = new ContextMenu();
+        card.ContextMenu.Items.Add(Ui.MenuItem(isOpen ? "Done editing" : "Edit", Icons.Edit, () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); }, "Enter"));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => Move(-1), "Alt+Up"));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => Move(1), "Alt+Down"));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => duplicate.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent))));
+        card.ContextMenu.Items.Add(Ui.MenuItem("Delete", Icons.Delete, () => delete.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)), "Del", true));
+        cardViews.Add((instruction, summary, hint, card));
+        return card;
+    }
+
+    private void FocusCard(DockerInstruction instruction) =>
+        Dispatcher.BeginInvoke(() =>
+        {
+            var view = cardViews.FirstOrDefault(c => c.Instruction == instruction);
+            view.Card?.Focus();
+            view.Card?.BringIntoView();
+        }, System.Windows.Threading.DispatcherPriority.Loaded);
+}
