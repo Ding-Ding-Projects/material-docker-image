@@ -13,3 +13,9 @@ Implementation and built interaction evidence are tracked separately in the capa
 ## 廣東話
 
 畫布顯示建置階段同容器關係。可以移動畫面、縮放同揀節點睇詳情。連線表示設定入面嘅關係，唔代表建置已經執行。未能安全轉換嘅 Dockerfile 語法要保留，唔可以因為畫面靚就偷偷改走。
+
+## Screenshots
+
+Captured from the built application ([inventory](../../evidence/inventory.json)).
+
+![Dockerfile stage graph with inspector](../../evidence/screenshots/canvas.png)

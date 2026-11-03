@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Registry and builders</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Registry" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 360px minmax(0, 1fr) 500px; gap: 12px; padding: 16px 16px 16px 0">
+<div style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
+<section aria-label="Signed-in registries" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 16px; font-weight: 600">Signed in</span>
+<sc-for list="{{registries}}" as="r" hint-placeholder-count="2">
+<div style="display: flex; align-items: center; gap: 10px; padding: 10px 4px 10px 12px; border-radius: 12px; background: #1D2024">
+<span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #ADC6FF">&#xF15C;</span>
+<span style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto; min-width: 0"><span style="font-weight: 600">{{r.host}}</span><span style="font-size: 12px; color: #C4C6D0">{{r.user}}</span></span>
+<button style="height: 36px; padding: 0 12px; border-radius: 18px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Sign out</button>
+</div>
+</sc-for>
+</section>
+<section aria-label="Sign in to a registry" style="flex: 1 1 auto; background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 16px; font-weight: 600">Sign in</span>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="reg" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Registry</label><input id="reg" value="registry.gitlab.com" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #111318; color: #E2E2E9; padding: 0 12px; font: inherit"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="usr" style="font-size: 12px; color: #C4C6D0; font-weight: 600">User name</label><input id="usr" value="example-user" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #111318; color: #E2E2E9; padding: 0 12px; font: inherit"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="pw" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Password or access token</label><div style="display: flex; gap: 6px"><input id="pw" type="password" value="glpat-hidden-token" aria-describedby="pw-note" style="flex: 1 1 auto; min-width: 0; height: 40px; box-sizing: border-box; border-radius: 8px; border: 2px solid #ADC6FF; background: #111318; color: #E2E2E9; padding: 0 12px; font: inherit"><button aria-label="Show password" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE8F4;</button></div><span id="pw-note" style="font-size: 12px; color: #C4C6D0; line-height: 1.45; display: flex; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE899;</span>Sent to the engine on standard input, never stored or logged.</span></div>
+<div style="flex: 1 1 auto"></div>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xEA77;</span>Sign in</button>
+</section>
+</div>
+<section aria-label="Docker Hub search" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 12px">
+<span style="font-size: 16px; font-weight: 600">Search Docker Hub</span>
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Search Docker Hub" value="postgres" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><span style="font-size: 12px; color: #C4C6D0; margin-right: 6px">25 results</span></div>
+<div style="display: flex; gap: 8px"><button aria-pressed="true" style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE668;</span>Official only</button><button aria-pressed="false" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Verified publisher</button></div>
+</div>
+<div style="display: flex; flex-direction: column; padding: 0 8px">
+<sc-for list="{{results}}" as="h" hint-placeholder-count="6">
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 10px 12px; border-top: 1px solid #282A2F">
+<span style="display: flex; flex-direction: column; gap: 4px; min-width: 0"><span style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600">{{h.name}}</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11px; display: {{h.badge}}; align-items: center; background: #004F58; color: #A2EEFB">Official</span></span><span style="font-size: 12px; color: #C4C6D0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{h.desc}}</span><span style="font-size: 12px; color: #C4C6D0">{{h.stars}} stars</span></span>
+<button style="height: 36px; padding: 0 14px; border-radius: 18px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C0;</span>Pull</button>
+</div>
+</sc-for>
+</div>
+</section>
+<section aria-label="Buildx builders" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px; display: flex; align-items: center; gap: 8px"><div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 16px; font-weight: 600">Builders</span><span style="font-size: 12px; color: #C4C6D0">docker buildx · 3 builders</span></div><button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Create builder</button></div>
+<div role="table" aria-label="Builders" style="display: flex; flex-direction: column; padding: 0 12px">
+<div role="row" style="height: 40px; display: grid; grid-template-columns: minmax(0, 1fr) 120px 80px minmax(0, 1fr); align-items: center; gap: 10px; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600; border-bottom: 1px solid #282A2F"><span>Name</span><span>Driver</span><span>Status</span><span>Platforms</span></div>
+<sc-for list="{{builders}}" as="b" hint-placeholder-count="3">
+<div role="row" aria-selected="{{b.selected}}" style="min-height: 60px; display: grid; grid-template-columns: minmax(0, 1fr) 120px 80px minmax(0, 1fr); align-items: center; gap: 10px; padding: 6px 8px; border-radius: 10px; background: {{b.bg}}">
+<span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">{{b.name}}</span><span style="font-size: 11px; color: #C4C6D0">{{b.note}}</span></span>
+<span style="color: #C4C6D0; font-size: 13px">{{b.driver}}</span>
+<span style="justify-self: start; height: 24px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; font-size: 12px; background: {{b.chipBg}}; color: {{b.chipInk}}">{{b.status}}</span>
+<span style="font: 11px/1.5 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{b.platforms}}</span>
+</div>
+</sc-for>
+</div>
+<div style="flex: 1 1 auto"></div>
+<div style="margin: 12px 16px; padding: 12px; border-radius: 12px; background: #1D2024; display: flex; flex-direction: column; gap: 4px; font-size: 13px"><span style="font-weight: 600">Build cache on ci-multiarch</span><span style="color: #C4C6D0">1.24 GB · 148 entries · oldest 23 days</span></div>
+<div style="padding: 0 16px 16px; display: flex; gap: 8px; justify-content: flex-end">
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #FFB4AB; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF0FF;</span>Prune cache</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE668;</span>Use for builds</button>
+</div>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const registries = [
+ { host: 'docker.io', user: 'example-user · Docker Hub' },
+ { host: 'ghcr.io', user: 'example-user · GitHub Container Registry' }
+];
+const results = [
+ ['postgres','The PostgreSQL object-relational database system','14.2K',true],
+ ['bitnami/postgresql','Bitnami container image for PostgreSQL','312',false],
+ ['postgis/postgis','PostgreSQL with PostGIS spatial extensions','1.1K',false],
+ ['circleci/postgres','PostgreSQL images tuned for CI','40',false],
+ ['timescale/timescaledb','Time-series database built on PostgreSQL','612',false],
+ ['adminer','Database management in a single PHP file','2.3K',true]
+].map(([name,desc,stars,off]) => ({ name, desc, stars, badge: off ? 'flex' : 'none' }));
+const builders = [
+ ['desktop-linux','Default · engine builder','docker','Running','linux/amd64, linux/arm64',false,true],
+ ['ci-multiarch','In use for builds','docker-container','Running','linux/amd64, linux/arm64, linux/arm/v7',true,true],
+ ['remote-arm','tcp://10.0.4.21:1234','remote','Inactive','linux/arm64',false,false]
+].map(([name,note,driver,status,platforms,sel,on]) => ({ name, note, driver, status, platforms, selected: sel ? 'true' : 'false', bg: sel ? '#282A2F' : 'transparent', chipBg: on ? '#005227' : '#282A2F', chipInk: on ? '#9CF6B4' : '#C4C6D0' }));
+return { registries, results, builders };
+}
+}
+</script>
+</body>
+</html>

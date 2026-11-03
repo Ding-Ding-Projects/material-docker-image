@@ -18,17 +18,30 @@ public interface IDockerProcessRunner
     Task<CommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, string? workingDirectory, IProgress<DockerOutput>? output, CancellationToken cancellationToken);
 }
 
-public sealed class DockerProcessRunner(int captureLimit = 2 * 1024 * 1024) : IDockerProcessRunner
+/// <summary>A runner that can also write standard input (used for credentials, which never appear in arguments or logs).</summary>
+public interface IDockerInputRunner : IDockerProcessRunner
 {
-    public async Task<CommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, string? workingDirectory, IProgress<DockerOutput>? output, CancellationToken cancellationToken)
+    Task<CommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, string? workingDirectory, IProgress<DockerOutput>? output, CancellationToken cancellationToken, string? standardInput);
+}
+
+public sealed class DockerProcessRunner(int captureLimit = 2 * 1024 * 1024) : IDockerInputRunner
+{
+    public Task<CommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, string? workingDirectory, IProgress<DockerOutput>? output, CancellationToken cancellationToken)
+        => RunAsync(executable, arguments, workingDirectory, output, cancellationToken, null);
+    public async Task<CommandResult> RunAsync(string executable, IReadOnlyList<string> arguments, string? workingDirectory, IProgress<DockerOutput>? output, CancellationToken cancellationToken, string? standardInput)
     {
         if (captureLimit < 1024) throw new ArgumentOutOfRangeException(nameof(captureLimit));
         cancellationToken.ThrowIfCancellationRequested();
-        var start = new ProcessStartInfo(executable) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, CreateNoWindow = true };
+        var start = new ProcessStartInfo(executable) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = standardInput != null, CreateNoWindow = true };
         if (workingDirectory is not null) start.WorkingDirectory = workingDirectory;
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
         using var process = new Process { StartInfo = start };
         process.Start();
+        if (standardInput != null)
+        {
+            await process.StandardInput.WriteAsync(standardInput.AsMemory(), cancellationToken);
+            process.StandardInput.Close();
+        }
         var stdout = new StringBuilder(); var stderr = new StringBuilder();
         var truncated = 0;
         async Task DrainAsync(StreamReader reader, StringBuilder destination, bool isError)

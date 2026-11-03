@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dockerfile Creator</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Creator" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 12px; padding: 16px 16px 16px 0">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 22px; font-weight: 600; line-height: 1.3">Dockerfile Creator</span><span style="font-size: 13px; color: #C4C6D0">Started from the Node.js service starter · 3 stages · 11 instructions · unsaved draft</span></div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE161;</span>Save as…</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xEA3C;</span>Open in Build</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 260px minmax(0, 1fr) 400px; gap: 12px">
+<section aria-label="Stages and starters" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow: hidden">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Stages</span>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<button style="height: 52px; border: none; border-radius: 12px; background: transparent; color: #E2E2E9; font: inherit; display: flex; align-items: center; gap: 10px; padding: 0 10px; text-align: left"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #8E9099">&#xE945;</span><span style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto"><span style="font-weight: 600">deps</span><span style="font-size: 12px; color: #C4C6D0">node:22-alpine · 3 steps</span></span></button>
+<button style="height: 52px; border: none; border-radius: 12px; background: transparent; color: #E2E2E9; font: inherit; display: flex; align-items: center; gap: 10px; padding: 0 10px; text-align: left"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #8E9099">&#xE945;</span><span style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto"><span style="font-weight: 600">build</span><span style="font-size: 12px; color: #C4C6D0">from deps · 2 steps</span></span></button>
+<button aria-current="true" style="height: 52px; border: none; border-radius: 12px; background: #3E4759; color: #DAE2F9; font: inherit; display: flex; align-items: center; gap: 10px; padding: 0 10px; text-align: left"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE945;</span><span style="display: flex; flex-direction: column; gap: 1px; flex: 1 1 auto"><span style="font-weight: 600">runtime</span><span style="font-size: 12px">node:22-alpine · 6 steps · target</span></span></button>
+</div>
+<button style="align-self: flex-start; height: 36px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 0 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Add stage</button>
+<div style="border-top: 1px solid #282A2F; padding-top: 12px; display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Start from</span>
+<div style="display: flex; flex-wrap: wrap; gap: 6px">
+<sc-for list="{{starters}}" as="s" hint-placeholder-count="8">
+<button style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid {{s.border}}; background: {{s.bg}}; color: {{s.ink}}; font: inherit; font-size: 13px">{{s.label}}</button>
+</sc-for>
+</div>
+<span style="font-size: 12px; color: #C4C6D0; line-height: 1.4">A starter replaces the draft. The previous draft stays in Activity and can be restored.</span>
+</div>
+</section>
+<section aria-label="Stage editor" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr) 150px 140px; gap: 10px; border-bottom: 1px solid #282A2F">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Base image</span><div style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 2px solid #ADC6FF; background: #111318; display: flex; align-items: center; gap: 8px; padding: 0 10px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE53B;</span><span style="font: 13px 'Cascadia Mono',Consolas,monospace; flex: 1 1 auto">node:22-alpine</span><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></div></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Stage name</span><input value="runtime" aria-label="Stage name" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 10px; font: inherit"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Platform</span><button style="height: 40px; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 10px">Any<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></button></div>
+</div>
+<div style="flex: 1 1 auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; position: relative">
+<sc-for list="{{steps}}" as="st" hint-placeholder-count="6">
+<div style="background: {{st.bg}}; border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: 20px 92px minmax(0, 1fr) 32px; align-items: center; gap: 10px">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #8E9099">&#xE945;</span>
+<span style="justify-self: start; height: 26px; padding: 0 10px; border-radius: 13px; background: #004F58; color: #A2EEFB; font: 600 12px/26px 'Cascadia Mono',Consolas,monospace">{{st.kw}}</span>
+<span style="display: flex; flex-direction: column; gap: 2px; min-width: 0"><span style="font: 13px 'Cascadia Mono',Consolas,monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{st.text}}</span><span style="font-size: 12px; color: #C4C6D0">{{st.hint}}</span></span>
+<button aria-label="More step actions" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE5D4;</button>
+</div>
+</sc-for>
+<div style="background: #282A2F; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 10px">
+<div style="display: flex; align-items: center; gap: 8px"><span style="height: 26px; padding: 0 10px; border-radius: 13px; background: #004F58; color: #A2EEFB; font: 600 12px/26px 'Cascadia Mono',Consolas,monospace">COPY</span><span style="font-weight: 600; flex: 1 1 auto">Editing step 4</span><button style="height: 32px; padding: 0 12px; border-radius: 16px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-size: 13px; font-weight: 600">Done</button></div>
+<div style="display: grid; grid-template-columns: 140px minmax(0, 1fr) minmax(0, 1fr) 130px; gap: 8px">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">From stage</span><span style="height: 36px; border-radius: 8px; border: 1px solid #44474F; background: #111318; display: flex; align-items: center; padding: 0 10px">build</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">Source</span><span style="height: 36px; border-radius: 8px; border: 1px solid #44474F; background: #111318; display: flex; align-items: center; padding: 0 10px; font: 13px 'Cascadia Mono',monospace">/app/dist</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">Destination</span><span style="height: 36px; border-radius: 8px; border: 1px solid #44474F; background: #111318; display: flex; align-items: center; padding: 0 10px; font: 13px 'Cascadia Mono',monospace">./dist</span></div>
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">Owner</span><span style="height: 36px; border-radius: 8px; border: 1px solid #44474F; background: #111318; display: flex; align-items: center; padding: 0 10px">node:node</span></div>
+</div>
+</div>
+</div>
+<div style="padding: 10px 16px 14px; border-top: 1px solid #282A2F; display: flex; gap: 8px; flex-wrap: wrap">
+<button style="height: 36px; padding: 0 14px; border-radius: 18px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Add instruction</button>
+<button style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">RUN with cache mount</button>
+<button style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">HEALTHCHECK</button>
+<button style="height: 36px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Non-root USER</button>
+</div>
+</section>
+<section aria-label="Preview and checks" style="display: grid; grid-template-rows: minmax(0, 1fr) 270px; gap: 12px; min-height: 0">
+<div style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 48px; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 16px; border-bottom: 1px solid #282A2F"><span style="font-weight: 600; flex: 1 1 auto">Live preview</span><button aria-label="Copy Dockerfile" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE14D;</button></div>
+<pre style="margin: 0; flex: 1 1 auto; padding: 12px 16px; font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: pre; overflow: hidden"><span style="color: #82D3E0">FROM</span> node:22-alpine <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">runtime</span>
+<span style="color: #82D3E0">ENV</span> NODE_ENV=production
+<span style="color: #82D3E0">WORKDIR</span> /app
+<span style="color: #82D3E0">COPY</span> <span style="color: #ADC6FF">--from=deps</span> /app/node_modules ./node_modules
+<span style="background: #004494">COPY --from=build --chown=node:node /app/dist ./dist</span>
+<span style="color: #82D3E0">EXPOSE</span> 8080
+<span style="color: #82D3E0">USER</span> node
+<span style="color: #82D3E0">CMD</span> ["node", "dist/server.js"]</pre>
+</div>
+<div style="background: #191C20; border-radius: 16px; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px"><span style="font-weight: 600; flex: 1 1 auto">Checks</span><span style="height: 24px; padding: 0 10px; border-radius: 12px; background: #5C3F00; color: #FFDDB3; font-size: 12px; display: flex; align-items: center">2 to review</span></div>
+<div style="display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: start"><span aria-hidden="true" style="font-family: MSF; font-size: 18px; color: #F9BD5C">&#xF083;</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Base image is not pinned</span><span style="font-size: 12px; color: #C4C6D0; line-height: 1.4">node:22-alpine can change under you. Pin it to a digest for repeatable builds.</span></span><button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Pin</button></div>
+<div style="display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: start"><span aria-hidden="true" style="font-family: MSF; font-size: 18px; color: #F9BD5C">&#xF083;</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">No health check</span><span style="font-size: 12px; color: #C4C6D0; line-height: 1.4">Add HEALTHCHECK so the engine can report when the service is ready.</span></span><button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-size: 13px; font-weight: 600">Add</button></div>
+<div style="display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 10px; align-items: start"><span aria-hidden="true" style="font-family: MSF; font-size: 18px; color: #7FD99A">&#xF0BE;</span><span style="display: flex; flex-direction: column; gap: 2px"><span style="font-weight: 600">Runs as a non-root user</span><span style="font-size: 12px; color: #C4C6D0">USER node is set in the final stage.</span></span></div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const starters = ['Node.js','Python','.NET','Go','Java','Rust','Static site','Blank'].map((label, i) => ({ label, bg: i === 0 ? '#3E4759' : 'transparent', ink: i === 0 ? '#DAE2F9' : '#C4C6D0', border: i === 0 ? '#3E4759' : '#44474F' }));
+const steps = [
+['ENV','NODE_ENV=production','1 variable'],
+['WORKDIR','/app','Working directory for the steps below'],
+['COPY','--from=deps /app/node_modules ./node_modules','From stage deps'],
+['EXPOSE','8080/tcp','Documents the port; publishing happens at run time'],
+['USER','node','Drops root before the command runs'],
+['CMD','["node", "dist/server.js"]','Exec form, 2 arguments']
+].map(([kw, text, hint]) => ({ kw, text, hint, bg: '#1D2024' }));
+return { starters, steps };
+}
+}
+</script>
+</body>
+</html>

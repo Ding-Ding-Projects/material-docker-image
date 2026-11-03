@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Images</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Images" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; padding: 16px 16px 16px 0">
+<section style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; min-height: 0; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 12px; padding: 16px 16px 12px 20px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 22px; font-weight: 600; line-height: 1.3">Images</span><span style="font-size: 13px; color: #C4C6D0">14 images · 3.92 GB · refreshed 11:49:58</span></div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C8;</span>Load archive</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C0;</span>Pull image</button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px; padding: 0 16px 12px 20px">
+<div style="height: 40px; flex: 0 1 360px; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Filter images" value="api" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"><button aria-label="Regular expression builder" style="height: 28px; padding: 0 8px; border-radius: 14px; border: none; background: #3E4759; color: #DAE2F9; font: 600 12px 'Cascadia Mono',monospace">.*</button></div>
+<button style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE668;</span>Tagged</button>
+<button style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Dangling</button>
+<button style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">Unused</button>
+</div>
+<div style="height: 52px; margin: 0 12px 8px; padding: 0 8px 0 12px; border-radius: 12px; background: #004494; color: #D8E2FF; display: flex; align-items: center; gap: 4px">
+<span aria-hidden="true" style="font-family: MSF; font-size: 20px; margin-right: 6px">&#xE9DE;</span>
+<span style="font-weight: 600; flex: 1 1 auto">2 selected of 5 matching</span>
+<button style="height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: transparent; color: #D8E2FF; font: inherit; font-weight: 600">Tag</button>
+<button style="height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: transparent; color: #D8E2FF; font: inherit; font-weight: 600">Push</button>
+<button style="height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: transparent; color: #D8E2FF; font: inherit; font-weight: 600">Export</button>
+<button style="height: 36px; padding: 0 12px; border: none; border-radius: 18px; background: transparent; color: #FFB4AB; font: inherit; font-weight: 600">Remove</button>
+</div>
+<div role="table" aria-label="Images" style="display: flex; flex-direction: column; padding: 0 12px">
+<div role="row" style="height: 40px; display: grid; grid-template-columns: 40px minmax(0, 1.6fr) 150px 120px 90px 120px 110px; align-items: center; gap: 12px; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600; border-bottom: 1px solid #282A2F">
+<span></span><span>Repository and tag</span><span>Image ID</span><span>Platform</span><span>Size</span><span>Created</span><span>Containers</span>
+</div>
+<sc-for list="{{rows}}" as="row" hint-placeholder-count="5">
+<div role="row" style="height: 52px; display: grid; grid-template-columns: 40px minmax(0, 1.6fr) 150px 120px 90px 120px 110px; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; background: {{row.bg}}">
+<span aria-hidden="true" style="font-family: {{row.boxFont}}; font-size: 20px; color: {{row.boxInk}}">{{row.box}}</span>
+<span style="display: flex; flex-direction: column; min-width: 0"><span style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{row.name}}</span></span>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">{{row.id}}</span>
+<span style="color: #C4C6D0">{{row.platform}}</span>
+<span>{{row.size}}</span>
+<span style="color: #C4C6D0">{{row.created}}</span>
+<span style="justify-self: start; height: 24px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; font-size: 12px; background: {{row.chipBg}}; color: {{row.chipInk}}">{{row.used}}</span>
+</div>
+</sc-for>
+</div>
+</section>
+<aside aria-label="Selected image" style="background: #191C20; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Image</span><span style="font-size: 18px; font-weight: 600; line-height: 1.3">hello-api:1.4.0</span><span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">sha256:7f3c91a0e2b4…d81e</span></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<div style="background: #1D2024; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">Size</span><span style="font-size: 20px; font-weight: 600">182 MB</span></div>
+<div style="background: #1D2024; border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0">Layers</span><span style="font-size: 20px; font-weight: 600">9</span></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Layer history</span>
+<div style="display: flex; flex-direction: column; gap: 2px; font: 12px/1.5 'Cascadia Mono',Consolas,monospace">
+<div style="display: flex; justify-content: space-between; gap: 8px"><span>CMD ["node" "dist/server.js"]</span><span style="color: #C4C6D0">0 B</span></div>
+<div style="display: flex; justify-content: space-between; gap: 8px"><span>COPY /app/dist ./dist</span><span style="color: #C4C6D0">1.2 MB</span></div>
+<div style="display: flex; justify-content: space-between; gap: 8px"><span>COPY /app/node_modules</span><span style="color: #C4C6D0">48 MB</span></div>
+<div style="display: flex; justify-content: space-between; gap: 8px"><span>/bin/sh -c apk add …</span><span style="color: #C4C6D0">7.8 MB</span></div>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 8px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Labels</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><span style="height: 28px; padding: 0 10px; border-radius: 8px; background: #282A2F; display: flex; align-items: center; font-size: 12px">org.opencontainers.image.version=1.4.0</span></div></div>
+<div style="flex: 1 1 auto"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE037;</span>Run</button>
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600">Inspect</button>
+</div>
+</aside>
+</main>
+</div>
+<div role="menu" aria-label="Image actions" style="position: absolute; left: 520px; top: 520px; width: 280px; background: #282A2F; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.45); padding: 8px 0; display: flex; flex-direction: column">
+<div style="margin: 0 8px 6px; height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 10px; border-radius: 8px; background: #1D2024"><span aria-hidden="true" style="font-family: MSO; font-size: 16px; color: #C4C6D0">&#xE152;</span><span style="color: #8E9099; font-size: 13px; flex: 1 1 auto">Filter actions</span><span style="font: 600 11px 'Cascadia Mono',monospace; color: #C4C6D0">.*</span></div>
+<sc-for list="{{menu}}" as="m" hint-placeholder-count="7">
+<button role="menuitem" style="height: 40px; border: none; background: transparent; color: {{m.ink}}; font: inherit; display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 0 16px; text-align: left"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: {{m.ink}}">{{m.icon}}</span><span>{{m.label}}</span><span style="font-size: 12px; color: #8E9099">{{m.key}}</span></button>
+</sc-for>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const data = [
+['hello-api:1.4.0','7f3c91a0e2b4','linux/amd64','182 MB','4 minutes ago','1 running',true,true],
+['hello-api:latest','7f3c91a0e2b4','linux/amd64','182 MB','4 minutes ago','1 running',true,false],
+['hello-api-worker:1.4.0','2a90bc4417e0','linux/amd64','164 MB','2 hours ago','None',false,true],
+['api-gateway:edge','c05e1f772b19','linux/arm64','96.4 MB','3 days ago','1 exited',false,false],
+['internal-api-mock:dev','9be2d0a14c63','linux/amd64','71.0 MB','2 weeks ago','None',false,false]
+];
+const rows = data.map(([name,id,platform,size,created,used,focus,sel]) => ({ name, id, platform, size, created, used,
+ bg: focus ? '#282A2F' : 'transparent', box: sel ? '' : '', boxFont: sel ? 'MSF' : 'MSO', boxInk: sel ? '#ADC6FF' : '#8E9099',
+ chipBg: used.includes('running') ? '#005227' : '#282A2F', chipInk: used.includes('running') ? '#9CF6B4' : '#C4C6D0' }));
+const menu = [['','Run…','Ctrl+R','#E2E2E9'],['','Tag…','Ctrl+T','#E2E2E9'],['','Push to registry…','','#E2E2E9'],['','Show layer history','','#E2E2E9'],['','Export as archive…','Ctrl+E','#E2E2E9'],['','Copy image ID','Ctrl+Shift+C','#E2E2E9'],['','Remove…','Del','#FFB4AB']].map(([icon,label,key,ink]) => ({icon,label,key,ink}));
+return { rows, menu };
+}
+}
+</script>
+</body>
+</html>

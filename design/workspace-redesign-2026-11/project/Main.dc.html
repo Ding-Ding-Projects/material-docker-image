@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Build workspace</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+a{color:#ADC6FF}a:hover{color:#D8E2FF}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Build" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; padding: 0 16px 16px 0; gap: 12px">
+<div role="tablist" aria-label="Open tabs" style="height: 44px; display: flex; align-items: flex-end; gap: 4px; border-bottom: 1px solid #282A2F">
+<button role="tab" aria-selected="true" style="height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: none; border-radius: 12px 12px 0 0; background: #1D2024; color: #E2E2E9; font: inherit; font-weight: 600"><span aria-hidden="true" style="font-family: MSF; font-size: 16px; color: #ADC6FF">&#xF027;</span>hello-api<span aria-hidden="true" style="font-family: MSO; font-size: 16px; color: #8E9099">&#xE5CD;</span></button>
+<button role="tab" aria-selected="false" style="height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: none; border-radius: 12px 12px 0 0; background: transparent; color: #C4C6D0; font: inherit">Images<span aria-hidden="true" style="font-family: MSO; font-size: 16px; color: #8E9099">&#xE5CD;</span></button>
+<button role="tab" aria-selected="false" style="height: 36px; display: flex; align-items: center; gap: 8px; padding: 0 14px; border: none; border-radius: 12px 12px 0 0; background: transparent; color: #C4C6D0; font: inherit">Containers<span aria-hidden="true" style="font-family: MSO; font-size: 16px; color: #8E9099">&#xE5CD;</span></button>
+<button aria-label="New tab" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE145;</button>
+</div>
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto">
+<span style="font-size: 22px; font-weight: 600; line-height: 1.3">Build image</span>
+<span style="font-size: 13px; color: #C4C6D0">C:\Projects\hello-api · Dockerfile saved 11:48</span>
+</div>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE8F4;</span>Check Dockerfile</button>
+<button style="height: 40px; padding: 0 16px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE037;</span>Build and run</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 8px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xEA3C;</span>Build</button>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 380px minmax(0, 1fr); gap: 12px">
+<section aria-label="Build configuration" style="background: #191C20; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 14px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; gap: 4px"><label for="ctx" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Build context</label><button aria-label="About build context" style="width: 24px; height: 24px; border: none; background: transparent; color: #8E9099; font-family: MSO; font-size: 16px">&#xE88E;</button></div>
+<div style="display: flex; gap: 8px"><input id="ctx" value="C:\Projects\hello-api" style="flex: 1 1 auto; min-width: 0; height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 12px; font: inherit"><button aria-label="Browse for folder" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #282A2F; color: #E2E2E9; font-family: MSO; font-size: 20px">&#xE2C8;</button></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<div style="display: flex; align-items: center; gap: 4px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Tags</span><button aria-label="About tags" style="width: 24px; height: 24px; border: none; background: transparent; color: #8E9099; font-family: MSO; font-size: 16px">&#xE88E;</button></div>
+<div style="min-height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; padding: 6px; display: flex; flex-wrap: wrap; gap: 6px">
+<span style="height: 28px; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 10px; border-radius: 8px; background: #282A2F; font-size: 13px">hello-api:latest<span aria-hidden="true" style="font-family: MSO; font-size: 14px; color: #8E9099">&#xE5CD;</span></span>
+<span style="height: 28px; display: flex; align-items: center; gap: 4px; padding: 0 6px 0 10px; border-radius: 8px; background: #282A2F; font-size: 13px">hello-api:1.4.0<span aria-hidden="true" style="font-family: MSO; font-size: 14px; color: #8E9099">&#xE5CD;</span></span>
+</div>
+</div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Target stage</span><button style="height: 40px; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 12px">runtime<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></button></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Platform</span><button style="height: 40px; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 12px">linux/amd64<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xE5CF;</span></button></div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Destination</span>
+<div role="radiogroup" aria-label="Destination" style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #8E9099; border-radius: 20px; overflow: hidden; height: 40px">
+<button role="radio" aria-checked="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600">Load locally</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit">Push</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit">OCI archive</button>
+</div>
+</div>
+<div style="display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Build arguments</span>
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px; gap: 6px; align-items: center">
+<input value="NODE_VERSION" aria-label="Argument name" style="height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<input value="22" aria-label="Argument value" style="height: 36px; box-sizing: border-box; border-radius: 8px; border: 1px solid #44474F; background: #111318; color: #E2E2E9; padding: 0 10px; font: 13px 'Cascadia Mono',Consolas,monospace">
+<button aria-label="Remove argument" style="width: 32px; height: 32px; border: none; border-radius: 16px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 18px">&#xE92E;</button>
+</div>
+<button style="align-self: flex-start; height: 32px; border: none; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px; padding: 0 4px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE145;</span>Add argument</button>
+</div>
+<div style="display: flex; flex-direction: column; gap: 2px">
+<label style="height: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 14px">Pull newer base images<span style="width: 52px; height: 32px; border-radius: 16px; background: #ADC6FF; position: relative"><span style="position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 12px; background: #002E69"></span></span></label>
+<label style="height: 40px; display: flex; align-items: center; justify-content: space-between; font-size: 14px">Ignore build cache<span style="width: 52px; height: 32px; box-sizing: border-box; border-radius: 16px; border: 2px solid #8E9099; background: #33353A; position: relative"><span style="position: absolute; left: 6px; top: 6px; width: 16px; height: 16px; border-radius: 8px; background: #8E9099"></span></span></label>
+</div>
+<div style="border-top: 1px solid #282A2F; display: flex; flex-direction: column">
+<button style="height: 44px; border: none; background: transparent; color: #E2E2E9; font: inherit; display: flex; align-items: center; justify-content: space-between; padding: 0">Labels, cache and secrets<span aria-hidden="true" style="font-family: MSO; font-size: 20px; color: #C4C6D0">&#xE5CF;</span></button>
+</div>
+</section>
+<section aria-label="Dockerfile" style="display: grid; grid-template-rows: minmax(0, 1fr) 236px; gap: 12px; min-height: 0">
+<div style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 48px; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 16px; border-bottom: 1px solid #282A2F">
+<span style="font-weight: 600; flex: 1 1 auto">Dockerfile</span>
+<span style="font-size: 12px; color: #C4C6D0; margin-right: 8px">3 stages · Ln 14, Col 9</span>
+<button aria-label="Undo" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE166;</button>
+<button aria-label="Save" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE161;</button>
+<button aria-label="Open in Visual Studio Code" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE89E;</button>
+<button aria-label="Show canvas beside source" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE949;</button>
+</div>
+<pre style="margin: 0; flex: 1 1 auto; padding: 14px 16px; font: 13px/1.6 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: pre; overflow: hidden"><span style="color: #8E9099">1  </span><span style="color: #82D3E0">ARG</span> NODE_VERSION=22
+<span style="color: #8E9099">2  </span><span style="color: #82D3E0">FROM</span> node:${NODE_VERSION}-alpine <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">deps</span>
+<span style="color: #8E9099">3  </span><span style="color: #82D3E0">WORKDIR</span> /app
+<span style="color: #8E9099">4  </span><span style="color: #82D3E0">COPY</span> package.json package-lock.json ./
+<span style="color: #8E9099">5  </span><span style="color: #82D3E0">RUN</span> npm ci --omit=dev
+<span style="color: #8E9099">6  </span>
+<span style="color: #8E9099">7  </span><span style="color: #82D3E0">FROM</span> deps <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">build</span>
+<span style="color: #8E9099">8  </span><span style="color: #82D3E0">COPY</span> . .
+<span style="color: #8E9099">9  </span><span style="color: #82D3E0">RUN</span> npm run build
+<span style="color: #8E9099">10 </span>
+<span style="color: #8E9099">11 </span><span style="color: #82D3E0">FROM</span> node:${NODE_VERSION}-alpine <span style="color: #82D3E0">AS</span> <span style="color: #F9BD5C">runtime</span>
+<span style="color: #8E9099">12 </span><span style="color: #82D3E0">COPY</span> <span style="color: #ADC6FF">--from=deps</span> /app/node_modules ./node_modules
+<span style="color: #8E9099">13 </span><span style="color: #82D3E0">COPY</span> <span style="color: #ADC6FF">--from=build</span> /app/dist ./dist
+<span style="color: #8E9099">14 </span><span style="color: #82D3E0">EXPOSE</span> 8080
+<span style="color: #8E9099">15 </span><span style="color: #82D3E0">CMD</span> ["node", "dist/server.js"]</pre>
+</div>
+<div style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 16px; border-bottom: 1px solid #282A2F">
+<span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #ADC6FF">&#xEB8E;</span>
+<span style="font-weight: 600">Build output</span>
+<span style="font-size: 12px; color: #C4C6D0">Running · 00:18 elapsed · step 6 of 9</span>
+<div style="flex: 1 1 auto; height: 4px; border-radius: 2px; background: #33353A; margin: 0 8px; position: relative"><div style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; border-radius: 2px; background: #ADC6FF"></div></div>
+<button style="height: 32px; padding: 0 12px; border-radius: 16px; border: 1px solid #8E9099; background: transparent; color: #FFB4AB; font: inherit; font-size: 13px; font-weight: 600">Cancel</button>
+</div>
+<pre style="margin: 0; flex: 1 1 auto; padding: 10px 16px; font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: pre; overflow: hidden"><span style="color: #7FD99A">✓</span> #1 [internal] load build definition from Dockerfile        0.1s
+<span style="color: #7FD99A">✓</span> #4 [deps 1/4] FROM docker.io/library/node:22-alpine           2.4s
+<span style="color: #7FD99A">✓</span> #6 [deps 3/4] COPY package.json package-lock.json ./         0.2s
+<span style="color: #7FD99A">✓</span> #7 [deps 4/4] RUN npm ci --omit=dev                          9.8s
+<span style="color: #ADC6FF">●</span> <span style="color: #E2E2E9">#9 [build 2/2] RUN npm run build</span>
+   #9 3.12 &gt; hello-api@1.4.0 build
+   #9 3.14 &gt; tsc -p tsconfig.build.json</pre>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

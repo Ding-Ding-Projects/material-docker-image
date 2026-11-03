@@ -11,6 +11,14 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
+    <PackageReference Include="System.Speech" Version="10.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Assets\Fonts\*.ttf" />
+    <EmbeddedResource Include="..\..\docs\features\*.md" LinkBase="Docs" LogicalName="docs/%(Filename)%(Extension)" />
+  </ItemGroup>
+  <ItemGroup>
     <AssemblyMetadata Include="BuildTimestamp" Value="$(BuildTimestamp)" />
     <AssemblyMetadata Include="SquirrelAwareVersion" Value="1" />
   </ItemGroup>

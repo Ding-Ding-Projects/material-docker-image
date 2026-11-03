@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Dockerfile canvas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Canvas" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 240px minmax(0, 1fr) 340px; gap: 12px; padding: 16px 16px 16px 0">
+<section aria-label="Objects" style="background: #191C20; border-radius: 16px; padding: 16px 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600; padding: 0 8px">Objects</span>
+<sc-for list="{{objects}}" as="o" hint-placeholder-count="8">
+<button aria-current="{{o.current}}" style="height: 44px; border: none; border-radius: 12px; background: {{o.bg}}; color: {{o.ink}}; font: inherit; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 {{o.indent}}; text-align: left"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">{{o.icon}}</span><span style="flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{o.label}}</span><span style="font-size: 12px; color: {{o.ink}}">{{o.meta}}</span></button>
+</sc-for>
+<div style="flex: 1 1 auto"></div>
+<span style="font-size: 12px; color: #C4C6D0; line-height: 1.45; padding: 0 8px">Read from C:\Projects\hello-api\Dockerfile. Edits on the canvas write back to the file.</span>
+</section>
+<section aria-label="Stage graph" style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 56px; display: flex; align-items: center; gap: 8px; padding: 0 10px 0 16px; border-bottom: 1px solid #282A2F">
+<div role="radiogroup" aria-label="View" style="display: grid; grid-template-columns: auto auto; border: 1px solid #8E9099; border-radius: 20px; overflow: hidden; height: 40px">
+<button role="radio" aria-checked="true" style="border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; padding: 0 16px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE668;</span>Dockerfile</button>
+<button role="radio" aria-checked="false" style="border: none; border-left: 1px solid #8E9099; background: transparent; color: #E2E2E9; font: inherit; padding: 0 16px">Runtime topology</button>
+</div>
+<div style="flex: 1 1 auto"></div>
+<button aria-label="Zoom out" style="width: 40px; height: 40px; border: none; border-radius: 20px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE900;</button>
+<span style="font-size: 13px; color: #C4C6D0; width: 44px; text-align: center">100%</span>
+<button aria-label="Zoom in" style="width: 40px; height: 40px; border: none; border-radius: 20px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE8FF;</button>
+<button aria-label="Fit to screen" style="width: 40px; height: 40px; border: none; border-radius: 20px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xEA10;</button>
+</div>
+<div style="flex: 1 1 auto; position: relative; overflow: hidden; background: #111318; margin: 8px; border-radius: 12px">
+<div aria-hidden="true" style="position: absolute; left: 40px; top: 36px; height: 28px; padding: 0 12px; border-radius: 14px; border: 1px dashed #8E9099; color: #C4C6D0; font: 12px/26px 'Cascadia Mono',Consolas,monospace">node:22-alpine</div>
+<div aria-hidden="true" style="position: absolute; left: 444px; top: 196px; height: 28px; padding: 0 12px; border-radius: 14px; border: 1px dashed #8E9099; color: #C4C6D0; font: 12px/26px 'Cascadia Mono',Consolas,monospace">node:22-alpine</div>
+<div aria-hidden="true" style="position: absolute; left: 100px; top: 64px; width: 2px; height: 36px; background: #8E9099"></div>
+<div aria-hidden="true" style="position: absolute; left: 504px; top: 224px; width: 2px; height: 36px; background: #8E9099"></div>
+<div aria-hidden="true" style="position: absolute; left: 164px; top: 250px; width: 2px; height: 170px; background: #ADC6FF"></div>
+<div aria-hidden="true" style="position: absolute; left: 159px; top: 410px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #ADC6FF"></div>
+<span style="position: absolute; left: 178px; top: 320px; height: 26px; padding: 0 10px; border-radius: 13px; background: #282A2F; color: #ADC6FF; font: 600 12px/26px 'Cascadia Mono',Consolas,monospace">FROM deps</span>
+<div aria-hidden="true" style="position: absolute; left: 290px; top: 150px; width: 300px; height: 2px; background: #82D3E0"></div>
+<div aria-hidden="true" style="position: absolute; left: 590px; top: 150px; width: 2px; height: 110px; background: #82D3E0"></div>
+<div aria-hidden="true" style="position: absolute; left: 585px; top: 250px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #82D3E0"></div>
+<span style="position: absolute; left: 318px; top: 122px; height: 26px; padding: 0 10px; border-radius: 13px; background: #004F58; color: #A2EEFB; font: 600 12px/26px 'Cascadia Mono',Consolas,monospace">COPY --from=deps</span>
+<span style="position: absolute; left: 318px; top: 156px; font-size: 11px; color: #C4C6D0">/app/node_modules</span>
+<div aria-hidden="true" style="position: absolute; left: 290px; top: 540px; width: 300px; height: 2px; background: #82D3E0"></div>
+<div aria-hidden="true" style="position: absolute; left: 590px; top: 470px; width: 2px; height: 72px; background: #82D3E0"></div>
+<div aria-hidden="true" style="position: absolute; left: 585px; top: 470px; width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 10px solid #82D3E0"></div>
+<span style="position: absolute; left: 318px; top: 548px; height: 26px; padding: 0 10px; border-radius: 13px; background: #004F58; color: #A2EEFB; font: 600 12px/26px 'Cascadia Mono',Consolas,monospace">COPY --from=build</span>
+<span style="position: absolute; left: 318px; top: 516px; font-size: 11px; color: #C4C6D0">/app/dist</span>
+<button aria-label="Stage deps" style="position: absolute; left: 40px; top: 100px; width: 250px; height: 150px; box-sizing: border-box; border-radius: 16px; border: 1px solid #44474F; background: #1D2024; color: #E2E2E9; font: inherit; text-align: left; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; align-items: center; gap: 8px; width: 100%"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #F9BD5C">&#xE53B;</span><span style="font-weight: 600; flex: 1 1 auto">deps</span><span style="font-size: 12px; color: #C4C6D0">Lines 2–5</span></span>
+<span style="font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">WORKDIR /app<br>COPY package*.json ./<br>RUN npm ci --omit=dev</span>
+<span style="font-size: 12px; color: #C4C6D0">48 MB · cached</span>
+</button>
+<button aria-label="Stage build" style="position: absolute; left: 40px; top: 420px; width: 250px; height: 150px; box-sizing: border-box; border-radius: 16px; border: 1px solid #44474F; background: #1D2024; color: #E2E2E9; font: inherit; text-align: left; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; align-items: center; gap: 8px; width: 100%"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #F9BD5C">&#xE53B;</span><span style="font-weight: 600; flex: 1 1 auto">build</span><span style="font-size: 12px; color: #C4C6D0">Lines 7–9</span></span>
+<span style="font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">COPY . .<br>RUN npm run build</span>
+<span style="font-size: 12px; color: #C4C6D0">1.2 MB output · 9.6 s</span>
+</button>
+<button aria-label="Stage runtime, selected" aria-pressed="true" style="position: absolute; left: 470px; top: 260px; width: 250px; height: 210px; box-sizing: border-box; border-radius: 16px; border: 2px solid #ADC6FF; background: #282A2F; color: #E2E2E9; font: inherit; text-align: left; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px">
+<span style="display: flex; align-items: center; gap: 8px; width: 100%"><span aria-hidden="true" style="font-family: MSF; font-size: 18px; color: #ADC6FF">&#xE53B;</span><span style="font-weight: 600; flex: 1 1 auto">runtime</span><span style="height: 22px; padding: 0 8px; border-radius: 11px; background: #004494; color: #D8E2FF; font-size: 11px; display: flex; align-items: center">Target</span></span>
+<span style="font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0">COPY --from=deps …<br>COPY --from=build …<br>EXPOSE 8080<br>USER node<br>CMD ["node", "dist/server.js"]</span>
+<span style="font-size: 12px; color: #C4C6D0">Lines 11–15 · 182 MB image</span>
+</button>
+<div style="position: absolute; right: 12px; bottom: 12px; width: 160px; height: 110px; border-radius: 12px; background: #1D2024; border: 1px solid #44474F" aria-label="Minimap" role="img">
+<div style="position: absolute; left: 14px; top: 20px; width: 34px; height: 20px; border-radius: 4px; background: #44474F"></div>
+<div style="position: absolute; left: 14px; top: 70px; width: 34px; height: 20px; border-radius: 4px; background: #44474F"></div>
+<div style="position: absolute; left: 76px; top: 44px; width: 34px; height: 28px; border-radius: 4px; background: #ADC6FF"></div>
+<div style="position: absolute; left: 6px; top: 8px; width: 120px; height: 92px; border-radius: 6px; border: 1px solid #8E9099"></div>
+</div>
+</div>
+</section>
+<aside aria-label="Selected stage runtime" style="background: #191C20; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 16px; overflow: hidden">
+<div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Stage 3 of 3</span><span style="font-size: 18px; font-weight: 600; line-height: 1.3">runtime</span></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="alias" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Alias</label><input id="alias" value="runtime" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #111318; color: #E2E2E9; padding: 0 12px; font: inherit"></div>
+<div style="display: flex; flex-direction: column; gap: 6px"><label for="base" style="font-size: 12px; color: #C4C6D0; font-weight: 600">Base image</label><input id="base" value="node:22-alpine" style="height: 40px; box-sizing: border-box; border-radius: 8px; border: 1px solid #8E9099; background: #111318; color: #E2E2E9; padding: 0 12px; font: 13px 'Cascadia Mono',Consolas,monospace"><span style="font-size: 12px; color: #F9BD5C">Not pinned to a digest</span></div>
+<div style="display: flex; flex-direction: column; gap: 8px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Receives from</span>
+<div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 8px; background: #1D2024; font: 12px 'Cascadia Mono',Consolas,monospace"><span style="flex: 1 1 auto">deps</span><span style="color: #C4C6D0">/app/node_modules</span></div>
+<div style="display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; border-radius: 8px; background: #1D2024; font: 12px 'Cascadia Mono',Consolas,monospace"><span style="flex: 1 1 auto">build</span><span style="color: #C4C6D0">/app/dist</span></div>
+</div>
+<label style="height: 44px; display: flex; align-items: center; justify-content: space-between">Use as build target<span style="width: 52px; height: 32px; border-radius: 16px; background: #ADC6FF; position: relative"><span style="position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 12px; background: #002E69"></span></span></label>
+<div style="flex: 1 1 auto"></div>
+<div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px">
+<button style="height: 40px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE86F;</span>Open source</button>
+<button style="height: 40px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xEA3C;</span>Build stage</button>
+</div>
+</aside>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const objects = [
+ ['\uE53B','deps','3 steps','10px',false],
+ ['\uE53B','build','2 steps','10px',false],
+ ['\uE53B','runtime','5 steps','10px',true],
+ ['\uE250','FROM deps','','28px',false],
+ ['\uE14D','COPY --from=deps','','28px',false],
+ ['\uE14D','COPY --from=build','','28px',false],
+ ['\uEFE6','EXPOSE 8080','','28px',false],
+ ['\uE899','USER node','','28px',false]
+].map(([icon,label,meta,indent,sel]) => ({ icon, label, meta, indent, current: sel ? 'true' : 'false', bg: sel ? '#3E4759' : 'transparent', ink: sel ? '#DAE2F9' : '#C4C6D0' }));
+return { objects };
+}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Compose projects</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+@font-face{font-family:"MSO";src:url("/_blob/d9af12d36fa91b053ce96cda69b424eb") format("truetype");}
+@font-face{font-family:"MSF";src:url("/_blob/7fc89dce2cd820b081369e0fff242eae") format("truetype");}
+</style>
+</helmet>
+<div style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #111318; color: #E2E2E9; font-family: 'Segoe UI Variable Text','Segoe UI',system-ui,sans-serif; font-size: 14px; overflow: hidden; position: relative">
+<dc-import name="TitleBar" hint-size="1440px,48px"></dc-import>
+<div style="display: flex; flex: 1 1 auto; min-height: 0">
+<dc-import name="Rail" active="Compose" hint-size="96px,912px"></dc-import>
+<main style="flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 12px; padding: 16px 16px 16px 0">
+<section aria-label="Compose projects" style="background: #191C20; border-radius: 16px; padding: 16px 12px; display: flex; flex-direction: column; gap: 10px; overflow: hidden">
+<div style="display: flex; align-items: center; gap: 8px; padding: 0 4px 0 8px"><span style="font-size: 16px; font-weight: 600; flex: 1 1 auto">Projects</span><button aria-label="Open compose file" style="width: 40px; height: 40px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font-family: MSO; font-size: 20px">&#xE145;</button></div>
+<div style="height: 40px; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-radius: 20px; background: #282A2F"><span aria-hidden="true" style="font-family: MSO; font-size: 18px; color: #C4C6D0">&#xEF7A;</span><input aria-label="Filter projects" placeholder="Filter projects" style="flex: 1 1 auto; min-width: 0; border: none; background: transparent; color: #E2E2E9; font: inherit; outline: none"></div>
+<div style="display: flex; flex-direction: column; gap: 4px">
+<sc-for list="{{projects}}" as="p" hint-placeholder-count="4">
+<button aria-current="{{p.current}}" style="border: none; border-radius: 12px; background: {{p.bg}}; color: #E2E2E9; font: inherit; text-align: left; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px">
+<span style="display: flex; align-items: center; gap: 8px; width: 100%"><span style="font-weight: 600; flex: 1 1 auto">{{p.name}}</span><span style="height: 24px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; font-size: 12px; background: {{p.chipBg}}; color: {{p.chipInk}}">{{p.status}}</span></span>
+<span style="font: 11px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px">{{p.path}}</span>
+</button>
+</sc-for>
+</div>
+</section>
+<section aria-label="Project hello-stack" style="display: flex; flex-direction: column; gap: 12px; min-height: 0">
+<div style="background: #191C20; border-radius: 16px; padding: 16px 16px 14px 20px; display: flex; flex-direction: column; gap: 12px">
+<div style="display: flex; align-items: center; gap: 12px">
+<div style="display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto"><span style="font-size: 22px; font-weight: 600; line-height: 1.3">hello-stack</span><span style="font-size: 13px; color: #C4C6D0">C:\Projects\hello-api\compose.yaml · 3 services · network hello-stack_default</span></div>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xEB8E;</span>Logs</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xEA3C;</span>Build</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: 1px solid #8E9099; background: transparent; color: #ADC6FF; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE2C0;</span>Pull</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xF053;</span>Restart</button>
+<button style="height: 40px; padding: 0 14px; border-radius: 20px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 18px">&#xE047;</span>Down</button>
+<button style="height: 40px; padding: 0 20px; border-radius: 20px; border: none; background: #ADC6FF; color: #002E69; font: inherit; font-weight: 600; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSF; font-size: 18px">&#xE037;</span>Up</button>
+</div>
+<div style="display: flex; align-items: center; gap: 8px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600; margin-right: 4px">Profiles</span>
+<button aria-pressed="true" style="height: 32px; padding: 0 12px; border-radius: 8px; border: none; background: #3E4759; color: #DAE2F9; font: inherit; font-size: 13px; display: flex; align-items: center; gap: 6px"><span aria-hidden="true" style="font-family: MSO; font-size: 16px">&#xE668;</span>default</button>
+<button aria-pressed="false" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">debug</button>
+<button aria-pressed="false" style="height: 32px; padding: 0 12px; border-radius: 8px; border: 1px solid #44474F; background: transparent; color: #C4C6D0; font: inherit; font-size: 13px">observability</button>
+<div style="flex: 1 1 auto"></div>
+<span style="height: 24px; padding: 0 10px; border-radius: 12px; display: flex; align-items: center; font-size: 12px; background: #005227; color: #9CF6B4">3 of 3 running</span>
+</div>
+</div>
+<div style="flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 460px; gap: 12px">
+<div style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 48px; display: flex; align-items: center; padding: 0 16px; border-bottom: 1px solid #282A2F"><span style="font-weight: 600">Services</span></div>
+<div role="table" aria-label="Services" style="display: flex; flex-direction: column; padding: 4px 12px">
+<div role="row" style="height: 40px; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) 96px minmax(0, 1.2fr) 70px; align-items: center; gap: 12px; padding: 0 8px; font-size: 12px; color: #C4C6D0; font-weight: 600; border-bottom: 1px solid #282A2F"><span>Service</span><span>Image</span><span>State</span><span>Ports</span><span>Replicas</span></div>
+<sc-for list="{{services}}" as="s" hint-placeholder-count="3">
+<div role="row" style="height: 56px; display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1fr) 96px minmax(0, 1.2fr) 70px; align-items: center; gap: 12px; padding: 0 8px; border-radius: 10px; background: {{s.bg}}">
+<span style="font-weight: 600">{{s.name}}</span>
+<span style="color: #C4C6D0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.image}}</span>
+<span style="justify-self: start; height: 24px; padding: 0 10px 0 8px; border-radius: 12px; display: flex; align-items: center; gap: 6px; font-size: 12px; background: #005227; color: #9CF6B4"><span style="width: 6px; height: 6px; border-radius: 3px; background: #9CF6B4"></span>{{s.state}}</span>
+<span style="font: 12px 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">{{s.ports}}</span>
+<span>{{s.replicas}}</span>
+</div>
+</sc-for>
+</div>
+<div style="margin: 12px 16px; padding: 12px; border-radius: 12px; background: #1D2024; display: flex; flex-direction: column; gap: 6px">
+<span style="font-size: 12px; color: #C4C6D0; font-weight: 600">Last action</span>
+<pre style="margin: 0; font: 12px/1.6 'Cascadia Mono',Consolas,monospace; color: #C4C6D0; white-space: pre"><span style="color: #7FD99A">✓</span> Network hello-stack_default  Created
+<span style="color: #7FD99A">✓</span> Container hello-stack-db-1     Healthy   4.1s
+<span style="color: #7FD99A">✓</span> Container hello-stack-cache-1  Started   0.6s
+<span style="color: #7FD99A">✓</span> Container hello-stack-api-1    Started   1.2s</pre>
+</div>
+</div>
+<div style="background: #191C20; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden">
+<div style="height: 48px; display: flex; align-items: center; gap: 4px; padding: 0 8px 0 16px; border-bottom: 1px solid #282A2F"><span style="font-weight: 600; flex: 1 1 auto">compose.yaml</span><span style="font-size: 12px; color: #C4C6D0; margin-right: 6px">Valid · saved 11:41</span><button aria-label="Copy file" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE14D;</button><button aria-label="Open in editor" style="width: 36px; height: 36px; border: none; border-radius: 18px; background: transparent; color: #C4C6D0; font-family: MSO; font-size: 20px">&#xE89E;</button></div>
+<pre style="margin: 0; flex: 1 1 auto; padding: 12px 16px; font: 12px/1.65 'Cascadia Mono',Consolas,monospace; color: #E2E2E9; white-space: pre; overflow: hidden"><span style="color: #8E9099">1  </span><span style="color: #82D3E0">name</span>: hello-stack
+<span style="color: #8E9099">2  </span><span style="color: #82D3E0">services</span>:
+<span style="color: #8E9099">3  </span>  <span style="color: #F9BD5C">api</span>:
+<span style="color: #8E9099">4  </span>    <span style="color: #82D3E0">build</span>: .
+<span style="color: #8E9099">5  </span>    <span style="color: #82D3E0">image</span>: hello-api:1.4.0
+<span style="color: #8E9099">6  </span>    <span style="color: #82D3E0">ports</span>:
+<span style="color: #8E9099">7  </span>      - <span style="color: #ADC6FF">"127.0.0.1:8080:8080"</span>
+<span style="color: #8E9099">8  </span>    <span style="color: #82D3E0">environment</span>:
+<span style="color: #8E9099">9  </span>      <span style="color: #82D3E0">DATABASE_URL</span>: postgres://hello@db:5432/hello
+<span style="color: #8E9099">10 </span>    <span style="color: #82D3E0">depends_on</span>:
+<span style="color: #8E9099">11 </span>      <span style="color: #82D3E0">db</span>: { <span style="color: #82D3E0">condition</span>: service_healthy }
+<span style="color: #8E9099">12 </span>  <span style="color: #F9BD5C">db</span>:
+<span style="color: #8E9099">13 </span>    <span style="color: #82D3E0">image</span>: postgres:16
+<span style="color: #8E9099">14 </span>    <span style="color: #82D3E0">ports</span>: [<span style="color: #ADC6FF">"127.0.0.1:5432:5432"</span>]
+<span style="color: #8E9099">15 </span>    <span style="color: #82D3E0">volumes</span>: [pgdata:/var/lib/postgresql/data]
+<span style="color: #8E9099">16 </span>    <span style="color: #82D3E0">healthcheck</span>:
+<span style="color: #8E9099">17 </span>      <span style="color: #82D3E0">test</span>: [<span style="color: #ADC6FF">"CMD", "pg_isready", "-U", "hello"</span>]
+<span style="color: #8E9099">18 </span>  <span style="color: #F9BD5C">cache</span>:
+<span style="color: #8E9099">19 </span>    <span style="color: #82D3E0">image</span>: redis:7-alpine
+<span style="color: #8E9099">20 </span>  <span style="color: #F9BD5C">grafana</span>:
+<span style="color: #8E9099">21 </span>    <span style="color: #82D3E0">image</span>: grafana/grafana:11.3.0
+<span style="color: #8E9099">22 </span>    <span style="color: #82D3E0">profiles</span>: [observability]
+<span style="color: #8E9099">23 </span><span style="color: #82D3E0">volumes</span>:
+<span style="color: #8E9099">24 </span>  <span style="color: #82D3E0">pgdata</span>: {}</pre>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+class Component extends DCLogic {
+renderVals() {
+const st = {
+ run: ['#005227', '#9CF6B4'],
+ part: ['#5C3F00', '#FFDDB3'],
+ off: ['#282A2F', '#C4C6D0']
+};
+const projects = [
+ ['hello-stack','3 of 3 running','C:\\Projects\\hello-api\\compose.yaml','run',true],
+ ['payments-dev','1 of 4 running','C:\\Projects\\payments\\compose.dev.yaml','part',false],
+ ['observability','Stopped','D:\\infra\\observability\\compose.yaml','off',false],
+ ['docs-site','2 of 2 running','C:\\Projects\\docs\\docker-compose.yml','run',false]
+].map(([name,status,path,k,sel]) => ({ name, status, path, current: sel ? 'true' : 'false', bg: sel ? '#282A2F' : 'transparent', chipBg: st[k][0], chipInk: st[k][1] }));
+const services = [
+ ['api','hello-api:1.4.0','Running','127.0.0.1:8080->8080/tcp','1 / 1',true],
+ ['db','postgres:16','Healthy','127.0.0.1:5432->5432/tcp','1 / 1',false],
+ ['cache','redis:7-alpine','Running','6379/tcp','1 / 1',false]
+].map(([name,image,state,ports,replicas,sel]) => ({ name, image, state, ports, replicas, bg: sel ? '#282A2F' : 'transparent' }));
+return { projects, services };
+}
+}
+</script>
+</body>
+</html>

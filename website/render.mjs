@@ -23,6 +23,9 @@ const id=f=>'doc-'+f.toLowerCase().replace(/[^a-z0-9]+/g,'-');
 const target=(href,source)=>{if(/^https:\/\//.test(href))return href;const file=path.posix.normalize(path.posix.join(path.posix.dirname(source),href.split('#')[0]));return files.includes(file)?'#'+id(file):null;};
 const imageAssets=new Map();
 function localImage(href,alt,source){
+  // Articles may use a source-relative path (../../evidence/...) so they also render on the forge;
+  // it is resolved to its repository-root evidence path before the same strict validation.
+  if(href.startsWith('../')){const resolved=path.posix.normalize(path.posix.join(path.posix.dirname(source),href));if(resolved.startsWith('evidence/'))href=resolved;}
   // Image paths are repository-root evidence paths, never URLs or relative traversal.
   if(!/^evidence\/(?:[A-Za-z0-9_-]+\/)*[A-Za-z0-9_.-]+\.png$/i.test(href)||href.split('/').some(p=>p==='.'||p==='..'))throw new Error('Unsupported local image path in '+source+': '+href);
   const input=path.join(root,...href.split('/'));
