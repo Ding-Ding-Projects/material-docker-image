@@ -41,6 +41,8 @@ public static class SearchSurfaceCatalogue
         T("shell.notifications", "Window", "MainWindow.xaml.cs", "Notifications"),
         F("shell.palette", "Command palette", "Shell/CommandPalette.cs", "Type a command, destination or setting"),
         F("shell.output", "Output panel", "Shell/OperationsDock.cs", "Search output"),
+        F("shell.element-overrides", "Element editor", "Shell/ElementEditor.cs", "Search customized elements"),
+        F("tools.authenticator-accounts", "Authenticator", "Pages/Tools/AuthenticatorAccountsPanel.cs", "Search accounts"),
         // Shared components (each instance gets its own builder)
         C("component.data-table", "DataTable", "UI/DataTable.cs", "SearchFilter", "searchPlaceholder"),
         C("component.data-table.menu", "DataTable context menu", "UI/DataTable.cs", "SearchFilter", "Filter actions"),

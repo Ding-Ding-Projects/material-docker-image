@@ -272,6 +272,7 @@ public partial class MainWindow : Window
         PageHost.ContextMenuOpening += (_, e) => contextTarget = e.OriginalSource as DependencyObject;
         PageHost.ContextMenu = new ContextMenu();
         PageHost.ContextMenu.Items.Add(Ui.CommandMenuItem("Edit appearance…", Icons.Palette, "appearance.element", () => OpenAppearancePanel(contextTarget)));
+        PageHost.ContextMenu.Items.Add(Ui.CommandMenuItem("Customize this element…", Icons.Tune, "appearance.customize", () => { if (ElementAppearance.Climb(contextTarget) is { } element) ElementEditor.Show(element); }));
     }
 
     private void OpenAppearanceEditor()

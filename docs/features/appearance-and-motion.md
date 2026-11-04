@@ -12,6 +12,19 @@ Settings > Appearance opens the appearance editor with a live preview. Every cha
 
 Each setting has its own reset button. Right-click the app name, any rail item or the page area and choose Edit appearance, or press `Ctrl+Shift+E`, to open a floating panel for the element under focus: it finds the colour roles that element uses and edits them in place.
 
+## Per-element customization
+
+Any element can be customized on its own, beyond the shared colour roles. Open the editor from **Customize this element…** (right-click menu of the page area, or the button in the **Edit appearance** panel), from the command palette (**Customize the focused element…**), or with **Pick an element to customize…**, which turns the pointer into a cross and uses the next click without pressing what is under it (Escape cancels).
+
+- **What it edits**: background colour and text colour (the same infinite picker, with HEX, RGB and HSL), corner radius (0 to 48), font size (8 to 40) and weight (300 to 700), padding (0 to 40) and visibility (hidden elements keep their space). Each property is switched on separately and previews live on the element itself. A contrast warning appears when text and background are both set and fall under 3:1.
+- **Identity**: an element is found again by its path from the window (type, name where it has one, position among siblings of the same type), for example `MainWindow/Grid/Border[2]/Button#btn.build`. The key is stable across restarts and page rebuilds while the layout around the element is unchanged; if the layout changes, the override no longer matches and is listed under Overrides until reset.
+- **Persistence**: overrides live in `element-appearance.json` in the data folder (strict format, 256 KiB and 200-element limits, written atomically) and are recorded in local history when the editor closes. An unreadable file is reported and never overwritten.
+- **Overrides list**: the **Overrides** tab lists every override with a plain-words description, a search with its own regular expression builder, **Reset** per element and **Reset all customized elements** (confirmed). **Reset element** and **Revert changes** work from the Element tab.
+- **Locks**: a property whose appearance setting is locked in Settings (colour roles, corner radius, font size, density for padding) is shown read-only in the editor, with the same note as a locked setting row.
+- **Applying**: overrides are applied to live elements when they change and to each element as it loads; removing an override restores the element's original value, binding or resource reference.
+
+Not built: per-element overrides are not yet part of appearance presets, export or Undo, only a subset of the property types the shared contract lists (no italic, underline, shadow, spacing or alignment), and the editor has not been driven in the built window.
+
 ## Motion
 
 Motion follows Material 3 easing and duration tokens. Choose Off, Reduced, Standard or Expressive and a speed from 0.5x to 2x.

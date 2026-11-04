@@ -181,12 +181,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: besides the shared colour roles, any single element can be customized from Customize this element… (right-click menu, the Edit appearance panel, the command palette, or a click-to-pick mode). It edits background and text colour with the infinite picker, corner radius, font size and weight, padding and visibility with live preview, keeps each override under a stable element identity in element-appearance.json, lists every override with reset per element and reset all, and leaves a property read-only while its appearance setting is locked. Identity, ranges, the store and its file are covered by UI-state checks; the editor has not been driven in the built window.",
+        "zh": "部分完成：除咗共用嘅顏色角色，仲可以逐個元素自訂（右鍵選單、編輯外觀面板、指令面板或者點選模式嘅「自訂呢個元素…」）。可用無限色彩選擇器改背景同文字顏色，並即時預覽圓角、字體大小同粗幼、內距同可見度；每個覆寫以穩定嘅元素識別碼存入 element-appearance.json，列出所有覆寫，可逐個或全部重設，而相關外觀設定被鎖住時該屬性唯讀。識別碼、範圍、儲存庫同檔案已有 UI 狀態檢查；編輯器未喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for appearance-editor.",
-        "zh": "確認「外觀編輯器」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Drive the element editor in the built window in every language mode, theme and display scale; bring element overrides into presets, export and Undo; add the remaining property types (italic, underline, shadow, spacing, alignment).",
+        "zh": "喺已建置視窗以每種語言模式、主題同顯示比例操作元素編輯器；將元素覆寫納入預設、匯出同還原；補上其餘屬性類型（斜體、底線、陰影、間距、對齊）。"
       },
       "evidence": [
         {
@@ -209,12 +209,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: the Tools page has an Authenticator section for the app's own locks. It pairs an authenticator app with a lock (generated secret, otpauth link, QR code and grouped Base32 text shown only on request, armed only after one current code is typed back), checks a code without using it up, lists the locks that have a policy, and runs the RFC 6238 vectors for SHA-1, SHA-256 and SHA-512 with the build's own code. A general authenticator for arbitrary accounts (live codes, countdown, next-code peek, import by image or clipboard, grouping, search, secrets export) is not built, and nothing has been driven in the built window.",
-        "zh": "部分完成：工具頁有為本應用程式自己嘅鎖而設嘅驗證器區。可為鎖配對驗證器應用程式（生成密鑰、otpauth 連結、QR 碼同分組 Base32 文字，只會按要求顯示，輸入一次現時驗證碼後先生效）、檢查驗證碼而唔會用咗佢、列出已設定鎖定方式嘅鎖，並用本版本自己嘅程式碼計算 SHA-1、SHA-256 同 SHA-512 嘅 RFC 6238 測試向量。任意帳戶嘅通用驗證器（即時驗證碼、倒數、下一組預覽、由圖片或剪貼簿匯入、分組、搜尋、密鑰匯出）尚未建立，亦未曾喺已建置視窗操作。"
+        "en": "Partly delivered: the Tools page has an Authenticator section with My accounts and App locks. My accounts is a general authenticator: it adds accounts from an otpauth link (parameters honoured) or by hand, shows each account's code grouped for reading with a seconds countdown and the next code, copies a code, renames, reorders and deletes with confirmation, searches, protects the whole list for the Windows account with DPAPI, and exports or imports an AES-256-GCM backup under a passphrase. App locks pairs an authenticator app with a lock (QR code, Base32 text, a code typed back) and runs the RFC 6238 vectors. Link parsing, codes against the RFC 6238 vectors, the vault and backup are covered by UI-state checks. Registration from a QR image, the clipboard or a camera, grouping, a clock-skew warning and a super-confirmed secrets export are not built, and nothing has been driven in the built window.",
+        "zh": "部分完成：工具頁嘅驗證工具分「我嘅帳戶」同「應用程式鎖」。「我嘅帳戶」係通用驗證器：可用 otpauth 連結（照用連結參數）或手動新增帳戶，顯示分組易讀嘅驗證碼、秒數倒數同下一組驗證碼，可複製、改名、排序、確認後刪除、搜尋；整份清單用 DPAPI 為 Windows 帳戶保護，並可用密碼短語匯出或匯入 AES-256-GCM 加密備份。「應用程式鎖」可為鎖配對驗證器應用程式（QR 碼、Base32 文字、輸入一次驗證碼）並計算 RFC 6238 測試向量。連結解析、對照 RFC 6238 向量嘅驗證碼、保管庫同備份已有 UI 狀態檢查。由 QR 圖片、剪貼簿或相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出尚未建立，亦未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Build the general authenticator for arbitrary accounts with live codes, import routes and super-confirmed secrets export, then drive both sections in the built window.",
-        "zh": "建立任意帳戶用嘅通用驗證器，包括即時驗證碼、匯入途徑同需超級確認嘅密鑰匯出，然後喺已建置視窗操作兩個區。"
+        "en": "Add QR image, clipboard and camera registration, grouping, a clock-skew warning and a super-confirmed secrets export, then drive both sections in the built window.",
+        "zh": "加入由 QR 圖片、剪貼簿同相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出，然後喺已建置視窗操作兩個區。"
       },
       "evidence": [
         {

@@ -11,7 +11,7 @@
       "implemented": 29,
       "verified": 0
     },
-    "sha256": "d99865a212ef3ee66b23178fe528dab55956dcbd7b5e739d19c509c6c4f7cebf"
+    "sha256": "8ed30a701a0b17b35925c5b0c6f7cc98564e9ee197d293950b0886dc5603d03c"
   },
   "sources": [
     {
@@ -24,7 +24,7 @@
     },
     {
       "path": "docs/features/appearance-and-motion.md",
-      "sha256": "2ad92894efe1a040a545f60947de05a31340dcbd08b6a9af7c9f05d35e5450c4"
+      "sha256": "68c9bd76b631b3de7d0f5d772dd165cee2ea293b61eedcfcb786bbcd7cc73046"
     },
     {
       "path": "docs/features/build-and-run.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "9caf20e75bb8b32e2f1071dbfecc471b921843b45c930926190343e1d2f7c621"
+      "sha256": "1ac663584a950ffce6c4ede68c4c3954975647071f6c8b67865b77efa9199440"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -84,7 +84,7 @@
     },
     {
       "path": "docs/features/operations-and-tools.md",
-      "sha256": "a4325f0383c990980185cb401d8ab71174f2bc81e8e7e9059009f2077497e512"
+      "sha256": "9211bd0a6014d04ae35a3b6177904a7a694bfb9a6f3b9adea7d6411fe0c4471d"
     },
     {
       "path": "docs/features/records-and-updates.md",
@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/settings-safety.md",
-      "sha256": "ed15b18fefd21f8cb5d330f27888565ccd133151dc4e8a8722bf8ca1b5fb7c53"
+      "sha256": "12e94213260977ae53307f8b812fd4e312c1fa2a83bf853eff18d1be975acf6b"
     },
     {
       "path": "docs/features/workspace.md",
@@ -116,7 +116,7 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "ebd6835c3edb9eb282712c4811013c140afeb43e856453c44a8d91d908577001"
+      "sha256": "916e227cad1df75a897c9b892c711f1f5c70b9ca51759308374203c849924ff2"
     },
     {
       "path": "HANDOFF.md",
