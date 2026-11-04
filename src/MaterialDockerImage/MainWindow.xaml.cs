@@ -644,7 +644,7 @@ public partial class MainWindow : Window
 
     // ----- Capture mode -----
     /// <summary>Renders every destination (and the palette, notification centre and super confirmation) to PNG files.</summary>
-    public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960, double scale = 1)
+    public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960, double scale = 1, bool probe = false)
     {
         // Lay the window content out at the exact requested size, independent of the runner's screen size.
         // The requested size is the window size in device-independent pixels. A display scale above 100% renders that
@@ -678,6 +678,7 @@ public partial class MainWindow : Window
             var encoder = new PngBitmapEncoder(); encoder.Frames.Add(BitmapFrame.Create(bitmap));
             await using var file = File.Create(Path.Combine(directory, $"{name}{suffix}.png"));
             encoder.Save(file);
+            if (probe) Shell.LayoutProbe.Write(Path.Combine(directory, $"{name}{suffix}.layout.json"), name, Shell.LayoutProbe.Inspect(Root));
             written++;
         }
         await RefreshContexts();

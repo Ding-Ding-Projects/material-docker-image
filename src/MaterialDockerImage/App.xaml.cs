@@ -55,7 +55,7 @@ public partial class App : Application
             window.Show();
             window.Dispatcher.InvokeAsync(async () =>
             {
-                try { var count = await window.CaptureAsync(e.Args[captureIndex + 1], suffix, captureWidth, captureHeight, captureScale); Console.WriteLine($"Captured {count} surfaces."); Shutdown(0); }
+                try { var count = await window.CaptureAsync(e.Args[captureIndex + 1], suffix, captureWidth, captureHeight, captureScale, e.Args.Contains("--capture-probe")); Console.WriteLine($"Captured {count} surfaces."); Shutdown(0); }
                 catch (Exception exception) { Console.Error.WriteLine(exception); Shutdown(3); }
             });
             return;
