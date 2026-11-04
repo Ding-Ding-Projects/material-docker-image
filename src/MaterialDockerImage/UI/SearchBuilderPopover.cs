@@ -113,11 +113,13 @@ internal sealed partial class SearchBuilderPopover
             PatternSection(),
             FlagsSection(),
             InsertSection(),
-            Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern, or move the caret in the pattern to select its row.", ExplanationControls(), explanation),
+            Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern, or move the caret in the pattern to select its row.", ExplanationControls(), explanation, tokenHelp),
             TesterSection(),
             ReplaceSection(),
             SplitSection(),
             SuiteSection(),
+            CompareSection(),
+            SubjectSection(),
             DiagnosticsSection(),
             ConvertSection(),
             FlavorSection(),
@@ -354,6 +356,7 @@ internal sealed partial class SearchBuilderPopover
                 var code = (categories.SelectedItem as string ?? "L").Split(' ')[0];
                 Insert(RegexBuilderLibrary.UnicodeCategory(code, negateCategory.IsChecked == true), "");
             }),
+            UnicodeBlockPicker(),
             Ui.Field("Custom set", members, "Characters and ranges separated by spaces. A range is three characters such as a-z. ] \\ ^ and - are escaped for you.", "a-f 0-9 _ ."),
             Ui.Wrap(8, digits, word, space, negated),
             preview,
@@ -517,6 +520,7 @@ internal sealed partial class SearchBuilderPopover
         includeExtras = Ui.Check("Also save the replacement and the test cases", true);
         AutomationProperties.SetName(mineSearch, Loc.T("Filter my patterns"));
         return Ui.VStack(8,
+            Ui.Field("Description", saveDescription, "What the pattern is for, shown under its name and searched by the filter. Optional; at most 300 characters.", "Matches a port number"),
             Ui.Field("Name", saveName, "Saving is the only way the builder stores anything here. The sample text is never saved with a pattern; the replacement and test cases are saved only when the box below is ticked.", "Short image IDs"),
             includeExtras,
             Ui.Wrap(8, save,
@@ -561,7 +565,7 @@ internal sealed partial class SearchBuilderPopover
         kindCombo.SelectionChanged += (_, _) => RenderConversion();
         convertNotes.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
         convertNotes.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
-        return Section("Convert and copy as", "The same pattern as C# or PowerShell code, a JSON string, a command line for grep, ripgrep or Select-String (using the folder and file patterns of Search in files), or code for JavaScript, Python, Java, Go or PHP. Anything the target cannot express is reported, never guessed.",
+        return Section("Convert and copy as", "The same pattern as C# or PowerShell code, a JSON string, a command line for grep, ripgrep or Select-String (using the folder and file patterns of Search in files), or code for JavaScript, Python, Java, Go, PHP, Perl or Ruby, or a complete PowerShell script. Anything the target cannot express is reported, never guessed.",
             Ui.Field("Convert to", targetCombo, "Quoting is exact for the target. The command lines and the other languages are checked against the flavor table: unsupported constructs stop the conversion and different readings are listed.", "C# code"),
             Ui.Field("Code to generate", kindCombo, "Used by the C# code and PowerShell targets.", "Find all matches"),
             convertOutput, convertNotes,
@@ -598,6 +602,7 @@ internal sealed partial class SearchBuilderPopover
             if (cts.IsCancellationRequested || !popup.IsOpen) return;
             benchStatus.Text = result.Valid ? Loc.T(result.Verdict) : result.Error ?? "";
             benchOutput.Text = string.Join("\n", result.Rows.Select(r => $"{r.Subject,-12} {r.Size,6} chars  {(r.TimedOut ? ">" + RegexDiagnostics.ProbeTimeout.TotalMilliseconds.ToString("0") : r.Milliseconds.ToString("0.00"))} ms  {(r.TimedOut ? "timed out" : r.Matched ? "match" : "no match")}"));
+            if (result.Valid && result.Rows.Count > 0) benchOutput.Text += "\n" + RegexGrowth.Describe(result.Rows, "sample") + "\n" + RegexGrowth.Describe(result.Rows, "a-run");
         }
         catch (OperationCanceledException) { }
     }
@@ -728,9 +733,12 @@ internal sealed partial class SearchBuilderPopover
     private void RenderDiagnostics(string text, RegexBuilderFlags flags)
     {
         var findings = field.RegexMode && text.Length > 0 ? RegexDiagnostics.Analyze(text, flags) : [];
-        diagnostics.Text = findings.Count == 0
-            ? Loc.T(text.Length == 0 ? "Type a pattern to check it for backtracking risks." : field.RegexMode ? "No backtracking risk found by the static check." : "Regular expression mode is off, so nothing is backtracked.")
-            : string.Join("\n", findings.Select(f => "⚠ " + Loc.T(f.Message)));
+        var tips = field.RegexMode && text.Length > 0 ? RegexTips.Analyze(text, flags) : [];
+        var lines = findings.Count == 0
+            ? new List<string> { Loc.T(text.Length == 0 ? "Type a pattern to check it for backtracking risks." : field.RegexMode ? "No backtracking risk found by the static check." : "Regular expression mode is off, so nothing is backtracked.") }
+            : findings.Select(f => "⚠ " + Loc.T(f.Message)).ToList();
+        lines.AddRange(tips.Select(t => "💡 " + Loc.T(t.Message)));
+        diagnostics.Text = string.Join("\n", lines);
         diagnostics.SetResourceReference(TextBlock.ForegroundProperty, findings.Count == 0 ? "OnSurfaceVariant" : "Error");
     }
 
@@ -905,16 +913,16 @@ internal sealed partial class SearchBuilderPopover
         foreach (var s in shown)
         {
             var entry = s;
-            savedList.Children.Add(Row(entry.Pattern, entry.Name, () => UseSaved(entry), () => Persist(RegexPatternStore.Remove(saved, entry.Name), "Removed " + entry.Name + ".")));
+            savedList.Children.Add(Row(entry.Pattern, entry.Name, () => UseSaved(entry), () => Persist(RegexPatternStore.Remove(saved, entry.Name), "Removed " + entry.Name + "."), entry.Description));
         }
     }
 
-    private FrameworkElement Row(string value, string? name, Action use, Action? remove)
+    private FrameworkElement Row(string value, string? name, Action use, Action? remove, string? description = null)
     {
         var row = new DockPanel { Margin = new Thickness(0, 0, 0, 6) };
         if (remove != null) row.Children.Add(Ui.IconButton(Icons.Delete, "Remove " + name, remove).Dock(Dock.Right));
         row.Children.Add(Small("Use", "Replace the pattern with this one", use).Dock(Dock.Right));
-        row.Children.Add(Ui.VStack(0, name == null ? null : Ui.Text(name, 13, FontWeights.SemiBold, "OnSurface", true, false), Ui.Mono(value.Length > 100 ? value[..100] + "…" : value, 12, "OnSurfaceVariant", true)));
+        row.Children.Add(Ui.VStack(0, name == null ? null : Ui.Text(name, 13, FontWeights.SemiBold, "OnSurface", true, false), string.IsNullOrEmpty(description) ? null : Ui.Caption(description), Ui.Mono(value.Length > 100 ? value[..100] + "…" : value, 12, "OnSurfaceVariant", true)));
         return row;
     }
 
@@ -928,9 +936,10 @@ internal sealed partial class SearchBuilderPopover
             {
                 Replacement = extras ? field.State.Replacement : "",
                 TestCases = extras ? field.State.TestCases : "",
+                Description = saveDescription.Text.Trim(),
             };
             Persist(RegexPatternStore.Add(saved ?? new(), entry), "Saved " + nameBox.Text.Trim() + " to my patterns.");
-            nameBox.Clear();
+            nameBox.Clear(); saveDescription.Clear();
         }
         catch (Exception e) when (e is ArgumentException or InvalidOperationException) { mineStatus.Text = e.Message; }
     }

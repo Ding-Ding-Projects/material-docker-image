@@ -310,7 +310,7 @@ public static class RegexRemainingChecks
             Check(translated.Success && RegexBuilderEngine.Validate(translated.Pattern, Cs).Valid, "POSIX class " + name + " converts to a valid pattern");
         }
         Check(RegexPosixTranslator.Translate("[[:punct:]]").Pattern is { } pu && RegexBuilderEngine.Evaluate(pu, Cs, "a,b!").Matches.Count == 2, "punctuation uses the ASCII definition");
-        Check(!RegexPosixTranslator.Translate("[[:bogus:]]").Success && !RegexPosixTranslator.Translate("[[:^alpha:]]").Success && !RegexPosixTranslator.Translate("[abc").Success, "unknown, negated and unterminated classes are refused with a reason");
+        Check(!RegexPosixTranslator.Translate("[[:bogus:]]").Success && !RegexPosixTranslator.Translate("[[:^bogus:]]").Success && !RegexPosixTranslator.Translate("[abc").Success, "unknown and unterminated classes are refused with a reason");
         Check(RegexPosixTranslator.Translate(@"\d+(a|b)").Pattern == @"\d+(a|b)" && RegexPosixTranslator.Translate("").Success, "patterns without POSIX classes pass through unchanged");
         Check(RegexBuilderEngine.Evaluate("[[:alpha:]]", Cs, "a").Matches.Count == 0, "typed directly, [[:alpha:]] does not mean what POSIX says in .NET (the reason the builder converts)");
     }
@@ -405,7 +405,7 @@ public static class RegexRemainingChecks
 
     static void Conversions()
     {
-        Check(RegexConverter.Targets.Count == 14 && RegexConverter.Targets.Distinct().Count() == 14, "fourteen conversion targets are offered");
+        Check(RegexConverter.Targets.Count == 17 && RegexConverter.Targets.Distinct().Count() == 17, "seventeen conversion targets are offered");
         foreach (var target in RegexConverter.Targets)
             foreach (var kind in Enum.GetValues<RegexCodeKind>())
             {
@@ -444,6 +444,6 @@ public static class RegexRemainingChecks
         Check(RegexConverter.PhpPattern("a/b'c\\d", "i") == "'/a\\\\/b\\'c\\\\d/i'" && RegexConverter.Convert("PHP", @"\d", Ci with { Multiline = true }).Text.Contains("'/\\\\d/imu'"), "PHP escapes the delimiter, backslashes and quotes");
         Check(!RegexConverter.Convert("PHP", "(?<a-b>x)", Ci).Converted && !RegexConverter.Convert("Java", "(?<a-b>x)", Ci).Converted, "PHP and Java refuse .NET-only constructs");
         Check(RegexConverter.Convert("JavaScript", "a", Ci with { RightToLeft = true }).Converted == false && RegexConverter.Convert("Python", "a", Ci with { RightToLeft = true }).Converted == false, "RightToLeft is refused where it has no equivalent");
-        Reject(() => RegexConverter.Convert("Perl", "a", Ci), "an unknown target is still refused");
+        Reject(() => RegexConverter.Convert("Fortran", "a", Ci), "an unknown target is still refused");
     }
 }

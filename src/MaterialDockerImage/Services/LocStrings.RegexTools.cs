@@ -210,7 +210,7 @@ public static partial class Loc
         yield return new("Use at most 32 file patterns.", "最多用 32 個檔案樣式。");
         yield return new("A file pattern is longer than 200 characters.", "有檔案樣式長過 200 個字元。");
         // Conversions
-        yield return new("The same pattern as C# or PowerShell code, a JSON string, a command line for grep, ripgrep or Select-String (using the folder and file patterns of Search in files), or code for JavaScript, Python, Java, Go or PHP. Anything the target cannot express is reported, never guessed.", "同一個樣式可以轉成 C# 或 PowerShell 程式碼、JSON 字串、grep、ripgrep 或 Select-String 嘅指令（用「喺檔案入面搜尋」嘅資料夾同檔案樣式），或者 JavaScript、Python、Java、Go、PHP 嘅程式碼。目標表達唔到嘅嘢會報告，唔會估。");
+        yield return new("The same pattern as C# or PowerShell code, a JSON string, a command line for grep, ripgrep or Select-String (using the folder and file patterns of Search in files), or code for JavaScript, Python, Java, Go, PHP, Perl or Ruby, or a complete PowerShell script. Anything the target cannot express is reported, never guessed.", "同一個樣式可以轉成 C# 或 PowerShell 程式碼、JSON 字串、grep、ripgrep 或 Select-String 嘅指令（用「喺檔案入面搜尋」嘅資料夾同檔案樣式），或者 JavaScript、Python、Java、Go、PHP、Perl、Ruby 嘅程式碼，亦可以係完整嘅 PowerShell 腳本。目標表達唔到嘅嘢會報告，唔會估。");
         yield return new("Quoting is exact for the target. The command lines and the other languages are checked against the flavor table: unsupported constructs stop the conversion and different readings are listed.", "引號處理對目標而言係準確嘅。指令同其他語言會對照引擎對照表：不支援嘅語法會令轉換停止，讀法不同嘅會列出。");
     }
 }

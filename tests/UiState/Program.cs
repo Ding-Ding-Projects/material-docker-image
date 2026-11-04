@@ -593,7 +593,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     }
     Check(!RegexConverter.Convert("grep -E","a",cs with{Singleline=true}).Converted&&!RegexConverter.Convert("grep -E","a",cs with{RightToLeft=true}).Converted&&!RegexConverter.Convert("grep -E","a",cs with{IgnorePatternWhitespace=true}).Converted,"grep refuses flags it cannot express");
     Check(RegexConverter.Convert("grep -E","a",cs with{Multiline=true}).Notes.Any(n=>n.Contains("Multiline")),"grep notes that Multiline is implied");
-    Reject(()=>RegexConverter.Convert("Perl","a",cs),"unknown conversion target refused");
+    Reject(()=>RegexConverter.Convert("Fortran","a",cs),"unknown conversion target refused");
     // Split preview.
     var split=RegexBuilderOperations.Split(@"[,;]\s*",cs,"a, b;c,d");
     Check(split.Valid&&split.Pieces.SequenceEqual(new[]{"a","b","c","d"}),"split preview pieces");
@@ -967,6 +967,7 @@ count += LadderChecks.Run();
 count += LockPolicyChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
+count += RegexPartialChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

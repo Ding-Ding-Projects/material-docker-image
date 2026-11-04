@@ -86,6 +86,7 @@ internal sealed partial class SearchBuilderPopover
         grepGlobs.TextChanged += (_, _) => { field.State.GrepGlobs = grepGlobs.Text; InvalidatePlan(); RenderConversion(); };
         RenderReplacementExplain();
         RenderSnapshots();
+        InitSubject();
     }
 
     // ----- explanation: precision, export, caret to tree -----

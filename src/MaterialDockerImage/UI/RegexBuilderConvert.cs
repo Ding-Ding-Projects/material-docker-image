@@ -16,7 +16,7 @@ public sealed record RegexConversion(string Target, string Text, bool Converted,
 /// </summary>
 public static partial class RegexConverter
 {
-    public static readonly IReadOnlyList<string> Targets = ["C# verbatim string", "C# regular string", "C# code", "PowerShell", "JSON string", "grep -E", "grep -P", "ripgrep", "Select-String", "JavaScript", "Python", "Java", "Go", "PHP"];
+    public static readonly IReadOnlyList<string> Targets = ["C# verbatim string", "C# regular string", "C# code", "PowerShell", "JSON string", "grep -E", "grep -P", "ripgrep", "Select-String", "JavaScript", "Python", "Java", "Go", "PHP", "Perl", "Ruby", "PowerShell script"];
 
     /// <param name="folder">Optional folder for the command-line targets (grep, ripgrep, Select-String); a placeholder is used when empty.</param>
     /// <param name="globs">Optional file patterns for the command-line targets, in the same ; or , list the folder search uses.</param>
@@ -30,6 +30,9 @@ public static partial class RegexConverter
         "Java" => Java(pattern, flags, kind, replacement),
         "Go" => GoLang(pattern, flags, kind, replacement),
         "PHP" => Php(pattern, flags, kind, replacement),
+        "Perl" => Perl(pattern, flags, kind, replacement),
+        "Ruby" => Ruby(pattern, flags, kind, replacement),
+        "PowerShell script" => PowerShellScript(pattern, flags, kind, replacement),
         "C# verbatim string" => new(target, RegexBuilderEngine.ToCSharpVerbatim(pattern), true, false, []),
         "C# regular string" => new(target, CSharpString(pattern), true, false, []),
         "C# code" => CSharpCode(pattern, flags, kind, replacement),

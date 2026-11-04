@@ -403,6 +403,8 @@ public sealed class RegexFieldState
     /// <summary>Folder and file patterns of this field's folder search. In memory only.</summary>
     public string GrepFolder { get; set; } = "";
     public string GrepGlobs { get; set; } = "*";
+    /// <summary>Patterns typed into the comparison box, one per line. In memory only.</summary>
+    public string ComparePatterns { get; set; } = "";
     public RegexRecentPatterns Recent { get; } = new();
 }
 
