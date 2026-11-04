@@ -52,6 +52,8 @@ public sealed class SchoolModeStore
         public string Name { get; set; } = SchoolModeRules.DefaultName;
         public string? Salt { get; set; }
         public string? Hash { get; set; }
+        /// <summary>How the mode is turned off: "secret" (default) or "passkey". Only the choice is stored, never anything secret.</summary>
+        public string Method { get; set; } = "secret";
         public int Failures { get; set; }
         public long WaitUntilUnix { get; set; }
     }
@@ -75,6 +77,7 @@ public sealed class SchoolModeStore
     public bool Enabled => data.Enabled;
     public string Name => SchoolModeRules.DisplayName(data.Name);
     public bool HasSecret => data.Hash != null;
+    public SchoolOffMethod Method => SchoolPasskeyRules.FromText(data.Method);
     public bool Exists => path == null || File.Exists(path);
     public string? LoadError { get; private set; }
 
@@ -100,9 +103,9 @@ public sealed class SchoolModeStore
         if (path == null) return false;
         var now = File.Exists(path) ? File.GetLastWriteTimeUtc(path) : default;
         if (now == stamp) return false;
-        var before = (data.Enabled, Name, HasSecret);
+        var before = (data.Enabled, Name, HasSecret, Method);
         Load();
-        return before != (data.Enabled, Name, HasSecret);
+        return before != (data.Enabled, Name, HasSecret, Method);
     }
 
     private void Save()
@@ -138,6 +141,26 @@ public sealed class SchoolModeStore
         Save();
         return true;
     }
+
+    /// <summary>Records the choice of how the mode is turned off. Choosing the passkey needs the caller to have checked that it is available.</summary>
+    public void SetMethod(SchoolOffMethod method)
+    {
+        data.Method = SchoolPasskeyRules.ToText(method);
+        Save();
+    }
+
+    /// <summary>Turns the mode off after the platform verified the user. Refused unless the passkey is the chosen method and the platform said yes.</summary>
+    public SchoolOffOutcome TurnOffAfterPasskey(bool verified)
+    {
+        if (!data.Enabled) return SchoolOffOutcome.AlreadyOff;
+        if (Method != SchoolOffMethod.Passkey || !verified) return SchoolOffOutcome.Wrong;
+        data.Enabled = false; data.Failures = 0; data.WaitUntilUnix = 0;
+        Save();
+        return SchoolOffOutcome.TurnedOff;
+    }
+
+    /// <summary>Whether the text is the PIN or password, without changing anything or counting a failure.</summary>
+    public bool SecretMatches(string? secret) => CheckSecret(secret);
 
     private bool CheckSecret(string? secret) => secret != null && data.Hash != null && data.Salt != null && CredentialHasher.Verify(secret, data.Hash, Convert.FromBase64String(data.Salt));
 

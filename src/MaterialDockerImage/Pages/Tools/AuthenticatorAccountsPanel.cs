@@ -3,6 +3,8 @@ using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
@@ -77,7 +79,10 @@ internal sealed class AuthenticatorAccountsPanel
     private FrameworkElement PasteForm()
     {
         var button = Ui.Button("Add account", Icons.Add, ButtonKind.Filled, AddFromLink);
-        return Ui.VStack(8, Ui.Field("otpauth:// link", link, "Paste the link a service shows next to its QR code. Its issuer, algorithm, digits and period are used as given.", "otpauth://totp/Example:me@example.com?secret=…"), button);
+        var fromImage = Ui.Button("From an image file…", Icons.FolderOpen, ButtonKind.Tonal, AddFromImageFile);
+        var fromClipboard = Ui.Button("From the clipboard", Icons.ContentCopy, ButtonKind.Tonal, AddFromClipboard);
+        return Ui.VStack(8, Ui.Field("otpauth:// link", link, "Paste the link a service shows next to its QR code. Its issuer, algorithm, digits and period are used as given.", "otpauth://totp/Example:me@example.com?secret=…"), button,
+            Ui.Caption("Or read the QR code from a picture. The picture is read on this computer and is not kept."), Ui.Wrap(8, fromImage, fromClipboard));
     }
 
     private FrameworkElement ManualForm()
@@ -94,6 +99,56 @@ internal sealed class AuthenticatorAccountsPanel
     {
         if (!OtpauthUri.TryParse(link.Text, out var parsed, out var error)) { addError.Text = Loc.T(error); return; }
         Commit(parsed!, () => link.Clear());
+    }
+
+    // ----- From a QR picture -----
+
+    private void AddFromImageFile()
+    {
+        var dialog = new OpenFileDialog { Title = Loc.T("Choose a picture of the QR code"), Filter = "Pictures|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.tif;*.tiff|All files|*.*" };
+        if (dialog.ShowDialog() != true) return;
+        ImportPictureFile(dialog.FileName);
+    }
+
+    private void ImportPictureFile(string path)
+    {
+        try
+        {
+            if (OtpQrImport.FileProblem(path, new FileInfo(path).Length) is { } problemText) { addError.Text = Loc.T(problemText); return; }
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit(); bitmap.CacheOption = BitmapCacheOption.OnLoad; bitmap.UriSource = new Uri(path); bitmap.EndInit(); bitmap.Freeze();
+            ImportPicture(bitmap);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or NotSupportedException or InvalidOperationException or FileFormatException or UriFormatException)
+        {
+            addError.Text = Loc.T("That picture could not be opened.");
+        }
+    }
+
+    private void AddFromClipboard()
+    {
+        try
+        {
+            if (Clipboard.ContainsImage() && Clipboard.GetImage() is { } image) { ImportPicture(image); return; }
+            if (Clipboard.ContainsFileDropList() && Clipboard.GetFileDropList().Cast<string>().FirstOrDefault() is { } file) { ImportPictureFile(file); return; }
+            if (Clipboard.ContainsText() && Clipboard.GetText().Trim().StartsWith("otpauth:", StringComparison.OrdinalIgnoreCase)) { link.Text = Clipboard.GetText().Trim(); AddFromLink(); return; }
+            addError.Text = Loc.T("The clipboard has no picture of a QR code.");
+        }
+        catch (Exception e) when (e is System.Runtime.InteropServices.ExternalException or InvalidOperationException)
+        {
+            addError.Text = Loc.T("The clipboard could not be read.");
+        }
+    }
+
+    private void ImportPicture(BitmapSource source)
+    {
+        var width = source.PixelWidth; var height = source.PixelHeight;
+        if ((long)width * height > OtpQrImport.MaxPixels) { addError.Text = Loc.T("That picture is too large to read."); return; }
+        var converted = new FormatConvertedBitmap(source, PixelFormats.Bgra32, null, 0);
+        var pixels = new byte[width * height * 4];
+        converted.CopyPixels(pixels, width * 4, 0);
+        if (!OtpQrImport.TryFromPixels(pixels, width, height, out var parsed, out var error)) { addError.Text = Loc.T(error); return; }
+        Commit(parsed!, () => { });
     }
 
     private void AddManual()

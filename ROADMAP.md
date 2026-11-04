@@ -22,13 +22,15 @@
 - [x] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window (receipt steps 18-25; codes matched an independent RFC 6238 calculation)
 - [ ] Scan the lock QR code with a real phone authenticator app
 - [x] Add a general authenticator for arbitrary accounts: otpauth link and manual entry, live codes with countdown and next code, rename, reorder, delete, DPAPI-protected storage and encrypted backup (RFC 6238 vectors and rule checks pass; nothing driven in the built window)
-- [ ] Add QR image, clipboard and camera registration, grouping and a super-confirmed secrets export to the authenticator
+- [x] Add QR image-file and clipboard registration to the authenticator (ZXing.Net decoder, round trip checked; not driven in the built window)
+- [ ] Add camera registration, grouping and a super-confirmed secrets export to the authenticator
 - [x] Add a per-element appearance editor: pick any element, edit colours, corner radius, font size and weight, padding and visibility with live preview, stable element identity, persistence, reset per element and all, an overrides list and lock awareness (rule checks pass; not driven in the built window)
 - [ ] Bring per-element overrides into appearance presets, export and Undo, and cover the remaining property types (italic, underline, shadow, spacing, alignment)
 - [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)
 - [x] Drive the dish game, the School mode PIN and the live catalogue fetch in the built window (the dish round was broken and is fixed)
 - [ ] Drive the sums and whack-a-mole rungs and the startup surprise toast in the built window
-- [ ] Add a passkey choice for School mode and hide every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under it
+- [x] Add a Windows Hello passkey choice for School mode (choice stored only; honest fallback) and hide the language, funny-level, personal wording and dim sum controls under it in settings, the palette, setup and the file drop (rules checked in code; not driven in the built window)
+- [ ] Drive the School mode passkey choice and the hidden controls in the built window, and hide the scheduled language rule under the mode
 - [x] Add the password lock policy, the four combined policies with ordered steps and one shared attempt budget, unlock durations (this action only, 5 minutes, 1 hour, until the app closes) with persisted expiry, a lock command on every button, switch, option, drop-down, text field and slider with stable derived ids, a Locks manager in Settings and the local Support Tickets desk (rule checks pass and were seen failing first; nothing driven in the built window)
 - [x] Drive the PIN wizard, the unlock steps, the lockout wait and the Support Tickets screen in the built window
 - [ ] Drive combined policies, the timed relock and the Locks manager in the built window, and confirm the folder the desk opens matches the path shown

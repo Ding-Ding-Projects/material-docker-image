@@ -37,7 +37,7 @@ public sealed class CommandPalette
         void Fill()
         {
             results.Children.Clear(); runnable.Clear(); selected = 0;
-            var matches = host.Commands.All.Where(c => search.Matches(Loc.T(c.Title) + " " + c.Title + " " + c.Keywords + " " + c.Group)).OrderBy(c => c.Group switch { "Commands" => 0, "Destinations" => 1, "Settings" => 2, _ => 3 }).ThenBy(c => c.Title).ToList();
+            var matches = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(Loc.T(c.Title) + " " + c.Title + " " + c.Keywords + " " + c.Group)).OrderBy(c => c.Group switch { "Commands" => 0, "Destinations" => 1, "Settings" => 2, _ => 3 }).ThenBy(c => c.Title).ToList();
             if (matches.Count == 0) { results.Children.Add(Ui.EmptyState(Icons.Search, "No results", search.Status.Length > 0 ? search.Status : "Try fewer words, or turn on regular expression mode with the .* button.")); return; }
             foreach (var group in matches.GroupBy(c => c.Group))
             {

@@ -2,6 +2,7 @@
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.10" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../src/MaterialDockerImage/UI/DockerfileGraph.cs" Link="DockerfileGraph.cs"/>
@@ -38,5 +39,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/UnlockLadderGames.cs" Link="UnlockLadderGames.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/SchoolMode.cs" Link="SchoolMode.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/DimSumSurprise.cs" Link="DimSumSurprise.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/SchoolPasskey.cs" Link="SchoolPasskey.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/OtpQrImport.cs" Link="OtpQrImport.cs"/>
   </ItemGroup>
 </Project>

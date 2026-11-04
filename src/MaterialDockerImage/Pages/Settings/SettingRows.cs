@@ -98,6 +98,7 @@ internal sealed class SettingRows
     /// <summary>Adds a row. Narrow controls sit to the right of the text; wide ones go below it.</summary>
     public SettingRow Add(string id, string label, string explanation, FrameworkElement control, Func<UserSettings, object?>? value, string? info = null, bool wide = false, Func<object?, string>? format = null, string? example = null)
     {
+        var hidden = SchoolHiddenControls.HidesSetting(id, Host.Settings.SchoolMode);
         var provenance = value == null ? null : Ui.Text(ProvenanceText(value, format), 12, null, "Outline");
         var title = new StackPanel { Orientation = Orientation.Horizontal };
         title.Children.Add(Ui.Text(label, 14, FontWeights.SemiBold));
@@ -139,7 +140,8 @@ internal sealed class SettingRows
         border.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
         if (value != null) LockUi.AttachMenu(border, id, label, Guard);
         var row = new SettingRow { Id = id, Section = Section, Label = label, Explanation = explanation, Info = info, Element = border, Provenance = provenance, Value = value, Format = format };
-        All.Add(row);
+        // Under School mode a hidden control is absent from the page and from search, not shown disabled.
+        if (!hidden) All.Add(row);
         return row;
     }
 

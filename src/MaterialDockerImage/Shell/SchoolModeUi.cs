@@ -4,6 +4,7 @@ using System.Windows.Threading;
 using MaterialDockerImage.Pages;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
+using System.IO;
 
 namespace MaterialDockerImage.Shell;
 
@@ -55,6 +56,15 @@ public static class SchoolModeUi
         var store = Store;
         if (turnOn) { store.Enable(); return true; }
         if (!store.Enabled) return true;
+        var plan = SchoolPasskeyRules.Plan(store.Method, store.Method == SchoolOffMethod.Passkey ? await WindowsHello.CheckAsync() : HelloAvailability.Available, store.HasSecret);
+        if (plan.Notice != null) Host.Notify.Warning(Loc.T(plan.Notice) + " " + Loc.T(plan.Fallback ?? ""));
+        if (plan.Route == SchoolOffRoute.Passkey)
+        {
+            var verified = await WindowsHello.VerifyAsync(Loc.T("Turn off") + ": " + Name);
+            if (store.TurnOffAfterPasskey(verified) == SchoolOffOutcome.TurnedOff) return true;
+            Host.Notify.Warning(Loc.T("Windows Hello did not verify you, so the mode stays on."));
+            return false;
+        }
         string? message = null;
         for (var tries = 0; tries < 30; tries++)
         {
@@ -75,7 +85,7 @@ public static class SchoolModeUi
         return false;
     }
 
-    private static Task<string?> PromptSecretAsync(string title, string? message)
+    private static Task<string?> PromptSecretAsync(string title, string? message, string action = "Turn off")
     {
         var done = new TaskCompletionSource<string?>();
         Action? close = null;
@@ -83,12 +93,34 @@ public static class SchoolModeUi
         var error = Ui.Text(message ?? "", 13, null, "Error");
         void Submit() { var value = box.Password; box.Clear(); done.TrySetResult(value); close!(); }
         box.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Submit(); };
-        var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => { done.TrySetResult(null); close!(); }), Ui.Button("Turn off", Icons.LockOpen, ButtonKind.Filled, Submit));
+        var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => { done.TrySetResult(null); close!(); }), Ui.Button(action, Icons.LockOpen, ButtonKind.Filled, Submit));
         actions.HorizontalAlignment = HorizontalAlignment.Right;
-        var body = Ui.VStack(14, Ui.Title(Loc.T("Turn off") + ": " + title, 20), Ui.Caption("Enter the PIN or password you set for this mode."), Ui.Field("PIN or password", box), error, Ui.Caption(SchoolModeRules.Disclosure), actions);
+        var body = Ui.VStack(14, Ui.Title(Loc.T(action) + ": " + title, 20), Ui.Caption("Enter the PIN or password you set for this mode."), Ui.Field("PIN or password", box), error, Ui.Caption(SchoolModeRules.Disclosure), actions);
         close = Host.Overlay.Show(body, 480, () => done.TrySetResult(null));
         box.Loaded += (_, _) => box.Focus();
         return done.Task;
+    }
+
+    /// <summary>Chooses how the mode is turned off. Choosing the passkey asks Windows Hello to verify first and is refused, with the reason, when it is not available.</summary>
+    public static async Task<bool> ChooseMethodAsync(SchoolOffMethod method)
+    {
+        var store = Store;
+        if (method == store.Method) return true;
+        var hello = await WindowsHello.CheckAsync();
+        if (method == SchoolOffMethod.Passkey && SchoolPasskeyRules.ChoiceProblem(hello) is { } problem) { Host.Notify.Warning(Loc.T(problem)); return false; }
+        // While the mode is on, changing how it is turned off needs the same proof as turning it off, so the change is not a way round the lock.
+        if (store.Enabled && store.Method == SchoolOffMethod.Secret && store.HasSecret)
+        {
+            var typed = await PromptSecretAsync(Name, null, "Change how to turn off");
+            if (typed == null || !store.SecretMatches(typed)) { Host.Notify.Warning(Loc.T("That did not match.")); return false; }
+        }
+        if (store.Enabled && store.Method == SchoolOffMethod.Passkey && hello == HelloAvailability.Available
+            && !await WindowsHello.VerifyAsync(Loc.T("Change how to turn off") + ": " + Name)) { Host.Notify.Warning(Loc.T("Windows Hello did not verify you, so the choice was not changed.")); return false; }
+        if (method == SchoolOffMethod.Passkey && !await WindowsHello.VerifyAsync(Loc.T("Use Windows Hello to turn off") + ": " + Name)) { Host.Notify.Warning(Loc.T("Windows Hello did not verify you, so the choice was not changed.")); return false; }
+        try { store.SetMethod(method); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("It could not be saved: ") + e.Message); return false; }
+        Host.Notify.Success(method == SchoolOffMethod.Passkey ? "Windows Hello will now turn this mode off." : "The PIN or password will now turn this mode off.");
+        return true;
     }
 
     /// <summary>Sets or replaces the secret. Replacing it asks for the current one first.</summary>
