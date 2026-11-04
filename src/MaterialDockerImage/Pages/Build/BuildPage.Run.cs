@@ -17,7 +17,7 @@ public sealed partial class BuildPage
     private void UpdateBuildLabel()
     {
         var label = options.Call switch { BuildKitCall.Check => "Run check", BuildKitCall.Outline => "Show outline", BuildKitCall.Targets => "List targets", _ => "Build" };
-        if (build.Content is StackPanel { Children.Count: > 0 } content && content.Children[^1] is TextBlock text) text.Text = Loc.T(label);
+        if (build.Content is Panel { Children.Count: > 0 } content && content.Children[^1] is TextBlock text) text.Text = Loc.T(label);
         System.Windows.Automation.AutomationProperties.SetName(build, Loc.T(label));
         buildRun.IsEnabled = options.Call == BuildKitCall.Build && !BuildRunner.AnyActive;
     }

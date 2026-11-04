@@ -41,7 +41,7 @@ public sealed class ToolsPage : PageBase
     private void Select(string tab)
     {
         var index = Array.IndexOf(["Base64", "Documentation", "Authenticator", "Support Tickets", "Changelog"], tab);
-        if (tabs.Child is Grid grid && index >= 0 && grid.Children[index] is RadioButton r) r.IsChecked = true;
+        if (tabs.Child is Panel grid && index >= 0 && grid.Children[index] is RadioButton r) r.IsChecked = true;
         Show(tab);
     }
 

@@ -204,10 +204,14 @@
       <Setter.Value>
         <ControlTemplate TargetType="RadioButton">
           <Border x:Name="bg" Background="Transparent" BorderBrush="{DynamicResource Outline}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}" CornerRadius="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <TextBlock x:Name="check" Text="&#xE668;" FontFamily="{DynamicResource IconFont}" FontSize="18" Margin="0,0,6,0" Visibility="Collapsed" VerticalAlignment="Center"/>
+            <!-- A DockPanel passes the segment's real width to the label, so a long label ends in an ellipsis instead of running past the segment. -->
+            <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+              <DockPanel.Resources>
+                <Style TargetType="TextBlock"><Setter Property="TextTrimming" Value="CharacterEllipsis"/></Style>
+              </DockPanel.Resources>
+              <TextBlock x:Name="check" DockPanel.Dock="Left" Text="&#xE668;" FontFamily="{DynamicResource IconFont}" FontSize="18" Margin="0,0,6,0" Visibility="Collapsed" VerticalAlignment="Center" TextTrimming="None"/>
               <ContentPresenter VerticalAlignment="Center"/>
-            </StackPanel>
+            </DockPanel>
           </Border>
           <ControlTemplate.Triggers>
             <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="bg" Property="Background" Value="{DynamicResource HoverLayer}"/></Trigger>

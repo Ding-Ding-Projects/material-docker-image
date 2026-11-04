@@ -43,7 +43,7 @@ public sealed partial class SettingsPage
         });
         var reset = Ui.Button("Use system default", null, ButtonKind.Text, () => { editor.Text = ""; SaveEditor(""); });
         rows.Add("editor", "External editor", "The program used when you choose Open in editor. Leave empty to use the Windows default for the file type.",
-            Ui.VStack(6, Ui.HStack(8, editor, browse, reset), editorError), s => s.ExternalEditor, null, true, v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "system default", @"C:\Program Files\Microsoft VS Code\Code.exe");
+            Ui.VStack(6, Ui.Wrap(8, editor, browse, reset), editorError), s => s.ExternalEditor, null, true, v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "system default", @"C:\Program Files\Microsoft VS Code\Code.exe");
         rows.Add("terminal", "Open terminals in a classic console window", "Interactive container terminals normally open in the Windows default terminal application. Turn this on to use a separate classic console window instead.",
             SettingRows.Toggle(S.ClassicConsoleWindow, v => { S.ClassicConsoleWindow = v; Commit("Classic console window for terminals " + (v ? "on" : "off")); }), s => s.ClassicConsoleWindow,
             "Windows Terminal may add the session as a tab to a window that is already open. A classic console window always opens as its own window, next to this app.");
@@ -98,7 +98,7 @@ public sealed partial class SettingsPage
         var save = Ui.Button("Save", Icons.Save, ButtonKind.Tonal, () => SaveName(name.Text));
         var reset = Ui.Button(Loc.T("Reset to") + " " + UserSettings.ShippedName, null, ButtonKind.Text, () => { name.Text = UserSettings.ShippedName; SaveName(UserSettings.ShippedName); }, false);
         name.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) SaveName(name.Text); };
-        rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.HStack(8, name, save, reset), error), s => s.DisplayName, "Only the title bar and the window title change. The shipped product name stays visible in About and in the diagnostics report.", true);
+        rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.Wrap(8, name, save, reset), error), s => s.DisplayName, "Only the title bar and the window title change. The shipped product name stays visible in About and in the diagnostics report.", true);
         rows.Add("productname", "Product name", UserSettings.ShippedName, new Border(), null,
             "About and the diagnostics report always show the shipped product name, so a renamed display name never hides which product this is. Renaming changes only the title bar and window title; the settings, history and data folders keep their locations.");
         var (version, _, built) = PageParts.AppInfo();

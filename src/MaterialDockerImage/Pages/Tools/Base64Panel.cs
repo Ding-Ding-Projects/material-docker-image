@@ -322,7 +322,7 @@ internal sealed class Base64Panel
         ClearInput();
         // Selecting the other segment runs its callback, which flips the direction and converts again.
         var target = encode ? 1 : 0;
-        if (directionControl.Child is Grid grid && grid.Children.Count > target && grid.Children[target] is RadioButton radio) radio.IsChecked = true;
+        if (directionControl.Child is Panel grid && grid.Children.Count > target && grid.Children[target] is RadioButton radio) radio.IsChecked = true;
         else { encode = !encode; Sync(); }
         input.Text = next;
     }

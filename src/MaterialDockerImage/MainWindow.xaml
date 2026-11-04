@@ -27,10 +27,10 @@
           <Image x:Name="AppLogoImage" Width="22" Height="22" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
           <StackPanel VerticalAlignment="Center">
             <TextBlock x:Name="DisplayNameText" FontSize="13" FontWeight="SemiBold"/>
-            <TextBlock x:Name="Provenance" FontSize="11" Foreground="{DynamicResource OnSurfaceVariant}"/>
+            <TextBlock x:Name="Provenance" FontSize="11" Foreground="{DynamicResource OnSurfaceVariant}" MaxWidth="320" TextTrimming="CharacterEllipsis" ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
           </StackPanel>
         </StackPanel>
-        <Border x:Name="PaletteSlot" Grid.Column="1" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Border x:Name="PaletteSlot" Grid.Column="1" HorizontalAlignment="Stretch" VerticalAlignment="Center" Margin="0,0,12,0"/>
         <StackPanel x:Name="TitleActions" Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,8,0"/>
         <StackPanel Grid.Column="3" Orientation="Horizontal">
           <Button x:Name="MinimizeButton" Style="{StaticResource Btn.Window}" Content="&#xE931;" shell:WindowChrome.IsHitTestVisibleInChrome="True" AutomationProperties.Name="Minimize"/>

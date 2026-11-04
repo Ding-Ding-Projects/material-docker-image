@@ -56,14 +56,30 @@ public static class Ui
     public static Button Button(string label, string? icon = null, ButtonKind kind = ButtonKind.Tonal, Action? onClick = null, bool translate = true)
     {
         var b = new Button { Style = (Style)Application.Current.FindResource("Btn." + kind) };
-        var content = new StackPanel { Orientation = Orientation.Horizontal };
-        if (icon != null) { var glyph = Icon(icon, 18, kind == ButtonKind.Filled); glyph.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = b }); glyph.Margin = new Thickness(-4, 0, 8, 0); content.Children.Add(glyph); }
-        var text = new TextBlock { Text = translate ? Loc.T(label) : label, VerticalAlignment = VerticalAlignment.Center };
+        // A DockPanel (not a horizontal stack) lets a button that is narrower than its label shorten the label with an
+        // ellipsis instead of cutting it off mid-character; the full label is then shown as a tooltip.
+        var content = new DockPanel { LastChildFill = true };
+        if (icon != null) { var glyph = Icon(icon, 18, kind == ButtonKind.Filled); glyph.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = b }); glyph.Margin = new Thickness(-4, 0, 8, 0); DockPanel.SetDock(glyph, System.Windows.Controls.Dock.Left); content.Children.Add(glyph); }
+        var text = new TextBlock { Text = translate ? Loc.T(label) : label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         content.Children.Add(text);
         b.Content = content;
+        var ownTip = false;
+        text.SizeChanged += (_, _) =>
+        {
+            var trimmed = IsTrimmed(text);
+            if (trimmed && b.ToolTip == null) { b.ToolTip = text.Text; ownTip = true; }
+            else if (!trimmed && ownTip) { b.ToolTip = null; ownTip = false; }
+        };
         AutomationProperties.SetName(b, text.Text);
         if (onClick != null) b.Click += (_, _) => Guard(onClick);
         return b;
+    }
+    /// <summary>True when a single-line text block is narrower than its text, so part of it is hidden or shortened.</summary>
+    public static bool IsTrimmed(TextBlock t)
+    {
+        if (t.TextWrapping != TextWrapping.NoWrap || string.IsNullOrEmpty(t.Text) || t.ActualWidth <= 0) return false;
+        var full = new FormattedText(t.Text, System.Globalization.CultureInfo.CurrentUICulture, t.FlowDirection, new Typeface(t.FontFamily, t.FontStyle, t.FontWeight, t.FontStretch), t.FontSize, Brushes.Black, VisualTreeHelper.GetDpi(t).PixelsPerDip);
+        return full.WidthIncludingTrailingWhitespace > t.ActualWidth + 0.5;
     }
     public static Button AsyncButton(string label, string? icon, ButtonKind kind, Func<Task> onClick, bool translate = true)
     {
@@ -236,17 +252,17 @@ public static class Ui
     public static Border Segmented(IReadOnlyList<string> options, string selected, Action<string> changed, bool translate = true)
     {
         var group = "seg" + Guid.NewGuid().ToString("N");
-        // Star columns fill a fixed width; with no width set they size equally to the widest label and its check mark.
-        var grid = new Grid();
+        // Equal segments that never ask for more width than offered (see SegmentPanel); with no width limit they size
+        // equally to the widest label and its check mark.
+        var grid = new SegmentPanel();
         for (var i = 0; i < options.Count; i++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var option = options[i];
             var radius = options.Count == 1 ? new CornerRadius(20) : i == 0 ? new CornerRadius(20, 0, 0, 20) : i == options.Count - 1 ? new CornerRadius(0, 20, 20, 0) : new CornerRadius(0);
             var r = new RadioButton { Style = (Style)Application.Current.FindResource("Segment"), GroupName = group, Content = translate ? Loc.T(option) : option, IsChecked = option == selected, Tag = radius, BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
             AutomationProperties.SetName(r, translate ? Loc.T(option) : option);
+            r.ToolTip = translate ? Loc.T(option) : option; // the full label when a narrow segment shortens it
             r.Checked += (_, _) => changed(option);
-            Grid.SetColumn(r, i);
             grid.Children.Add(r);
         }
         var border = new Border { Child = grid, CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1), ClipToBounds = true };
@@ -288,25 +304,9 @@ public static class Ui
         var left = VStack(2, Title(title), subtitleText);
         var right = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
         foreach (var a in actions) { if (a is FrameworkElement fe) fe.Margin = new Thickness(8, 4, 0, 4); right.Children.Add(a); }
+        // The header panel decides from the width it is offered, so the actions never push the page wider than the window.
         var g = new Grid();
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 220 });
-        g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        g.Children.Add(left); g.Children.Add(right.At(0, 1));
-        // An Auto column gives the actions unlimited width, so they can never wrap there. When the title's minimum and
-        // the actions do not fit side by side, the actions move to their own row under the title, where they wrap.
-        g.SizeChanged += (_, _) =>
-        {
-            right.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            var stacked = right.DesiredSize.Width + 220 > g.ActualWidth;
-            // The unconstrained measure above must not stand in for the real one in the next layout pass.
-            right.InvalidateMeasure();
-            if (stacked == (Grid.GetRow(right) == 1)) return;
-            Grid.SetRow(right, stacked ? 1 : 0); Grid.SetColumn(right, stacked ? 0 : 1); Grid.SetColumnSpan(right, stacked ? 2 : 1);
-            right.HorizontalAlignment = stacked ? HorizontalAlignment.Left : HorizontalAlignment.Right;
-            right.Margin = stacked ? new Thickness(-8, 8, 0, 0) : new Thickness(0);
-        };
+        g.Children.Add(new HeaderPanel(left, right));
         return g;
     }
 

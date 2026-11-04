@@ -22,7 +22,7 @@ public sealed partial class CreatorPage
         choose.HorizontalAlignment = HorizontalAlignment.Left;
         ShowDetection();
         return Ui.VStack(10,
-            Ui.HStack(0, Ui.Overline("Detected project"), Ui.InfoButton("Detected project",
+            Ui.Wrap(0, Ui.Overline("Detected project"), Ui.InfoButton("Detected project",
                 "Reads package.json, lockfiles, pyproject.toml, requirements.txt, go.mod, *.csproj, Cargo.toml, pom.xml, build.gradle and index.html to suggest a Dockerfile with matching versions, port and entry point. Files are only read; nothing in the folder runs.",
                 "package.json + package-lock.json + engines.node >=20 → node:20-alpine with npm ci and a cache mount")),
             choose,

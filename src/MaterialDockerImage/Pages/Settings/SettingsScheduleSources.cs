@@ -173,8 +173,9 @@ public sealed partial class SettingsPage
         sourceStates.Add(ShowState);
         rows.Add("schedulehomeassistant", "Home Assistant schedule source", "Rules whose source is Home Assistant apply their value while a chosen entity (for example an input_boolean) is on, and optionally another value while it is off.",
             Ui.VStack(8,
-                Ui.HStack(8, Ui.Caption("Address"), baseUrl, Ui.Caption("Entity"), entity),
-                Ui.HStack(8, Ui.Caption("Token"), token, saveToken, clearToken),
+                // Wrapping groups: side by side these fields are wider than a narrow window allows.
+                Ui.Wrap(12, Ui.HStack(8, Ui.Caption("Address"), baseUrl), Ui.HStack(8, Ui.Caption("Entity"), entity)),
+                Ui.Wrap(8, Ui.HStack(8, Ui.Caption("Token"), token), saveToken, clearToken),
                 tokenState, error, Ui.HStack(10, Ui.Caption("Check every"), poll, check), state), s => s.ScheduleHaEntity,
             "The address is the base address of Home Assistant, such as http://homeassistant.local:8123. Plain http is accepted only on your own network; anything else must use https. The token is encrypted with Windows data protection for your account in its own file, is never saved in settings.json, never exported, logged or shown again. The app sends only a GET request for the one entity, waits 10 seconds at most and reads 64 KiB at most. Only the states on and off decide anything. If Home Assistant cannot be reached, the last good state stays in use and nothing changes by itself.", true,
             v => v is string { Length: > 0 } t ? t : "not set", "input_boolean.night_mode");

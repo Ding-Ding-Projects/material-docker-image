@@ -34,7 +34,7 @@ public sealed class BuildCommandPreview : StackPanel
         var head = new DockPanel();
         head.Children.Add(copy.Dock(System.Windows.Controls.Dock.Right));
         head.Children.Add(count.Dock(System.Windows.Controls.Dock.Right).Margin(0, 0, 8, 0));
-        var label = Ui.HStack(0, Ui.Overline("Command preview"), Ui.InfoButton("Command preview",
+        var label = Ui.Wrap(0, Ui.Overline("Command preview"), Ui.InfoButton("Command preview",
             "The exact arguments the Build button passes to docker, in order. Paths that are not chosen yet appear as placeholders, the metadata file is a new temporary file for each build, and confirmations (push, overwrite, cache export) still happen when you build. Secret contents and environment values are never included.",
             "docker buildx build --progress plain --tag hello-api:latest --load C:\\Projects\\hello-api"));
         head.Children.Add(label);

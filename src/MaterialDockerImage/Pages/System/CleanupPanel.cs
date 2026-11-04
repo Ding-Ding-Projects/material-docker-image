@@ -72,7 +72,7 @@ public sealed class CleanupPanel : Border
             if (c.Id == "build") Ui.Add(container, Ui.Field("Build cache age", buildAge, "Limits build cache removal to records last used before this age, using --filter until=24h or until=168h. Any age removes all unused build cache.", "docker builder prune -f --filter until=24h").Margin(36, 8, 0, 0), 0);
             if (c.Id == "volumes")
             {
-                var warn = Ui.Card(Ui.HStack(8, Ui.Icon(Icons.Warning, 18, true, "OnErrorContainer"), Ui.Text("Off by default. Without --all only anonymous unused volumes are removed; with --all every unused named volume is removed too.", 13, null, "OnErrorContainer", true, true)), 10, "ErrorContainer", 12).Margin(36, 8, 0, 0);
+                var warn = Ui.Card(new DockPanel { Children = { Ui.Icon(Icons.Warning, 18, true, "OnErrorContainer").Margin(0, 0, 8, 0).Dock(Dock.Left), Ui.Text("Off by default. Without --all only anonymous unused volumes are removed; with --all every unused named volume is removed too.", 13, null, "OnErrorContainer", true, true) } }, 10, "ErrorContainer", 12).Margin(36, 8, 0, 0);
                 Ui.Add(container, warn, 0);
                 Ui.Add(container, allVolumes, 0);
             }

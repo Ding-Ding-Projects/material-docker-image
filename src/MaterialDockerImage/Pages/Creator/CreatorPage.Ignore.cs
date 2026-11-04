@@ -46,7 +46,7 @@ public sealed partial class CreatorPage
         UpdateIgnoreContextText();
         var stack = Ui.VStack(12,
             Ui.Caption("Patterns follow Docker's rules: * stays within one folder, ** spans folders, ? is one character, a leading ! re-includes, and the last matching line wins. Paths are relative to the context root."),
-            Ui.HStack(0, Ui.Overline("Presets"), Ui.InfoButton("Presets", "Adds common patterns for a language. Patterns already listed are skipped.", "Node.js: node_modules, npm-debug.log*, dist, coverage")),
+            Ui.Wrap(0, Ui.Overline("Presets"), Ui.InfoButton("Presets", "Adds common patterns for a language. Patterns already listed are skipped.", "Node.js: node_modules, npm-debug.log*, dist, coverage")),
             presets,
             Ui.Field("Patterns", ignoreRowsHost, "One pattern per row; rows starting with # are comments. The order matters for ! exceptions.", "**/*.log\n!keep.log\nnode_modules/\n/build"),
             Ui.Divider(),

@@ -107,12 +107,18 @@ public partial class MainWindow : Window
         AutomationProperties.SetName(momentumChip, Loc.T(text) + (host.Momentum.Encouragement.Length > 0 ? ". " + Loc.T(host.Momentum.Encouragement) : ""));
     }
 
+    private void UpdatePaletteLabel()
+    {
+        if (paletteLabel != null) paletteLabel.Text = Loc.T(PaletteSlot.ActualWidth is > 0 and < 400 || PaletteSlot.MaxWidth < 400 ? "Search" : "Search commands, resources and settings");
+    }
+
     private void Adapt()
     {
         var narrow = ActualWidth > 0 && ActualWidth < 1180;
-        PaletteSlot.Width = narrow ? 220 : 460;
-        // The narrow slot cannot hold the full hint, so it shows a complete short label instead of a truncated one.
-        if (paletteLabel != null) paletteLabel.Text = Loc.T(narrow ? "Search" : "Search commands, resources and settings");
+        // A fixed width overflowed the star column whenever the title side was long (bilingual provenance), so the
+        // slot stretches up to a maximum and picks its label from the width it really gets (see PaletteSlot.SizeChanged).
+        PaletteSlot.MaxWidth = narrow ? 220 : 460;
+        UpdatePaletteLabel();
         Provenance.Visibility = AdhdRules.Resolve(settings, !(ActualWidth > 0 && ActualWidth < 1040)).ShowProvenance ? Visibility.Visible : Visibility.Collapsed;
         var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
         foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
@@ -171,6 +177,8 @@ public partial class MainWindow : Window
         paletteButton.Click += (_, _) => OpenPalette();
         WindowChrome.SetIsHitTestVisibleInChrome(paletteButton, true);
         PaletteSlot.Child = paletteButton;
+        // The narrow slot cannot hold the full hint, so it shows a complete short label instead of a truncated one.
+        PaletteSlot.SizeChanged += (_, _) => UpdatePaletteLabel();
 
         contexts.ToolTip = Loc.T("Engine context for this window. The global Docker context is never changed.");
         AutomationProperties.SetName(contexts, Loc.T("Engine context"));

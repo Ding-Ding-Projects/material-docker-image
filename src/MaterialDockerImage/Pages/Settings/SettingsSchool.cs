@@ -24,9 +24,19 @@ public sealed partial class SettingsPage
             Ui.Button("Rename…", Icons.Edit, ButtonKind.Tonal, () => _ = SchoolModeUi.RenameAsync()), null,
             "The name is kept in the shared School mode record, so every app shows the same one.");
         var store = GameServices.School;
-        var secretNote = Ui.Caption(store.HasSecret ? "A PIN or password is set." : "No PIN or password is set, so the mode can be turned off freely.");
+        var secretNote = Ui.Caption("");
+        Button? secretButton = null;
+        // The note and the button label follow the record after the dialog closes; they used to keep showing
+        // "No PIN or password is set" right after one was saved.
+        void ShowSecretState()
+        {
+            secretNote.Text = Loc.T(store.HasSecret ? "A PIN or password is set." : "No PIN or password is set, so the mode can be turned off freely.");
+            if (secretButton?.Content is Panel { Children.Count: > 0 } content && content.Children[^1] is TextBlock label) label.Text = Loc.T(store.HasSecret ? "Change…" : "Set…");
+        }
+        secretButton = Ui.AsyncButton(store.HasSecret ? "Change…" : "Set…", Icons.Lock, ButtonKind.Tonal, async () => { await SchoolModeUi.SetSecretAsync(); ShowSecretState(); });
+        ShowSecretState();
         rows.Add("schoolsecret", "PIN or password to turn it off", SchoolModeRules.Disclosure,
-            Ui.VStack(6, Ui.Button(store.HasSecret ? "Change…" : "Set…", Icons.Lock, ButtonKind.Tonal, () => _ = SchoolModeUi.SetSecretAsync()), secretNote), null,
+            Ui.VStack(6, secretButton, secretNote), null,
             "Kept only as a salted PBKDF2 hash in the shared record at " + PageParts.Sanitize(SchoolModeStore.SharedPath) + ". Deleting that file resets the mode, its name and its PIN.", true);
     }
 }

@@ -31,6 +31,8 @@ public sealed partial class SettingsPage : PageBase
     public SettingsPage()
     {
         System.Windows.Automation.AutomationProperties.SetName(nav, Loc.T("Settings sections"));
+        // Section names wrap inside the column instead of scrolling sideways.
+        ScrollViewer.SetHorizontalScrollBarVisibility(nav, ScrollBarVisibility.Disabled);
         nav.SelectionChanged += (_, _) => { if (!fillingNav && nav.SelectedItem is ListBoxItem { Tag: string name } && sectionCards.TryGetValue(name, out var card)) card.BringIntoView(new Rect(0, 0, 1, 1)); };
         search.Changed += ApplySearch;
         scroller = Ui.Scroll(content.Margin(0, 0, 12, 24));
@@ -114,7 +116,8 @@ public sealed partial class SettingsPage : PageBase
                     extra.Visibility = !search.IsActive || sectionHit ? Visibility.Visible : Visibility.Collapsed;
             if (!show) continue;
             total += search.IsActive ? hits : sectionRows.Count;
-            var item = new ListBoxItem { Tag = name, Padding = new Thickness(12, 10, 12, 10), Content = Ui.HStack(12, Ui.Icon(icon, 20), Ui.Text(name, 14, null, "OnSurface", false)) };
+            var item = new ListBoxItem { Tag = name, Padding = new Thickness(12, 10, 12, 10), Content = new DockPanel { Children = { Ui.Icon(icon, 20).Margin(0, 0, 12, 0).Dock(Dock.Left), Ui.Text(name, 14, null, "OnSurface", true) } } };
+            // Wrapping, not a horizontal stack: a stack gives the label unlimited width, so long bilingual names were cut off.
             System.Windows.Automation.AutomationProperties.SetName(item, Loc.T(name));
             nav.Items.Add(item);
             if (name == selected) nav.SelectedItem = item;

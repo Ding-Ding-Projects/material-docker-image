@@ -66,7 +66,7 @@ public static class LayoutProbe
         for (var parent = VisualTreeHelper.GetParent(fe); parent is FrameworkElement p && !ReferenceEquals(p, root); parent = VisualTreeHelper.GetParent(p))
         {
             // Horizontal scrolling is an intended way to reach the rest of the content; carets and other adorners are not layout.
-            if (p is ScrollContentPresenter { ScrollOwner.HorizontalScrollBarVisibility: not ScrollBarVisibility.Disabled } or Popup or System.Windows.Documents.AdornerLayer) return null;
+            if (p is ScrollViewer { HorizontalScrollBarVisibility: not ScrollBarVisibility.Disabled } or Popup or System.Windows.Documents.AdornerLayer) return null;
             if (clip == null && (p.ClipToBounds || p is ScrollContentPresenter))
                 clip = p.TransformToAncestor(root).TransformBounds(new Rect(0, 0, p.ActualWidth, p.ActualHeight)).Right;
         }
