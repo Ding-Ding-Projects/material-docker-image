@@ -25,6 +25,8 @@ public sealed class SearchFilter : Border
     private SearchBuilderPopover? builder;
     private string status = "";
     public event Action? Changed;
+    /// <summary>Raised when this field's builder opens or closes, so a host that is itself a popup can stay open while the builder is in use.</summary>
+    public event Action? BuilderStateChanged;
 
     /// <summary>In-memory builder state for this field only (flags, sample, replacement, recent patterns).</summary>
     public RegexFieldState State { get; } = new();
@@ -131,10 +133,15 @@ public sealed class SearchFilter : Border
         builder.Closed += returnFocus =>
         {
             builder = null;
+            BuilderStateChanged?.Invoke();
             if (returnFocus) Dispatcher.BeginInvoke(() => { query.Focus(); Keyboard.Focus(query); }, System.Windows.Threading.DispatcherPriority.Input);
         };
         builder.Open();
+        BuilderStateChanged?.Invoke();
     }
+
+    /// <summary>Closes this field's builder, if it is open, without moving focus.</summary>
+    public void CloseBuilder() => builder?.Close();
 
     /// <summary>True when the text matches. Plain text is a contains test; regex mode uses the bounded engine.</summary>
     public bool Matches(string text)

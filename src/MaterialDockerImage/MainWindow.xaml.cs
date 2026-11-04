@@ -696,12 +696,17 @@ public partial class MainWindow : Window
         c.Register(new AppCommand { Id = "set.output", Title = "Output panel open", Group = "Settings", Icon = Icons.Terminal, LiveControl = () => Ui.Switch("Output panel open", dock.Expanded, v => { dock.SetExpanded(v); settings.OutputDockOpen = v; host.SaveSettings(null); }) });
     }
 
-    private void OpenPalette()
+    private void OpenPalette() => OpenPalette(null);
+
+    private void OpenPalette(RegexSearchAction? start)
     {
         foreach (var d in Destinations.All) Page(d.Key);
         palette ??= new CommandPalette(host, overlay);
-        palette.Open(settings.PaletteFullWindow);
+        palette.Open(settings.PaletteFullWindow, start);
     }
+
+    /// <summary>Opens the command palette with its regular expression builder already filled in from an action file or the command line (--regex-pattern, --regex-action).</summary>
+    public void OpenRegexBuilder(RegexSearchAction action) => OpenPalette(action);
 
     private void ShowNotifications()
     {

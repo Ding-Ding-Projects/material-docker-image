@@ -109,17 +109,26 @@ public static class RegexSubject
     }
 
     /// <summary>A readable report: one line per scope that has matches, then the totals.</summary>
-    public static string Report(RegexScopeResult result)
+    /// <param name="t">Optional translation of each fixed sentence; English is produced when it is null.</param>
+    public static string Report(RegexScopeResult result, Func<string, string>? t = null)
     {
-        if (!result.Valid) return result.Error ?? "";
+        t ??= s => s;
+        if (!result.Valid) return t(result.Error ?? "");
         var label = result.Scope switch { RegexScope.Line => "line", RegexScope.Page => "page", _ => "text" };
         var sb = new StringBuilder();
         foreach (var s in result.Segments.Where(s => s.Matches.Count > 0))
-            sb.AppendLine($"{(result.Scope == RegexScope.Whole ? "Text" : char.ToUpperInvariant(label[0]) + label[1..] + " " + s.Number)}: {s.Matches.Count} match{(s.Matches.Count == 1 ? "" : "es")}: " + string.Join(", ", s.Matches.Take(8).Select(m => $"{Visible(m.Value)} at {m.Index}")) + (s.Matches.Count > 8 ? ", …" : ""));
-        sb.Append($"{result.TotalMatches} match{(result.TotalMatches == 1 ? "" : "es")} in {result.ScopesWithMatches} of {result.ScopeCount} {label}{(result.ScopeCount == 1 ? "" : "s")}.");
-        if (result.TimedOut) sb.Append($" Stopped on a {label} that exceeded the {RegexBuilderEngine.MatchTimeout.TotalMilliseconds:0} ms limit.");
-        if (result.Truncated) sb.Append(" The result was cut at the bounds.");
+            sb.AppendLine(t($"{(result.Scope == RegexScope.Whole ? "Text" : char.ToUpperInvariant(label[0]) + label[1..] + " " + s.Number)}: {s.Matches.Count} match{(s.Matches.Count == 1 ? "" : "es")}:") + " " + string.Join(", ", s.Matches.Take(8).Select(m => $"{Visible(m.Value)} {t($"at {m.Index}")}")) + (s.Matches.Count > 8 ? ", …" : ""));
+        sb.Append(t($"{result.TotalMatches} match{(result.TotalMatches == 1 ? "" : "es")} in {result.ScopesWithMatches} of {result.ScopeCount} {label}{(result.ScopeCount == 1 ? "" : "s")}."));
+        if (result.TimedOut) sb.Append(" " + t($"Stopped on a {label} that exceeded the {RegexBuilderEngine.MatchTimeout.TotalMilliseconds:0} ms limit."));
+        if (result.Truncated) sb.Append(" " + t("The result was cut at the bounds."));
         return sb.ToString();
+    }
+
+    /// <summary>The line under the hex view: byte count, encoding, what was shown, and the line-ending counts.</summary>
+    public static string HexStatus(RegexHexView view, string? sample, Func<string, string>? t = null)
+    {
+        t ??= s => s;
+        return t($"{view.ByteCount} bytes in {view.Encoding}") + (view.Truncated ? ", " + t($"the first {MaxHexBytes} shown") + ". " : ". ") + t(CountLineEndings(sample).Summary);
     }
 
     private static string Visible(string value) => value.Length == 0 ? "(empty)" : value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");

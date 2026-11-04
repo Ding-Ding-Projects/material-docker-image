@@ -27,7 +27,8 @@ public static class RegexCompare
     public static List<string> ParsePatterns(string? text) =>
         (text ?? "").Replace("\r", "").Split('\n').Where(l => l.Length > 0).Take(MaxPatterns).ToList();
 
-    public static RegexCompareResult Run(IReadOnlyList<string> patterns, RegexBuilderFlags flags, string? suite, CancellationToken cancellation = default)
+    /// <param name="translate">Optional translation of each sentence of the verdict; English is produced when it is null.</param>
+    public static RegexCompareResult Run(IReadOnlyList<string> patterns, RegexBuilderFlags flags, string? suite, CancellationToken cancellation = default, Func<string, string>? translate = null)
     {
         if (patterns.Count < 2) return new(false, "Enter at least two patterns, one per line.", [], "", false);
         var (cases, _) = RegexBuilderOperations.ParseSuite(suite);
@@ -56,7 +57,7 @@ public static class RegexCompare
             catch (RegexMatchTimeoutException) { timedOut = true; }
             rows.Add(new(pattern, true, null, compiled.Engine, mp, matching.Count, np, non.Count, mt, nt, timedOut));
         }
-        return new(true, null, rows, Verdict(rows, cancelled), cancelled);
+        return new(true, null, rows, Verdict(rows, cancelled, translate ?? (s => s)), cancelled);
     }
 
     private static double Time(Regex regex, List<string> subjects)
@@ -67,15 +68,15 @@ public static class RegexCompare
         return t.Elapsed.TotalMilliseconds / Repeats;
     }
 
-    private static string Verdict(List<RegexCompareRow> rows, bool cancelled)
+    private static string Verdict(List<RegexCompareRow> rows, bool cancelled, Func<string, string> t)
     {
-        if (cancelled) return "Stopped at the time budget; later patterns were not compared.";
+        if (cancelled) return t("Stopped at the time budget; later patterns were not compared.");
         var good = rows.Where(r => r.AllCorrect).ToList();
-        if (good.Count == 0) return "No pattern gave the expected answer for every subject, so none can be called the fastest.";
+        if (good.Count == 0) return t("No pattern gave the expected answer for every subject, so none can be called the fastest.");
         var best = good.OrderBy(r => r.TotalMs).First();
-        var text = $"Fastest of the {good.Count} pattern{(good.Count == 1 ? "" : "s")} that are right for every subject: {best.Pattern} ({best.TotalMs:0.000} ms per pass).";
-        if (good.Count < rows.Count) text += $" {rows.Count - good.Count} other pattern{(rows.Count - good.Count == 1 ? " is" : "s are")} wrong for some subject, invalid or timed out.";
-        return text + " These are wall-clock times on this machine and change from run to run.";
+        var text = t($"Fastest of the {good.Count} pattern{(good.Count == 1 ? "" : "s")} that are right for every subject: {best.Pattern} ({best.TotalMs:0.000} ms per pass).");
+        if (good.Count < rows.Count) text += " " + t($"{rows.Count - good.Count} other pattern{(rows.Count - good.Count == 1 ? " is" : "s are")} wrong for some subject, invalid or timed out.");
+        return text + " " + t("These are wall-clock times on this machine and change from run to run.");
     }
 }
 
@@ -86,15 +87,16 @@ public static class RegexGrowth
     /// Fits the growth exponent between the smallest and largest probe of one family ("sample" or "a-run"): 1 is linear, 2 quadratic. Returns a plain sentence, or says that the
     /// times were too small to tell, because a timer reads noise below about a millisecond.
     /// </summary>
-    public static string Describe(IReadOnlyList<RegexBenchmarkRow> rows, string family)
+    public static string Describe(IReadOnlyList<RegexBenchmarkRow> rows, string family, Func<string, string>? t = null)
     {
+        t ??= s => s;
         var set = rows.Where(r => r.Subject.StartsWith(family, StringComparison.Ordinal) && !r.TimedOut).OrderBy(r => r.Size).ToList();
-        if (set.Count < 2) return $"Not enough {family} probes to estimate growth.";
+        if (set.Count < 2) return t($"Not enough {family} probes to estimate growth.");
         var small = set[0]; var large = set[^1];
-        if (large.Milliseconds < 1) return $"The {family} probes finished in under a millisecond, too fast to estimate how time grows.";
+        if (large.Milliseconds < 1) return t($"The {family} probes finished in under a millisecond, too fast to estimate how time grows.");
         var floor = Math.Max(small.Milliseconds, 0.05);
         var exponent = Math.Log(large.Milliseconds / floor) / Math.Log((double)large.Size / small.Size);
         var kind = exponent < 1.3 ? "about linear" : exponent < 1.8 ? "between linear and quadratic" : exponent < 2.5 ? "about quadratic" : "worse than quadratic";
-        return $"{char.ToUpperInvariant(family[0])}{family[1..]} probes: time grew {kind} (exponent about {exponent:0.0}) from {small.Size} to {large.Size} characters.";
+        return t($"{char.ToUpperInvariant(family[0])}{family[1..]} probes: time grew {kind} (exponent about {exponent:0.0}) from {small.Size} to {large.Size} characters.");
     }
 }

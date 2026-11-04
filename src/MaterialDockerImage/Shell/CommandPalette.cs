@@ -13,7 +13,8 @@ public sealed class CommandPalette
     private readonly OverlayHost overlay;
     public CommandPalette(AppHost host, OverlayHost overlay) { this.host = host; this.overlay = overlay; }
 
-    public void Open(bool fullWindow)
+    /// <param name="start">When given (from an action file or the command line), the palette's search field is filled in with it and its builder opens. Nothing is searched or replaced.</param>
+    public void Open(bool fullWindow, RegexSearchAction? start = null)
     {
         Action? close = null;
         var search = new SearchFilter("Type a command, destination or setting", fullWindow ? 900 : 640);
@@ -117,5 +118,10 @@ public sealed class CommandPalette
         Fill();
         close = overlay.Show(Ui.VStack(12, search, note, scroller, Ui.Divider(), footer), fullWindow ? 1000 : 720, null, VerticalAlignment.Top, fullWindow ? .92 : .8);
         search.Box.Focus();
+        if (start != null)
+        {
+            SearchBuilderPopover.ApplyActionToField(search, start);
+            search.Dispatcher.BeginInvoke(() => search.OpenBuilder(), System.Windows.Threading.DispatcherPriority.Loaded);
+        }
     }
 }

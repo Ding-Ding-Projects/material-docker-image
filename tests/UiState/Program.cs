@@ -780,7 +780,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     var scan=SearchSurfaceCatalogue.Scan(appSource);
     var problems=SearchSurfaceCatalogue.Verify(scan);
     foreach(var problem in problems) Console.WriteLine("CATALOGUE "+problem);
-    Check(problems.Count==0&&scan.Count==SearchSurfaceCatalogue.All.Count,$"search surface catalogue complete ({SearchSurfaceCatalogue.All.Count} surfaces)");
+    Check(problems.Count==0&&scan.Count==SearchSurfaceCatalogue.All.Count,$"search surface catalogue complete ({SearchSurfaceCatalogue.All.Count} surfaces)"+(problems.Count>0?": "+string.Join(" | ",problems.Take(8)):""));
     Check(scan.Any(s=>s.File.StartsWith("Pages/"))&&scan.Any(s=>s.File.StartsWith("Shell/")),"guard scans Pages and Shell");
     var fakeRoot=Path.Combine(Path.GetTempPath(),"mdi-guard-"+Guid.NewGuid().ToString("N"));
     try
@@ -971,6 +971,7 @@ count += RegexRemainingChecks.Run();
 count += PasskeyQrChecks.Run();
 count += CameraQrChecks.Run();
 count += RegexPartialChecks.Run();
+count += RegexFinishChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

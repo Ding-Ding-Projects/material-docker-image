@@ -54,8 +54,11 @@ internal sealed partial class SearchBuilderPopover
     private readonly TextBox convertOutput = Ui.CodeBox("", 60);
     private readonly TextBlock convertNotes = new() { TextWrapping = TextWrapping.Wrap };
     private readonly StackPanel libraryList = new();
-    private readonly TextBox librarySearch = Ui.Input("", "Filter the library");
-    private readonly TextBox mineSearch = Ui.Input("", "Filter my patterns");
+    // The two filters inside the builder are search fields like every other: plain text by default, with their own anchored builder.
+    private readonly SearchFilter librarySearch = new SearchFilter("Filter the library", 280) { Width = double.NaN };
+    private readonly SearchFilter mineSearch = new SearchFilter("Filter my patterns", 280) { Width = double.NaN };
+    private readonly TextBlock libraryFilterStatus = Ui.Caption("");
+    private readonly TextBlock mineFilterStatus = Ui.Caption("");
     private readonly StackPanel savedList = new();
     private readonly StackPanel recentList = new();
     private readonly TextBlock mineStatus = Ui.Caption("");
@@ -107,26 +110,25 @@ internal sealed partial class SearchBuilderPopover
         foreach (var (header, path) in new[] { ("Match", "Match"), ("Group", "Group"), ("Name", "Name"), ("Value", "Value"), ("Position", "Position") })
             groups.Columns.Add(new DataGridTextColumn { Header = Loc.T(header), Binding = new Binding(path), Width = header == "Value" ? new DataGridLength(1, DataGridLengthUnitType.Star) : DataGridLength.Auto });
 
-        var content = Ui.VStack(14,
-            Header(),
-            modeSwitch,
-            PatternSection(),
-            FlagsSection(),
-            InsertSection(),
-            Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern, or move the caret in the pattern to select its row.", ExplanationControls(), explanation, tokenHelp),
-            TesterSection(),
-            ReplaceSection(),
-            SplitSection(),
-            SuiteSection(),
-            CompareSection(),
-            SubjectSection(),
-            DiagnosticsSection(),
-            ConvertSection(),
-            FlavorSection(),
-            FilesSection(),
-            ActionsRow(),
-            DialectNote());
-        scroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 4, 0) };
+        RegisterPanel("pattern", PatternSection());
+        RegisterPanel("flags", FlagsSection());
+        RegisterPanel("insert", InsertSection());
+        RegisterPanel("explanation", Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern, or move the caret in the pattern to select its row.", ExplanationControls(), explanation, tokenHelp, TreeEditControls()));
+        RegisterPanel("test", TesterSection());
+        RegisterPanel("replace", ReplaceSection());
+        RegisterPanel("split", SplitSection());
+        RegisterPanel("cases", SuiteSection());
+        RegisterPanel("compare", CompareSection());
+        RegisterPanel("subject", SubjectSection());
+        RegisterPanel("diagnostics", DiagnosticsSection());
+        RegisterPanel("convert", ConvertSection());
+        RegisterPanel("templates", TemplatesSection());
+        RegisterPanel("flavors", FlavorSection());
+        RegisterPanel("files", FilesSection());
+        RegisterPanel("preferences", PreferencesSection());
+        contentStack = Ui.VStack(14);
+        ApplyLayout();
+        scroll = new ScrollViewer { Content = contentStack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 4, 0) };
         card = Ui.Card(scroll, 16, "SurfaceHigh", 16);
         card.Effect = Ui.Elevation(18, 4, .35);
         card.Margin = new Thickness(0, 4, 12, 12);
@@ -156,8 +158,10 @@ internal sealed partial class SearchBuilderPopover
         replacement.TextChanged += (_, _) => { field.State.Replacement = replacement.Text; Schedule(); };
         blocksBox.TextChanged += (_, _) => { field.State.Blocks = blocksBox.Text; RenderBlocks(); };
         suiteBox.TextChanged += (_, _) => { field.State.TestCases = suiteBox.Text; Schedule(); };
-        librarySearch.TextChanged += (_, _) => RenderLibrary();
-        mineSearch.TextChanged += (_, _) => RenderMine();
+        librarySearch.Changed += RenderLibrary;
+        mineSearch.Changed += RenderMine;
+        RegisterNested(librarySearch);
+        RegisterNested(mineSearch);
         explanation.SelectedItemChanged += (_, e) =>
         {
             if (treeSyncing) return;
@@ -181,6 +185,7 @@ internal sealed partial class SearchBuilderPopover
         field.Box.TextChanged += fieldTextChanged;
         field.Changed += fieldChanged;
         InitTools();
+        InitFinish();
     }
 
     public void Open()
@@ -202,6 +207,7 @@ internal sealed partial class SearchBuilderPopover
 
     private void OnClosed()
     {
+        foreach (var nested in nestedFilters) nested.CloseBuilder();
         debounce.Stop();
         evaluation?.Cancel();
         bench?.Cancel();
@@ -410,16 +416,16 @@ internal sealed partial class SearchBuilderPopover
 
     private FrameworkElement LibraryTab()
     {
-        AutomationProperties.SetName(librarySearch, Loc.T("Filter the library"));
         RenderLibrary();
-        return Ui.VStack(8, librarySearch, new ScrollViewer { Content = libraryList, MaxHeight = 260, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+        return Ui.VStack(8, librarySearch, libraryFilterStatus, new ScrollViewer { Content = libraryList, MaxHeight = 260, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
     }
 
     private void RenderLibrary()
     {
         libraryList.Children.Clear();
-        var found = RegexPatternStore.SearchSnippets(librarySearch.Text);
-        if (found.Count == 0) libraryList.Children.Add(Ui.Caption("No library pattern matches the filter."));
+        var found = RegexPatternStore.SearchSnippets(librarySearch.Predicate);
+        libraryFilterStatus.Text = librarySearch.Predicate.IsValid ? "" : Loc.T(librarySearch.Predicate.Error ?? "Invalid pattern.") + " " + Loc.T("Correct the expression to filter the library.");
+        if (found.Count == 0) libraryList.Children.Add(Ui.Caption(librarySearch.Predicate.IsValid ? "No library pattern matches the filter." : "The filter is not a valid pattern, so nothing is listed."));
         foreach (var s in found)
         {
             var snippet = s;
@@ -518,7 +524,6 @@ internal sealed partial class SearchBuilderPopover
     {
         var save = Small("Save to my patterns", "Stores the pattern and flags in regex-patterns.json in the app data folder (at most 200). With the box below ticked it also stores the replacement and the test cases.", SaveCurrent);
         includeExtras = Ui.Check("Also save the replacement and the test cases", true);
-        AutomationProperties.SetName(mineSearch, Loc.T("Filter my patterns"));
         return Ui.VStack(8,
             Ui.Field("Description", saveDescription, "What the pattern is for, shown under its name and searched by the filter. Optional; at most 300 characters.", "Matches a port number"),
             Ui.Field("Name", saveName, "Saving is the only way the builder stores anything here. The sample text is never saved with a pattern; the replacement and test cases are saved only when the box below is ticked.", "Short image IDs"),
@@ -526,7 +531,7 @@ internal sealed partial class SearchBuilderPopover
             Ui.Wrap(8, save,
                 Small("Import…", "Add patterns from a library file. Existing names are kept and invalid patterns are skipped.", ImportLibrary),
                 Small("Export…", "Save all of my patterns to a file you choose.", ExportLibrary)),
-            mineStatus, mineSearch,
+            mineStatus, mineSearch, mineFilterStatus,
             Ui.Overline("Saved patterns"), new ScrollViewer { Content = savedList, MaxHeight = 160, VerticalScrollBarVisibility = ScrollBarVisibility.Auto },
             Ui.Overline("Recent in this field (this session only)"), recentList);
     }
@@ -583,7 +588,9 @@ internal sealed partial class SearchBuilderPopover
         if (field.Query.Length == 0) { convertOutput.Text = ""; convertNotes.Text = Loc.T("Enter a pattern to convert."); return; }
         var (text, flags) = Effective();
         var kind = (kindCombo.SelectedItem as string) switch { "Test for a match" => RegexCodeKind.IsMatch, "Replace" => RegexCodeKind.Replace, "Split" => RegexCodeKind.Split, _ => RegexCodeKind.Matches };
-        var result = RegexConverter.Convert(target, text, flags, kind, field.State.Replacement, field.State.GrepFolder.Length > 0 ? field.State.GrepFolder : null, field.State.GrepFolder.Length > 0 ? field.State.GrepGlobs : null);
+        var result = RegexCodeTemplates.Languages.Contains(target)
+            ? RegexCodeTemplates.Render(target, text, flags, kind, field.State.Replacement, Templates())
+            : RegexConverter.Convert(target, text, flags, kind, field.State.Replacement, field.State.GrepFolder.Length > 0 ? field.State.GrepFolder : null, field.State.GrepFolder.Length > 0 ? field.State.GrepGlobs : null);
         convertOutput.Text = result.Text;
         convertNotes.Text = string.Join(" ", result.Notes.Select(Loc.T)) + (result.Converted && result.Lossy ? " " + Loc.T("The converted pattern is not identical in meaning.") : "");
     }
@@ -602,7 +609,7 @@ internal sealed partial class SearchBuilderPopover
             if (cts.IsCancellationRequested || !popup.IsOpen) return;
             benchStatus.Text = result.Valid ? Loc.T(result.Verdict) : result.Error ?? "";
             benchOutput.Text = string.Join("\n", result.Rows.Select(r => $"{r.Subject,-12} {r.Size,6} chars  {(r.TimedOut ? ">" + RegexDiagnostics.ProbeTimeout.TotalMilliseconds.ToString("0") : r.Milliseconds.ToString("0.00"))} ms  {(r.TimedOut ? "timed out" : r.Matched ? "match" : "no match")}"));
-            if (result.Valid && result.Rows.Count > 0) benchOutput.Text += "\n" + RegexGrowth.Describe(result.Rows, "sample") + "\n" + RegexGrowth.Describe(result.Rows, "a-run");
+            if (result.Valid && result.Rows.Count > 0) benchOutput.Text += "\n" + RegexGrowth.Describe(result.Rows, "sample", Loc.T) + "\n" + RegexGrowth.Describe(result.Rows, "a-run", Loc.T);
         }
         catch (OperationCanceledException) { }
     }
@@ -907,7 +914,8 @@ internal sealed partial class SearchBuilderPopover
             try { saved = RegexPatternStore.Load(RegexPatternStore.DefaultPath); }
             catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { saved = new(); mineStatus.Text = Loc.T("Saved patterns could not be read:") + " " + e.Message; }
         }
-        var shown = RegexPatternStore.Search(saved, mineSearch.Text);
+        var shown = RegexPatternStore.Search(saved, mineSearch.Predicate);
+        mineFilterStatus.Text = mineSearch.Predicate.IsValid ? "" : Loc.T(mineSearch.Predicate.Error ?? "Invalid pattern.") + " " + Loc.T("Correct the expression to filter my patterns.");
         if (saved.Count == 0) savedList.Children.Add(Ui.Caption("No saved patterns yet."));
         else if (shown.Count == 0) savedList.Children.Add(Ui.Caption("No saved pattern matches the filter."));
         foreach (var s in shown)

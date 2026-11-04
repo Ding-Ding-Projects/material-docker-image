@@ -34,6 +34,7 @@ public partial class App : Application
             Shutdown(0);
             return;
         }
+        MaterialDockerImage.UI.RegexBuilderPreferences.LoadAtStartup();
         var captureIndex = Array.IndexOf(e.Args, "--capture");
         var capture = captureIndex >= 0 && captureIndex + 1 < e.Args.Length;
         string? Arg(string name) { var i = Array.IndexOf(e.Args, name); return i >= 0 && i + 1 < e.Args.Length ? e.Args[i + 1] : null; }
@@ -62,6 +63,9 @@ public partial class App : Application
         }
         DispatcherUnhandledException += (_, args) => { args.Handled = true; Services.AppHost.Current?.Notify.Error("Unexpected problem: " + args.Exception.Message); };
         window.Show();
+        var (regexAction, regexProblem) = MaterialDockerImage.UI.RegexCommandLine.Parse(e.Args);
+        if (regexProblem != null) MessageBox.Show(window, regexProblem, "Regular expression builder", MessageBoxButton.OK, MessageBoxImage.Warning);
+        else if (regexAction != null) window.Dispatcher.BeginInvoke(() => window.OpenRegexBuilder(regexAction), System.Windows.Threading.DispatcherPriority.Loaded);
         var openIndex = Array.IndexOf(e.Args, "--open-dockerfile");
         if (openIndex >= 0 && openIndex + 1 < e.Args.Length)
         {
