@@ -39,10 +39,17 @@ public sealed partial class SettingsPage
         rows.Add("emoji", "Show emojis in dialogs", "Adds a small emoji to dialog titles and the message preview.",
             SettingRows.Toggle(S.DialogEmoji, v => { S.DialogEmoji = v; Commit("Dialog emojis " + (v ? "on" : "off")); Preview(); }), s => s.DialogEmoji);
         Preview();
-        var previewCard = Ui.Card(Ui.VStack(6, Ui.Overline("Preview (example message, nothing was built)"), preview), 14, "SurfaceContainer", 12);
-        previewCard.Margin = new Thickness(0, 12, 0, 4);
-        Extra(previewCard);
-        if (S.SchoolMode) Extra(Ui.Caption(Shell.SchoolModeUi.Phrase("School mode is on, so English is used and funny levels have no effect until it is turned off in Data and privacy.")).Margin(0, 4, 0, 4));
+        if (S.SchoolMode)
+        {
+            // The wording choices are absent while the mode is on; the note names nothing that is hidden.
+            Extra(Ui.Caption(Shell.SchoolModeUi.Phrase("School mode is on. The other choices here come back when it is turned off in Data and privacy.")).Margin(0, 4, 0, 4));
+        }
+        else
+        {
+            var previewCard = Ui.Card(Ui.VStack(6, Ui.Overline("Preview (example message, nothing was built)"), preview), 14, "SurfaceContainer", 12);
+            previewCard.Margin = new Thickness(0, 12, 0, 4);
+            Extra(previewCard);
+        }
         rows.Add("vocabulary", "Personal wording", "Replaces chosen labels with your own words from a local JSON file. The file stays on this computer.",
             VocabularyControl(), s => s.PersonalVocabularyPath,
             "Format: {\"version\": 1, \"entries\": {\"Build image\": \"Cook it\"}}. Keys are the English labels. The whole file is checked before anything is applied; a rejected file changes nothing. The wording is never written to logs, history or exports, only the file path is saved.", true,

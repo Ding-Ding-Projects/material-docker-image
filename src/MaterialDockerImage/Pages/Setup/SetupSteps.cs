@@ -224,9 +224,12 @@ internal sealed class SetupSteps
     public FrameworkElement Personalize()
     {
         var s = Host.Settings;
+        var theme = Ui.Field("Theme", Ui.Segmented(["System", "Light", "Dark"], s.Theme, v => { s.Theme = v; Host.SaveSettings("Theme set to " + v); }), "System follows the Windows app theme.");
+        // Under School mode the language choice is absent, not disabled.
+        if (s.SchoolMode) return Ui.VStack(16, Ui.Caption("You can change these and many more later in Settings."), theme);
         return Ui.VStack(16,
             Ui.Caption("You can change these and many more later in Settings."),
-            Ui.Field("Theme", Ui.Segmented(["System", "Light", "Dark"], s.Theme, v => { s.Theme = v; Host.SaveSettings("Theme set to " + v); }), "System follows the Windows app theme."),
+            theme,
             Ui.Field("Language", Ui.Segmented(["English", "Cantonese", "Bilingual"], s.Language, v => { s.Language = v; Loc.Language = v; Host.SaveSettings("Language set to " + v); }), "Labels with a Cantonese translation change; other text stays in English. Pages built earlier refresh their labels when reopened."));
     }
 }

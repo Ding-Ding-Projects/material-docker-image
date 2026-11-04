@@ -101,7 +101,11 @@ School mode keeps one shared record, `school-mode.json`, in `DingDingProjects\sh
 - Deleting `school-mode.json` resets the mode, its name and its PIN. The settings row says so; the mode is a lock you set for yourself, not security.
 - The ladder starts at the sums and the dim sum surprise never appears while it is on. English is forced (`Loc.SchoolMode`).
 
-Not built: a passkey choice for turning the mode off; removing every Cantonese, bilingual, funny-level, personal-vocabulary and dim sum control and reference from every surface (the language and funny-level controls are still present and only disabled in effect); proving the live switch between two real running apps.
+**Passkey choice.** Under Data and privacy the mode can be turned off with Windows Hello user verification instead of the PIN or password. The record stores only the choice (`Method`: `secret` or `passkey`), never a passkey, template or secret; Windows shows its own verification dialog (`UserConsentVerifier`, which is why the app targets `net10.0-windows10.0.19041.0`). Choosing the passkey is refused with the plain reason when Windows Hello has no device, is not set up, is disabled by policy or is busy. At turn-off time an unavailable Windows Hello is reported and falls back to the PIN or password, and to a free switch-off only when no PIN or password is set either. While the mode is on, changing the method needs the same proof as turning it off. An unknown stored method reads as the PIN or password. The pure rules are in `UI/SchoolPasskey.cs` and are checked in `tests/UiState/PasskeyQrChecks.cs`; the Windows Hello calls (`Services/WindowsHello.cs`) have not been run, because they show a Windows prompt.
+
+**Hidden under the mode.** The Language setting, both funny-level sliders, the personal wording row and its preview, the Language command in the palette, the Language field of the setup wizard and the personal wording file drop are absent (not disabled, and absent from settings search) while the mode is on, and come back when it is turned off. One list, `SchoolHiddenControls`, decides this. The scheduled-settings editor can still offer a language rule, and the language row of the Locks manager is unchanged; neither takes effect while the mode forces English.
+
+Not built: proving the live switch between two real running apps, and driving the passkey choice and the hidden controls in the built window.
 
 ## Dim sum surprise
 

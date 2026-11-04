@@ -967,6 +967,7 @@ count += LadderChecks.Run();
 count += LockPolicyChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
+count += PasskeyQrChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

@@ -209,12 +209,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: the Tools page has an Authenticator section with My accounts and App locks. My accounts is a general authenticator: it adds accounts from an otpauth link (parameters honoured) or by hand, shows each account's code grouped for reading with a seconds countdown and the next code, copies a code, renames, reorders and deletes with confirmation, searches, protects the whole list for the Windows account with DPAPI, and exports or imports an AES-256-GCM backup under a passphrase. App locks pairs an authenticator app with a lock (QR code, Base32 text, a code typed back) and runs the RFC 6238 vectors. Link parsing, codes against the RFC 6238 vectors, the vault and backup are covered by UI-state checks. Registration from a QR image, the clipboard or a camera, grouping, a clock-skew warning and a super-confirmed secrets export are not built, and nothing has been driven in the built window.",
-        "zh": "部分完成：工具頁嘅驗證工具分「我嘅帳戶」同「應用程式鎖」。「我嘅帳戶」係通用驗證器：可用 otpauth 連結（照用連結參數）或手動新增帳戶，顯示分組易讀嘅驗證碼、秒數倒數同下一組驗證碼，可複製、改名、排序、確認後刪除、搜尋；整份清單用 DPAPI 為 Windows 帳戶保護，並可用密碼短語匯出或匯入 AES-256-GCM 加密備份。「應用程式鎖」可為鎖配對驗證器應用程式（QR 碼、Base32 文字、輸入一次驗證碼）並計算 RFC 6238 測試向量。連結解析、對照 RFC 6238 向量嘅驗證碼、保管庫同備份已有 UI 狀態檢查。由 QR 圖片、剪貼簿或相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出尚未建立，亦未曾喺已建置視窗操作。"
+        "en": "Partly delivered: the Tools page has an Authenticator section with My accounts and App locks. My accounts is a general authenticator: it adds accounts from an otpauth link (parameters honoured) or by hand, shows each account's code grouped for reading with a seconds countdown and the next code, copies a code, renames, reorders and deletes with confirmation, searches, protects the whole list for the Windows account with DPAPI, and exports or imports an AES-256-GCM backup under a passphrase. App locks pairs an authenticator app with a lock (QR code, Base32 text, a code typed back) and runs the RFC 6238 vectors. Link parsing, codes against the RFC 6238 vectors, the vault and backup are covered by UI-state checks. Registration from a QR image file or the clipboard (decoded in-process with ZXing.Net, through the same link parser; round trip checked in code) is built but has not been driven in the built window. Camera registration, grouping, a clock-skew warning and a super-confirmed secrets export are not built, and nothing has been driven in the built window.",
+        "zh": "部分完成：工具頁嘅驗證工具分「我嘅帳戶」同「應用程式鎖」。「我嘅帳戶」係通用驗證器：可用 otpauth 連結（照用連結參數）或手動新增帳戶，顯示分組易讀嘅驗證碼、秒數倒數同下一組驗證碼，可複製、改名、排序、確認後刪除、搜尋；整份清單用 DPAPI 為 Windows 帳戶保護，並可用密碼短語匯出或匯入 AES-256-GCM 加密備份。「應用程式鎖」可為鎖配對驗證器應用程式（QR 碼、Base32 文字、輸入一次驗證碼）並計算 RFC 6238 測試向量。連結解析、對照 RFC 6238 向量嘅驗證碼、保管庫同備份已有 UI 狀態檢查。由 QR 圖片檔案或剪貼簿登記（程式內用 ZXing.Net 解碼，經同一個連結解析器；來回轉換已用程式碼檢查）已建立，但未曾喺已建置視窗操作。相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出尚未建立。"
       },
       "remaining": {
-        "en": "Add QR image, clipboard and camera registration, grouping, a clock-skew warning and a super-confirmed secrets export, then drive both sections in the built window.",
-        "zh": "加入由 QR 圖片、剪貼簿同相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出，然後喺已建置視窗操作兩個區。"
+        "en": "Add camera registration, grouping, a clock-skew warning and a super-confirmed secrets export, then drive both sections, including the QR image and clipboard routes, in the built window.",
+        "zh": "加入相機登記、分組、時鐘偏差警告同需超級確認嘅密鑰匯出，然後喺已建置視窗操作兩個區，包括 QR 圖片同剪貼簿途徑。"
       },
       "evidence": [
         {
@@ -2193,8 +2193,8 @@
         "zh": "部分完成：為鎖配對驗證器時，會喺程式內繪畫標準 otpauth 連結嘅 QR 碼（無外部依賴嘅編碼器，支援版本 1 至 10，已對照公佈嘅 Reed-Solomon 向量，同由獨立掃描器解碼過嘅矩陣），旁邊有可複製嘅 Base32 密鑰、演算法、位數同週期，只按要求顯示，亦唔會寫入磁碟、記錄、匯出或歷史。輸入現時驗證碼後因子先生效。未驗證真實手機驗證器掃描、已建置視窗喺兩種主題下嘅顯示同其他配對介面。"
       },
       "remaining": {
-        "en": "Scan the QR code with a real authenticator app, check it in both themes in the built window, and add the image, clipboard and camera registration routes.",
-        "zh": "用真實驗證器應用程式掃描 QR 碼，喺已建置視窗以兩種主題檢查，並加入圖片、剪貼簿同相機登記途徑。"
+        "en": "Scan the QR code with a real authenticator app, check it in both themes in the built window, and add the camera registration route (the image-file and clipboard routes are built but not driven in the built window).",
+        "zh": "用真實驗證器應用程式掃描 QR 碼，喺已建置視窗以兩種主題檢查，並加入相機登記途徑（圖片檔案同剪貼簿途徑已建立但未曾喺已建置視窗操作）。"
       },
       "evidence": [
         {
@@ -2617,12 +2617,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: one shared, renamable School mode record in the shared application-data folder, a PIN or password stored as a salted hash that is asked for when turning the mode off, a persisted wait that lengthens on wrong answers, a running app that follows the record live, the chosen name used on this app's mode controls, and the ladder and surprise rules that stay out of it. Not delivered: a passkey choice, hiding every Cantonese, bilingual, funny-level, personal-vocabulary and dim sum control and reference everywhere, and a test between two real running apps. The rules are checked in code; nothing has been driven in the built window.",
-        "zh": "部分完成：喺共用應用程式資料夾有一份共用、可改名嘅學校模式記錄；PIN 或密碼以加鹽雜湊儲存，關閉模式時會詢問；答錯會有跨重新啟動保留、愈來愈長嘅等候；運行中嘅程式會即時跟隨記錄；本程式嘅模式控制項用你揀嘅名稱；解鎖階梯同點心驚喜亦會避開呢個模式。未完成：通行密鑰選項、喺所有地方隱藏廣東話、雙語、搞笑程度、個人詞彙同點心嘅控制項同提及，以及兩個真正運行中程式之間嘅測試。規則已用程式碼檢查；未曾喺已建置視窗操作。"
+        "en": "Partly delivered: one shared, renamable School mode record in the shared application-data folder, a PIN or password stored as a salted hash that is asked for when turning the mode off, a persisted wait that lengthens on wrong answers, a running app that follows the record live, the chosen name used on this app's mode controls, and the ladder and surprise rules that stay out of it. Also built: a Windows Hello passkey choice for turning the mode off (only the choice is stored; an unavailable Windows Hello is reported and falls back to the PIN or password), and the Language, funny-level and personal wording settings, the Language palette command, the setup language field and the wording file drop are absent while the mode is on. Not delivered: the scheduled language rule and the Locks manager row are not hidden, and there is no test between two real running apps. The rules are checked in code; Windows Hello has not been prompted and nothing has been driven in the built window.",
+        "zh": "部分完成：喺共用應用程式資料夾有一份共用、可改名嘅學校模式記錄；PIN 或密碼以加鹽雜湊儲存，關閉模式時會詢問；答錯會有跨重新啟動保留、愈來愈長嘅等候；運行中嘅程式會即時跟隨記錄；本程式嘅模式控制項用你揀嘅名稱；解鎖階梯同點心驚喜亦會避開呢個模式。另已建立：用 Windows Hello 關閉模式嘅通行密鑰選項（只儲存選擇；Windows Hello 用唔到時會照直講並改用 PIN 或密碼），而模式開啟時，語言、搞笑程度同個人詞彙設定、語言指令、設定精靈嘅語言欄同詞彙檔案拖放都唔會出現。未完成：排程嘅語言規則同鎖管理員嘅一行未有隱藏，亦未有兩個真正運行中程式之間嘅測試。規則已用程式碼檢查；未曾彈出 Windows Hello，亦未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Finish hiding every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under the mode, add the passkey choice, and drive the mode between two running apps and in the built window.",
-        "zh": "完成喺模式下隱藏所有廣東話、雙語、搞笑程度、詞彙同點心嘅畫面，加入通行密鑰選項，並喺兩個運行中嘅程式同已建置視窗之間操作。"
+        "en": "Hide the scheduled language rule and the Locks manager language row under the mode, and drive the passkey choice, the hidden controls and the mode between two running apps in the built window.",
+        "zh": "喺模式下隱藏排程嘅語言規則同鎖管理員嘅語言一行，並喺兩個運行中嘅程式同已建置視窗之間操作通行密鑰選項、被隱藏嘅控制項同模式。"
       },
       "evidence": [
         {

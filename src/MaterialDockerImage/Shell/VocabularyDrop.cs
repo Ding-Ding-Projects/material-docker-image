@@ -36,7 +36,7 @@ public sealed class VocabularyDrop
 
     private void OnDragOver(object sender, DragEventArgs e)
     {
-        if (SinglePath(e.Data) == null) return;
+        if (host.Settings.SchoolMode || SinglePath(e.Data) == null) return;
         // Text boxes accept file drops as text; this window-level handler claims file drops for personal wording.
         e.Effects = DragDropEffects.Copy;
         e.Handled = true;
@@ -44,7 +44,7 @@ public sealed class VocabularyDrop
 
     private void OnDrop(object sender, DragEventArgs e)
     {
-        if (SinglePath(e.Data) is not { } path) return;
+        if (host.Settings.SchoolMode || SinglePath(e.Data) is not { } path) return;
         e.Handled = true;
         Apply(path);
     }
