@@ -191,6 +191,87 @@
       },
       "observed": "Found and fixed: rows were matched as one string beginning with the State column, so an anchored pattern showed 0 of 25. After the fix the table showed 4 of 25, the same four containers docker ps lists for that pattern.",
       "result": "pass after fix"
+    },
+    {
+      "action": "Command palette › Customize the focused element… (title-bar palette button focused)",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "Found and fixed: the command read only keyboard focus and the overlay forgot the element to return to, so nothing opened in an inactive window. After the fix the element editor opened; corner radius and font weight overrides were saved in element-appearance.json under the element's path, and Reset all customized elements emptied the file.",
+      "result": "pass after fix"
+    },
+    {
+      "action": "Unlock ladder with School mode on: sums with one wrong answer, then whack-a-mole",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "School mode started the ladder at the sums; one wrong sum dropped to whack-a-mole; the 20 s round was played and lost (5 hits of 8), after which the ladder offered only the clock.",
+      "result": "pass"
+    },
+    {
+      "action": "Unlock ladder: ten correct sums",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The wait ended, the failure count stayed, nothing was unlocked and the win was recorded against the hourly budget.",
+      "result": "pass"
+    },
+    {
+      "action": "Locks manager › Actions for the selected row › Change lock policy… to PIN plus password, 5 minutes",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "Found and fixed: the manager kept saying 'No locks yet.' after a lock was added elsewhere, and row actions lived only in a context menu that closes at once without mouse capture. After the fixes the row showed, the actions dialog opened, changing the policy was refused while locked and accepted once unlocked, and the password was stored only as a hash.",
+      "result": "pass after fix"
+    },
+    {
+      "action": "Unlock a PIN-plus-password lock with the keypad",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The prompt showed 'Step 1 of 2: PIN' with a keypad; digits 5,1,7,9, Backspace, 3 showed only '4 digits entered'; 'Step 2 of 2: Password' followed; the lock unlocked for 5 minutes.",
+      "result": "pass"
+    },
+    {
+      "action": "Timed relock after 5 minutes",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The lock relocked by itself within the 15-second check after the grant expired, and the Locks manager showed Locked without being touched.",
+      "result": "pass"
+    },
+    {
+      "action": "Tools › Authenticator › From an image file… (QR PNG of an otpauth link)",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The account QRReceipt · mdi-qr was added; its next code matched an independent RFC 6238 calculation.",
+      "result": "pass"
+    },
+    {
+      "action": "Locks › Lock: Tab group: Navigation rail (confirm only), then select Images on the rail",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The switch was refused and 'Unlock this control: Tab group: Navigation rail' opened instead; confirming unlocked it.",
+      "result": "pass"
+    },
+    {
+      "action": "Regular expression builder popover, new sections",
+      "artifact": {
+        "version": "0.99.37-0.99.41",
+        "source": "main 6270589 to 409b128"
+      },
+      "observed": "The hex view, matches by scope, pattern comparison and per-token help are present in the running popover; their contents were not exercised further.",
+      "result": "present"
     }
   ],
   "findings": [
@@ -200,8 +281,9 @@
   ],
   "notExercised": [
     "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host)",
-    "the per-element appearance editor: its entry points need keyboard focus or a pointer click, and a window on a hidden desktop receives neither from UI Automation",
-    "the sums and whack-a-mole rungs in the window (the dish rung was answered correctly first, which ends the ladder)"
+    "the School mode Windows Hello passkey (its prompt appears on the visible secure desktop)",
+    "clicking a locked control with a pointer, and the clipboard QR route (both would need the visible desktop or the host's clipboard)",
+    "a winning whack-a-mole round (UI Automation polling is too slow to hit 8 moles)"
   ],
   "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged)."
 }

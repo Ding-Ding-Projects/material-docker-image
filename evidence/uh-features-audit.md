@@ -288,3 +288,11 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 - Not driven: the per-element appearance editor (its entry points need keyboard focus or a pointer, which a hidden-desktop window does not receive), the sums and whack-a-mole rungs, combined lock policies, the timed relock and the Locks manager, and the default Windows Terminal path.
 - Still not built: tab, tab-group and appearance-value locks, the keypad PIN entry, a School mode passkey, QR image or camera registration for the authenticator, and the regex topics marked partial or unavailable in `docs/features/regex-parity.md`.
 - Checks: `build.bat -Tests` passes 23 core, 1,974 UI-state and 24 checklist checks.
+
+## Update after the second built-window drive (4 November 2026, evening)
+
+- New and merged: tab, tab-group and appearance-value locks, locked-click prompts, locked labels in searches, a PIN keypad, a School mode Windows Hello choice, authenticator registration from a QR image or the clipboard, and 13 more regex parity topics (63 of 83 implemented).
+- Driven in the built window (receipt now 34 steps): the per-element appearance editor, the sums and whack-a-mole rungs, a PIN-plus-password lock unlocked with the keypad, its five-minute relock, the Locks manager, QR import from an image file and a navigation-rail tab-group lock.
+- Fixed because of that drive: the element editor could not open from the palette in an inactive window, row actions were only in a context menu that automation cannot keep open, and the Locks manager did not refresh when a lock was added elsewhere.
+- Not driven, because each would appear on the visible desktop or use the host clipboard: the Windows Hello prompt, pointer clicks on locked controls, the clipboard QR route and the default Windows Terminal path. A winning whack-a-mole round was not reached (automation is too slow to hit 8 moles).
+- Checks: `build.bat -Tests` passes 23 core, 2,243 UI-state and 24 checklist checks.
