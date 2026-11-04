@@ -9,6 +9,16 @@ public static partial class Loc
 {
     private static IEnumerable<KeyValuePair<string, string>> PageCantoneseRegexFinish()
     {
+        // ----- importing the output of an external search tool -----
+        yield return new("Import tool output…", "匯入工具輸出…");
+        yield return new("Import tool output", "匯入工具輸出");
+        yield return new("Import from clipboard", "由剪貼簿匯入");
+        yield return new("Tool output format", "工具輸出格式");
+        yield return new("Auto-detect", "自動偵測");
+        yield return new("The clipboard has no text to import.", "剪貼簿入面冇文字可以匯入。");
+        yield return new("Reads the saved output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json from a file into the result list. Nothing is run and no file named in the output is read.", "將已儲存嘅 grep -n、grep -nH、ripgrep --vimgrep 或 ripgrep --json 輸出由檔案讀入結果清單。唔會執行任何嘢，輸出入面提到嘅檔案亦唔會被讀取。");
+        yield return new("Reads the output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json that you copied, into the result list. Nothing is run.", "將你複製咗嘅 grep -n、grep -nH、ripgrep --vimgrep 或 ripgrep --json 輸出讀入結果清單。唔會執行任何嘢。");
+        yield return new("How the output of an external search tool is read when you import it. Auto-detect picks the form that fits the most lines; choose one when lines of text could be mistaken for a column.", "匯入外部搜尋工具輸出時按咩格式讀取。自動偵測會揀最啱最多行嘅格式；如果文字行可能俾人當成欄號，就自己揀一種。");
         // ----- sections, labels and messages of the new panels -----
         yield return new("Preferences and layout", "偏好設定同排列");
         yield return new("Code templates", "程式碼範本");
