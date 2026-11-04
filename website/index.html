@@ -1720,6 +1720,11 @@ the ui-state checks (676), core engine checks (23) and documentation checklist c
 - [x] add append-only local history beside the application data with diff, restore, labels and export.
 - [x] replace every screenshot with captures of the built application on windows with a real engine (dark, light and minimum size).
 - [ ] exercise every destination interactively on a personal windows machine and record receipts.
+- [x] fix small-window truncation found in the 960 x 720 captures (title bar search, operation panel, stacked lists, images tiles, segmented buttons).
+- [x] add language and display-scale options to capture mode and stop loading personal wording in captures.
+- [ ] capture and review the full language x theme x 100-200% scale matrix with the new options.
+- [x] accept a personal wording file dropped anywhere on the window with validation, celebration and outcome sounds (checks pass; hands-on verification pending).
+- [x] record a source audit of the shared feature requirements in `evidence/uh-features-audit.md`.
 - [ ] localize page-specific copy in cantonese and bilingual modes.
 - [ ] review capability inventory statuses for health checks, devices, gpus and terminals with evidence.
 
@@ -1773,6 +1778,11 @@ the ui-state checks (676), core engine checks (23) and documentation checklist c
 <p class="source-item">Completed: Add append-only local history beside the application data with diff, restore, labels and export.</p>
 <p class="source-item">Completed: Replace every screenshot with captures of the built application on Windows with a real engine (dark, light and minimum size).</p>
 <p class="source-item">Pending: Exercise every destination interactively on a personal Windows machine and record receipts.</p>
+<p class="source-item">Completed: Fix small-window truncation found in the 960 x 720 captures (title bar search, operation panel, stacked lists, Images tiles, segmented buttons).</p>
+<p class="source-item">Completed: Add language and display-scale options to capture mode and stop loading personal wording in captures.</p>
+<p class="source-item">Pending: Capture and review the full language x theme x 100-200% scale matrix with the new options.</p>
+<p class="source-item">Completed: Accept a personal wording file dropped anywhere on the window with validation, celebration and outcome sounds (checks pass; hands-on verification pending).</p>
+<p class="source-item">Completed: Record a source audit of the shared feature requirements in <code>evidence/uh-features-audit.md</code>.</p>
 <p class="source-item">Pending: Localize page-specific copy in Cantonese and bilingual modes.</p>
 <p class="source-item">Pending: Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.</p>
 <h4>Delivered and bounded verification</h4>
@@ -1852,6 +1862,16 @@ the second pass added build v2 with a buildkit timeline and bake, image detail t
 - verification: 676 ui-state checks (including a search surface catalogue guard over 107 surfaces), 23 core checks and 13 documentation checks. `tests and screenshots` run 41718216967 at source `40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e` rendered 24 surfaces in dark and light at 1440 x 960 and dark at 960 x 720 (72 captures in `evidence/screenshots/`), including the creator with suggestions open. the review found and fixed light-theme captures rendering dark and a squeezed creator source editor before this run.
 - not yet exercised interactively on windows: popups and pickers (placement, focus), the regex builder popover, animations, docker scout analysis (the runner has no scout plugin), swarm with a real swarm, minecraft servers against the itzg images, and bake against a real bake file.
 - the dockerfile creator gap analysis is in `docs/research/dockerfile-creator-gap-analysis.md`.
+
+## polish pass (4 november 2026)
+
+- small-window layout fixes found in the 960 x 720 captures: the title bar search shows a complete short label instead of a truncated one, the idle operation panel no longer reserves an empty progress bar, stacked list and inspector layouts keep at least 240 px for the list, the images statistic tiles fold away on short windows (the subtitle carries the same counts), and segmented buttons size to their widest label so a selected label with its check mark is never cut.
+- capture mode accepts `--capture-language english|cantonese|bilingual` and `--capture-scale 125|150|200` (the layout gets fewer device-independent pixels and renders at the matching dpi) so the language and display-scale matrix can be captured from the built application. capture mode never loads imported personal wording.
+- a personal wording `.json` file can be dropped anywhere on the window (`shell/vocabularydrop.cs`, rules in `ui/vocabularydroprules.cs`). it is validated with the same rules as the settings upload; a valid file is applied and saved at once and a full-window headline holds for about three seconds (a short fade when motion is reduced, announced through a polite live region); an invalid file is refused, changes nothing and plays the default beep. a valid drop plays the windows tada sound. both sounds follow the action sounds setting and low-stimulation mode. settings › language remains the keyboard route and clears the wording.
+- `build/test.ps1` and `build/publish.ps1` no longer stop when the sdk writes to standard error (for example the first-run notice of a freshly extracted sdk on windows powershell 5.1); native commands are judged by exit code.
+- releases are created without the latest badge; only a run from `main` whose commit is still the tip of `main` marks its release latest, so slower branch runs no longer take the badge.
+- `evidence/uh-features-audit.md` is a source-only audit of the shared feature requirements against this tree: 27 delivered, 43 partial, 25 missing, 20 not applicable, with a prioritised backlog. it is not runtime evidence.
+- verification: `build.bat -tests` passed 23 core, 681 ui-state and 13 checklist checks. the new headline check was observed failing with the rule broken and passing after restoring it. the drop, celebration and sounds have not yet been exercised by hand in the built application.
 "><h3>Implementation handoff</h3><p class="source-label">Complete source: <a href="https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/HANDOFF.md">HANDOFF.md</a></p><h3>Implementation handoff</h3>
 <h4>Objective</h4>
 <p>A native Windows WPF workspace for Docker with a complete Material 3 interface. The November 2026 rewrite replaced every window surface, added the Dockerfile Creator, live monitoring, cleanup, registry, diagnostics, tools, settings and local history destinations, and replaced every screenshot with captures of the built application.</p>
@@ -1881,7 +1901,15 @@ the second pass added build v2 with a buildkit timeline and bake, image detail t
 <p>The second pass added Build v2 with a BuildKit timeline and Bake, image detail tabs and a Security destination (Docker Scout), engine contexts and Swarm, volume backup, restore and clone, more Compose tools, Dockerfile Creator v2 with an editable two-way source, editor suggestions with interactive value pickers, an advanced regular expression builder on all search fields, a motion system and appearance editor, and a Minecraft server manager.</p>
 <p class="source-item">• Verification: 676 UI-state checks (including a search surface catalogue guard over 107 surfaces), 23 core checks and 13 documentation checks. <code>Tests and screenshots</code> run 41718216967 at source <code>40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e</code> rendered 24 surfaces in dark and light at 1440 x 960 and dark at 960 x 720 (72 captures in <code>evidence/screenshots/</code>), including the Creator with Suggestions open. The review found and fixed light-theme captures rendering dark and a squeezed Creator source editor before this run.</p>
 <p class="source-item">• Not yet exercised interactively on Windows: popups and pickers (placement, focus), the regex builder popover, animations, Docker Scout analysis (the runner has no Scout plugin), Swarm with a real swarm, Minecraft servers against the itzg images, and Bake against a real bake file.</p>
-<p class="source-item">• The Dockerfile Creator gap analysis is in <code>docs/research/dockerfile-creator-gap-analysis.md</code>.</p></article>
+<p class="source-item">• The Dockerfile Creator gap analysis is in <code>docs/research/dockerfile-creator-gap-analysis.md</code>.</p>
+<h4>Polish pass (4 November 2026)</h4>
+<p class="source-item">• Small-window layout fixes found in the 960 x 720 captures: the title bar search shows a complete short label instead of a truncated one, the idle operation panel no longer reserves an empty progress bar, stacked list and inspector layouts keep at least 240 px for the list, the Images statistic tiles fold away on short windows (the subtitle carries the same counts), and segmented buttons size to their widest label so a selected label with its check mark is never cut.</p>
+<p class="source-item">• Capture mode accepts <code>--capture-language English|Cantonese|Bilingual</code> and <code>--capture-scale 125|150|200</code> (the layout gets fewer device-independent pixels and renders at the matching DPI) so the language and display-scale matrix can be captured from the built application. Capture mode never loads imported personal wording.</p>
+<p class="source-item">• A personal wording <code>.json</code> file can be dropped anywhere on the window (<code>Shell/VocabularyDrop.cs</code>, rules in <code>UI/VocabularyDropRules.cs</code>). It is validated with the same rules as the Settings upload; a valid file is applied and saved at once and a full-window headline holds for about three seconds (a short fade when motion is reduced, announced through a polite live region); an invalid file is refused, changes nothing and plays the default beep. A valid drop plays the Windows tada sound. Both sounds follow the action sounds setting and low-stimulation mode. Settings › Language remains the keyboard route and clears the wording.</p>
+<p class="source-item">• <code>build/test.ps1</code> and <code>build/publish.ps1</code> no longer stop when the SDK writes to standard error (for example the first-run notice of a freshly extracted SDK on Windows PowerShell 5.1); native commands are judged by exit code.</p>
+<p class="source-item">• Releases are created without the Latest badge; only a run from <code>main</code> whose commit is still the tip of <code>main</code> marks its release Latest, so slower branch runs no longer take the badge.</p>
+<p class="source-item">• <code>evidence/uh-features-audit.md</code> is a source-only audit of the shared feature requirements against this tree: 27 delivered, 43 partial, 25 missing, 20 not applicable, with a prioritised backlog. It is not runtime evidence.</p>
+<p class="source-item">• Verification: <code>build.bat -Tests</code> passed 23 core, 681 UI-state and 13 checklist checks. The new headline check was observed failing with the rule broken and passing after restoring it. The drop, celebration and sounds have not yet been exercised by hand in the built application.</p></article>
 <article id="doc-wiki-home-md" class="article" data-search="material docker image wiki # material docker image wiki
 
 this source wiki is bundled with the documentation website. it documents the native windows application and remains separate from evidence of runtime behavior.

@@ -1,6 +1,10 @@
 param([switch]$DockerSmoke)
 $ErrorActionPreference = 'Stop'
+# Windows PowerShell 5.1 turns any native stderr line into a terminating error under 'Stop'
+# (for example the first-run notice of a freshly extracted SDK). Native commands are judged by exit code instead.
+if ($PSVersionTable.PSVersion.Major -ge 7) { $PSNativeCommandUseErrorActionPreference = $false }
 Set-Location (Split-Path $PSScriptRoot -Parent)
+$ErrorActionPreference = 'Continue'
 New-Item -ItemType Directory -Force out/logs | Out-Null
 $dotnet = (Get-Content .tools/dotnet-path.txt -Raw).Trim()
 $arguments = @('run','--project','tests/MaterialDockerImage.Core.Tests.csproj','-c','Release')

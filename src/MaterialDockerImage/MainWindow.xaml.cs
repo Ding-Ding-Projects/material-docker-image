@@ -40,18 +40,21 @@ public partial class MainWindow : Window
     private CommandPalette? palette;
     public bool CaptureMode { get; }
 
-    public MainWindow(bool capture = false)
+    public MainWindow(bool capture = false, string? captureLanguage = null)
     {
         CaptureMode = capture;
         InitializeComponent();
         if (capture) SourceInitialized += (_, _) => System.Windows.Interop.HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle)?.AddHook(AllowLargerThanScreen);
         Loc.Language = settings.Language; Loc.FunnyEnglish = settings.FunnyEnglish; Loc.FunnyCantonese = settings.FunnyCantonese; Loc.DialogEmoji = settings.DialogEmoji; Loc.SchoolMode = settings.SchoolMode;
-        if (!string.IsNullOrWhiteSpace(settings.PersonalVocabularyPath) && File.Exists(settings.PersonalVocabularyPath)) Loc.LoadVocabulary(settings.PersonalVocabularyPath);
+        if (capture && captureLanguage is "English" or "Cantonese" or "Bilingual") Loc.Language = captureLanguage;
+        // Captures are published, so imported personal wording is never loaded in capture mode.
+        if (!capture && !string.IsNullOrWhiteSpace(settings.PersonalVocabularyPath) && File.Exists(settings.PersonalVocabularyPath)) Loc.LoadVocabulary(settings.PersonalVocabularyPath);
         ApplyAppearance();
         OverlaySlot.Content = overlay;
         DockHost.Content = dock;
         var notifier = new Notifier(Toasts) { SoundsEnabled = () => settings.Sounds && !settings.LowStimulation && !CaptureMode };
         host = new AppHost(settings, notifier, overlay, dock, capture);
+        if (!capture) _ = new Shell.VocabularyDrop(this, Root, host);
         notifier.Narrate = Narrator.Speak;
         Narrator.Enabled = () => settings.Narration && !CaptureMode;
         host.Navigate = Navigate;
@@ -87,6 +90,8 @@ public partial class MainWindow : Window
     {
         var narrow = ActualWidth > 0 && ActualWidth < 1180;
         PaletteSlot.Width = narrow ? 220 : 460;
+        // The narrow slot cannot hold the full hint, so it shows a complete short label instead of a truncated one.
+        if (paletteLabel != null) paletteLabel.Text = Loc.T(narrow ? "Search" : "Search commands, resources and settings");
         Provenance.Visibility = ActualWidth > 0 && ActualWidth < 1040 ? Visibility.Collapsed : Visibility.Visible;
         var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
         foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
@@ -120,6 +125,7 @@ public partial class MainWindow : Window
     }
 
     // ----- Title bar -----
+    private TextBlock? paletteLabel;
     private void BuildTitleBar()
     {
         var paletteButton = new Button { Style = (Style)FindResource("Btn.Base"), Height = 32, MinHeight = 32, Padding = new Thickness(14, 0, 8, 0), HorizontalContentAlignment = HorizontalAlignment.Stretch, FontWeight = FontWeights.Normal };
@@ -130,7 +136,8 @@ public partial class MainWindow : Window
         var content = new DockPanel();
         content.Children.Add(Ui.Icon(Icons.Search, 18).Margin(0, 0, 10, 0).Dock(Dock.Left));
         content.Children.Add(hint.Dock(Dock.Right));
-        content.Children.Add(Ui.Text("Search commands, resources and settings", 13, null, "OnSurfaceVariant", false));
+        paletteLabel = Ui.Text("Search commands, resources and settings", 13, null, "OnSurfaceVariant", false);
+        content.Children.Add(paletteLabel);
         paletteButton.Content = content;
         AutomationProperties.SetName(paletteButton, Loc.T("Command palette") + " (Ctrl+Shift+F)");
         paletteButton.Click += (_, _) => OpenPalette();
@@ -595,9 +602,13 @@ public partial class MainWindow : Window
 
     // ----- Capture mode -----
     /// <summary>Renders every destination (and the palette, notification centre and super confirmation) to PNG files.</summary>
-    public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960)
+    public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960, double scale = 1)
     {
         // Lay the window content out at the exact requested size, independent of the runner's screen size.
+        // A display scale above 100% keeps the physical pixel size and gives the layout fewer device-independent pixels,
+        // exactly as Windows does, then renders at the matching DPI.
+        scale = Math.Clamp(scale, 1, 3);
+        width = Math.Round(width / scale); height = Math.Round(height / scale);
         Width = width; Height = height;
         Root.Width = width; Root.Height = height; Root.HorizontalAlignment = HorizontalAlignment.Left; Root.VerticalAlignment = VerticalAlignment.Top;
         Directory.CreateDirectory(directory);
@@ -610,7 +621,7 @@ public partial class MainWindow : Window
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
             UpdateLayout();
             var width = (int)Math.Ceiling(Root.ActualWidth); var height = (int)Math.Ceiling(Root.ActualHeight);
-            var bitmap = new RenderTargetBitmap(width, height, 96, 96, PixelFormats.Pbgra32);
+            var bitmap = new RenderTargetBitmap((int)Math.Ceiling(width * scale), (int)Math.Ceiling(height * scale), 96 * scale, 96 * scale, PixelFormats.Pbgra32);
             var visual = new DrawingVisual();
             using (var dc = visual.RenderOpen()) { dc.DrawRectangle((Brush)FindResource("Surface"), null, new Rect(0, 0, width, height)); dc.DrawRectangle(new VisualBrush(Root) { Stretch = Stretch.None, AlignmentX = AlignmentX.Left, AlignmentY = AlignmentY.Top, ViewboxUnits = BrushMappingMode.Absolute, Viewbox = new Rect(0, 0, width, height) }, null, new Rect(0, 0, width, height)); }
             bitmap.Render(visual);

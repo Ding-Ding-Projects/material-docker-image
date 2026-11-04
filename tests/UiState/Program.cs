@@ -65,6 +65,24 @@ Reject(()=>StructuredInputs.Cache("--push"),"unstructured cache option rejected"
 Check(MaterialDockerImage.Services.Loc.ParseVocabulary("{\"version\":1,\"entries\":{\"Build\":\"Make\"}}")["Build"]=="Make","personal wording file accepted");
 foreach(var bad in new[]{"[]","{\"entries\":{}}","{\"version\":2,\"entries\":{}}","{\"version\":1,\"entries\":{\"a\":1}}","{\"version\":1,\"entries\":{\"a\":\"x\",\"a\":\"y\"}}","{\"version\":1,\"entries\":{\""+new string('k',161)+"\":\"x\"}}","{\"version\":1,\"entries\":{\"k\":\""+new string('v',1001)+"\"}}"})
 { try { MaterialDockerImage.Services.Loc.ParseVocabulary(bad); throw new Exception("Expected refusal: invalid personal wording "+bad[..Math.Min(30,bad.Length)]); } catch(Exception e) when (e is System.Text.Json.JsonException or InvalidDataException) { count++; Console.WriteLine("PASS invalid personal wording rejected"); } }
+// Window-wide drop: an invalid file keeps the previously applied wording, a valid one supplies the celebration headline.
+{
+    var dropDir = Path.Combine(Path.GetTempPath(), "mdi-drop-" + Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(dropDir);
+    try
+    {
+        var dropGood = Path.Combine(dropDir, "good.json"); var dropBad = Path.Combine(dropDir, "bad.json");
+        File.WriteAllText(dropGood, "{\"version\":1,\"entries\":{\"private vocabulary\":\"Custom headline\",\"Build\":\"Make\"}}");
+        File.WriteAllText(dropBad, "{\"version\":1,\"entries\":{\"Build\":\"x\",\"Build\":\"y\"}}");
+        Check(MaterialDockerImage.Services.Loc.LoadVocabulary(dropGood).Success && MaterialDockerImage.Services.Loc.TryPersonal(MaterialDockerImage.UI.VocabularyDropRules.HeadlineKey, out var dropHeadline) && dropHeadline=="Custom headline", "dropped file supplies its own celebration headline");
+        Check(!MaterialDockerImage.Services.Loc.LoadVocabulary(dropBad).Success && MaterialDockerImage.Services.Loc.OverrideCount==2, "refused drop leaves the applied wording unchanged");
+        Check(MaterialDockerImage.UI.VocabularyDropRules.SinglePath(new[] { dropGood })==dropGood && MaterialDockerImage.UI.VocabularyDropRules.SinglePath(new[] { dropGood, dropBad })==null && MaterialDockerImage.UI.VocabularyDropRules.SinglePath("text")==null && MaterialDockerImage.UI.VocabularyDropRules.IsJson(dropGood) && !MaterialDockerImage.UI.VocabularyDropRules.IsJson("notes.txt"), "only a single dropped .json file is accepted");
+        Check(MaterialDockerImage.UI.VocabularyDropRules.Headline()=="Custom headline", "celebration headline comes from the imported file");
+        MaterialDockerImage.Services.Loc.ClearVocabulary();
+        Check(!MaterialDockerImage.Services.Loc.TryPersonal(MaterialDockerImage.UI.VocabularyDropRules.HeadlineKey, out _) && MaterialDockerImage.Services.Loc.OverrideCount==0 && MaterialDockerImage.UI.VocabularyDropRules.Headline()=="Personal wording applied", "clearing restores the original wording and the neutral headline");
+    }
+    finally { Directory.Delete(dropDir, true); }
+}
 MaterialDockerImage.Services.Loc.Language="Cantonese"; MaterialDockerImage.Services.Loc.FunnyCantonese=1;
 Check(MaterialDockerImage.Services.Loc.T("Images")=="映像","Cantonese label");
 Check(MaterialDockerImage.Services.Loc.Voice("Build completed.","Done!","搞掂！")=="Build completed.","funny level 1 states the fact only");

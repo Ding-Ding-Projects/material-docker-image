@@ -56,8 +56,15 @@ jobs:
           Workflow duration: $duration
           "@
           $notes | Set-Content out/release-notes.md
-          gh release create $env:RELEASE_TAG --target $env:GITHUB_SHA --title "Material Docker Image $env:BUILD_VERSION" --notes-file out/release-notes.md out/releases/*
+          # Branch runs and slower parallel runs must never steal the Latest badge from main.
+          gh release create $env:RELEASE_TAG --target $env:GITHUB_SHA --title "Material Docker Image $env:BUILD_VERSION" --notes-file out/release-notes.md --latest=false out/releases/*
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          git fetch origin main
+          $mainTip = (git rev-parse origin/main).Trim()
+          if ($env:GITHUB_REF_NAME -eq 'main' -and $mainTip -eq $env:GITHUB_SHA) {
+            gh release edit $env:RELEASE_TAG --latest
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
           $published = [DateTime]::UtcNow
           $finalDuration = ($published - $started).ToString('hh\:mm\:ss')
           $notes = $notes.Replace($completed.ToString('o'), $published.ToString('o')).Replace("Workflow duration: $duration", "Workflow duration: $finalDuration")

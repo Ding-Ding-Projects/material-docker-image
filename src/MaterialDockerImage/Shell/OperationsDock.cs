@@ -16,7 +16,8 @@ public sealed class OperationsDock : Border
     private readonly StringBuilder transcript = new();
     private readonly TextBlock title = Ui.Text("Ready", 14, FontWeights.SemiBold);
     private readonly TextBlock detail = Ui.Text("No operation is running.", 13, null, "OnSurfaceVariant", false);
-    private readonly ProgressBar progress = new() { Width = 160, Minimum = 0, Maximum = 1, Value = 0, Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center };
+    // Hidden until the first operation starts, so the idle status line keeps its full width on small windows.
+    private readonly ProgressBar progress = new() { Width = 160, Minimum = 0, Maximum = 1, Value = 0, Margin = new Thickness(12, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
     private readonly Button cancel;
     private readonly Button toggle;
     private readonly SearchFilter search = new("Search output", 200);

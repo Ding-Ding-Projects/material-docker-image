@@ -75,7 +75,10 @@ public sealed partial class ImagesPage : PageBase
         left.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.Children.Add(errorHost);
-        left.Children.Add(ImageStatTile.Strip(totalTile, sizeTile, danglingTile, unusedTile).At(1));
+        var strip = ImageStatTile.Strip(totalTile, sizeTile, danglingTile, unusedTile);
+        left.Children.Add(strip.At(1));
+        // On short windows the tiles would leave the list no rows; the subtitle already carries the same counts.
+        left.SizeChanged += (_, _) => strip.Visibility = left.ActualHeight > 0 && left.ActualHeight < 460 ? Visibility.Collapsed : Visibility.Visible;
         left.Children.Add(table.At(2));
         left.Children.Add(prune.At(3));
 

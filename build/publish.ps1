@@ -9,8 +9,11 @@ $dotnet = (Get-Content .tools/dotnet-path.txt -Raw).Trim()
 $binding = Get-SourceBinding
 $source = $binding.source
 $started = [DateTime]::UtcNow.ToString('o')
+# Native stderr must not become a terminating error under 'Stop'; the exit code decides.
+$ErrorActionPreference = 'Continue'
 & $dotnet publish src/MaterialDockerImage/MaterialDockerImage.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=false -p:DebugType=None -p:DebugSymbols=false -p:ContinuousIntegrationBuild=true "-p:Version=$Version" "-p:BuildTimestamp=$started" "-p:InformationalVersion=$Version+$source" -o out/publish 2>&1 | Tee-Object out/logs/publish.log
 $exitCode = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
 if ($exitCode -ne 0) { exit $exitCode }
 if (-not (Test-Path out/publish/MaterialDockerImage.exe)) { throw 'Published executable missing.' }
 & "$PSScriptRoot/set-native-version.ps1" -Executable out/publish/MaterialDockerImage.exe -Version $Version

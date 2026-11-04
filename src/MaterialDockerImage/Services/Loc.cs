@@ -115,5 +115,7 @@ public static class Loc
         return result;
     }
     private static string Short(string s) => s.Length > 40 ? s[..40] + "…" : s;
+    /// <summary>Reads the imported personal value for an exact ordinary phrase, without falling back to a translation.</summary>
+    public static bool TryPersonal(string text, out string value) => overrides.TryGetValue(text, out value!);
     public static void ClearVocabulary() { overrides = new(StringComparer.Ordinal); Changed?.Invoke(); }
 }
