@@ -151,14 +151,14 @@
         "en": "App Icon",
         "zh": "程式圖示"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "A multi-size application icon (16 to 256 px) generated from the deployed_code Material Symbol is set as the executable icon, the window icon and the Squirrel setup icon. The published executable carries the icon resource. It has not been inspected in the installed shortcut or taskbar.",
+        "zh": "已設定多尺寸（16 至 256 px）程式圖示，由 deployed_code 圖示符號產生，用於執行檔、視窗同 Squirrel 安裝圖示。已發佈嘅執行檔帶有圖示資源，但未喺已安裝嘅捷徑或工作列檢查過。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for app-icon.",
-        "zh": "確認「程式圖示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Inspect the icon in the installed shortcut, taskbar and Settings app list from the released installer, and capture it from the built application.",
+        "zh": "喺已發佈安裝程式安裝後，檢查捷徑、工作列同設定程式清單入面嘅圖示，並由已建置嘅程式擷取畫面。"
       },
       "evidence": [
         {
@@ -879,14 +879,14 @@
         "en": "Display Name",
         "zh": "顯示名稱"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "The display name (1 to 80 characters, control characters refused) is changed in Settings > About with Save or Enter, and reset to the shipped name Material Docker Image in one action. Each real rename or reset records exactly one local history revision. The title bar and window title follow it; About shows the shipped product name, the diagnostics report keeps it, and the settings and data folders do not move. Interactive verification in the built application is pending.",
+        "zh": "顯示名稱（1 至 80 個字元，拒絕控制字元）喺「設定 > 關於」以儲存或 Enter 更改，並可一鍵重設為出廠名稱 Material Docker Image。每次實際改名或重設只記錄一個本機歷史版本。標題列同視窗標題跟隨更改；「關於」顯示出廠產品名稱，診斷報告保留出廠名稱，設定同資料夾位置不變。喺已建置程式嘅互動驗證仍待進行。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for display-name.",
-        "zh": "確認「顯示名稱」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Verify rename, reset, restart persistence and the history revision count interactively in the built application in every language mode and theme.",
+        "zh": "喺已建置嘅程式入面，按各語言模式同主題互動驗證改名、重設、重新啟動後保存同歷史版本數量。"
       },
       "evidence": [
         {
@@ -1551,14 +1551,14 @@
         "en": "Logo Customization",
         "zh": "標誌自訂"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Settings > Appearance chooses the title-bar logo: the default glyph, any bundled Material Symbol by name, or a local PNG, ICO or JPG (up to 1 MiB, signature checked, copied into the app data folder, never uploaded), with reset, persistence, a notice when the file is missing or invalid, and one local history revision per change. Crop, fit and background editing, scheduled settings and appearance export of the logo are not built.",
+        "zh": "「設定 > 外觀」可揀標題列標誌：預設圖示、任何內置 Material 圖示符號名稱，或本機 PNG、ICO、JPG（最大 1 MiB，檢查檔案簽署，複製到程式資料夾，絕不上載），可重設、會儲存，檔案遺失或無效會顯示預設並提示，每次更改記錄一個本機歷史版本。裁切、填滿同背景編輯、排程設定同外觀匯出標誌尚未製作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for logo-customization.",
-        "zh": "確認「標誌自訂」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Verify the picker interactively in the built application at every language mode, theme and display scale; add crop, fit and background editing, scheduled settings and appearance export, and capture the real selected logo.",
+        "zh": "喺已建置嘅程式入面，按各語言模式、主題同顯示比例互動驗證選擇器；加入裁切、填滿同背景編輯、排程設定同外觀匯出，並擷取真實揀選嘅標誌。"
       },
       "evidence": [
         {

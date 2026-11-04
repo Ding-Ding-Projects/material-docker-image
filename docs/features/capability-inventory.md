@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 11. Planned: 3. Unverified: 109.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 14. Planned: 3. Unverified: 106.
 
 ### Interface and personalization
 
@@ -29,7 +29,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | --- | --- | --- | --- |
 | `accessibility-sizing` | Accessibility Sizing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for accessibility-sizing. |
 | `adhd-modes` | Adhd Modes | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for adhd-modes. |
-| `app-icon` | App Icon | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for app-icon. |
+| `app-icon` | App Icon | Implemented, verification pending | Inspect the icon in the installed shortcut, taskbar and Settings app list from the released installer, and capture it from the built application. |
 | `appearance-editor` | Appearance Editor | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for appearance-editor. |
 | `blank-editors` | Blank Editors | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for blank-editors. |
 | `changelog` | Changelog | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for changelog. |
@@ -39,7 +39,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `dim-sum` | Dim Sum | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum. |
 | `dim-sum-code-names` | Dim Sum Code Names | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-code-names. |
 | `dim-sum-photo-source` | Dim Sum Photo Source | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-photo-source. |
-| `display-name` | Display Name | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for display-name. |
+| `display-name` | Display Name | Implemented, verification pending | Verify rename, reset, restart persistence and the history revision count interactively in the built application in every language mode and theme. |
 | `front-provenance` | Front Provenance | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for front-provenance. |
 | `functional-ui` | Functional Ui | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for functional-ui. |
 | `funny-emoji` | Funny Emoji | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for funny-emoji. |
@@ -48,7 +48,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `human-time-estimate` | Human Time Estimate | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for human-time-estimate. |
 | `info-icon-guidance` | Info Icon Guidance | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for info-icon-guidance. |
 | `language` | Language | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for language. |
-| `logo-customization` | Logo Customization | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for logo-customization. |
+| `logo-customization` | Logo Customization | Implemented, verification pending | Verify the picker interactively in the built application at every language mode, theme and display scale; add crop, fit and background editing, scheduled settings and appearance export, and capture the real selected logo. |
 | `material-design` | Material Design | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for material-design. |
 | `motion` | Motion | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for motion. |
 | `narration` | Narration | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for narration. |

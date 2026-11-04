@@ -58,6 +58,11 @@ public sealed partial class SettingsPage
             PresetsBar(syncs), null,
             "Presets change colours, shape, density, fonts and effects; they keep your motion level and speed. User presets are saved in appearance-presets.json in the data folder. Every change is also recorded in local history (Activity) as \"Appearance: …\".", true);
 
+        // ----- Title-bar logo -----
+        rows.Add("logo", "Title-bar logo", "Choose the mark shown at the left of the title bar: the default, any bundled Material Symbol, or an image from your computer. The installed app icon and package identity do not change.",
+            LogoControl(), s => s.LogoKind == LogoKinds.Symbol ? s.LogoSymbol : s.LogoKind,
+            "A custom image is checked by its actual bytes (PNG, ICO or JPG, up to 1 MiB and 2048 by 2048 pixels), copied into the local app data folder and never uploaded. If the file later goes missing or is damaged, the default logo is shown with a notice. Every change is recorded in local history.", true);
+
         // ----- Theme and colour -----
         rows.Add("theme", "Theme", "Chooses light or dark colours, or follows the Windows app theme.",
             Resettable(Ui.Segmented(AppearanceState.Themes, a.Theme, v => Look("theme set to " + v, m => m.Theme = v)), "theme", (m, d) => m.Theme = d.Theme), s => s.Theme,

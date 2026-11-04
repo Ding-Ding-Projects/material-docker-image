@@ -757,4 +757,83 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     MaterialDockerImage.Services.Loc.SchoolMode = pageLocSchool;
 }
 count += BuildCompanionChecks.Run();
+
+{
+    // ----- App identity: display name and logo -----
+    var identitySettings=new UserSettings();
+    Check(identitySettings.DisplayName==AppIdentity.ShippedName&&UserSettings.ShippedName=="Material Docker Image","display name defaults to the shipped name");
+    var renameSummary=AppIdentity.ApplyDisplayName(identitySettings,"  Docker Bench  ",out var renameError);
+    Check(renameSummary=="Display name set to Docker Bench"&&identitySettings.DisplayName=="Docker Bench"&&renameError=="","rename trims and yields one history summary");
+    Check(AppIdentity.ApplyDisplayName(identitySettings,"Docker Bench",out _)==null,"renaming to the same name records nothing");
+    Check(AppIdentity.ApplyDisplayName(identitySettings,"",out var emptyError)==null&&emptyError.Length>0&&identitySettings.DisplayName=="Docker Bench","empty name refused and keeps the previous name");
+    Check(AppIdentity.ApplyDisplayName(identitySettings,new string('x',81),out _)==null&&identitySettings.DisplayName=="Docker Bench","81 character name refused");
+    Check(AppIdentity.ApplyDisplayName(identitySettings,"Bad\u0007name",out _)==null&&identitySettings.DisplayName=="Docker Bench","control characters refused");
+    Check(AppIdentity.ApplyDisplayName(identitySettings,AppIdentity.ShippedName,out _)=="Display name reset to Material Docker Image"&&identitySettings.DisplayName==UserSettings.ShippedName,"one action reset returns the shipped name");
+    var tamperedName=new UserSettings{DisplayName="\u0001bad"};tamperedName.Normalize();
+    Check(tamperedName.DisplayName==UserSettings.ShippedName,"invalid saved display name falls back to the shipped name on load");
+    var identityRoot=Path.Combine(Path.GetTempPath(),"mdi-identity-"+Guid.NewGuid().ToString("N"));
+    try
+    {
+        Directory.CreateDirectory(identityRoot);
+        var identityHistory=new MaterialDockerImage.Services.HistoryStore(Path.Combine(identityRoot,"history"));
+        identityHistory.Record("settings","baseline");
+        var before=identityHistory.List().Count;
+        var live=new UserSettings();
+        foreach(var attempt in new[]{"Alpha","Alpha","","Beta",AppIdentity.ShippedName})
+        {
+            var summary=AppIdentity.ApplyDisplayName(live,attempt,out _);
+            if(summary!=null)identityHistory.Record("settings",summary,new Dictionary<string,string>{["settings/settings.json"]=live.ToJson()});
+        }
+        Check(identityHistory.List().Count-before==3,"three real renames and resets leave exactly three history revisions");
+        Check(UserSettings.DataDirectory.EndsWith(Path.Combine("DingDingProjects","MaterialDockerImage"),StringComparison.Ordinal),"data directory is unchanged by a rename");
+    }
+    finally{try{Directory.Delete(identityRoot,true);}catch{}}
+
+    Check(AppIdentity.BundledSymbols.Count>100&&AppIdentity.BundledSymbols.ContainsKey("DeployedCode"),"bundled symbol catalogue comes from the generated icon class");
+    Check(AppIdentity.TryResolveSymbol("deployed_code",out var symbolName,out var symbolGlyph)&&symbolName=="DeployedCode"&&symbolGlyph==Icons.DeployedCode,"symbol lookup ignores case and underscores");
+    Check(AppIdentity.TryResolveSymbol("Folder Open",out var folderName,out _)&&folderName=="FolderOpen","symbol lookup ignores spaces");
+    Check(!AppIdentity.TryResolveSymbol("no_such_symbol_name",out _,out _)&&!AppIdentity.TryResolveSymbol("",out _,out _)&&!AppIdentity.TryResolveSymbol(new string('a',61),out _,out _),"unknown, empty and over-long symbol names are refused");
+    Check(AppIdentity.SuggestSymbols("deployed",AppIdentity.BundledSymbols).Contains("DeployedCode"),"symbol suggestions filter by text");
+
+    var logoRoot=Path.Combine(Path.GetTempPath(),"mdi-logo-"+Guid.NewGuid().ToString("N"));
+    try
+    {
+        var sourceFolder=Path.Combine(logoRoot,"source");var appData=Path.Combine(logoRoot,"appdata");
+        Directory.CreateDirectory(sourceFolder);Directory.CreateDirectory(appData);
+        var pngBytes=new byte[]{0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A,0,0,0,0};
+        var good=Path.Combine(sourceFolder,"mark.png");File.WriteAllBytes(good,pngBytes);
+        var liar=Path.Combine(sourceFolder,"liar.png");File.WriteAllBytes(liar,new byte[]{0xFF,0xD8,0xFF,0xE0,0,0,0,0});
+        var notImage=Path.Combine(sourceFolder,"notes.png");File.WriteAllText(notImage,"not an image at all");
+        var wrongType=Path.Combine(sourceFolder,"mark.gif");File.WriteAllBytes(wrongType,pngBytes);
+        var huge=Path.Combine(sourceFolder,"huge.png");using(var f=File.Create(huge)){f.Write(pngBytes);f.SetLength(AppIdentity.MaxLogoBytes+1);}
+        var empty=Path.Combine(sourceFolder,"empty.png");File.WriteAllBytes(empty,Array.Empty<byte>());
+        Check(AppIdentity.CheckImageFile(good) is {Ok:true,Format:"png",StoredName:"logo.png"},"valid PNG accepted by signature");
+        Check(!AppIdentity.CheckImageFile(liar).Ok&&AppIdentity.CheckImageFile(liar).Error.Contains("extension"),"extension and content mismatch refused");
+        Check(!AppIdentity.CheckImageFile(notImage).Ok,"text file named png refused");
+        Check(!AppIdentity.CheckImageFile(wrongType).Ok,"unsupported extension refused");
+        Check(!AppIdentity.CheckImageFile(huge).Ok,"file over the size limit refused");
+        Check(!AppIdentity.CheckImageFile(empty).Ok&&!AppIdentity.CheckImageFile(Path.Combine(sourceFolder,"missing.png")).Ok&&!AppIdentity.CheckImageFile(null).Ok,"empty, missing and null paths refused");
+        var stored=AppIdentity.StoreImage(good,appData);
+        var storedPath=AppIdentity.StoredLogoPath(appData,stored.StoredName)!;
+        Check(stored.Ok&&File.Exists(storedPath)&&File.ReadAllBytes(storedPath).SequenceEqual(pngBytes)&&Directory.GetFiles(Path.GetDirectoryName(storedPath)!,"*.tmp").Length==0,"valid image is copied into the app data logo folder");
+        Check(!AppIdentity.StoreImage(liar,appData).Ok&&File.Exists(storedPath),"a refused replacement keeps the previous stored logo");
+        var icoBytes=new byte[]{0,0,1,0,1,0,0,0};var ico=Path.Combine(sourceFolder,"mark.ico");File.WriteAllBytes(ico,icoBytes);
+        var storedIco=AppIdentity.StoreImage(ico,appData);
+        Check(storedIco.Ok&&!File.Exists(storedPath)&&File.Exists(AppIdentity.StoredLogoPath(appData,"logo.ico")!),"replacing with another format removes the old stored file");
+        Check(AppIdentity.StoredLogoPath(appData,"..\\..\\evil.png")==null&&AppIdentity.StoredLogoPath(appData,"logo.exe")==null&&!AppIdentity.IsStoredLogoName("C:\\x\\logo.png"),"stored logo names cannot point outside the logo folder");
+        Check(AppIdentity.Resolve(LogoKinds.Image,"","logo.ico",appData) is {Kind:"Image",Notice:""},"saved custom image resolves to the image");
+        AppIdentity.ClearStoredImages(appData);
+        var missing=AppIdentity.Resolve(LogoKinds.Image,"","logo.ico",appData);
+        Check(missing.Kind==LogoKinds.Default&&missing.ImagePath==null&&missing.Notice.Length>0&&missing.Glyph==Icons.DeployedCode,"missing custom image falls back to the default with a notice");
+        Directory.CreateDirectory(Path.Combine(appData,"logo"));
+        File.WriteAllText(Path.Combine(appData,"logo","logo.png"),"corrupt");
+        Check(AppIdentity.Resolve(LogoKinds.Image,"","logo.png",appData).Notice.Length>0,"corrupt stored image falls back to the default with a notice");
+        var symbolResolved=AppIdentity.Resolve(LogoKinds.Symbol,"Folder Open","",appData);
+        Check(symbolResolved.Kind==LogoKinds.Symbol&&symbolResolved.Notice==""&&symbolResolved.Glyph==Icons.FolderOpen,"symbol choice resolves to its glyph");
+        Check(AppIdentity.Resolve(LogoKinds.Symbol,"nope","",appData).Kind==LogoKinds.Default&&AppIdentity.Resolve(LogoKinds.Symbol,"nope","",appData).Notice.Length>0&&AppIdentity.Resolve(LogoKinds.Default,"x","x",appData).Notice=="","unknown symbol falls back with a notice and the default choice needs none");
+        var tamperedLogo=new UserSettings{LogoKind="Weird",LogoSymbol="",LogoImageFile="../../x.png"};tamperedLogo.Normalize();
+        Check(tamperedLogo.LogoKind==LogoKinds.Default&&tamperedLogo.LogoSymbol==AppIdentity.DefaultSymbolName&&tamperedLogo.LogoImageFile=="","tampered logo settings are normalised to safe defaults");
+    }
+    finally{try{Directory.Delete(logoRoot,true);}catch{}}
+}
 Console.WriteLine($"UI state checks: {count} passed.");

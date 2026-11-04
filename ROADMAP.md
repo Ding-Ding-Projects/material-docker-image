@@ -51,6 +51,7 @@
 - [ ] Implement and verify container device mapping controls (`container-device-mappings`).
 - [ ] Implement and verify container GPU access controls (`container-gpu-access`).
 
+- [ ] Verify the application icon, title-bar logo picker and display-name rename interactively in the built window and the installed shortcut (`app-icon`, `logo-customization`, `display-name`); add logo crop, fit and background editing.
 - [ ] Complete all 109 required-feature acceptance rows without removing unfinished identifiers.
 - [ ] Deliver portable documentation and dedicated build companions.
   - [x] Build companion window (`src/BuildCompanion`), single-file packaging script, release asset and logic checks (see `docs/features/build-companion.md`).

@@ -19,7 +19,7 @@ test('All 109 baseline identifiers, 10 existing workflows and four milestones ar
   assert.equal(inventory.entries.length,123);
   assert.equal(inventorySummary(inventory).required,109);
   assert.equal(inventorySummary(inventory).counts.verified,0);
-  assert.ok(inventory.entries.filter(r=>r.kind==='required').every(r=>r.status==='unverified'));
+  assert.ok(inventory.entries.filter(r=>r.kind==='required').every(r=>r.status!=='verified'));
 });
 test('Every omitted entry is rejected independently',()=>{
   for(let index=0;index<inventory.entries.length;index++)reject(v=>v.entries.splice(index,1),/missing ID/);
