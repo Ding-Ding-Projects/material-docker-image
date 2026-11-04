@@ -13,7 +13,9 @@ namespace MaterialDockerImage.Pages;
 internal sealed class AuthenticatorPanel
 {
     private static AppHost Host => AppHost.Current;
+    /// <summary>The Authenticator tab: general accounts first, with the lock pairing tools beside them.</summary>
     public FrameworkElement Root { get; }
+    private readonly FrameworkElement lockPane;
     private readonly ComboBox lockId;
     private readonly StackPanel list = new();
     private readonly TextBox check = Ui.Input("", "Code to check", true);
@@ -29,7 +31,7 @@ internal sealed class AuthenticatorPanel
         var setup = Ui.Button("Set up authenticator for this lock", Icons.ShieldLock, ButtonKind.Filled, () => _ = SetUpAsync());
         var checkButton = Ui.Button("Check code", Icons.CheckCircle, ButtonKind.Tonal, Check);
         var test = Ui.Button("Run RFC 6238 self-test", Icons.CheckCircle, ButtonKind.Outlined, RunSelfTest);
-        Root = Ui.Scroll(Ui.VStack(18,
+        lockPane = Ui.Scroll(Ui.VStack(18,
             Ui.Title("Authenticator for this app's locks", 18),
             Ui.Caption("Pair an authenticator app with one of this app's locks. The secret is made here, shown once as a QR code and text, and stored protected for your Windows account. Nothing is sent anywhere."),
             Ui.Caption("This only unlocks controls inside this app. A lock is a speed bump you set for yourself, and an authenticator for a lock on this same computer is mostly for fun."),
@@ -43,6 +45,11 @@ internal sealed class AuthenticatorPanel
             Ui.Card(Ui.VStack(10, Ui.Title("Locks with a policy", 16), list), 16, "SurfaceLow", 16),
             Ui.Card(Ui.VStack(10, Ui.Title("Standards check", 16),
                 Ui.Caption("Computes the published RFC 6238 test vectors for SHA-1, SHA-256 and SHA-512 with this build's own code."), Ui.HStack(8, test), selfTest), 16, "SurfaceLow", 16)));
+        var accounts = new AuthenticatorAccountsPanel().Root;
+        var holder = new ContentControl { Focusable = false, Content = accounts };
+        var sections = Ui.Segmented(["My accounts", "App locks"], "My accounts", name => holder.Content = name == "App locks" ? lockPane : accounts);
+        sections.HorizontalAlignment = HorizontalAlignment.Left; sections.MinWidth = 320;
+        Root = Ui.Rows(12, [0, 1], sections, holder);
         Render();
     }
 
