@@ -16,7 +16,7 @@
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "430ec6df86331fcb5952f42b1fc1a0210c575d38645c95aabb7b3cf7d7c51d8c"
+      "sha256": "cc38cd67b7af88868eb5abff61254fa282f2b6d821cd65a09e1c82dd6ef49393"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -29,6 +29,10 @@
     {
       "path": "docs/features/build-and-run.md",
       "sha256": "3ccba1bf07601abc490205d122aa4c95d1c14b5145a03eb461f95926a92febfe"
+    },
+    {
+      "path": "docs/features/build-companion.md",
+      "sha256": "d7fe76019be8569f0144250a60e3fc16f724e32f103320cfcb1a3d7a805e1b2f"
     },
     {
       "path": "docs/features/canvas.md",
@@ -96,11 +100,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "8c738344037163709be57c39d60494d91314cb3aac5ce5a2c014037e4bc07a9b"
+      "sha256": "b5a986d5397e420fafac18ea39e727ecf20fd34d05b85c793d4aa35bc471200e"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "0eee2b1092fe40c6293e7cb8fe56f6d8febd135536c79f3886e9ba0fcef9be67"
+      "sha256": "ea8c60b46ecc4fa440d80cf94d6139454296457d9a52f255312a97b2a1cb74d8"
     },
     {
       "path": "wiki/Home.md",

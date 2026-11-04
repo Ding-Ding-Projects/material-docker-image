@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>MaterialDockerImageBuild</AssemblyName>
+    <RootNamespace>BuildCompanion</RootNamespace>
+    <Version>0.1.0</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- The Material Symbols subset is shared with the main application rather than copied. -->
+    <Resource Include="..\MaterialDockerImage\Assets\Fonts\MaterialSymbolsRoundedOutline.ttf" Link="Assets\Fonts\MaterialSymbolsRoundedOutline.ttf" />
+  </ItemGroup>
+</Project>

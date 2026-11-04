@@ -53,6 +53,9 @@
 
 - [ ] Complete all 109 required-feature acceptance rows without removing unfinished identifiers.
 - [ ] Deliver portable documentation and dedicated build companions.
+  - [x] Build companion window (`src/BuildCompanion`), single-file packaging script, release asset and logic checks (see `docs/features/build-companion.md`).
+  - [ ] Interactive verification of the companion window on a desktop, and a real build driven from it.
+  - [ ] Portable documentation package.
 - [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
 - [ ] Complete localization, accessibility, appearance and onboarding acceptance across supported surfaces.
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.

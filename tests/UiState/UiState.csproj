@@ -24,5 +24,6 @@
     <Compile Include="../../src/MaterialDockerImage/UI/DockerfileCompletion*.cs" LinkBase="Suggestions"/>
     <Compile Include="../../src/MaterialDockerImage/UI/DockerfileValue*.cs" LinkBase="Suggestions"/>
     <Compile Include="../../src/MaterialDockerImage/UI/ComposeCompletion*.cs" LinkBase="Suggestions"/>
+    <Compile Include="../../src/BuildCompanion/Logic/*.cs" LinkBase="BuildCompanion"/>
   </ItemGroup>
 </Project>
