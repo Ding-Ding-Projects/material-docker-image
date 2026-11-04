@@ -42,7 +42,7 @@ public static class BuildResultCard
         if (requested.Destination == BuildKitDestination.Load && requested.Tags.Count > 0)
             actions.Children.Add(Ui.AsyncButton("Push", Icons.CloudUpload, ButtonKind.Tonal, () => PushAsync(requested.Tags, boundContext)).Margin(0, 0, 8, 8));
         if (digest != null)
-            actions.Children.Add(Ui.Button("Copy digest", Icons.ContentCopy, ButtonKind.Outlined, () => { Clipboard.SetText(digest); Host.Notify.Info("Copied the image digest."); }).Margin(0, 0, 8, 8));
+            actions.Children.Add(Ui.Button("Copy digest", Icons.ContentCopy, ButtonKind.Outlined, () => { ActionSounds.Copy(digest); Host.Notify.Info("Copied the image digest."); }).Margin(0, 0, 8, 8));
 
         var title = Ui.HStack(10, Ui.Icon(Icons.GppGood, 22, true, "Success"), Ui.Text("Build result", 16, FontWeights.SemiBold));
         var note = metadata == null ? Ui.Caption("The metadata file was not written or could not be read, so only what the progress output reported is shown.") : null;

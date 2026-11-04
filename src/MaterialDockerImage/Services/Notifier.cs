@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Media;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -89,18 +88,14 @@ public sealed class Notifier
     public void MarkRead() { Unread = 0; UnreadChanged?.Invoke(); }
     public void ClearToasts() => host.Children.Clear();
 
+    /// <summary>One-shot cue for the next notice, set by an operation that knows more than the notice kind (for example a removal).</summary>
+    public SoundCue? NextCue { get; set; }
+
     private void PlayCue(NoticeKind kind)
     {
+        var chosen = NextCue; NextCue = null;
         if (!SoundsEnabled()) return;
-        try
-        {
-            switch (kind)
-            {
-                case NoticeKind.Error: SystemSounds.Hand.Play(); break;
-                case NoticeKind.Warning: SystemSounds.Exclamation.Play(); break;
-                case NoticeKind.Success: SystemSounds.Asterisk.Play(); break;
-            }
-        }
-        catch (Exception e) when (e is InvalidOperationException or System.ComponentModel.Win32Exception) { }
+        var cue = chosen ?? kind switch { NoticeKind.Error => SoundCue.Failure, NoticeKind.Warning => SoundCue.Warning, NoticeKind.Success => SoundCue.Success, _ => (SoundCue?)null };
+        if (cue != null) ActionSounds.Emit(cue.Value);
     }
 }

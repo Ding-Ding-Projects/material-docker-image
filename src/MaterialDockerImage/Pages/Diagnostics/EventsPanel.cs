@@ -90,7 +90,7 @@ internal sealed class EventsPanel
         list.ItemsSource = shown;
         System.Windows.Automation.AutomationProperties.SetName(list, Loc.T("Engine events"));
         var menu = new ContextMenu();
-        menu.Items.Add(Ui.MenuItem("Copy event JSON", Icons.ContentCopy, () => { if (list.SelectedItem is EngineEvent e) Clipboard.SetText(e.Raw); }));
+        menu.Items.Add(Ui.MenuItem("Copy event JSON", Icons.ContentCopy, () => { if (list.SelectedItem is EngineEvent e) ActionSounds.Copy(e.Raw); }));
         menu.Items.Add(Ui.MenuItem("Clear list", Icons.Delete, () => { all.Clear(); Apply(); }));
         list.ContextMenu = menu;
         var bar = new WrapPanel();

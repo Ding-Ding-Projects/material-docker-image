@@ -41,8 +41,8 @@ public sealed class ActivityPage : PageBase
         // Action and date filters have their own controls above the table and are applied before SetItems.
         table.Filter("Labelled only", e => e.Labels.Count > 0);
         table.BulkAction("Export selected…", Icons.FileExport, items => { Export(items, "selected"); return Task.CompletedTask; });
-        table.RowAction("Copy summary", Icons.ContentCopy, e => { Clipboard.SetText(e.Summary); return Task.CompletedTask; });
-        table.RowAction("Copy revision ID", Icons.Tag, e => { Clipboard.SetText(e.Sha); return Task.CompletedTask; });
+        table.RowAction("Copy summary", Icons.ContentCopy, e => { ActionSounds.Copy(e.Summary); return Task.CompletedTask; });
+        table.RowAction("Copy revision ID", Icons.Tag, e => { ActionSounds.Copy(e.Sha); return Task.CompletedTask; });
         table.FocusedChanged += e => inspector.Show(e);
         foreach (var picker in new[] { from, to })
         {
@@ -58,7 +58,7 @@ public sealed class ActivityPage : PageBase
         var clearDates = Ui.Button("Any date", Icons.Close, ButtonKind.Text, () => { from.SelectedDate = null; to.SelectedDate = null; });
         var filters = new WrapPanel();
         filters.Children.Add(Ui.HStack(8, Ui.Overline("From"), from, Ui.Overline("To"), to, clearDates).Margin(0, 0, 16, 8));
-        filters.Children.Add(actionChips);
+        filters.Children.Add(CollapsibleBar.Wrap("activity.actions", "Action filters", actionChips, () => activeActions.Count > 0 ? $"Filters · {activeActions.Count} on" : "Filters · none on"));
         var left = new DockPanel();
         left.Children.Add(filters.Dock(Dock.Top).Margin(0, 0, 0, 8));
         left.Children.Add(table);

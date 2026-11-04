@@ -899,4 +899,113 @@ count += BuildCompanionChecks.Run();
     }
     finally{try{Directory.Delete(logoRoot,true);}catch{}}
 }
+{
+    // ----- Settings safety: element locks, schedules, attention modes, sound cues, collapsed filters -----
+    var ssSettings = new UserSettings();
+    Check(ElementLocks.Lock(ssSettings, "language") && ElementLocks.IsLocked(ssSettings, "language"), "a row can be locked");
+    Check(!ElementLocks.Lock(ssSettings, "language"), "locking twice changes nothing");
+    Check(!ElementLocks.Lock(ssSettings, "Bad Id!") && !ElementLocks.Lock(ssSettings, ""), "invalid lock ids are refused");
+    Check(ElementLocks.Unlock(ssSettings, "language") && !ElementLocks.IsLocked(ssSettings, "language") && !ElementLocks.Unlock(ssSettings, "language"), "unlock removes the lock once");
+    var ssFull = new UserSettings();
+    for (var i = 0; i < ElementLocks.MaxLocks + 10; i++) ElementLocks.Lock(ssFull, "row" + i);
+    Check(ssFull.LockedSettings.Count == ElementLocks.MaxLocks, "the lock list is bounded");
+    var ssProps = typeof(UserSettings).GetProperties().Select(p => p.Name).ToHashSet();
+    Check(ElementLocks.Properties.Values.SelectMany(v => v).All(ssProps.Contains), "every lockable row maps to real settings properties");
+    var ssCurrent = new UserSettings { Language = "Cantonese", FontSize = 20 };
+    ElementLocks.Lock(ssCurrent, "language");
+    var ssImported = new UserSettings { Language = "English", FontSize = 13 };
+    var ssKept = ElementLocks.Preserve(ssCurrent, ssImported);
+    Check(ssImported.Language == "Cantonese" && ssImported.FontSize == 13 && ssKept.Contains("Language") && ssImported.LockedSettings.Contains("language"), "import and reset keep locked rows and change unlocked ones");
+    var ssRoundTrip = System.Text.Json.JsonSerializer.Deserialize<UserSettings>(ssCurrent.ToJson())!; ssRoundTrip.Normalize();
+    Check(ssRoundTrip.LockedSettings.SequenceEqual(new[] { "language" }), "locks survive a save and load");
+
+    // Schedules
+    ScheduleRule SsRule(string start, string end, string value = "Cantonese", bool every = true, params int[] days) =>
+        new() { Id = "r", Setting = "Language", Value = value, Start = start, End = end, EveryDay = every, Days = days.ToList() };
+    var ssMonday = new DateTime(2026, 11, 2, 0, 0, 0); // a Monday
+    DateTime SsAt(int dayOffset, int hour, int minute) => ssMonday.AddDays(dayOffset).AddHours(hour).AddMinutes(minute);
+    var ssDay = SsRule("09:00", "17:00");
+    Check(ScheduleEvaluator.IsActive(ssDay, SsAt(0, 9, 0)) && ScheduleEvaluator.IsActive(ssDay, SsAt(0, 16, 59)), "window includes its start and the last minute");
+    Check(!ScheduleEvaluator.IsActive(ssDay, SsAt(0, 17, 0)) && !ScheduleEvaluator.IsActive(ssDay, SsAt(0, 8, 59)), "window excludes its end and the minute before the start");
+    var ssMondayOnly = SsRule("09:00", "17:00", "Cantonese", false, 1);
+    Check(ScheduleEvaluator.IsActive(ssMondayOnly, SsAt(0, 10, 0)) && !ScheduleEvaluator.IsActive(ssMondayOnly, SsAt(1, 10, 0)), "a same-day window uses its own weekday, not the previous one");
+    var ssNight = SsRule("22:00", "06:00", "Cantonese", false, 1); // Monday night only
+    Check(ScheduleEvaluator.IsActive(ssNight, SsAt(0, 23, 30)), "cross-midnight window is active before midnight on a selected day");
+    Check(ScheduleEvaluator.IsActive(ssNight, SsAt(1, 5, 59)), "cross-midnight window continues past midnight on the next day");
+    Check(!ScheduleEvaluator.IsActive(ssNight, SsAt(1, 6, 0)), "cross-midnight window ends at its end time");
+    Check(!ScheduleEvaluator.IsActive(ssNight, SsAt(0, 5, 0)), "the early part of a selected day belongs to the previous day's window");
+    Check(!ScheduleEvaluator.IsActive(ssNight, SsAt(1, 23, 0)), "an unselected weekday does not start the window");
+    Check(ScheduleEvaluator.IsActive(SsRule("08:00", "08:00"), SsAt(0, 3, 0)), "equal start and end mean the whole day");
+    Check(!ScheduleEvaluator.IsActive(SsRule("08:00", "08:00", "Cantonese", false, 2), SsAt(0, 3, 0)), "whole-day rule still honours selected weekdays");
+    var ssDisabled = SsRule("00:00", "23:59"); ssDisabled.Enabled = false;
+    Check(!ScheduleEvaluator.IsActive(ssDisabled, SsAt(0, 12, 0)), "a disabled rule never applies");
+    Check(ScheduleEvaluator.Validate(SsRule("25:00", "06:00")) != null && ScheduleEvaluator.Validate(SsRule("9:00", "06:00")) != null && ScheduleEvaluator.Validate(SsRule("09:00", "17:00", "Klingon")) != null && ScheduleEvaluator.Validate(SsRule("09:00", "17:00", "Cantonese", false)) != null, "invalid times, values and empty weekday sets are refused");
+    Check(!ScheduleEvaluator.IsActive(SsRule("25:00", "26:00"), SsAt(0, 12, 0)), "a rule with unparseable times is never active");
+    var ssLow = SsRule("00:00", "23:59", "Cantonese"); ssLow.Id = "low";
+    var ssHigh = SsRule("00:00", "23:59", "Bilingual"); ssHigh.Id = "high"; ssHigh.Priority = 5;
+    var ssLate = SsRule("00:00", "23:59", "English"); ssLate.Id = "late"; ssLate.Priority = 5;
+    Check(ScheduleEvaluator.Evaluate(new[] { ssLow, ssHigh }, SsAt(0, 12, 0), null).Language == "Bilingual", "the higher priority rule wins");
+    Check(ScheduleEvaluator.Evaluate(new[] { ssHigh, ssLate, ssLow }, SsAt(0, 12, 0), null).Language == "English", "equal priority: the later rule wins");
+    var ssTheme = new ScheduleRule { Id = "t", Setting = "Theme", Value = "Light", Start = "07:00", End = "19:00" };
+    var ssBoth = ScheduleEvaluator.Evaluate(new[] { ssLow, ssTheme }, SsAt(0, 12, 0), null);
+    Check(ssBoth.Language == "Cantonese" && ssBoth.Theme == "Light" && ssBoth.ActiveRuleIds.Count == 2, "language and theme rules apply independently");
+    var ssFileRule = new ScheduleRule { Id = "f", Setting = "Language", Source = ScheduleSources.File, Start = "00:00", End = "23:59" };
+    Check(ScheduleEvaluator.Evaluate(new[] { ssFileRule }, SsAt(0, 12, 0), null).Language == null, "a file rule without a readable file stays inactive");
+    var ssFile = ScheduleEvaluator.ParseFile("{\"version\":1,\"language\":\"Cantonese\",\"theme\":\"Dark\"}", 50);
+    Check(ssFile.Error == "" && ScheduleEvaluator.Evaluate(new[] { ssFileRule }, SsAt(0, 12, 0), ssFile).Language == "Cantonese", "a file rule takes its value from the validated file");
+    Check(ScheduleEvaluator.ParseFile("{\"version\":1,\"language\":\"Klingon\"}", 40).Error.Length > 0 && ScheduleEvaluator.ParseFile("{\"version\":1,\"extra\":1}", 24).Error.Length > 0 && ScheduleEvaluator.ParseFile("{\"language\":\"English\"}", 22).Error.Length > 0 && ScheduleEvaluator.ParseFile("not json", 8).Error.Length > 0 && ScheduleEvaluator.ParseFile("{}", 99999).Error.Length > 0 && ScheduleEvaluator.ParseFile("", 0).Error.Length > 0, "invalid, unknown, versionless, oversized and empty schedule files are refused whole");
+    var ssNormalized = ScheduleEvaluator.Normalize(Enumerable.Range(0, 80).Select(i => new ScheduleRule { Id = "same", Value = "English", Days = new List<int> { 9, 3, 3, -1 }, Priority = 9999 }));
+    Check(ssNormalized.Count == ScheduleEvaluator.MaxRules && ssNormalized.Select(r => r.Id).Distinct().Count() == ssNormalized.Count && ssNormalized.All(r => r.Priority == 100 && r.Days.SequenceEqual(new[] { 3 })), "rules are bounded, get unique ids and clamped fields");
+
+    // The live value borrows from the schedule, but the saved file keeps the person's choice.
+    var ssLive = new UserSettings { Language = "English", Theme = "Dark" };
+    Check(ssLive.ApplyScheduled("Cantonese", "Light") && ssLive.Language == "Cantonese" && ssLive.Theme == "Light" && ssLive.ScheduleOverrideActive, "an active schedule changes the live language and theme");
+    var ssSaved = System.Text.Json.JsonSerializer.Deserialize<UserSettings>(ssLive.ToJson())!;
+    Check(ssSaved.Language == "English" && ssSaved.Theme == "Dark" && ssLive.Language == "Cantonese", "the saved file keeps the base values while an override is active");
+    Check(!ssLive.ApplyScheduled("Cantonese", "Light"), "an unchanged schedule reports no change");
+    Check(ssLive.ApplyScheduled(null, null) && ssLive.Language == "English" && ssLive.Theme == "Dark" && !ssLive.ScheduleOverrideActive, "ending the schedule restores the base values");
+    ssLive.ApplyScheduled("Cantonese", null); ssLive.Language = "Bilingual";
+    ssLive.ApplyScheduled(null, null);
+    Check(ssLive.Language == "Bilingual", "a manual change during an override becomes the new base");
+
+    // Attention modes
+    var ssPlain = AdhdRules.Resolve(new UserSettings());
+    Check(ssPlain.ShowProvenance && ssPlain.ShowAccessibilityButton && !ssPlain.ShowExitFocus && ssPlain.RailLabels && ssPlain.RailWidth == 96 && ssPlain.SoundsAllowed && ssPlain.MotionAllowed, "no attention mode leaves the window unchanged");
+    var ssFocus = AdhdRules.Resolve(new UserSettings { FocusMode = true });
+    Check(!ssFocus.ShowProvenance && !ssFocus.ShowAccessibilityButton && ssFocus.ShowExitFocus && !ssFocus.RailLabels && ssFocus.RailWidth == 72, "Focus hides nonessential chrome and offers one way out");
+    var ssQuiet = AdhdRules.Resolve(new UserSettings { LowStimulation = true, Momentum = true });
+    Check(!ssQuiet.SoundsAllowed && !ssQuiet.MotionAllowed && !ssQuiet.ShowMomentumChip, "Low stimulation silences cues and motion and hides the streak chip");
+    Check(AdhdRules.Resolve(new UserSettings { Momentum = true }).ShowMomentumChip && !AdhdRules.Resolve(new UserSettings()).ShowMomentumChip, "Momentum shows the streak chip only when on");
+    Check(!AdhdRules.Resolve(new UserSettings { ReducedMotion = true }).MotionAllowed, "reduced motion still turns motion off");
+    var ssMomentum = new MomentumTracker();
+    ssMomentum.Record(true); ssMomentum.Record(true); ssMomentum.Record(true);
+    Check(ssMomentum.Streak == 3 && ssMomentum.ChipText == "3 steps in a row", "successes extend the streak");
+    ssMomentum.Record(false);
+    Check(ssMomentum.Streak == 0 && ssMomentum.Best == 3 && ssMomentum.ChipText == "", "a failure resets the streak and keeps the best");
+
+    // Sound cues
+    Check(SoundCueRules.MayPlay(new UserSettings(), false) && !SoundCueRules.MayPlay(new UserSettings { Sounds = false }, false) && !SoundCueRules.MayPlay(new UserSettings { LowStimulation = true }, false) && !SoundCueRules.MayPlay(new UserSettings(), true), "cues obey the switch, Low stimulation and capture mode");
+    Check(SoundCueRules.ForOperation(new[] { "image", "rm", "x" }, true, false) == SoundCue.Removal && SoundCueRules.ForOperation(new[] { "system", "prune", "-f" }, true, false) == SoundCue.Removal, "a finished removal earns the removal cue");
+    Check(SoundCueRules.ForOperation(new[] { "image", "rm", "x" }, false, false) == SoundCue.Failure && SoundCueRules.ForOperation(new[] { "build", "." }, true, false) == SoundCue.Success && SoundCueRules.ForOperation(new[] { "build" }, false, true) == SoundCue.Warning, "failure, success and cancel map to their own cues");
+    Check(SoundCueRules.ForOperation(new[] { "run", "--rm", "alpine" }, true, false) == SoundCue.Success, "an option such as --rm is not a removal");
+    Check(Enum.GetValues<SoundCue>().All(c => SoundCueRules.Mapping.Any(m => m.Cue == c)), "every cue has a documented mapping");
+
+    // Cantonese and bilingual wording for the new surfaces
+    MaterialDockerImage.Services.Loc.Language = "Cantonese";
+    var ssKeys = new[] { "Scheduled language and theme", "Exit focus", "Unlock this setting?", "Add rule", "Save rule", "Every day", "Show filters", "Hide filters", "What each sound means", "Start hour", "Filters · 3 on", "5 steps in a row", "Schedules", "The start time must look like 08:30." };
+    Check(ssKeys.All(k => MaterialDockerImage.Services.Loc.T(k) != k), "settings safety strings have Cantonese wording");
+    MaterialDockerImage.Services.Loc.Language = "Bilingual";
+    Check(MaterialDockerImage.Services.Loc.T("Exit focus").StartsWith("Exit focus · "), "bilingual mode keeps English then Cantonese");
+    MaterialDockerImage.Services.Loc.Language = "English";
+    // Collapsed filters
+    var ssState = new Dictionary<string, bool>();
+    Check(CollapseFilterState.Set(ssState, "table.Images.filters", true) && CollapseFilterState.IsCollapsed(ssState, "table.Images.filters") && !CollapseFilterState.IsCollapsed(ssState, "table.Volumes.filters"), "a surface can be collapsed on its own");
+    Check(!CollapseFilterState.Set(ssState, "table.Images.filters", true) && CollapseFilterState.Set(ssState, "table.Images.filters", false) && ssState.Count == 0, "expanding removes the stored entry");
+    Check(!CollapseFilterState.Set(ssState, "", true) && !CollapseFilterState.Set(ssState, new string('k', 61), true), "empty and oversized keys are refused");
+    var ssNoisy = new Dictionary<string, bool> { ["a"] = true, ["b"] = false, [""] = true };
+    Check(CollapseFilterState.Normalize(ssNoisy).Keys.SequenceEqual(new[] { "a" }), "normalizing drops expanded and empty entries");
+    var ssPersisted = new UserSettings(); CollapseFilterState.Set(ssPersisted.CollapsedFilters, "storage.stats", true);
+    var ssReloaded = System.Text.Json.JsonSerializer.Deserialize<UserSettings>(ssPersisted.ToJson())!; ssReloaded.Normalize();
+    Check(CollapseFilterState.IsCollapsed(ssReloaded.CollapsedFilters, "storage.stats"), "collapsed state survives a save and load");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

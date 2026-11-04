@@ -16,6 +16,9 @@
 - [x] Record a source audit of the shared feature requirements in `evidence/uh-features-audit.md`.
 - [x] Localize page-specific copy in Cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).
 - [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
+- [x] Add settings row locks, scheduled language and theme, attention-mode consumers (Focus, Low stimulation, Momentum), a documented action sound mapping and persisted collapsible filters (rule checks pass; hands-on verification pending)
+- [ ] Drive the new lock, schedule, attention-mode, sound and collapse controls in the built window and record receipts
+- [ ] Add lock credential policies, other schedulable settings and the API and Home Assistant schedule sources
 
 ## Delivered and bounded verification
 

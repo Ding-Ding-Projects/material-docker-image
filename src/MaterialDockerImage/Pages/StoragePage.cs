@@ -29,7 +29,7 @@ public sealed class StoragePage : PageBase
         var header = Ui.Header("Storage", "Volumes and networks", out subtitle,
             segment,
             Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
-        Layout(header, Ui.Rows(0, [0, 1], stats, host));
+        Layout(header, Ui.Rows(0, [0, 1], CollapsibleBar.Wrap("storage.stats", "Statistics", stats), host));
         Show();
     }
 

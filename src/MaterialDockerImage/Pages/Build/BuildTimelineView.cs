@@ -49,7 +49,7 @@ public sealed class BuildTimelineView : Border
     {
         cancel = Ui.Button("Cancel", Icons.Stop, ButtonKind.Outlined, () => CancelRequested?.Invoke());
         cancel.Visibility = Visibility.Collapsed;
-        var copy = Ui.IconButton(Icons.ContentCopy, "Copy command", () => { if (command.Length > 0) { Clipboard.SetText(command); AppHost.Current.Notify.Info("Copied the build command."); } });
+        var copy = Ui.IconButton(Icons.ContentCopy, "Copy command", () => { if (command.Length > 0) { ActionSounds.Copy(command); AppHost.Current.Notify.Info("Copied the build command."); } });
         var actions = Ui.HStack(8, statusBadge, cancel, copy);
         actions.VerticalAlignment = VerticalAlignment.Top;
         var head = new DockPanel();
@@ -225,7 +225,7 @@ public sealed class BuildStatTile : Border
         var head = new DockPanel();
         if (mono)
         {
-            copy = Ui.IconButton(Icons.ContentCopy, "Copy " + Loc.T(label).ToLowerInvariant(), () => { if (copyText != null) { Clipboard.SetText(copyText); AppHost.Current.Notify.Info("Copied the digest."); } });
+            copy = Ui.IconButton(Icons.ContentCopy, "Copy " + Loc.T(label).ToLowerInvariant(), () => { if (copyText != null) { ActionSounds.Copy(copyText); AppHost.Current.Notify.Info("Copied the digest."); } });
             copy.Width = copy.Height = copy.MinHeight = 28; copy.Margin = new Thickness(0, -6, -6, -6);
             copy.Visibility = Visibility.Collapsed;
             head.Children.Add(copy.Dock(System.Windows.Controls.Dock.Right));

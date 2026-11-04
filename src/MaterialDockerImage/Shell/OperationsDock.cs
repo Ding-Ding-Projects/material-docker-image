@@ -46,7 +46,7 @@ public sealed class OperationsDock : Border
         toggle = Ui.IconButton(Icons.ExpandMore, "Collapse output", () => SetExpanded(!Expanded));
         var header = new DockPanel { Margin = new Thickness(16, 6, 8, 6) };
         header.Children.Add(Ui.Icon(Icons.Terminal, 18, false, "Primary").Margin(0, 0, 10, 0).Dock(System.Windows.Controls.Dock.Left));
-        var right = Ui.HStack(4, search, Ui.IconButton(Icons.ContentCopy, "Copy output", () => { Clipboard.SetText(output.Text); AppHost.Current?.Notify.Info("Output copied."); }), Ui.IconButton(Icons.Delete, "Clear output", Clear), cancel, toggle);
+        var right = Ui.HStack(4, search, Ui.IconButton(Icons.ContentCopy, "Copy output", () => { ActionSounds.Copy(output.Text); AppHost.Current?.Notify.Info("Output copied."); }), Ui.IconButton(Icons.Delete, "Clear output", Clear), cancel, toggle);
         header.Children.Add(right.Dock(System.Windows.Controls.Dock.Right));
         header.Children.Add(progress.Dock(System.Windows.Controls.Dock.Right));
         header.Children.Add(Ui.HStack(10, title, detail));

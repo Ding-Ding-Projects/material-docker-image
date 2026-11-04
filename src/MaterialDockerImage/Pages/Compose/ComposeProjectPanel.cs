@@ -75,7 +75,7 @@ public sealed partial class ComposeProjectPanel : Grid
             .RowAction("Stop", Icons.Stop, s => Simple(Loc.T("Stop") + " " + s.Service, false, "stop", s.Service))
             .RowAction("Restart", Icons.RestartAlt, s => Simple(Loc.T("Restart") + " " + s.Service, false, "restart", s.Service))
             .RowAction("Up this service…", Icons.RocketLaunch, s => UpAsync(s.Service))
-            .RowAction("Copy container name", Icons.ContentCopy, s => { if (s.Container.Length > 0) Clipboard.SetText(s.Container); return Task.CompletedTask; });
+            .RowAction("Copy container name", Icons.ContentCopy, s => { if (s.Container.Length > 0) ActionSounds.Copy(s.Container); return Task.CompletedTask; });
         services.Activated += s => _ = Ui.RunGuarded(services, () => LogsAsync(s.Service));
 
         // Actions wrap under the title so every button stays reachable at narrow widths.

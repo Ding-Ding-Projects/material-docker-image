@@ -44,7 +44,7 @@ public sealed class VolumesView : Grid
             .RowAction("Back up…", Icons.Backup, v => Stale() ? Task.CompletedTask : VolumeBackupDialog.ShowAsync(v, context, isCurrent))
             .RowAction("Restore into…", Icons.Restore, v => { if (!Stale()) VolumeRestoreDialog.Show(v.Name, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing); return Task.CompletedTask; })
             .RowAction("Clone…", Icons.FilterNone, v => VolumeRestoreDialog.CloneAsync(v, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing))
-            .RowAction("Copy name", Icons.ContentCopy, v => { Clipboard.SetText(v.Name); return Task.CompletedTask; })
+            .RowAction("Copy name", Icons.ContentCopy, v => { ActionSounds.Copy(v.Name); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
         table.Activated += v => _ = Guarded(() => InspectAsync(v));

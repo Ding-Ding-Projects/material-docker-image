@@ -97,7 +97,10 @@ internal sealed class SettingRows
         if (info != null) title.Children.Add(Ui.InfoButton(label, info, example));
         System.Windows.Automation.AutomationProperties.SetName(control, Loc.T(label));
         System.Windows.Automation.AutomationProperties.SetHelpText(control, explanation);
-        var text = Ui.VStack(2, title, Ui.Caption(explanation), provenance);
+        var lockNote = Ui.Caption("");
+        lockNote.Visibility = Visibility.Collapsed;
+        var text = Ui.VStack(2, title, Ui.Caption(explanation), provenance, lockNote);
+        if (value != null) AddLock(id, label, title, lockNote, control);
         FrameworkElement layout;
         if (wide) layout = Ui.VStack(10, text, control);
         else
@@ -128,6 +131,48 @@ internal sealed class SettingRows
         var row = new SettingRow { Id = id, Section = Section, Label = label, Explanation = explanation, Info = info, Element = border, Provenance = provenance, Value = value, Format = format };
         All.Add(row);
         return row;
+    }
+
+    /// <summary>
+    /// Adds the lock button to a row's title. A locked row is read-only: its control is disabled and the note says how to unlock it.
+    /// Unlocking asks for a confirmation. A lock is a speed bump for oneself, not security, and the confirmation says so.
+    /// </summary>
+    private void AddLock(string id, string label, StackPanel title, TextBlock note, FrameworkElement control)
+    {
+        Button? button = null;
+        void Apply()
+        {
+            var locked = ElementLocks.IsLocked(Host.Settings, id);
+            control.IsEnabled = !locked;
+            note.Visibility = locked ? Visibility.Visible : Visibility.Collapsed;
+            note.Text = locked ? Loc.T("Locked. Unlock this setting to change it. " + ElementLocks.Disclosure) : "";
+            if (button != null)
+            {
+                button.Content = locked ? Icons.Lock : Icons.LockOpen;
+                System.Windows.Automation.AutomationProperties.SetName(button, Loc.T(locked ? "Unlock this setting: " : "Lock this setting: ") + Loc.T(label));
+                button.ToolTip = Loc.T(locked ? "Locked. Select to unlock." : "Lock this setting against changes");
+            }
+        }
+        async Task Toggle()
+        {
+            if (!ElementLocks.IsLocked(Host.Settings, id))
+            {
+                if (!ElementLocks.Lock(Host.Settings, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return; }
+                Guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, true)));
+            }
+            else
+            {
+                if (!await Host.Overlay.ConfirmAsync(Loc.T("Unlock this setting?"), Loc.T(label) + "\n\n" + Loc.T(ElementLocks.Disclosure), "Unlock")) return;
+                ElementLocks.Unlock(Host.Settings, id);
+                Guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, false)));
+            }
+            Apply();
+        }
+        button = Ui.IconButton(Icons.LockOpen, label, () => { _ = Toggle(); });
+        button.Margin = new Thickness(4, -6, 0, -6);
+        button.Width = button.Height = button.MinHeight = 28; button.FontSize = 16;
+        title.Children.Add(button);
+        Apply();
     }
 
     /// <summary>A switch with no label of its own (the row shows the label).</summary>

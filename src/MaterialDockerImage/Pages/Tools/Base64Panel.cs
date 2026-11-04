@@ -331,7 +331,7 @@ internal sealed class Base64Panel
     {
         if (outputText.Length == 0) { Host.Notify.Info("There is no output to copy yet."); return; }
         if (!encode && outputBytes.Length > 0 && Base64Tools.TryGetString(outputBytes, encoding, out _) == null) { Host.Notify.Warning("The output is binary. Use Save as file to keep the exact bytes."); return; }
-        Clipboard.SetText(outputText);
+        ActionSounds.Copy(outputText);
         Record("Copy");
         Host.Notify.Info($"Copied {outputText.Length:N0} characters.");
     }

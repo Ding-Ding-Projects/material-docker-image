@@ -18,6 +18,7 @@
 - [Diagnostics and safety](diagnostics.md)
 - [Monitoring, cleanup, registries and tools](operations-and-tools.md)
 - [Local history](local-history.md)
+- [Settings safety: locks, schedules, attention modes, sounds and collapsible filters](settings-safety.md)
 - [Capability inventory](capability-inventory.md)
 - [Feature completion checklist](feature-checklist.md)
 

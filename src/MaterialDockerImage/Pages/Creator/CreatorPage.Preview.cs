@@ -60,7 +60,7 @@ public sealed partial class CreatorPage
 
         var copy = Ui.IconButton(Icons.ContentCopy, "Copy Dockerfile", () =>
         {
-            try { Clipboard.SetText(preview.Text); Host.Notify.Info("Dockerfile copied to the clipboard."); }
+            try { ActionSounds.Copy(preview.Text); Host.Notify.Info("Dockerfile copied to the clipboard."); }
             catch (System.Runtime.InteropServices.ExternalException) { Host.Notify.Warning("The clipboard is busy. Try again."); }
         });
         var buildCommand = Ui.IconButton(Icons.Terminal, "Copy as build command", CopyBuildCommand);
@@ -338,7 +338,7 @@ public sealed partial class CreatorPage
         var command = DockerfilePlatform.BuildCommand(doc, dockerfile, context);
         try
         {
-            Clipboard.SetText(command.Command);
+            ActionSounds.Copy(command.Command);
             Host.Notify.Info(Loc.T("Build command copied:") + " " + command.Command + (command.Notes.Count > 0 ? " " + string.Join(" ", command.Notes) : ""));
         }
         catch (System.Runtime.InteropServices.ExternalException) { Host.Notify.Warning("The clipboard is busy. Try again."); }

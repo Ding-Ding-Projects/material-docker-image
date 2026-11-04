@@ -38,8 +38,8 @@ public sealed class BuildHistoryCard : DockPanel
             .Column("Reference", r => r.Reference, 260, true)
             .Filter("This app", r => r.Source == "This app")
             .Filter("Failed", r => r.Status is "Failed" or "Error")
-            .RowAction("Copy reference", Icons.ContentCopy, r => { Clipboard.SetText(r.Reference.Length > 0 ? r.Reference : r.Name); Host.Notify.Info("Copied."); return Task.CompletedTask; })
-            .RowAction("Copy digest", Icons.Fingerprint, r => { if (r.Digest.Length == 0) Host.Notify.Info("This build reported no digest."); else { Clipboard.SetText(r.Digest); Host.Notify.Info("Copied the digest."); } return Task.CompletedTask; });
+            .RowAction("Copy reference", Icons.ContentCopy, r => { ActionSounds.Copy(r.Reference.Length > 0 ? r.Reference : r.Name); Host.Notify.Info("Copied."); return Task.CompletedTask; })
+            .RowAction("Copy digest", Icons.Fingerprint, r => { if (r.Digest.Length == 0) Host.Notify.Info("This build reported no digest."); else { ActionSounds.Copy(r.Digest); Host.Notify.Info("Copied the digest."); } return Task.CompletedTask; });
         table.Key = r => r.Source + "|" + r.Reference + "|" + r.Started?.ToUnixTimeMilliseconds();
         table.EmptyTitle = Loc.T("No builds yet");
         table.EmptyMessage = Loc.T("Builds you start here appear immediately. Builder records appear when Buildx supports history.");

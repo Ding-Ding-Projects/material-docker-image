@@ -47,7 +47,7 @@ internal sealed class HubSearch
             .Column("Description", r => r.Description, 380)
             .Filter("Official", r => r.Official)
             .RowAction("Pull…", Icons.CloudDownload, PullAsync, "Enter")
-            .RowAction("Copy name", Icons.ContentCopy, r => { Clipboard.SetText(r.Name); return Task.CompletedTask; })
+            .RowAction("Copy name", Icons.ContentCopy, r => { ActionSounds.Copy(r.Name); return Task.CompletedTask; })
             .RowAction("Open on Docker Hub", Icons.OpenInNew, r => { OpenHub(r); return Task.CompletedTask; });
         Table.Activated += r => _ = PullAsync(r);
         Table.MinHeight = 320; Table.MaxHeight = 560;
