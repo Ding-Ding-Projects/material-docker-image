@@ -3,6 +3,7 @@
 - [Workspace, navigation and command palette](workspace.md)
 - [Search and the regular expression builder](search-and-regex.md)
 - [Build and run](build-and-run.md)
+- [Build companion](build-companion.md)
 - [Dockerfile Creator](dockerfile-creator.md)
 - [Editor suggestions and value pickers](editor-suggestions.md)
 - [Advanced builds, BuildKit timeline and Bake](advanced-build.md)

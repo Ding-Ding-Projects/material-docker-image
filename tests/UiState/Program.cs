@@ -756,4 +756,5 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     MaterialDockerImage.Services.Loc.Language = pageLocPrior;
     MaterialDockerImage.Services.Loc.SchoolMode = pageLocSchool;
 }
+count += BuildCompanionChecks.Run();
 Console.WriteLine($"UI state checks: {count} passed.");
