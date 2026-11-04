@@ -37,6 +37,25 @@ internal sealed class SearchBuilderPopover
     private readonly TextBox replacement;
     private readonly TextBox replaceOutput = Ui.CodeBox("", 60);
     private readonly TextBlock replaceStatus = Ui.Caption("");
+    private readonly TextBox blocksBox;
+    private readonly TextBlock blocksStatus = Ui.Caption("");
+    private readonly TextBlock blocksPattern = Ui.Mono("", 12, "OnSurfaceVariant", true);
+    private RegexBlocksResult? blocksResult;
+    private readonly TextBlock moreError = Ui.Caption("");
+    private readonly TextBox splitOutput = Ui.CodeBox("", 60);
+    private readonly TextBlock splitStatus = Ui.Caption("");
+    private readonly TextBox suiteBox;
+    private readonly TextBlock suiteStatus = Ui.Caption("");
+    private readonly TextBlock diagnostics = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock benchStatus = Ui.Caption("");
+    private readonly TextBox benchOutput = Ui.CodeBox("", 60);
+    private CancellationTokenSource? bench;
+    private ComboBox? targetCombo, kindCombo;
+    private readonly TextBox convertOutput = Ui.CodeBox("", 60);
+    private readonly TextBlock convertNotes = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly StackPanel libraryList = new();
+    private readonly TextBox librarySearch = Ui.Input("", "Filter the library");
+    private readonly TextBox mineSearch = Ui.Input("", "Filter my patterns");
     private readonly StackPanel savedList = new();
     private readonly StackPanel recentList = new();
     private readonly TextBlock mineStatus = Ui.Caption("");
@@ -68,6 +87,16 @@ internal sealed class SearchBuilderPopover
         sample.MaxLength = RegexBuilderEngine.MaxSampleBytes;
         AutomationProperties.SetName(sample, Loc.T("Sample text to test the pattern against"));
         replacement = Ui.Input(field.State.Replacement, "Replacement", true);
+        blocksBox = Ui.CodeBox(field.State.Blocks, 80);
+        AutomationProperties.SetName(blocksBox, Loc.T("Building blocks, one per line"));
+        suiteBox = Ui.CodeBox(field.State.TestCases, 70);
+        AutomationProperties.SetName(suiteBox, Loc.T("Expected outcomes, one per line"));
+        splitOutput.IsReadOnly = true; benchOutput.IsReadOnly = true; convertOutput.IsReadOnly = true;
+        AutomationProperties.SetName(splitOutput, Loc.T("Split preview"));
+        AutomationProperties.SetName(benchOutput, Loc.T("Timing probe results"));
+        AutomationProperties.SetName(convertOutput, Loc.T("Converted pattern"));
+        foreach (var live in new[] { blocksStatus, moreError, splitStatus, suiteStatus, benchStatus })
+            live.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
         replaceOutput.IsReadOnly = true;
         AutomationProperties.SetName(replaceOutput, Loc.T("Replace preview"));
         highlighted.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
@@ -87,6 +116,10 @@ internal sealed class SearchBuilderPopover
             Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern.", explanation),
             TesterSection(),
             ReplaceSection(),
+            SplitSection(),
+            SuiteSection(),
+            DiagnosticsSection(),
+            ConvertSection(),
             ActionsRow(),
             DialectNote());
         scroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 4, 0) };
@@ -117,6 +150,10 @@ internal sealed class SearchBuilderPopover
         };
         sample.TextChanged += (_, _) => { field.State.Sample = sample.Text; Schedule(); };
         replacement.TextChanged += (_, _) => { field.State.Replacement = replacement.Text; Schedule(); };
+        blocksBox.TextChanged += (_, _) => { field.State.Blocks = blocksBox.Text; RenderBlocks(); };
+        suiteBox.TextChanged += (_, _) => { field.State.TestCases = suiteBox.Text; Schedule(); };
+        librarySearch.TextChanged += (_, _) => RenderLibrary();
+        mineSearch.TextChanged += (_, _) => RenderMine();
         explanation.SelectedItemChanged += (_, e) =>
         {
             if (e.NewValue is TreeViewItem { Tag: RegexExplainNode n } && n.Start + n.Length <= pattern.Text.Length) pattern.Select(n.Start, n.Length);
@@ -157,6 +194,7 @@ internal sealed class SearchBuilderPopover
     {
         debounce.Stop();
         evaluation?.Cancel();
+        bench?.Cancel();
         field.Box.TextChanged -= fieldTextChanged;
         field.Changed -= fieldChanged;
         if (field.RegexMode) field.State.Recent.Add(field.Query, field.Flags);
@@ -225,6 +263,8 @@ internal sealed class SearchBuilderPopover
         tabs.Items.Add(Tab("Anchors", TokenWrap("Anchors")));
         tabs.Items.Add(Tab("Groups", GroupsTab()));
         tabs.Items.Add(Tab("Repeat", RepeatTab()));
+        tabs.Items.Add(Tab("Blocks", BlocksTab()));
+        tabs.Items.Add(Tab("More", MoreTab()));
         tabs.Items.Add(Tab("Library", LibraryTab()));
         tabs.Items.Add(Tab("My patterns", MineTab()));
         return Section("Insert", "Guided insertion at the caret. Group buttons wrap the selected part of the pattern. Inserting turns regular expression mode on.", tabs);
@@ -357,8 +397,17 @@ internal sealed class SearchBuilderPopover
 
     private FrameworkElement LibraryTab()
     {
-        var list = new StackPanel();
-        foreach (var s in RegexBuilderLibrary.Snippets)
+        AutomationProperties.SetName(librarySearch, Loc.T("Filter the library"));
+        RenderLibrary();
+        return Ui.VStack(8, librarySearch, new ScrollViewer { Content = libraryList, MaxHeight = 260, VerticalScrollBarVisibility = ScrollBarVisibility.Auto });
+    }
+
+    private void RenderLibrary()
+    {
+        libraryList.Children.Clear();
+        var found = RegexPatternStore.SearchSnippets(librarySearch.Text);
+        if (found.Count == 0) libraryList.Children.Add(Ui.Caption("No library pattern matches the filter."));
+        foreach (var s in found)
         {
             var snippet = s;
             var use = Small("Use", "Replace the pattern with this snippet" + (snippet.Flags != null ? " and its flags" : ""), () => Use(snippet.Pattern, snippet.Flags));
@@ -371,17 +420,90 @@ internal sealed class SearchBuilderPopover
             var row = new DockPanel { Margin = new Thickness(0, 0, 0, 10) };
             row.Children.Add(Ui.VStack(0, use, insert).Dock(Dock.Right));
             row.Children.Add(text);
-            list.Children.Add(row);
+            libraryList.Children.Add(row);
         }
-        return new ScrollViewer { Content = list, MaxHeight = 260, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
+    }
+
+    private FrameworkElement BlocksTab()
+    {
+        var help = Ui.VStack(2, RegexBlocks.Help.Select(h => (UIElement)Ui.Caption(h)).ToArray());
+        RenderBlocks();
+        return Ui.VStack(8,
+            help,
+            Ui.Field("Building blocks", blocksBox, "One block per line, in the order they must match. Literal text is escaped for you.", "start of line / literal v / capture major: digits 1 to 3 times / end of line"),
+            blocksStatus, blocksPattern,
+            Ui.Wrap(8,
+                Small("Use this pattern", "Replace the pattern with the pattern built from the blocks", () => { if (blocksResult is { Valid: true, Pattern.Length: > 0 }) Use(blocksResult.Pattern, null); }),
+                Small("Insert at caret", "Insert the built pattern at the caret", () => { if (blocksResult is { Valid: true, Pattern.Length: > 0 }) Insert(blocksResult.Pattern, ""); })));
+    }
+
+    private void RenderBlocks()
+    {
+        blocksResult = RegexBlocks.Build(blocksBox.Text);
+        blocksPattern.Text = blocksResult.Valid ? blocksResult.Pattern : "";
+        blocksStatus.Text = blocksBox.Text.Trim().Length == 0 ? Loc.T("Type one block per line to build a pattern.")
+            : blocksResult.Valid ? Loc.T("Matches:") + " " + blocksResult.Sentence + "."
+            : string.Join(" ", blocksResult.Problems);
+    }
+
+    private FrameworkElement MoreTab()
+    {
+        var code = Ui.Input("", "Character or code point", true);
+        var baseSet = Ui.Input("a-z", "Set members", true);
+        var removed = Ui.Input("a e i o u", "Members to remove", true);
+        var condition = Ui.Input("1", "Group number, name or lookaround", true);
+        var yes = Ui.Input("", "Then", true);
+        var no = Ui.Input("", "Else (optional)", true);
+        var push = Ui.Input("", "Group to push (optional)", true);
+        var pop = Ui.Input("", "Group to pop", true);
+        var inner = Ui.Input("", "Inside the group (optional)", true);
+        var on = Ui.Input("i", "Options on", true);
+        var off = Ui.Input("", "Options off", true);
+        var scoped = Ui.Input("", "Apply only to (optional)", true);
+        var atom = Ui.Input("", "Item", true);
+        var quantifier = Ui.Input("+", "Quantifier", true);
+        void Try(Func<string> make)
+        {
+            try { Insert(make(), ""); moreError.Text = ""; }
+            catch (ArgumentException e) { moreError.Text = e.Message; }
+        }
+        var palette = new StackPanel();
+        foreach (var family in RegexBuilderConstructs.Palette.Select(t => t.Family).Distinct())
+        {
+            var wrap = new WrapPanel();
+            foreach (var t in RegexBuilderConstructs.Palette.Where(t => t.Family == family)) wrap.Children.Add(Small(t.Label, t.Description, () => Insert(t.Prefix, t.Suffix), true));
+            palette.Children.Add(Ui.Overline(family));
+            palette.Children.Add(wrap);
+        }
+        var missing = Ui.VStack(2, RegexBuilderConstructs.Unavailable.Select(u => (UIElement)Ui.Caption(u.Construct + ": " + u.Reason)).ToArray());
+        return Ui.VStack(8,
+            palette,
+            Ui.Field("Character by code point", code, "Inserts \\xHH, \\uHHHH or a surrogate pair for a character or a code point such as U+00E9.", "U+20AC"),
+            Small("Insert escape", null, () => Try(() => RegexBuilderConstructs.CodePoint(RegexBuilderConstructs.ParseCodePoint(code.Text)))),
+            Ui.Field("Class subtraction", Ui.HStack(8, baseSet, removed), "A set minus another set: [a-z-[aeiou]].", "a-z minus a e i o u"),
+            Small("Insert subtraction", null, () => Try(() => RegexBuilderConstructs.Subtraction(baseSet.Text, removed.Text))),
+            Ui.Field("Conditional", Ui.VStack(6, condition, yes, no), "(?(condition)then|else). The condition is a group number, a group name or a lookaround such as (?=a). Uses the backtracking engine.", "1"),
+            Small("Insert conditional", null, () => Try(() => RegexBuilderConstructs.Conditional(condition.Text, yes.Text, no.Text))),
+            Ui.Field("Balancing group", Ui.VStack(6, push, pop, inner), "(?<push-pop>inner) pops one capture of the pop group and pushes one on the push group. This is how .NET matches nested pairs.", "pop: open"),
+            Small("Insert balancing group", null, () => Try(() => RegexBuilderConstructs.Balancing(push.Text.Trim(), pop.Text.Trim(), inner.Text))),
+            Ui.Field("Inline options", Ui.VStack(6, Ui.HStack(8, on, off), scoped), "(?i-s) changes options from here on; with a part to apply to, (?i-s:part) limits them to that part. Letters: i m n s x.", "i on, s off"),
+            Small("Insert options", null, () => Try(() => RegexBuilderConstructs.InlineOptions(on.Text.Trim(), off.Text.Trim(), scoped.Text.Length == 0 ? null : scoped.Text))),
+            Ui.Field("Possessive stand-in", Ui.HStack(8, atom, quantifier), ".NET has no possessive quantifiers. (?>item+) behaves the same: once matched it never gives characters back.", "\\d  +"),
+            Small("Insert atomic repeat", null, () => Try(() => RegexBuilderConstructs.Possessive(atom.Text, quantifier.Text))),
+            moreError,
+            Ui.Overline("Not available in .NET"), missing);
     }
 
     private FrameworkElement MineTab()
     {
         var save = Small("Save to my patterns", "Stores the pattern and flags in regex-patterns.json in the app data folder (at most 200).", SaveCurrent);
+        AutomationProperties.SetName(mineSearch, Loc.T("Filter my patterns"));
         return Ui.VStack(8,
             Ui.Field("Name", saveName, "Saving is the only way the builder stores anything. Sample and replacement text are never saved.", "Short image IDs"),
-            save, mineStatus,
+            Ui.Wrap(8, save,
+                Small("Import…", "Add patterns from a library file. Existing names are kept and invalid patterns are skipped.", ImportLibrary),
+                Small("Export…", "Save all of my patterns to a file you choose.", ExportLibrary)),
+            mineStatus, mineSearch,
             Ui.Overline("Saved patterns"), new ScrollViewer { Content = savedList, MaxHeight = 160, VerticalScrollBarVisibility = ScrollBarVisibility.Auto },
             Ui.Overline("Recent in this field (this session only)"), recentList);
     }
@@ -398,6 +520,95 @@ internal sealed class SearchBuilderPopover
     private FrameworkElement ReplaceSection() => Section("Replace preview", "Shows the sample after replacement. Nothing in the app is changed.",
         Ui.Field("Replacement", replacement, "Use $1 or ${name} for a group, $0 or $& for the whole match and $$ for a dollar sign.", "${name}:latest"),
         replaceStatus, replaceOutput);
+
+    private FrameworkElement SplitSection() => Section("Split preview", "Shows how the sample would be cut at each match. Nothing in the app is changed.", splitStatus, splitOutput);
+
+    private FrameworkElement SuiteSection() => Section("Test cases", "Expected outcomes for the pattern. Start a line with + if the text must match, or - if it must not. They stay in memory for this field only.",
+        Ui.Field("Expected outcomes", suiteBox, "One case per line: + must match, - must not match.", "+ nginx:1.27 / - not an image"), suiteStatus);
+
+    private FrameworkElement DiagnosticsSection()
+    {
+        var run = Small("Run timing probe", "Times the pattern on growing inputs with the backtracking engine and warns about catastrophic backtracking.", RunBenchmark);
+        return Section("Diagnostics and timing", RegexDiagnostics.StepCountNotice, diagnostics, run, benchStatus, benchOutput);
+    }
+
+    private FrameworkElement ConvertSection()
+    {
+        targetCombo = Ui.Combo(RegexConverter.Targets, RegexConverter.Targets[2]);
+        kindCombo = Ui.Combo(new[] { "Find all matches", "Test for a match", "Replace", "Split" }, "Find all matches");
+        AutomationProperties.SetName(targetCombo, Loc.T("Convert to"));
+        AutomationProperties.SetName(kindCombo, Loc.T("Code to generate"));
+        targetCombo.SelectionChanged += (_, _) => RenderConversion();
+        kindCombo.SelectionChanged += (_, _) => RenderConversion();
+        convertNotes.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
+        convertNotes.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
+        return Section("Convert and copy as", "The same pattern for C#, PowerShell, a JSON string or grep -E. Anything the target cannot express is reported, never guessed.",
+            Ui.Field("Convert to", targetCombo, "Quoting is exact for the target. grep -E is converted construct by construct.", "C# code"),
+            Ui.Field("Code to generate", kindCombo, "Used by the C# code and PowerShell targets.", "Find all matches"),
+            convertOutput, convertNotes,
+            Small("Copy converted", null, () => { if (convertOutput.Text.Length > 0) Copy(convertOutput.Text, "Converted pattern copied."); else testStatus.Text = Loc.T("Nothing to copy: the pattern cannot be converted for this target."); }));
+    }
+
+    private (string Pattern, RegexBuilderFlags Flags) Effective() => field.RegexMode
+        ? (field.Query, field.Flags)
+        : (RegexBuilderLibrary.Literal(field.Query), new RegexBuilderFlags { IgnoreCase = field.Flags.IgnoreCase });
+
+    private void RenderConversion()
+    {
+        if (targetCombo == null || kindCombo == null) return;
+        var target = targetCombo.SelectedItem as string ?? RegexConverter.Targets[2];
+        if (field.Query.Length == 0) { convertOutput.Text = ""; convertNotes.Text = Loc.T("Enter a pattern to convert."); return; }
+        var (text, flags) = Effective();
+        var kind = (kindCombo.SelectedItem as string) switch { "Test for a match" => RegexCodeKind.IsMatch, "Replace" => RegexCodeKind.Replace, "Split" => RegexCodeKind.Split, _ => RegexCodeKind.Matches };
+        var result = RegexConverter.Convert(target, text, flags, kind, field.State.Replacement);
+        convertOutput.Text = result.Text;
+        convertNotes.Text = string.Join(" ", result.Notes.Select(Loc.T)) + (result.Converted && result.Lossy ? " " + Loc.T("The converted pattern is not identical in meaning.") : "");
+    }
+
+    private async void RunBenchmark()
+    {
+        bench?.Cancel();
+        var cts = bench = new CancellationTokenSource();
+        var (text, flags) = Effective();
+        var sampleText = field.State.Sample;
+        if (field.Query.Length == 0) { benchStatus.Text = Loc.T("Enter a pattern to probe."); return; }
+        benchStatus.Text = Loc.T("Probing…"); benchOutput.Text = "";
+        try
+        {
+            var result = await Task.Run(() => RegexDiagnostics.Benchmark(text, flags, sampleText, cts.Token), cts.Token);
+            if (cts.IsCancellationRequested || !popup.IsOpen) return;
+            benchStatus.Text = result.Valid ? Loc.T(result.Verdict) : result.Error ?? "";
+            benchOutput.Text = string.Join("\n", result.Rows.Select(r => $"{r.Subject,-12} {r.Size,6} chars  {(r.TimedOut ? ">" + RegexDiagnostics.ProbeTimeout.TotalMilliseconds.ToString("0") : r.Milliseconds.ToString("0.00"))} ms  {(r.TimedOut ? "timed out" : r.Matched ? "match" : "no match")}"));
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void ImportLibrary()
+    {
+        var existing = saved ?? new List<RegexSavedPattern>();
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "JSON|*.json", Title = Loc.T("Import patterns") };
+        Close(); // a modal dialog would dismiss the popover anyway; the result is reported as a notification
+        if (dialog.ShowDialog() != true) return;
+        try
+        {
+            if (new FileInfo(dialog.FileName).Length > 4 * 1024 * 1024) { AppHost.Current.Notify.Error("The file is larger than 4 MiB and was not read."); return; }
+            var result = RegexPatternStore.Import(existing, File.ReadAllText(dialog.FileName));
+            RegexPatternStore.Save(RegexPatternStore.DefaultPath, result.Library);
+            AppHost.Current.Notify.Success($"{result.Added} pattern{(result.Added == 1 ? "" : "s")} added, {result.Skipped.Count} skipped." + (result.Skipped.Count > 0 ? " " + string.Join(" ", result.Skipped.Take(3)) : ""));
+        }
+        catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException or InvalidOperationException) { AppHost.Current.Notify.Error("The file could not be imported: " + e.Message); }
+    }
+
+    private void ExportLibrary()
+    {
+        var current = saved;
+        if (current == null || current.Count == 0) { mineStatus.Text = Loc.T("There are no saved patterns to export."); return; }
+        var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "JSON|*.json", FileName = RegexPatternStore.FileName, Title = Loc.T("Export my patterns") };
+        Close();
+        if (dialog.ShowDialog() != true) return;
+        try { File.WriteAllText(dialog.FileName, RegexPatternStore.Serialize(current)); AppHost.Current.Notify.Success("My patterns exported to " + dialog.FileName + "."); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppHost.Current.Notify.Error("Could not export my patterns: " + e.Message); }
+    }
 
     private FrameworkElement ActionsRow()
     {
@@ -477,7 +688,18 @@ internal sealed class SearchBuilderPopover
             engine.Text = compiled == null || !field.RegexMode ? Loc.T("Engine: plain-text comparison.") : Loc.T("Engine:") + " " + RegexBuilderEngine.DescribeEngine(compiled.Engine);
         }
         RenderExplanation(text, flags);
+        RenderDiagnostics(text, flags);
+        RenderConversion();
         Schedule();
+    }
+
+    private void RenderDiagnostics(string text, RegexBuilderFlags flags)
+    {
+        var findings = field.RegexMode && text.Length > 0 ? RegexDiagnostics.Analyze(text, flags) : [];
+        diagnostics.Text = findings.Count == 0
+            ? Loc.T(text.Length == 0 ? "Type a pattern to check it for backtracking risks." : field.RegexMode ? "No backtracking risk found by the static check." : "Regular expression mode is off, so nothing is backtracked.")
+            : string.Join("\n", findings.Select(f => "⚠ " + Loc.T(f.Message)));
+        diagnostics.SetResourceReference(TextBlock.ForegroundProperty, findings.Count == 0 ? "OnSurfaceVariant" : "Error");
     }
 
     private void RenderExplanation(string text, RegexBuilderFlags flags)
@@ -522,26 +744,34 @@ internal sealed class SearchBuilderPopover
         var flags = regexMode ? field.Flags : new RegexBuilderFlags { IgnoreCase = field.Flags.IgnoreCase };
         var sampleText = field.State.Sample;
         var replaceText = field.State.Replacement;
+        var suiteText = field.State.TestCases;
         if (field.Query.Length == 0 || sampleText.Length == 0)
         {
             highlighted.Inlines.Clear(); highlighted.Text = sampleText.Length == 0 ? "" : RegexBuilderEngine.BoundSample(sampleText, out _);
             testStatus.Text = field.Query.Length == 0 ? Loc.T("Enter a pattern to test.") : Loc.T("Paste sample text to test the pattern.");
             groups.ItemsSource = null; groups.Visibility = Visibility.Collapsed;
             replaceOutput.Text = ""; replaceStatus.Text = "";
+            splitOutput.Text = ""; splitStatus.Text = Loc.T("Enter a pattern and sample text to preview a split.");
+            if (field.Query.Length == 0 || suiteText.Length == 0) suiteStatus.Text = suiteText.Length == 0 ? Loc.T("Add expected outcomes to check the pattern against them.") : Loc.T("Enter a pattern to run the test cases.");
+            else RenderSuite(RegexBuilderOperations.RunSuite(text, flags, suiteText, token));
             return;
         }
         testStatus.Text = Loc.T("Testing…");
         try
         {
-            var (result, preview) = await Task.Run(() =>
+            var (result, preview, split, suite) = await Task.Run(() =>
             {
                 var r = RegexBuilderEngine.Evaluate(text, flags, sampleText, token);
                 var p = replaceText.Length > 0 && r.Valid ? RegexBuilderEngine.Replace(text, flags, sampleText, replaceText, token) : null;
-                return (r, p);
+                var sp = r.Valid ? RegexBuilderOperations.Split(text, flags, sampleText, token) : null;
+                var su = suiteText.Length > 0 ? RegexBuilderOperations.RunSuite(text, flags, suiteText, token) : null;
+                return (r, p, sp, su);
             }, token);
             if (token.IsCancellationRequested || !popup.IsOpen) return;
             RenderTest(result);
             RenderReplace(preview, replaceText.Length > 0);
+            RenderSplit(split);
+            if (suite != null) RenderSuite(suite); else suiteStatus.Text = Loc.T("Add expected outcomes to check the pattern against them.");
         }
         catch (OperationCanceledException) { }
     }
@@ -585,6 +815,23 @@ internal sealed class SearchBuilderPopover
         groups.Visibility = rows.Count > 0 && result.Matches.Any(m => m.Groups.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
     }
 
+    private void RenderSplit(RegexSplitPreview? split)
+    {
+        if (split == null) { splitOutput.Text = ""; splitStatus.Text = Loc.T("Correct the pattern to preview a split."); return; }
+        splitOutput.Text = string.Join("\n", split.Pieces.Select((p, i) => $"{i + 1}: {(p.Length == 0 ? "(empty)" : p)}"));
+        var status = split.Error ?? $"{split.Pieces.Count} piece{(split.Pieces.Count == 1 ? "" : "s")}" + (split.Truncated ? $"; only the first {RegexBuilderOperations.MaxPieces} are shown" : "") + ".";
+        splitStatus.Text = status + (split.Notes.Count > 0 ? " " + string.Join(" ", split.Notes.Select(Loc.T)) : "");
+    }
+
+    private void RenderSuite(RegexTestSuiteResult suite)
+    {
+        if (!suite.Valid) { suiteStatus.Text = suite.Error ?? ""; return; }
+        var lines = new List<string> { $"{suite.Passed} of {suite.Results.Count} expected outcomes hold." };
+        lines.AddRange(suite.Results.Where(r => !r.Passed).Take(8).Select(r => $"{(r.Case.ExpectMatch ? "+" : "-")} {r.Case.Input}: " + (r.TimedOut ? "timed out" : r.Matched ? "matched but should not" : "did not match but should")));
+        lines.AddRange(suite.ParseProblems);
+        suiteStatus.Text = string.Join(" ", lines);
+    }
+
     private void RenderReplace(RegexReplacePreview? preview, bool requested)
     {
         if (!requested || preview == null) { replaceOutput.Text = ""; replaceStatus.Text = requested ? Loc.T("Correct the pattern to preview replacements.") : Loc.T("Type a replacement to preview it."); return; }
@@ -609,8 +856,10 @@ internal sealed class SearchBuilderPopover
             try { saved = RegexPatternStore.Load(RegexPatternStore.DefaultPath); }
             catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { saved = new(); mineStatus.Text = Loc.T("Saved patterns could not be read:") + " " + e.Message; }
         }
+        var shown = RegexPatternStore.Search(saved, mineSearch.Text);
         if (saved.Count == 0) savedList.Children.Add(Ui.Caption("No saved patterns yet."));
-        foreach (var s in saved)
+        else if (shown.Count == 0) savedList.Children.Add(Ui.Caption("No saved pattern matches the filter."));
+        foreach (var s in shown)
         {
             var entry = s;
             savedList.Children.Add(Row(entry.Pattern, entry.Name, () => Use(entry.Pattern, entry.Flags), () => Persist(RegexPatternStore.Remove(saved, entry.Name), "Removed " + entry.Name + ".")));

@@ -11,7 +11,7 @@
       "implemented": 17,
       "verified": 0
     },
-    "sha256": "70c1fd800f6ceb8446d90d2012e06331f589bb8b16e32647d99dc25ac7a8d32e"
+    "sha256": "815171987adb6adb84346d3dcc3717f1c72296030a51d9a70d1c8a94820e1fc1"
   },
   "sources": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "ba735288aabcefe9ab74d74c28a2ebc1a6400f000ccbfa8fe436e5ced1a91b98"
+      "sha256": "40eb0d7120c398af2579391d021c29135f1256355cc28b5a0191156a5adcdae5"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -83,12 +83,16 @@
       "sha256": "526be70275a85b161cba1965b283a426e5a2f1b1f1c4d48f8c30726f492c12e4"
     },
     {
+      "path": "docs/features/regex-parity.md",
+      "sha256": "5c4077ac2a9ca7962876a271e6afc1af1bcd8564a81611fda86183ad3882c6fd"
+    },
+    {
       "path": "docs/features/resources.md",
       "sha256": "b05544828e459d4147ad2de5a25c360b3c7a140dbc1e9c79902aa09d2742e1a9"
     },
     {
       "path": "docs/features/search-and-regex.md",
-      "sha256": "23ab101baaed4407d89e1ea0e7122fab3e1bb155a8f8f6f55360364469328c0d"
+      "sha256": "37e6d2db309f9abbb9b43b220a11080f72e6d2f38bf5e2155ef89c0e1d973a5b"
     },
     {
       "path": "docs/features/workspace.md",
@@ -100,11 +104,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "4798c81f13ccfcd354bfae474211c56c9d4b78f7b5f069cc10b0617dbc05b220"
+      "sha256": "cf487c57fcf4a5ddc075f5f420ac8940469a452b12f897c3d241c2ed93aa32b3"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "790fc4bbb67db3f41769076ab64a398757fe2a5193ec4103502cb9d7cdf62f60"
+      "sha256": "9b1c3b5a91de5006339e4ebfafa408316516fdc37b6aea953088c2aa2fa42cfe"
     },
     {
       "path": "wiki/Home.md",

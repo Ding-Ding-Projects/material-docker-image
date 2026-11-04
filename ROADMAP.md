@@ -57,7 +57,7 @@
   - [x] Build companion window (`src/BuildCompanion`), single-file packaging script, release asset and logic checks (see `docs/features/build-companion.md`).
   - [ ] Interactive verification of the companion window on a desktop, and a real build driven from it.
   - [ ] Portable documentation package.
-- [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
+- [ ] Establish complete RegexBuddy functional parity and independent workflow evidence. Matrix in `docs/features/regex-parity.md`: 39 implemented, 14 partial, 30 unavailable or not built (debugger trace, GREP, flavor comparison, integration and others). Logic checks pass; interactive verification of the popover and HuiShots are pending.
 - [ ] Complete localization, accessibility, appearance and onboarding acceptance across supported surfaces.
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.
 - [ ] Verify remote engines, alternative architectures and supported workflow combinations.

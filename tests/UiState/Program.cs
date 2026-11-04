@@ -511,6 +511,146 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     var repaired=AppearanceState.FromSettings(corrupt);
     Check(repaired.RadiusScale==1&&repaired.MotionLevel=="Standard"&&repaired.Roles.Count==0,"corrupt saved appearance is repaired, not applied");
 }
+// Regex parity: flags, constructs, plain-language blocks, conversions, split, test suites, diagnostics, library import/export.
+{
+    var ci=new RegexBuilderFlags(); var cs=ci with{IgnoreCase=false};
+    // Flags: RightToLeft and NonBacktracking.
+    Check(RegexBuilderFlags.All.Count==8&&RegexBuilderFlags.All.Select(f=>f.Name).Distinct().Count()==8,"eight distinct flags are offered");
+    foreach(var f in RegexBuilderFlags.All) Check(ci.With(f.Name,true).Get(f.Name)&&!ci.With(f.Name,true).With(f.Name,false).Get(f.Name),"flag round trip "+f.Name);
+    var rtl=RegexBuilderEngine.Evaluate(@"\d",cs with{RightToLeft=true},"a1b2");
+    Check(rtl.Valid&&rtl.Engine==RegexBuilderEngine.BacktrackingEngine&&rtl.Matches.Count==2&&rtl.Matches[0].Value=="2"&&rtl.FallbackReason!=null,"RightToLeft scans from the end on the backtracking engine");
+    var needNb=RegexBuilderEngine.Compile(@"(?<=a)b",cs with{NonBacktracking=true});
+    Check(!needNb.Valid&&needNb.Error!.Contains("non-backtracking"),"required NonBacktracking reports an unsupported lookbehind instead of falling back");
+    Check(RegexBuilderEngine.Compile(@"\d+",cs with{NonBacktracking=true}).Engine==RegexBuilderEngine.NonBacktrackingEngine,"required NonBacktracking accepts a supported pattern");
+    Check(!RegexBuilderEngine.Compile(@"\d",cs with{NonBacktracking=true,RightToLeft=true}).Valid,"NonBacktracking with RightToLeft is refused");
+    // Explanation of the rarer constructs.
+    foreach(var rare in new[]{@"(?(1)a|b)",@"(a)(?(1)b|c)",@"(?<o>x)(?<-o>y)",@"(?<p-o>x)",@"[a-z-[aeiou]]",@"\p{IsGreek}",@"(?i-s:a)",@"(?>a+)",@"\G\Z\x41\u00e9\cA\e"})
+        Check(!RegexExplainer.Flatten(RegexExplainer.Explain(rare,ci)).Any(n=>n.Node.Family==RegexTokenFamily.Error)||!RegexBuilderEngine.Validate(rare,ci).Valid,"explanation has no false error for "+rare);
+    Check(RegexExplainer.Flatten(RegexExplainer.Explain(@"(a)(?(1)b|c)",ci)).Any(n=>n.Node.Family==RegexTokenFamily.Conditional),"conditional is explained");
+    // Constructs.
+    Check(RegexBuilderConstructs.CodePoint(0xE9)==@"\xE9"&&RegexBuilderConstructs.CodePoint(0x20AC)==@"\u20AC"&&RegexBuilderConstructs.CodePoint(0x1F600)==@"\uD83D\uDE00","code point escapes use \\x, \\u and surrogate pairs");
+    Check(new RegexSearchQuery(RegexBuilderConstructs.CodePoint(0x1F600),true,cs).Matches("a😀b"),"surrogate-pair escape matches the emoji");
+    Check(RegexBuilderConstructs.ParseCodePoint("U+00E9")==0xE9&&RegexBuilderConstructs.ParseCodePoint("é")==0xE9&&RegexBuilderConstructs.ParseCodePoint("😀")==0x1F600&&RegexBuilderConstructs.ParseCodePoint("0x41")==0x41,"code point input forms");
+    Reject(()=>RegexBuilderConstructs.CodePoint(0xD800),"surrogate code point refused");
+    Reject(()=>RegexBuilderConstructs.ParseCodePoint("ab c"),"several characters refused as one code point");
+    Check(RegexBuilderConstructs.ControlCharacter('a')==@"\cA","control character escape");
+    var sub=RegexBuilderConstructs.Subtraction("a-z","a e i o u");
+    Check(sub=="[a-z-[aeiou]]"&&new RegexSearchQuery("^"+sub+"$",true,cs).Matches("b")&&!new RegexSearchQuery("^"+sub+"$",true,cs).Matches("e"),"class subtraction removes the vowels");
+    var cond=RegexBuilderConstructs.Conditional("1","y","z");
+    Check(cond=="(?(1)y|z)"&&new RegexSearchQuery("^(x)?"+cond+"$",true,cs).Matches("xy")&&new RegexSearchQuery("^(x)?"+cond+"$",true,cs).Matches("z")&&!new RegexSearchQuery("^(x)?"+cond+"$",true,cs).Matches("xz"),"conditional picks the branch by whether group 1 matched");
+    Check(RegexBuilderConstructs.Conditional("name","a")=="(?(name)a)"&&RegexBuilderConstructs.Conditional("(?=a)","b","c")=="(?((?=a))b|c)"||RegexBuilderConstructs.Conditional("(?=a)","b","c").StartsWith("(?((?=a))"),"conditional accepts a name and a lookaround");
+    Reject(()=>RegexBuilderConstructs.Conditional("1+1","a"),"conditional condition validated");
+    var balanced=@"^(?:[^()]|(?<d>\()|(?<-d>\)))*(?(d)(?!))$";
+    Check(RegexBuilderConstructs.Balancing("","d","")==@"(?<-d>)"&&RegexBuilderConstructs.Balancing("a","b","x")==@"(?<a-b>x)","balancing group composer");
+    Check(new RegexSearchQuery(balanced,true,cs).Matches("(a(b)c)")&&!new RegexSearchQuery(balanced,true,cs).Matches("(a(b")&&!new RegexSearchQuery(balanced,true,cs).Matches("a)"),"balancing groups match nested brackets");
+    Check(RegexBuilderConstructs.InlineOptions("i","s")=="(?i-s)"&&RegexBuilderConstructs.InlineOptions("i","","a")=="(?i:a)",""+"inline option composer");
+    Reject(()=>RegexBuilderConstructs.InlineOptions("q",""),"unknown inline option refused");
+    Reject(()=>RegexBuilderConstructs.InlineOptions("i","i"),"option in both lists refused");
+    Check(RegexBuilderConstructs.Comment("note")=="(?#note)","comment composer");
+    Reject(()=>RegexBuilderConstructs.Comment("a)b"),"comment with a closing parenthesis refused");
+    Check(RegexBuilderConstructs.Possessive("a","+")=="(?>a+)"&&!new RegexSearchQuery("^"+RegexBuilderConstructs.Possessive("a","+")+"a$",true,cs).Matches("aaa"),"possessive stand-in is atomic: it never gives characters back");
+    foreach(var t in RegexBuilderConstructs.Palette)
+    {
+        var probe=t.Family=="Quantifiers"?"a"+t.Prefix:"(?<name>x)(?<push>y)(?<pop>z)"+t.Prefix+"a"+t.Suffix;
+        Check(RegexBuilderEngine.Validate(probe,ci).Valid,"extended token inserts a valid pattern: "+t.Label);
+    }
+    Check(RegexBuilderConstructs.Unavailable.Count>=5&&RegexBuilderConstructs.Unavailable.All(u=>u.Reason.Length>10),"unsupported constructs are listed with reasons");
+    Check(RegexBuilderConstructs.GroupsOf(@"(a)(?<n>b)",ci).Select(g=>g.Name).SequenceEqual(new[]{"1","n"}),"groups listed in .NET numbering order");
+    // Plain-language blocks.
+    var blocks=RegexBlocks.Build("start of line\nliteral v\ncapture major: digits 1 to 3 times\nliteral .\noptional literal x\nend of line");
+    Check(blocks.Valid&&blocks.Pattern==@"^v(?<major>\d{1,3})\.x?$"&&blocks.Sentence.Contains("capture 'major'"),"blocks build the expected pattern ("+blocks.Pattern+")");
+    var blockHit=RegexBuilderEngine.Evaluate(blocks.Pattern,cs,"v12.x");
+    Check(blockHit.Matches.Count==1&&blockHit.Matches[0].Groups[0].Name=="major"&&blockHit.Matches[0].Groups[0].Value=="12","blocks pattern captures the named group");
+    Check(RegexBlocks.Build("literal ab 2 or more").Pattern==@"(?:ab){2,}"&&RegexBlocks.Build("one of cat|dog").Pattern=="(?:cat|dog)"&&RegexBlocks.Build("any of a-f 0-9 2 times lazy").Pattern=="[a-f0-9]{2}?","blocks repeat, alternatives and sets");
+    Check(RegexBlocks.Build("none of x y").Pattern=="[^xy]"&&RegexBlocks.Build("letters one or more").Pattern==@"\p{L}+"&&RegexBlocks.Build("word boundary\nliteral a.b\nword boundary").Pattern==@"\ba\.b\b","blocks escape literal text");
+    var badBlocks=RegexBlocks.Build("literal a\nfly to the moon\noptional digits 3 times");
+    Check(!badBlocks.Valid&&badBlocks.Problems.Count==2&&badBlocks.Problems[0].StartsWith("Line 2")&&badBlocks.Problems[1].StartsWith("Line 3"),"blocks report each bad line with its number");
+    Check(RegexBlocks.Build("").Valid&&RegexBlocks.Build("").Pattern=="","empty blocks give an empty pattern");
+    // Conversions.
+    Check(RegexConverter.CSharpString("a\\b\"c\n\t")=="\"a\\\\b\\\"c\\n\\t\""&&RegexConverter.CSharpString("\u0001")=="\"\\u0001\"","C# regular string escaping");
+    Check(RegexConverter.Convert("C# verbatim string",@"a""b\d",ci).Text=="@\"a\"\"b\\d\"","C# verbatim escaping doubles quotes");
+    var code=RegexConverter.Convert("C# code",@"\d+",ci with{Multiline=true},RegexCodeKind.Matches);
+    Check(code.Text.Contains("RegexOptions.IgnoreCase | RegexOptions.Multiline")&&code.Text.Contains("@\"\\d+\"")&&code.Text.Contains("TimeSpan.FromMilliseconds(250)")&&code.Text.Contains("regex.Matches(input)"),"C# code snippet carries pattern, options and timeout");
+    Check(RegexConverter.Convert("C# code","a",cs,RegexCodeKind.Replace,"x\"$1").Text.Contains("regex.Replace(input, \"x\\\"$1\");")&&RegexConverter.Convert("C# code","a",cs,RegexCodeKind.Split).Text.Contains("regex.Split(input)")&&RegexConverter.Convert("C# code","a",cs,RegexCodeKind.IsMatch).Text.Contains("regex.IsMatch(input)")&&RegexConverter.CSharpOptions(cs)=="RegexOptions.None","C# replace, split and is-match snippets");
+    var ps=RegexConverter.Convert("PowerShell","it's \\d",ci,RegexCodeKind.Matches);
+    Check(ps.Text.Contains("'it''s \\d'")&&ps.Text.Contains("'IgnoreCase'"),"PowerShell doubles single quotes and names the options");
+    foreach(var tricky in new[]{"\\d+\"x","tab\there \u00e9 \\u0041","\u2603 \"q\" \\\\","line1\nline2"})
+    {
+        var js=RegexConverter.Convert("JSON string",tricky,ci);
+        Check(System.Text.Json.JsonSerializer.Deserialize<string>(js.Text)==tricky,"JSON string round trips: "+tricky.Replace("\n","\\n"));
+    }
+    var g1=RegexConverter.Convert("grep -E",@"\d+(?:-\d+)?",ci);
+    Check(g1.Converted&&g1.Lossy&&g1.Text=="grep -E -i '[0-9]+(-[0-9]+)?'"&&g1.Notes.Any(n=>n.Contains("ASCII")),"grep conversion of digits and a non-capturing group");
+    Check(RegexBuilderEngine.Evaluate(@"[0-9]+(-[0-9]+)?",ci,"a 12-34 b 5").Matches.Select(m=>m.Value).SequenceEqual(RegexBuilderEngine.Evaluate(@"\d+(?:-\d+)?",ci,"a 12-34 b 5").Matches.Select(m=>m.Value)),"converted grep pattern matches the same ASCII text in .NET");
+    Check(RegexConverter.Convert("grep -E",@"(?<n>a)\1\b",cs).Text=="grep -E '(a)\\1\\b'"&&RegexConverter.Convert("grep -E",@"[\d_\s]+",cs).Text=="grep -E '[0-9_[:space:]]+'","grep conversion drops group names and rewrites sets");
+    Check(RegexConverter.Convert("grep -E","it's",cs).Text=="grep -E 'it'\\''s'","grep quoting of a single quote");
+    foreach(var no in new[]{@"a+?",@"(?=a)b",@"(?<!a)b",@"(?>a)",@"\tx",@"\p{L}",@"(?i)a",@"[a-z-[aeiou]]",@"(?(1)a|b)",@"a*+"})
+    {
+        var r=RegexConverter.Convert("grep -E",no,cs);
+        Check(!r.Converted&&r.Text.Length==0&&r.Notes[0].StartsWith("Not convertible"),"grep refuses what it cannot express: "+no);
+    }
+    Check(!RegexConverter.Convert("grep -E","a",cs with{Singleline=true}).Converted&&!RegexConverter.Convert("grep -E","a",cs with{RightToLeft=true}).Converted&&!RegexConverter.Convert("grep -E","a",cs with{IgnorePatternWhitespace=true}).Converted,"grep refuses flags it cannot express");
+    Check(RegexConverter.Convert("grep -E","a",cs with{Multiline=true}).Notes.Any(n=>n.Contains("Multiline")),"grep notes that Multiline is implied");
+    Reject(()=>RegexConverter.Convert("Perl","a",cs),"unknown conversion target refused");
+    // Split preview.
+    var split=RegexBuilderOperations.Split(@"[,;]\s*",cs,"a, b;c,d");
+    Check(split.Valid&&split.Pieces.SequenceEqual(new[]{"a","b","c","d"}),"split preview pieces");
+    var splitGroups=RegexBuilderOperations.Split(@"(,)",cs,"a,b");
+    Check(splitGroups.Pieces.SequenceEqual(new[]{"a",",","b"})&&splitGroups.Notes.Count==1,"split with a capture group returns the separator and says so");
+    Check(RegexBuilderOperations.Split("x",cs,"abc").Notes.Any(n=>n.Contains("did not match"))&&!RegexBuilderOperations.Split("(",cs,"abc").Valid,"split no-match note and invalid pattern");
+    var many=RegexBuilderOperations.Split(",",cs,string.Concat(Enumerable.Repeat("a,",5000)));
+    Check(many.Truncated&&many.Pieces.Count==RegexBuilderOperations.MaxPieces,"split output is bounded");
+    var hang=new string('a',40)+"!";
+    var splitTimeout=RegexBuilderOperations.Split(@"(?=.)(a+)+$",cs,hang);
+    Check(splitTimeout.TimedOut&&splitTimeout.Error!.Contains("250 ms"),"split stops at the match timeout");
+    Check(RegexBuilderEngine.Replace(@"(?=.)(a+)+$",cs,hang,"x").TimedOut&&RegexBuilderEngine.Evaluate(@"(?=.)(a+)+$",cs,hang).TimedOut,"replace and test stop at the match timeout");
+    Check(RegexBuilderOperations.Split(",",cs,"a,b",new CancellationToken(true)).Cancelled,"split honours cancellation");
+    // Replace preview extras.
+    var rep=RegexBuilderEngine.Replace(@"(?<k>\w+)=(?<v>\w+)",cs,"a=1 b=2","${v}:${k} $$ $0");
+    Check(rep.Output=="1:a $ a=1 2:b $ b=2"&&rep.Replacements==2&&rep.Warnings.Count==0,"replace preview with names, $$ and $0");
+    Check(RegexBuilderEngine.Replace(@"(a)",cs,"a","$2 ${zz}").Warnings.Count==2,"replace preview warns about missing groups");
+    // Test suites.
+    var suite=RegexBuilderOperations.RunSuite(@"^\d{3}$",cs,"+ 123\n- 12\n+ 1234\nstray\n\n- abc");
+    Check(suite.Valid&&suite.Results.Count==4&&suite.Passed==3&&suite.Failed==1&&suite.ParseProblems.Count==1&&!suite.Results[2].Passed,"expected-outcome suite counts passes, failures and bad lines");
+    Check(!RegexBuilderOperations.RunSuite("(",cs,"+ a").Valid&&RegexBuilderOperations.RunSuite("a",cs,"").Results.Count==0,"suite with an invalid pattern or no cases");
+    Check(RegexBuilderOperations.RunSuite(@"(?=.)(a+)+$",cs,"+ "+hang).Results[0].TimedOut,"suite case marks a timeout as failed");
+    // Diagnostics.
+    Check(RegexDiagnostics.Analyze(@"(a+)+$",ci).Any(d=>d.Code=="nested-quantifier"&&d.Start==0),"nested quantifier is flagged");
+    Check(RegexDiagnostics.Analyze(@"(?:\w*)*",ci).Any(d=>d.Code=="nested-quantifier"),"nested star is flagged");
+    Check(RegexDiagnostics.Analyze(@"(a|a)*",ci).Any(d=>d.Code=="repeated-alternative")&&RegexDiagnostics.Analyze(@"(a|ab)*",ci).Any(d=>d.Code=="overlapping-alternative"),"repeated and overlapping alternatives are flagged");
+    Check(RegexDiagnostics.Analyze(@".*.*x",ci).Any(d=>d.Code=="adjacent-wildcards"),"adjacent wildcards are flagged");
+    Check(RegexDiagnostics.Analyze(@"\d{1,3}(?:\.\d{1,3}){3}",ci).Count==0&&RegexDiagnostics.Analyze(@"(\d+)",ci).Count==0&&RegexDiagnostics.Analyze("",ci).Count==0,"safe patterns raise no warning");
+    var bench=RegexDiagnostics.Benchmark(@"(?=.)(a+)+$",cs,"aaaa");
+    Check(bench.Valid&&bench.Suspicious&&bench.Rows.Any(r=>r.TimedOut)&&bench.Verdict.StartsWith("Warning"),"catastrophic pattern triggers the timeout warning");
+    var benchSafe=RegexDiagnostics.Benchmark(@"\d+",ci,"abc 123");
+    Check(benchSafe.Valid&&!benchSafe.Suspicious&&benchSafe.Rows.Count>=4&&benchSafe.Rows.All(r=>r.Milliseconds>=0&&!r.TimedOut),"safe pattern shows no warning ("+benchSafe.Verdict+")");
+    Check(!RegexDiagnostics.Benchmark("(",ci,"a").Valid&&RegexDiagnostics.Benchmark(@"\d",ci,"1",new CancellationToken(true)).Cancelled,"benchmark refuses invalid patterns and honours cancellation");
+    Check(RegexDiagnostics.StepCountNotice.Contains("does not expose a step count"),"step count is stated as unavailable");
+    // Library: serialize, parse, import, search, history.
+    var sample1=new RegexSavedPattern("Digits",@"\d+",ci with{RightToLeft=true},new DateTimeOffset(2026,11,4,0,0,0,TimeSpan.Zero));
+    var sample2=new RegexSavedPattern("Word",@"\w+",cs,DateTimeOffset.UnixEpoch);
+    var text=RegexPatternStore.Serialize(new[]{sample1,sample2});
+    var back=RegexPatternStore.Parse(text);
+    Check(back.Count==2&&back[0].Name=="Digits"&&back[0].Flags.RightToLeft&&!back[1].Flags.IgnoreCase&&back[0].Pattern==@"\d+","library serialize and parse round trip keeps flags");
+    var tmp=Path.Combine(Path.GetTempPath(),"mdi-rx-"+Guid.NewGuid().ToString("N")+".json");
+    try { RegexPatternStore.Save(tmp,back); Check(RegexPatternStore.Load(tmp).Count==2&&!File.Exists(tmp+".tmp"),"library file round trip leaves no temporary file"); } finally { if(File.Exists(tmp)) File.Delete(tmp); }
+    var imported=RegexPatternStore.Import(new[]{new RegexSavedPattern("Word",@"x",cs,DateTimeOffset.UnixEpoch)},text);
+    Check(imported.Added==1&&imported.Skipped.Count==1&&imported.Library.Count==2&&imported.Library.First(p=>p.Name=="Word").Pattern=="x","import skips a name clash and adds the rest");
+    Check(RegexPatternStore.Import(new[]{new RegexSavedPattern("Word",@"x",cs,DateTimeOffset.UnixEpoch)},text,true).Library.First(p=>p.Name=="Word").Pattern==@"\w+","import can replace a name clash");
+    var evil=RegexPatternStore.Serialize(new[]{sample1 with{Pattern="("}});
+    var evilImport=RegexPatternStore.Import(new List<RegexSavedPattern>(),evil);
+    Check(evilImport.Added==0&&evilImport.Skipped.Count==1,"import skips a pattern that does not compile");
+    Reject(()=>{ try { RegexPatternStore.Parse("{ not json"); } catch(InvalidDataException e) { throw new ArgumentException(e.Message); } },"corrupt library text is refused");
+    Reject(()=>{ try { RegexPatternStore.Parse("{\"format\":\"other\",\"version\":1,\"patterns\":[]}"); } catch(InvalidDataException e) { throw new ArgumentException(e.Message); } },"library of another format is refused");
+    Check(RegexPatternStore.Search(back,"digit").Count==1&&RegexPatternStore.Search(back,@"\w").Count==1&&RegexPatternStore.Search(back,"").Count==2&&RegexPatternStore.Search(back,"zzz").Count==0,"my patterns search by name and pattern");
+    Check(RegexPatternStore.SearchSnippets("ipv").Select(s=>s.Id).SequenceEqual(new[]{"ipv4","ipv6"})&&RegexPatternStore.SearchSnippets("").Count==RegexBuilderLibrary.Snippets.Count,"library search by name");
+    var recent=new RegexRecentPatterns();
+    for(var i=0;i<20;i++) recent.Add("a"+i,ci);
+    recent.Add("a15",ci);
+    Check(recent.Items.Count==RegexRecentPatterns.Capacity&&recent.Items[0]=="a15"&&!recent.Add("(",ci),"history keeps twelve valid patterns and moves a reused one to the front");
+    var state=new RegexFieldState();
+    Check(state.TestCases==""&&state.Blocks=="","field state holds test cases and blocks in memory");
+}
 // Regex builder: plain text by default, bounded .NET evaluation, explanation tree, library and catalogue guard.
 {
     var ci=new RegexBuilderFlags(); var cs=ci with{IgnoreCase=false};
@@ -788,7 +928,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
         "Sign in to a registry…", "Run all diagnostic checks", "Stream engine events", "Detect Docker", "Setup finished", "Set as build target",
         "Open Dockerfile…", "Copy as build command", "Generate SBOM", "Remove unused data", "Engine disk usage", "No networks", "No secrets",
         "No services", "Take one sample now", "Live monitor", "Choose a build context folder first: COPY and ADD paths are relative to it.",
-        "The server is not running. Start it first.", "Enter a volume name.", "Docker CLI not found", "Waiting for events", "Not analyzed"
+        "The server is not running. Start it first.", "Enter a volume name.", "Docker CLI not found", "Waiting for events", "Not analyzed", "Split preview", "Diagnostics and timing", "Convert and copy as", "Run timing probe", "Test cases", "Class subtraction", "Balancing group", "Copy converted", "Filter the library", "Type one block per line to build a pattern."
     };
     Check(pageSamples.Length >= 40, "at least forty page strings are sampled");
     foreach (var language in new[] { "Cantonese", "Bilingual" })

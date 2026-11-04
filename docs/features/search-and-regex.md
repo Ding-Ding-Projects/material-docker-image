@@ -18,19 +18,27 @@ The builder opens as a panel attached to the field. It opens below the field, or
 ## What the builder offers
 
 - **Pattern**: the raw pattern, synchronized both ways with the search field. If the pattern is invalid, the builder shows the framework's message, and the panel underlines the character where the error was found.
-- **Flags**: toggle chips for IgnoreCase, Multiline, Singleline, IgnorePatternWhitespace, ExplicitCapture and CultureInvariant. IgnoreCase also applies to plain-text mode.
+- **Flags**: toggle chips for IgnoreCase, Multiline, Singleline, IgnorePatternWhitespace, ExplicitCapture, CultureInvariant, RightToLeft and NonBacktracking. IgnoreCase also applies to plain-text mode. RightToLeft runs on the backtracking engine. NonBacktracking requires the linear-time engine and reports patterns that need backtracking instead of falling back.
 - **Guided insertion** at the caret:
   - **Text**: plain text with automatic escaping, and a list of alternatives inserted as `(?:a|b)`.
   - **Classes**: `\d \w \s` and their negations, `.`, Unicode categories such as `\p{L}` (with a negate option), and a custom or negated `[set]` editor that escapes `] \ ^ -` for you.
   - **Anchors**: `^ $ \b \B \A \z`.
   - **Groups**: capturing, named `(?<name>...)`, non-capturing, lookahead and lookbehind (positive and negative), atomic, alternation `|`, and backreferences `\1` or `\k<name>`. Group buttons wrap the selected part of the pattern.
   - **Repeat**: `? * +`, their lazy forms, and `{n}`, `{n,}`, `{n,m}` with an optional lazy suffix.
+- **Blocks**: build a pattern from plain-language lines such as `start of line`, `literal v`, `capture major: digits 1 to 3 times`, `one of cat|dog`, `optional literal s`, `end of line`. Literal text is escaped. **Use this pattern** or **Insert at caret** applies the result.
+- **More**: characters by code point (`\xHH`, `\uHHHH`, surrogate pairs), `\n \r \t \f \v \e \a \0`, `\Z`, `\G`, class subtraction `[a-z-[aeiou]]`, conditionals `(?(1)a|b)`, balancing groups `(?<push-pop>...)`, inline options `(?i-s:...)`, comments, and the atomic stand-in `(?>item+)` for possessive quantifiers. Constructs .NET does not have are listed with the reason.
 - **Library**: ready-made patterns for an image reference, an image tag, a sha256 digest, a semantic version, IPv4 and IPv6 addresses, a port number, a container or image ID, an ISO 8601 date, an email address, a URL, a Windows path, an environment variable `NAME=value` line and a log level. Each has a worked example. **Use** replaces the pattern; **Insert** adds the pattern at the caret.
-- **My patterns**: **Save to my patterns** stores the name, pattern and flags in `regex-patterns.json` in the application data folder (`%LOCALAPPDATA%\DingDingProjects\MaterialDockerImage`). The file holds at most 200 entries, and you can remove any of them. Sample and replacement text are never saved. **Recent in this field** lists valid patterns used in that field during this session. The list is kept in memory only.
+- **My patterns**: **Save to my patterns** stores the name, pattern and flags in `regex-patterns.json` in the application data folder (`%LOCALAPPDATA%\DingDingProjects\MaterialDockerImage`). The file holds at most 200 entries, and you can remove any of them. Sample and replacement text are never saved. **Import…** adds patterns from a library file (existing names are kept; patterns that do not compile are skipped and reported) and **Export…** saves all of them to a file you choose. A filter box searches names and patterns. **Recent in this field** lists valid patterns used in that field during this session. The list is kept in memory only.
 - **Explanation**: a tree that describes each token of the pattern in plain English. It covers literals, escapes, classes, Unicode categories, anchors, groups, lookarounds, alternation, quantifiers, backreferences, inline options and comments. Selecting a row highlights that token in the pattern.
 - **Test**: paste up to 64 KiB of sample text. The builder highlights matches, shows zero-width matches as thin markers, gives the match count, and lists capture groups in a table (match, group number, name, value, position).
 - **Replace preview**: a replacement using `$1`, `${name}`, `$0` or `$&`, and `$$`. The preview shows the sample after replacement and warns about references to groups that do not exist. Nothing in the application is changed.
+- **Split preview**: shows how the sample is cut at each match (up to 2000 pieces). With capture groups, the captured text is returned between the pieces, as .NET does.
+- **Test cases**: lines starting with `+` must match and lines starting with `-` must not match. The builder reports how many hold. Kept in memory for the field only.
+- **Diagnostics and timing**: a static check flags nested unbounded repeats, repeated or overlapping alternatives under a repeat and adjacent `.*.*`. **Run timing probe** measures wall-clock time on growing inputs with the backtracking engine (250 ms per probe, 3 s total) and warns about catastrophic backtracking. .NET exposes no step count or match trace, so none is shown.
+- **Convert and copy as**: C# (verbatim string, regular string, code for finding, testing, replacing or splitting), PowerShell, a JSON string and `grep -E`. The grep conversion works construct by construct and refuses what grep cannot express (lazy quantifiers, lookarounds, atomic groups, conditionals, inline options, Unicode escapes and some flags); rewrites that change meaning are labelled.
 - **Copy pattern**, **Copy as C# string** (a verbatim `@"..."` literal), and **Export JSON** (pattern, flags, engine, dialect, sample and replacement).
+
+The full list of RegexBuddy topics, with what is implemented, partial or unavailable on .NET, is the [parity matrix](regex-parity.md).
 
 ## Engine and limits
 
@@ -43,7 +51,7 @@ Limits:
 
 - Patterns can be up to 4096 characters.
 - Sample text can be up to 64 KiB (UTF-8); longer text is cut, and the builder says so.
-- At most 2000 matches are highlighted.
+- At most 2000 matches are highlighted and 2000 split pieces are shown.
 - A test stops after 2 seconds in total.
 - Replace output is cut at 256 KiB.
 

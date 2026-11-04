@@ -2197,12 +2197,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Every search field has a builder with blocks, rare .NET constructs, split preview, test cases, diagnostics, conversions and library import/export. Logic checks pass; RegexBuddy parity is incomplete (see the parity matrix) and the interface has not been exercised in a running window.",
+        "zh": "每個搜尋欄位都有建構器，包括積木、少見嘅 .NET 語法、分割預覽、測試個案、診斷、轉換同樣式庫匯入匯出。邏輯檢查通過；RegexBuddy 對等仲未完成（見對等矩陣），而介面未喺實際視窗操作過。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for regex-search.",
-        "zh": "確認「正則搜尋」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Close the partial and unavailable rows of the RegexBuddy parity matrix that .NET allows (replacement analysis, match navigation, tree export, more conversion targets, parameters), keep the engine-impossible rows documented, verify the popover and its dialogs interactively, localize engine messages, and capture source-bound HuiShots.",
+        "zh": "完成 RegexBuddy 對等矩陣入面 .NET 容許嘅部分及未提供項目（取代分析、比對導覽、樹狀匯出、更多轉換目標、參數），保留引擎做唔到嘅項目說明，喺實際視窗驗證彈出建構器同對話方塊，翻譯引擎訊息，並擷取對應來源嘅畫面。"
       },
       "evidence": [
         {
@@ -2211,6 +2211,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/regex-parity.md",
+          "label": {
+            "en": "Regex parity matrix",
+            "zh": "正則對等矩陣"
           }
         }
       ]
