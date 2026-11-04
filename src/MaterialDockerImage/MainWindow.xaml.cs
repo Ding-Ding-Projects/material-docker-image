@@ -566,6 +566,8 @@ public partial class MainWindow : Window
         c.Register(new AppCommand { Id = "adhd.time", Title = "Time awareness clock", Group = "Settings", Icon = Icons.Schedule, Keywords = "adhd clock time", LiveControl = () => host.Lockable("time", Ui.Switch("Time awareness clock", settings.TimeAwareness, v => { settings.TimeAwareness = v; host.SaveSettings("Time awareness " + (v ? "on" : "off")); })) });
         c.Register(new AppCommand { Id = "adhd.onething", Title = "One thing at a time", Group = "Settings", Icon = Icons.Tab, Keywords = "adhd single tab", LiveControl = () => host.Lockable("onething", Ui.Switch("One thing at a time", settings.OneThingAtATime, v => { settings.OneThingAtATime = v; host.SaveSettings("One thing at a time " + (v ? "on" : "off")); })) });
         c.Register(new AppCommand { Id = "set.schedules", Title = "Scheduled settings", Group = "Settings", Icon = Icons.Schedule, Keywords = "schedule timer automatic night day date range home assistant", Run = () => host.Navigate("Settings") });
+        c.Register(new AppCommand { Id = "set.locks", Title = "Locks manager", Group = "Settings", Icon = Icons.Lock, Keywords = "lock unlock pin password authenticator duration remove", Run = () => host.Navigate("Settings") });
+        c.Register(new AppCommand { Id = "tools.support-tickets", Title = "Support Tickets", Group = "Tools", Icon = Icons.Help, Keywords = "locked out forgot password pin recovery ticket", Run = () => SupportDeskUi.Show() });
         c.Register(new AppCommand { Id = "set.output", Title = "Output panel open", Group = "Settings", Icon = Icons.Terminal, LiveControl = () => Ui.Switch("Output panel open", dock.Expanded, v => { dock.SetExpanded(v); settings.OutputDockOpen = v; host.SaveSettings(null); }) });
     }
 

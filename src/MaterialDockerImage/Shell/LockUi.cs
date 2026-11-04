@@ -1,6 +1,8 @@
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
 
@@ -34,9 +36,12 @@ public static class LockUi
             if (attachedId == id && reference.TryGetTarget(out var element) && element.GetValue(ApplyProperty) is Action apply) apply();
     }
 
+    /// <summary>"This action only" unlocks waiting for their action: the id and, for a settings row, the values it had when it was unlocked.</summary>
+    private static readonly Dictionary<string, string> ArmedOnce = new(StringComparer.Ordinal);
+
     /// <summary>
     /// Locks the element, asking for a policy the first time and reusing the stored one afterwards, or unlocks it by climbing the ladder.
-    /// <paramref name="guard"/> wraps each save so the owning page can ignore its own settings echo.
+    /// An unlock lasts as long as the lock's chosen duration. <paramref name="guard"/> wraps each save so the owning page can ignore its own settings echo.
     /// </summary>
     public static async Task ToggleAsync(string id, string label, Action<Action>? guard = null)
     {
@@ -44,16 +49,55 @@ public static class LockUi
         if (!IsLocked(id))
         {
             if (!Host.Locks.HasPolicy(id) && !await LockDialogs.ConfigureAsync(id, label)) return;
-            if (!ElementLocks.Lock(Host.Settings, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return; }
+            if (!LockLifecycle.Relock(Host.Settings, Host.Locks, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return; }
+            ArmedOnce.Remove(id);
+            LockManager.SetLabel(Host.Settings, id, label);
             guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, true)));
         }
         else
         {
             if (!await LockDialogs.LadderAsync(id, label)) return;
-            ElementLocks.Unlock(Host.Settings, id);
+            LockLifecycle.Unlock(Host.Settings, Host.Locks, id, out var until);
+            var duration = Host.Locks.DurationOf(id);
+            if (duration == UnlockDuration.Once) ArmedOnce[id] = ElementLocks.Snapshot(Host.Settings, id);
             guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, false)));
+            Host.Notify.Info(until != null ? Loc.T("Unlocked until") + " " + until.Value.ToLocalTime().ToString("HH:mm") + "." : duration == UnlockDuration.Once ? "Unlocked for this action only." : duration == UnlockDuration.UntilRestart ? "Unlocked until the app closes." : "Unlocked.");
         }
         Refresh(id);
+    }
+
+    /// <summary>Locks an unlocked control again right away. Locking needs no credential.</summary>
+    public static void RelockNow(string id, string label)
+    {
+        if (IsLocked(id)) return;
+        if (!LockLifecycle.Relock(Host.Settings, Host.Locks, id)) return;
+        ArmedOnce.Remove(id);
+        Host.SaveSettings(ElementLocks.HistorySummary(label, true));
+        Host.Notify.Info("Locked again.");
+        Refresh(id);
+    }
+
+    /// <summary>Called after the protected action ran. A lock unlocked for "this action only" closes again.</summary>
+    public static void ActionPerformed(string id)
+    {
+        if (!ArmedOnce.ContainsKey(id)) return;
+        ArmedOnce.Remove(id);
+        if (!LockLifecycle.ConsumeOnce(Host.Settings, Host.Locks, id)) return;
+        Host.SaveSettings(ElementLocks.HistorySummary(LockManager.LabelOf(Host.Settings, id), true));
+        Refresh(id);
+    }
+
+    /// <summary>After any settings save: a settings row unlocked for one action closes again once its values have changed. Returns the ids locked again.</summary>
+    public static IReadOnlyList<string> SettingsSaved()
+    {
+        var closed = new List<string>();
+        foreach (var (id, before) in ArmedOnce.ToList())
+        {
+            if (ElementLocks.Snapshot(Host.Settings, id) == before) continue;
+            ArmedOnce.Remove(id);
+            if (LockLifecycle.ConsumeOnce(Host.Settings, Host.Locks, id)) closed.Add(id);
+        }
+        return closed;
     }
 
     /// <summary>Opens the policy wizard to change how an unlocked element locks. A locked element must be unlocked first.</summary>
@@ -70,6 +114,7 @@ public static class LockUi
         if (await Host.Overlay.ConfirmAsync("Remove this lock policy?", label + "\n\n" + Loc.T("Its PIN or authenticator secret and its recovery codes are deleted. The control stays unlocked."), "Remove", true))
         {
             Host.Locks.Remove(id);
+            ArmedOnce.Remove(id);
             Host.Notify.Success("Lock policy removed.");
         }
     }
@@ -79,7 +124,8 @@ public static class LockUi
         var toggle = Ui.MenuItem("Lock this control…", Icons.Lock, () => _ = ToggleAsync(id, label, guard));
         var change = Ui.MenuItem("Change lock policy…", Icons.ShieldLock, () => _ = ChangePolicyAsync(id, label));
         var remove = Ui.MenuItem("Remove lock policy…", Icons.Delete, () => _ = RemovePolicyAsync(id, label), null, true);
-        menu.Items.Add(toggle); menu.Items.Add(change); menu.Items.Add(remove);
+        var manage = Ui.MenuItem("Locks manager…", Icons.ShieldLock, () => Host.NavigateWith("Settings", "Locks"));
+        menu.Items.Add(toggle); menu.Items.Add(change); menu.Items.Add(remove); menu.Items.Add(manage);
         menu.Opened += (_, _) =>
         {
             var locked = IsLocked(id);
@@ -92,11 +138,24 @@ public static class LockUi
     /// <summary>Adds the lock menu to an element without disabling it (a settings row disables its own control).</summary>
     public static void AttachMenu(FrameworkElement target, string id, string label, Action<Action>? guard = null)
     {
-        if (target.ContextMenu == null) target.ContextMenu = new ContextMenu();
+        if (target.ContextMenu == null)
+        {
+            target.ContextMenu = new ContextMenu();
+            // A text box loses its built-in clipboard menu when it gets one of its own, so the same commands are put back.
+            if (target is TextBox)
+            {
+                foreach (var command in new[] { ApplicationCommands.Cut, ApplicationCommands.Copy, ApplicationCommands.Paste })
+                    target.ContextMenu.Items.Add(new MenuItem { Command = command, CommandTarget = target });
+                target.ContextMenu.Items.Add(new Separator());
+            }
+        }
         else target.ContextMenu.Items.Add(new Separator());
         FillMenu(target.ContextMenu, id, label, guard);
         ContextMenuService.SetShowOnDisabled(target, true);
+        target.SetValue(MenuHostProperty, true);
     }
+
+    private static readonly DependencyProperty MenuHostProperty = DependencyProperty.RegisterAttached("LockMenuHost", typeof(bool), typeof(LockUi));
 
     /// <summary>Makes an element lockable: lock menu, disabled while locked, and kept disabled if its page tries to re-enable it.</summary>
     public static void Attach(FrameworkElement target, string id, string label, Action<Action>? guard = null)
@@ -122,7 +181,21 @@ public static class LockUi
         };
         Subscribe(id, target, Apply);
         AttachMenu(target, id, label, guard);
+        HookAction(target, id);
         Apply();
+    }
+
+    /// <summary>Tells the lock when the person has used the element, so an unlock for one action ends after it.</summary>
+    private static void HookAction(FrameworkElement target, string id)
+    {
+        void Done() { if (ArmedOnce.ContainsKey(id)) target.Dispatcher.BeginInvoke(() => ActionPerformed(id), System.Windows.Threading.DispatcherPriority.ApplicationIdle); }
+        switch (target)
+        {
+            case ButtonBase button: button.Click += (_, _) => Done(); break;
+            case Selector selector: selector.SelectionChanged += (_, _) => Done(); break;
+            case RangeBase range: range.ValueChanged += (_, _) => Done(); break;
+            case TextBox box: var text = box.Text; box.LostFocus += (_, _) => { if (box.Text != text) { text = box.Text; Done(); } }; break;
+        }
     }
 
     private static readonly Regex Slugger = new("[^a-z0-9]+", RegexOptions.Compiled);
@@ -135,19 +208,51 @@ public static class LockUi
         return id.TrimEnd('.', '-', '_');
     }
 
-    /// <summary>Makes a page's major action buttons (filled and danger buttons) lockable. Buttons built later are picked up the next time the page is shown.</summary>
+    /// <summary>
+    /// Makes every interactive element on a page lockable: the page's major action buttons keep their existing ids, and every other button, switch, option, drop-down, text field and slider
+    /// gets a stable derived id (its automation id when it has one, otherwise its page, kind, English name and position among identical elements).
+    /// Elements built later are picked up the next time the page is shown. Settings rows already carry their own lock and are skipped.
+    /// </summary>
     public static void AttachPage(DependencyObject root, string pageKey)
     {
         var filled = Application.Current.TryFindResource("Btn.Filled"); var danger = Application.Current.TryFindResource("Btn.Danger");
-        void Walk(DependencyObject node)
+        var seen = new Dictionary<string, int>(StringComparer.Ordinal);
+        void Walk(DependencyObject node, bool insideRow)
         {
-            if (node is Button b && b.Style != null && (ReferenceEquals(b.Style, filled) || ReferenceEquals(b.Style, danger)))
+            if (node is FrameworkElement element)
             {
-                var name = System.Windows.Automation.AutomationProperties.GetName(b);
-                if (!string.IsNullOrWhiteSpace(name)) Attach(b, ButtonId(pageKey, name), name);
+                var row = insideRow || element.GetValue(MenuHostProperty) is true;
+                if (!row && element.GetValue(ApplyProperty) == null && Kind(element) is { } kind)
+                {
+                    var automationId = System.Windows.Automation.AutomationProperties.GetAutomationId(element);
+                    var name = System.Windows.Automation.AutomationProperties.GetName(element);
+                    var english = Loc.Original(name);
+                    if (element is Button b && b.Style != null && (ReferenceEquals(b.Style, filled) || ReferenceEquals(b.Style, danger)) && !string.IsNullOrWhiteSpace(name))
+                        Attach(element, ButtonId(pageKey, name), name);
+                    else
+                    {
+                        var key = kind + "|" + (string.IsNullOrWhiteSpace(automationId) ? english : automationId);
+                        seen[key] = seen.TryGetValue(key, out var n) ? n + 1 : 0;
+                        Attach(element, ElementIdentity.Derive(pageKey, automationId, english, kind, seen[key]), ElementIdentity.Describe(kind, english, automationId));
+                    }
+                }
+                insideRow = row;
             }
-            foreach (var child in LogicalTreeHelper.GetChildren(node)) if (child is DependencyObject d) Walk(d);
+            foreach (var child in LogicalTreeHelper.GetChildren(node)) if (child is DependencyObject d) Walk(d, insideRow);
         }
-        Walk(root);
+        Walk(root, false);
     }
+
+    /// <summary>The element kinds that can be locked from their context menu, or null for anything else.</summary>
+    private static string? Kind(FrameworkElement element) => element switch
+    {
+        RadioButton => "RadioButton",
+        CheckBox => "CheckBox",
+        ToggleButton => "ToggleButton",
+        Button => "Button",
+        ComboBox => "ComboBox",
+        TextBox { IsReadOnly: false } => "TextBox",
+        Slider => "Slider",
+        _ => null
+    };
 }

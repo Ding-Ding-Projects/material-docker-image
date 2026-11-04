@@ -60,6 +60,8 @@ public sealed class UserSettings
     public Dictionary<string, bool> CollapsedFilters { get; set; } = new();
     /// <summary>Ids of settings rows the person locked against change (see ElementLocks).</summary>
     public List<string> LockedSettings { get; set; } = new();
+    /// <summary>Readable names for locks on elements that are not settings rows, so the Locks manager can say what each lock is. Never holds a credential.</summary>
+    public Dictionary<string, string> LockLabels { get; set; } = new();
     /// <summary>Scheduled setting rules (see ScheduleEvaluator). The base values of every lent setting stay what the person chose.</summary>
     public List<ScheduleRule> ScheduleRules { get; set; } = new();
     /// <summary>Optional local JSON file that supplies values for rules whose source is File. It is watched for changes; nothing is fetched from a network.</summary>
@@ -123,6 +125,7 @@ public sealed class UserSettings
         OpenTabs ??= new(); PinnedTabs ??= new();
         CollapsedFilters = CollapseFilterState.Normalize(CollapsedFilters);
         LockedSettings = ElementLocks.Normalize(LockedSettings);
+        LockLabels = ElementLocks.NormalizeLabels(LockLabels);
         ScheduleRules = ScheduleEvaluator.Normalize(ScheduleRules);
         ScheduleSourceFile = (ScheduleSourceFile ?? "").Trim().Trim('"');
         if (ScheduleSourceFile.Length > 260) ScheduleSourceFile = "";

@@ -15,7 +15,7 @@ public sealed partial class SettingsPage : PageBase
     private static readonly (string Name, string Icon)[] Sections =
     [
         ("Appearance", Icons.Palette), ("Language", Icons.Translate), ("Schedules", Icons.Schedule), ("Accessibility", Icons.AccessibilityNew), ("Focus modes", Icons.CenterFocusStrong),
-        ("Sounds and narration", Icons.VolumeUp), ("Engine", Icons.Dns), ("Data and privacy", Icons.Shield), ("About", Icons.Info)
+        ("Sounds and narration", Icons.VolumeUp), ("Locks", Icons.Lock), ("Engine", Icons.Dns), ("Data and privacy", Icons.Shield), ("About", Icons.Info)
     ];
     private readonly SearchFilter search = new("Search settings", 240);
     private readonly ListBox nav = new();
@@ -63,7 +63,7 @@ public sealed partial class SettingsPage : PageBase
         var builders = new Dictionary<string, Action>
         {
             ["Appearance"] = AppearanceSection, ["Language"] = LanguageSection, ["Schedules"] = SchedulesSection, ["Accessibility"] = AccessibilitySection,
-            ["Focus modes"] = FocusSection, ["Sounds and narration"] = SoundsSection, ["Engine"] = EngineSection,
+            ["Focus modes"] = FocusSection, ["Sounds and narration"] = SoundsSection, ["Locks"] = LocksSection, ["Engine"] = EngineSection,
             ["Data and privacy"] = DataSection, ["About"] = AboutSection
         };
         foreach (var (name, icon) in Sections)

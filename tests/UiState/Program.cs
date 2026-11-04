@@ -962,6 +962,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
 count += BuildCompanionChecks.Run();
 count += RecordsChecks.Run();
 count += LockChecks.Run();
+count += LockPolicyChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
 
