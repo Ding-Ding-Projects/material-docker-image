@@ -27,7 +27,7 @@ $spec | Set-Content out/packages/MaterialDockerImage.nuspec -Encoding UTF8
 & .tools/nuget.exe pack out/packages/MaterialDockerImage.nuspec -OutputDirectory out/packages -NoPackageAnalysis -NonInteractive 2>&1 | Tee-Object out/logs/nuget-pack.log
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 $package = (Resolve-Path "out/packages/MaterialDockerImage.$Version.nupkg").Path
-& .tools/squirrel/tools/Squirrel.exe --releasify $package --releaseDir (Join-Path $root 'out/releases') --no-msi 2>&1 | Tee-Object out/logs/squirrel.log
+& .tools/squirrel/tools/Squirrel.exe --releasify $package --releaseDir (Join-Path $root 'out/releases') --no-msi --setupIcon (Join-Path $root 'src/MaterialDockerImage/Assets/Icon/app.ico') 2>&1 | Tee-Object out/logs/squirrel.log
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 Assert-SourceBinding $receipt.sourceBinding
 Assert-PayloadBinding $receipt 'out/publish'

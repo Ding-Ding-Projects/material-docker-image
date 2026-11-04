@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         xmlns:svc="clr-namespace:MaterialDockerImage.Services"
-        Title="Material Docker Image" Width="1440" Height="960" MinWidth="960" MinHeight="720"
+        Title="Material Docker Image" Icon="Assets/Icon/app.ico" Width="1440" Height="960" MinWidth="960" MinHeight="720"
         WindowStyle="None" ResizeMode="CanResize" UseLayoutRounding="True" TextOptions.TextFormattingMode="Display"
         Background="{DynamicResource Surface}" Foreground="{DynamicResource OnSurface}" FontFamily="{DynamicResource TextFont}" FontSize="14">
   <shell:WindowChrome.WindowChrome>
@@ -24,6 +24,7 @@
         </Grid.ColumnDefinitions>
         <StackPanel x:Name="Identity" Orientation="Horizontal" Margin="16,0,12,0" VerticalAlignment="Center">
           <TextBlock x:Name="AppIcon" FontFamily="{DynamicResource IconFontFilled}" FontSize="22" Foreground="{DynamicResource Primary}" VerticalAlignment="Center" Margin="0,0,10,0"/>
+          <Image x:Name="AppLogoImage" Width="22" Height="22" Stretch="Uniform" Visibility="Collapsed" VerticalAlignment="Center" Margin="0,0,10,0" RenderOptions.BitmapScalingMode="HighQuality"/>
           <StackPanel VerticalAlignment="Center">
             <TextBlock x:Name="DisplayNameText" FontSize="13" FontWeight="SemiBold"/>
             <TextBlock x:Name="Provenance" FontSize="11" Foreground="{DynamicResource OnSurfaceVariant}"/>

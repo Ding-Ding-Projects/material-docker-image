@@ -64,6 +64,7 @@ public partial class MainWindow : Window
         host.Navigate = Navigate;
         host.NavigateWith = (destination, _) => Navigate(destination);
         host.SettingsChanged += ApplyAppearance;
+        if (lastLogoNotice.Length > 0 && !capture) host.Notify.Info(lastLogoNotice);
         notifier.UnreadChanged += () => { badge.Text = notifier.Unread > 99 ? "99+" : notifier.Unread.ToString(); ((FrameworkElement)badge.Parent).Visibility = notifier.Unread > 0 ? Visibility.Visible : Visibility.Collapsed; };
         dock.SetExpanded(settings.OutputDockOpen);
         BuildTitleBar();
@@ -111,6 +112,8 @@ public partial class MainWindow : Window
         ApplyAppearance();
     }
 
+    private string lastLogoNotice = "";
+
     private void ApplyAppearance()
     {
         // Colours, shape, density, fonts, rail icons and the rainbow accent all come from the appearance settings.
@@ -118,7 +121,9 @@ public partial class MainWindow : Window
         FontSize = settings.FontSize;
         Title = settings.DisplayName;
         DisplayNameText.Text = settings.DisplayName;
-        AppIcon.Text = Icons.DeployedCode;
+        var logoNotice = AppLogo.Apply(AppIcon, AppLogoImage, settings, 22);
+        if (logoNotice.Length > 0 && logoNotice != lastLogoNotice && IsLoaded) host.Notify.Info(logoNotice);
+        lastLogoNotice = logoNotice;
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version?.ToString(3) ?? "unavailable";
         var stamp = assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(x => x.Key == "BuildTimestamp")?.Value;

@@ -9,6 +9,7 @@
     <AssemblyName>MaterialDockerImage</AssemblyName>
     <Version>0.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\Icon\app.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="LibGit2Sharp" Version="0.32.0" />
@@ -16,6 +17,7 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Assets\Fonts\*.ttf" />
+    <Resource Include="Assets\Icon\app.ico" />
     <EmbeddedResource Include="..\..\docs\features\*.md" LinkBase="Docs" LogicalName="docs/%(Filename)%(Extension)" />
   </ItemGroup>
   <ItemGroup>

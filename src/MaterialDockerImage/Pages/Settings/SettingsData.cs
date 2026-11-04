@@ -78,17 +78,18 @@ public sealed partial class SettingsPage
         var error = Ui.Text("", 12, null, "Error");
         void SaveName(string value)
         {
-            value = value.Trim();
-            if (value.Length == 0 || value.Length > 80) { error.Text = Loc.T("Use 1 to 80 characters."); return; }
-            error.Text = "";
-            if (value == S.DisplayName) return;
-            S.DisplayName = value;
-            Commit("Display name set to " + value);
+            var summary = AppIdentity.ApplyDisplayName(S, value, out var problem);
+            error.Text = problem.Length == 0 ? "" : Loc.T(problem);
+            if (problem.Length > 0) return;
+            if (AppIdentity.TryNormalizeName(value, out var shown, out _)) name.Text = shown;
+            if (summary != null) Commit(summary);
         }
         var save = Ui.Button("Save", Icons.Save, ButtonKind.Tonal, () => SaveName(name.Text));
         var reset = Ui.Button(Loc.T("Reset to") + " " + UserSettings.ShippedName, null, ButtonKind.Text, () => { name.Text = UserSettings.ShippedName; SaveName(UserSettings.ShippedName); }, false);
         name.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) SaveName(name.Text); };
         rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.HStack(8, name, save, reset), error), s => s.DisplayName, null, true);
+        rows.Add("productname", "Product name", UserSettings.ShippedName, new Border(), null,
+            "About and the diagnostics report always show the shipped product name, so a renamed display name never hides which product this is. Renaming changes only the title bar and window title; the settings, history and data folders keep their locations.");
         var (version, _, built) = PageParts.AppInfo();
         rows.Add("version", "Version", $"{version} · build {PageParts.BuildText(built)} · .NET {Environment.Version}", new Border(), null);
         var licences = Ui.VStack(6,
@@ -173,6 +174,7 @@ public sealed partial class SettingsPage
         if (!await Host.Overlay.SuperConfirmAsync("Reset all settings", "Every listed setting returns to its built-in default. The current values are recorded in local history first, so they can be restored from Activity. The engine context, tabs, setup progress and build folder are kept.", changes)) return;
         RecordCurrent("Settings before reset");
         PageParts.CopySettings(defaults, S);
+        AppIdentity.ClearStoredImages(UserSettings.DataDirectory);
         Loc.ClearVocabulary();
         SettingRows.SyncRuntime();
         Host.SaveSettings("Reset all settings to built-in defaults");

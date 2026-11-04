@@ -32,6 +32,14 @@ English, Cantonese and Bilingual modes cover the shell and every destination pag
 - Docker CLI output, engine data (image, container, volume and network names, tags, digests, log lines) and error text returned by Docker are shown as returned and are never translated. A few long explanations built from several fragments, or from conditional wording that does not form one fixed sentence, are still English in every mode; School mode forces English everywhere.
 - Personal wording files still win over the built-in Cantonese. Clearing them restores the built-in text.
 
+## Application icon, title-bar logo and display name
+
+- **Application icon**: a multi-size icon (16, 20, 24, 32, 40, 48, 64, 128 and 256 px) is set as the executable icon, the window icon and the Squirrel setup icon. It is the `deployed_code` Material Symbol drawn in the seed colour on a dark rounded tile. `build/make-icon.py` regenerates `Assets/Icon/app.ico` and `app-256.png` from the bundled font; the outputs are committed, so a normal build does not need Python.
+- **Title-bar logo**: Settings > Appearance > Title-bar logo chooses the default glyph, any bundled Material Symbol by name (case, spaces and underscores ignored, with clickable suggestions), or a local PNG, ICO or JPG. A custom image is checked by its actual bytes (extension and signature must agree), limited to 1 MiB and 2048 by 2048 pixels, copied into the `logo` folder of the app data folder and never uploaded. Use default logo resets it and deletes the copy. A missing or damaged file, or an unknown symbol, shows the default logo with a notice. Each change is saved at once and recorded as one local history revision. The logo changes presentation only: the package id, executable name, data folders and update feed are untouched.
+- **Display name**: Settings > About > Display name accepts 1 to 80 characters without control characters. Save or Enter applies it to the title bar and window title; Reset returns the shipped name Material Docker Image in one action. A rename or reset that really changes the name records exactly one local history revision; saving the same name records nothing. About shows the shipped product name and the diagnostics report keeps it, so a renamed copy is still identifiable. The settings, history and logo folders do not move.
+
+Not built yet: crop, fit and background editing for a custom logo, scheduled settings and appearance export of the logo. Status: covered by UI-state checks for name and logo validation, stored-file handling and fallback; interactive verification in the built window and the installed shortcut icon are pending.
+
 ## Status
 
 Built and covered by UI-state checks for colour conversions, contrast, presets, import validation and undo. The animations, templates and floating panel have not yet been exercised interactively on Windows.

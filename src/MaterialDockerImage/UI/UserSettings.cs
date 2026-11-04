@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.IO;
 using System.Text.Json;
 
@@ -8,7 +9,7 @@ namespace MaterialDockerImage.UI;
 /// <summary>Per-user preferences stored as JSON in local application data, outside the installation root.</summary>
 public sealed class UserSettings
 {
-    public const string ShippedName = "Material Docker Image";
+    public const string ShippedName = AppIdentity.ShippedName;
     public string Theme { get; set; } = "Dark";
     public string SeedColor { get; set; } = "#3A6FD8";
     public string Density { get; set; } = "Comfortable";
@@ -31,6 +32,11 @@ public sealed class UserSettings
     public string NarrationVoice { get; set; } = "";
     public int NarrationRate { get; set; }
     public string DisplayName { get; set; } = ShippedName;
+    /// <summary>Title-bar logo: Default, Symbol (a bundled Material Symbol) or Image (a validated copy in the app data folder).</summary>
+    public string LogoKind { get; set; } = LogoKinds.Default;
+    public string LogoSymbol { get; set; } = AppIdentity.DefaultSymbolName;
+    /// <summary>File name inside the app data logo folder; never a path.</summary>
+    public string LogoImageFile { get; set; } = "";
     public bool SchoolMode { get; set; }
     public bool FocusMode { get; set; }
     public bool LowStimulation { get; set; }
@@ -89,7 +95,10 @@ public sealed class UserSettings
         MonitorIntervalSeconds = Math.Clamp(MonitorIntervalSeconds, 1, 30);
         if (Theme is not ("Dark" or "Light" or "System")) Theme = "Dark";
         if (Language is not ("English" or "Cantonese" or "Bilingual")) Language = "English";
-        if (string.IsNullOrWhiteSpace(DisplayName) || DisplayName.Length > 80) DisplayName = ShippedName;
+        DisplayName = AppIdentity.NameOrShipped(DisplayName);
+        if (!LogoKinds.All.Contains(LogoKind)) LogoKind = LogoKinds.Default;
+        if (string.IsNullOrWhiteSpace(LogoSymbol) || LogoSymbol.Length > 60) LogoSymbol = AppIdentity.DefaultSymbolName;
+        if (!AppIdentity.IsStoredLogoName(LogoImageFile)) LogoImageFile = "";
         OpenTabs ??= new(); PinnedTabs ??= new(); CollapsedFilters ??= new();
     }
     public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
