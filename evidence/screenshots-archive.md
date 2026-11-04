@@ -1,0 +1,10 @@
+# Earlier screenshot sets
+
+The current captures in `evidence/screenshots/` come from workflow run 41846028015 at source `4a17021e24b96b60ee1ea8f128f9028ab4f83b08` (see `evidence/inventory.json`). Earlier sets were replaced in place and remain in the repository history with their own provenance:
+
+| Set | Source | Workflow run | Where to find it |
+| --- | --- | --- | --- |
+| Advanced redesign (72 captures, dark, light and 960 x 720) | `40fa2560a0d05536d4b5aafdb8aee5acf6a99c3e` | 41718216967 | `git show 47aee49:evidence/inventory.json` and `git checkout 47aee49 -- evidence/screenshots` |
+| Material 3 rewrite (54 captures) | `afc72c0df9be118fdb6d07c238a4ff3b458edc0d` | 41698541353 | the commit that introduced that inventory in `git log -- evidence/inventory.json` |
+
+Earlier interface evidence (source `f370d66`, release v0.5.1) belongs to the previous interface and is not relabelled.
