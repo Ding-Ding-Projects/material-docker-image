@@ -62,6 +62,7 @@ public partial class MainWindow : Window
         var notifier = new Notifier(Toasts) { SoundsEnabled = () => SoundCueRules.MayPlay(settings, CaptureMode) };
         host = new AppHost(settings, notifier, overlay, dock, capture);
         if (!capture) _ = new Shell.VocabularyDrop(this, Root, host);
+        Shell.SchoolModeUi.Attach(host);
         notifier.Narrate = Narrator.Speak;
         Narrator.Enabled = () => settings.Narration && !CaptureMode;
         host.Navigate = Navigate;
@@ -616,14 +617,7 @@ public partial class MainWindow : Window
     }
 
     // ----- Startup surprise -----
-    private static readonly (string English, string Cantonese)[] DimSum = [("Har gow (shrimp dumplings)", "蝦餃"), ("Siu mai (pork dumplings)", "燒賣"), ("Char siu bao (barbecue pork buns)", "叉燒包"), ("Cheung fun (rice noodle rolls)", "腸粉"), ("Lo mai gai (sticky rice in lotus leaf)", "糯米雞"), ("Egg tarts", "蛋撻"), ("Turnip cake", "蘿蔔糕"), ("Phoenix claws", "鳳爪")];
-    private void MaybeDimSum()
-    {
-        if (!settings.SetupComplete || settings.SchoolMode || host.Busy) return;
-        if (Random.Shared.NextDouble() >= 0.10) return;
-        var dish = DimSum[Random.Shared.Next(DimSum.Length)];
-        host.Notify.Info($"Dim sum surprise: {dish.English} · {dish.Cantonese}");
-    }
+    private void MaybeDimSum() => Shell.DimSumToast.MaybeShow(host, Toasts, () => !settings.SetupComplete);
 
     // ----- Closing -----
     private async void OnClosing(object? sender, CancelEventArgs e)

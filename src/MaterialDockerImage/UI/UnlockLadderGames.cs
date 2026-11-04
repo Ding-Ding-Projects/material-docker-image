@@ -55,6 +55,8 @@ public static class LadderRules
     public const int DishChoices = 4, WrongDishesAllowed = 5, SumCount = 10;
     public const int MoleCells = 9, MoleCount = 14, MoleNeeded = 8, MoleRoundMs = 20_000, MoleFirstMs = 500, MoleSlotMs = 1300, MoleVisibleMs = 1000;
     public const int SkipsPerHour = 3;
+    /// <summary>The on-screen rules of the mole round. A check keeps the numbers in this sentence equal to the constants above.</summary>
+    public const string MoleIntro = "A mole pops up in one cell at a time and stays for one second. Click it, or press its number key 1 to 9. Hit at least 8 of 14 in 20 seconds. Nothing here is animated.";
     public static readonly TimeSpan SkipWindow = TimeSpan.FromHours(1), DishLife = TimeSpan.FromMinutes(5), SumsLife = TimeSpan.FromMinutes(10), MoleGrace = TimeSpan.FromMinutes(1);
 
     /// <summary>The one place that decides where the ladder starts. Under School mode the dish rung is absent, not skipped with a message.</summary>

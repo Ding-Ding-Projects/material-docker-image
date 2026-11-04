@@ -20,7 +20,10 @@
 - [ ] Drive the new lock, schedule, attention-mode, sound and collapse controls in the built window and record receipts
 - [x] Add lock policies (confirm only, PIN, authenticator app), a lock command on settings rows and major page buttons, the unlock ladder with persistent backoff and single-use recovery codes, and an Authenticator section in Tools with an in-process QR code (rule checks pass, including the RFC 6238 vectors; hands-on verification pending)
 - [ ] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window, and scan the QR code with a real authenticator app
-- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks, the dim sum, sums and whack-a-mole ladder rungs, the Support Tickets desk and a general authenticator for arbitrary accounts
+- [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)
+- [ ] Drive the three games, the School mode PIN and the surprise toast in the built window, and run the live catalogue fetch in the app
+- [ ] Add a passkey choice for School mode and hide every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under it
+- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks, the Support Tickets desk and a general authenticator for arbitrary accounts
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts

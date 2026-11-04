@@ -26,7 +26,7 @@ public sealed partial class SettingsPage
         }
         rows.Add("language", "Language", "Shows labels in English, Cantonese, or both side by side.",
             Ui.Segmented(["English", "Cantonese", "Bilingual"], S.Language, v => { S.Language = v; Commit("Language set to " + v); Preview(); Host.Notify.Info("Language saved. Open pages refresh their labels when reopened."); }), s => s.Language,
-            "Only labels with a Cantonese translation change; everything else stays in English. School mode forces English regardless of this setting.");
+            Shell.SchoolModeUi.Phrase("Only labels with a Cantonese translation change; everything else stays in English. School mode forces English regardless of this setting."));
         string Level(double v) => $"{v:0} of 5" + (v <= 1 ? " · plain" : v >= 5 ? " · most playful" : "");
         var enText = Ui.Text(Level(S.FunnyEnglish), 13, null, "OnSurfaceVariant", false, false);
         var en = SettingRows.Slider(1, 5, S.FunnyEnglish, v => { S.FunnyEnglish = (int)v; enText.Text = Level(v); Preview(); Commit("English funny level set to " + v, true); }, 180);
@@ -42,7 +42,7 @@ public sealed partial class SettingsPage
         var previewCard = Ui.Card(Ui.VStack(6, Ui.Overline("Preview (example message, nothing was built)"), preview), 14, "SurfaceContainer", 12);
         previewCard.Margin = new Thickness(0, 12, 0, 4);
         Extra(previewCard);
-        if (S.SchoolMode) Extra(Ui.Caption("School mode is on, so English is used and funny levels have no effect until it is turned off in Data and privacy.").Margin(0, 4, 0, 4));
+        if (S.SchoolMode) Extra(Ui.Caption(Shell.SchoolModeUi.Phrase("School mode is on, so English is used and funny levels have no effect until it is turned off in Data and privacy.")).Margin(0, 4, 0, 4));
         rows.Add("vocabulary", "Personal wording", "Replaces chosen labels with your own words from a local JSON file. The file stays on this computer.",
             VocabularyControl(), s => s.PersonalVocabularyPath,
             "Format: {\"version\": 1, \"entries\": {\"Build image\": \"Cook it\"}}. Keys are the English labels. The whole file is checked before anything is applied; a rejected file changes nothing. The wording is never written to logs, history or exports, only the file path is saved.", true,

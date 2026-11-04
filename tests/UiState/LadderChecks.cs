@@ -67,6 +67,7 @@ public static class LadderChecks
         WithLocks();
         SchoolStore();
         Surprise();
+        Wording();
         return count;
     }
 
@@ -428,5 +429,27 @@ public static class LadderChecks
         Check(DimSumRules.FromCache(cache.Replace(DimSumRules.CatalogUrl, "https://example.invalid/x")) == null && DimSumRules.FromCache("{") == null && DimSumRules.FromCache("{}") == null, "a cache from another source, or a damaged one, is ignored");
         Check(DimSumRules.LooksLikePng(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }) && !DimSumRules.LooksLikePng(new byte[40]) && !DimSumRules.LooksLikePng(new byte[3]), "a downloaded picture must start with the PNG signature");
         Check(DimSumRules.OfflineNames.Select(n => n.English).Distinct().Count() >= 8 && DimSumRules.OfflineNames.All(n => n.Cantonese.Length > 0), "the offline name set has enough distinct dishes for a question");
+    }
+
+    static void Wording()
+    {
+        Check(LadderRules.MoleIntro.Contains("at least " + LadderRules.MoleNeeded + " of " + LadderRules.MoleCount + " in " + LadderRules.MoleRoundMs / 1000 + " seconds"), "the on-screen mole rules state the real numbers");
+        var keys = new[]
+        {
+            "Play to shorten the wait", "Games left this hour:", "The games are over for this wait. The clock is the way through.", "Name the dish", "Ten sums", "Whack-a-mole", "Start the round", "MOLE", "Check my answers",
+            "Which dish is this?", "Fill in all ten sums with whole numbers.", LadderRules.MoleIntro, "Name of this mode", "PIN or password to turn it off", "Turn off", "Dim sum surprise",
+            SchoolModeRules.Disclosure, "Enter a name.", "Use a PIN of 4 to 12 digits, or a password of 6 to 64 characters.", "Too many wrong answers. Try again at", "Rename this mode"
+        };
+        MaterialDockerImage.Services.Loc.Language = "Cantonese";
+        var missing = keys.Where(k => MaterialDockerImage.Services.Loc.T(k) == k).ToList();
+        Check(missing.Count == 0, "ladder, School mode and surprise strings have Cantonese wording" + (missing.Count > 0 ? ": " + string.Join(" | ", missing) : ""));
+        MaterialDockerImage.Services.Loc.Language = "Bilingual";
+        Check(MaterialDockerImage.Services.Loc.T("Name the dish").StartsWith("Name the dish · "), "bilingual mode keeps English then Cantonese for the ladder");
+        MaterialDockerImage.Services.Loc.Language = "English";
+        MaterialDockerImage.Services.Loc.SchoolMode = true;
+        MaterialDockerImage.Services.Loc.Language = "Cantonese";
+        Check(MaterialDockerImage.Services.Loc.T("Name the dish") == "Name the dish", "School mode keeps the ladder in English");
+        MaterialDockerImage.Services.Loc.SchoolMode = false;
+        MaterialDockerImage.Services.Loc.Language = "English";
     }
 }

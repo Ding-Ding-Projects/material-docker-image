@@ -154,7 +154,7 @@ public sealed partial class SettingsPage : PageBase
     [
         new AppCommand { Id = "settings.export", Title = "Export settings…", Group = "Settings", Icon = Icons.FileExport, Keywords = "backup settings json", Run = () => { Host.Navigate(Key); ExportSettings(); } },
         new AppCommand { Id = "settings.import", Title = "Import settings…", Group = "Settings", Icon = Icons.Upload, Keywords = "restore settings json", Run = () => { Host.Navigate(Key); _ = ImportSettingsAsync(); } },
-        new AppCommand { Id = "settings.school", Title = "School mode", Group = "Settings", Icon = Icons.School, Keywords = "english only plain", LiveControl = () => Host.Lockable("school", Ui.Switch("School mode", Host.Settings.SchoolMode, v => { Host.Settings.SchoolMode = v; SettingRows.SyncRuntime(); Host.SaveSettings("School mode " + (v ? "on" : "off")); })) },
+        new AppCommand { Id = "settings.school", Title = Shell.SchoolModeUi.Name, Group = "Settings", Icon = Icons.School, Keywords = "english only plain", LiveControl = () => Host.Lockable("school", Shell.SchoolModeUi.PaletteSwitch()) },
         new AppCommand { Id = "settings.open", Title = "Open settings", Group = "Settings", Icon = Icons.Settings, Keywords = "preferences options", Run = () => Host.Navigate(Key) },
     ];
 }
