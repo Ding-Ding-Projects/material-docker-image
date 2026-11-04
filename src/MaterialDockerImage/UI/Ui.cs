@@ -291,7 +291,22 @@ public static class Ui
         var g = new Grid();
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 220 });
         g.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        g.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         g.Children.Add(left); g.Children.Add(right.At(0, 1));
+        // An Auto column gives the actions unlimited width, so they can never wrap there. When the title's minimum and
+        // the actions do not fit side by side, the actions move to their own row under the title, where they wrap.
+        g.SizeChanged += (_, _) =>
+        {
+            right.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var stacked = right.DesiredSize.Width + 220 > g.ActualWidth;
+            // The unconstrained measure above must not stand in for the real one in the next layout pass.
+            right.InvalidateMeasure();
+            if (stacked == (Grid.GetRow(right) == 1)) return;
+            Grid.SetRow(right, stacked ? 1 : 0); Grid.SetColumn(right, stacked ? 0 : 1); Grid.SetColumnSpan(right, stacked ? 2 : 1);
+            right.HorizontalAlignment = stacked ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            right.Margin = stacked ? new Thickness(-8, 8, 0, 0) : new Thickness(0);
+        };
         return g;
     }
 

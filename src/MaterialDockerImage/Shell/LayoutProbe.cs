@@ -62,17 +62,16 @@ public static class LayoutProbe
     {
         double right;
         try { right = RightEdge(fe, root); } catch (InvalidOperationException) { return null; }
-        if (right > root.ActualWidth + 1) return root.ActualWidth;
+        double? clip = null;
         for (var parent = VisualTreeHelper.GetParent(fe); parent is FrameworkElement p && !ReferenceEquals(p, root); parent = VisualTreeHelper.GetParent(p))
         {
-            // Horizontal scrolling is an intended way to reach the rest of the content.
-            if (p is ScrollContentPresenter { ScrollOwner.HorizontalScrollBarVisibility: not ScrollBarVisibility.Disabled }) return null;
-            if (p is Popup) return null;
-            if (!p.ClipToBounds && p is not ScrollContentPresenter) continue;
-            var limit = p.TransformToAncestor(root).TransformBounds(new Rect(0, 0, p.ActualWidth, p.ActualHeight)).Right;
-            return right > limit + 1 ? limit : null;
+            // Horizontal scrolling is an intended way to reach the rest of the content; carets and other adorners are not layout.
+            if (p is ScrollContentPresenter { ScrollOwner.HorizontalScrollBarVisibility: not ScrollBarVisibility.Disabled } or Popup or System.Windows.Documents.AdornerLayer) return null;
+            if (clip == null && (p.ClipToBounds || p is ScrollContentPresenter))
+                clip = p.TransformToAncestor(root).TransformBounds(new Rect(0, 0, p.ActualWidth, p.ActualHeight)).Right;
         }
-        return null;
+        if (right > root.ActualWidth + 1) return root.ActualWidth;
+        return clip is { } limit && right > limit + 1 ? limit : null;
     }
 
     private static string TextOf(DependencyObject node)
