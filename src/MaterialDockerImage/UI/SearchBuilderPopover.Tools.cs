@@ -432,7 +432,7 @@ internal sealed partial class SearchBuilderPopover
             if (cts.IsCancellationRequested && !result.Cancelled) return;
             if (!popup.IsOpen) return;
             var root = result.Valid ? options.Folder.Trim().Trim('"') : "";
-            lastGrepResult = result; lastGrepOptions = options with { Folder = root }; grepMatches = result.Matches; field.State.LoadedResults = null; grepContext.Text = "";
+            loadedPattern = null; lastGrepResult = result; lastGrepOptions = options with { Folder = root }; grepMatches = result.Matches; field.State.LoadedResults = null; grepContext.Text = "";
             grepGrid.ItemsSource = result.Matches.Select(m => new RegexGrepRow(SafeRelative(root, m.File), m.Line, m.Column, m.Text, m.LineText)).ToList();
             grepGrid.Visibility = result.Matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             grepStatus.Text = result.Valid ? result.Summary() : Loc.T(result.Error ?? "The search could not run.");

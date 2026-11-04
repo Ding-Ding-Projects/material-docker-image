@@ -123,6 +123,11 @@ internal sealed partial class SearchBuilderPopover
             grepGrid.ItemsSource = loaded.Matches.Select(m => new RegexGrepRow(SafeRelative(loaded.Folder, m.File), m.Line, m.Column, m.Text, m.LineText)).ToList();
             grepGrid.Visibility = loaded.Matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             grepStatus.Text = $"{Loc.T("Saved result list:")} {loaded.Matches.Count} · {loaded.Pattern} · {(loaded.Saved == DateTimeOffset.MinValue ? Loc.T("save time unknown") : loaded.Saved.ToLocalTime().ToString("yyyy-MM-dd HH:mm"))}";
+            // A loaded or imported list can be saved again: it stands in for the last search, with its own pattern.
+            var files = loaded.Matches.Select(m => m.File).Distinct().Count();
+            lastGrepResult = new RegexGrepResult(true, null, loaded.Matches, files, files, [], false, false, false, false, false, 0);
+            lastGrepOptions = new RegexGrepOptions { Folder = loaded.Folder, Globs = loaded.Globs };
+            loadedPattern = loaded.Pattern;
         }
         grepGrid.SelectionChanged += (_, _) => ShowGrepContext();
         grepGrid.MouseDoubleClick += (_, _) => OpenSelectedResult();
@@ -403,6 +408,8 @@ internal sealed partial class SearchBuilderPopover
     private IReadOnlyList<RegexGrepMatch> grepMatches = [];
     private RegexGrepResult? lastGrepResult;
     private RegexGrepOptions? lastGrepOptions;
+    private string? loadedPattern;
+    private ComboBox? importFormatCombo;
 
     private FrameworkElement GrepExtras()
     {
@@ -415,16 +422,21 @@ internal sealed partial class SearchBuilderPopover
         AutomationProperties.SetName(grepEncodingCombo, Loc.T("Encoding for files without a byte order mark"));
         grepContext.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
         grepContext.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
+        importFormatCombo = Ui.Combo(RegexGrepToolImport.Formats, RegexGrepToolImport.Auto);
+        AutomationProperties.SetName(importFormatCombo, Loc.T("Tool output format"));
         return Ui.VStack(6,
             Ui.Wrap(8,
                 Ui.Field("Modified after", grepAfter, "Only files last written at or after this local time are searched. Write 2026-11-04 or 2026-11-04 13:30. Empty means no limit.", "2026-11-01"),
                 Ui.Field("Modified before", grepBefore, "Only files last written at or before this local time. A date without a time covers that whole day.", "2026-11-04")),
             Ui.Wrap(8, grepHidden, grepReadOnly, grepSystem),
             Ui.Field("Encoding for files without a byte order mark", grepEncodingCombo, "How a file with no byte order mark is read and written back. A byte order mark (UTF-8, UTF-16 or UTF-32) always wins. Auto means UTF-8. A replacement writes each file back in the encoding it was read in. A read-only file is never edited, whatever this says.", "Auto (UTF-8)"),
+            Ui.Field("Tool output format", importFormatCombo, "How the output of an external search tool is read when you import it. Auto-detect picks the form that fits the most lines; choose one when lines of text could be mistaken for a column.", "ripgrep --vimgrep"),
             Ui.Field("Context lines", grepContextCombo, "Lines shown before and after each match when you select a result, and written to saved result lists. At most 5.", "2"),
             Ui.Wrap(8,
                 Small("Save results…", "Saves the result list as JSON that can be loaded again, as text with context lines, or as CSV.", SaveResults),
                 Small("Load results…", "Shows a result list that was saved earlier. The files are not read again.", LoadResults),
+                Small("Import tool output…", "Reads the saved output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json from a file into the result list. Nothing is run and no file named in the output is read.", ImportToolOutput),
+                Small("Import from clipboard", "Reads the output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json that you copied, into the result list. Nothing is run.", ImportClipboard),
                 Small("Open selected result", "Opens the selected result in the external editor from Settings, or in Visual Studio Code when none is set, at its line when the editor is known. Double-click or Enter on a result does the same.", OpenSelectedResult)),
             grepExtraStatus, grepContext);
     }
@@ -473,6 +485,7 @@ internal sealed partial class SearchBuilderPopover
         var format = RegexGrepResults.Formats[0];
         var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "JSON (can be loaded again)|*.json|Text with context|*.txt|CSV|*.csv", FileName = "folder-search-results.json", Title = Loc.T("Save results") };
         var result = lastGrepResult; var options = lastGrepOptions ?? new RegexGrepOptions(); var (text, flags) = Effective();
+        if (loadedPattern != null) text = loadedPattern;
         Close();
         if (dialog.ShowDialog() != true) return;
         format = dialog.FilterIndex switch { 2 => RegexGrepResults.Formats[1], 3 => RegexGrepResults.Formats[2], _ => format };
@@ -494,6 +507,41 @@ internal sealed partial class SearchBuilderPopover
             field.Dispatcher.BeginInvoke(() => field.OpenBuilder());
         }
         catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException or DecoderFallbackException) { AppHost.Current.Notify.Error("The result list could not be loaded: " + e.Message); }
+    }
+
+    private void ImportToolOutput()
+    {
+        var dialog = new Microsoft.Win32.OpenFileDialog { Filter = "Text|*.txt;*.log;*.json;*.jsonl;*.out|All files|*.*", Title = Loc.T("Import tool output") };
+        var format = importFormatCombo?.SelectedItem as string ?? RegexGrepToolImport.Auto;
+        var folder = field.State.GrepFolder;
+        Close();
+        if (dialog.ShowDialog() != true) return;
+        try
+        {
+            if (new FileInfo(dialog.FileName).Length > RegexGrepToolImport.MaxChars) { AppHost.Current.Notify.Error("The file is larger than 16 MiB and was not read."); return; }
+            ApplyImport(File.ReadAllText(dialog.FileName, new UTF8Encoding(false, false)), format, folder, Path.GetFileName(dialog.FileName));
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppHost.Current.Notify.Error("The tool output could not be read: " + e.Message); }
+    }
+
+    private void ImportClipboard()
+    {
+        string? text = null;
+        try { if (Clipboard.ContainsText()) text = Clipboard.GetText(); } catch (System.Runtime.InteropServices.ExternalException) { }
+        var format = importFormatCombo?.SelectedItem as string ?? RegexGrepToolImport.Auto;
+        if (string.IsNullOrWhiteSpace(text)) { grepExtraStatus.Text = Loc.T("The clipboard has no text to import."); return; }
+        var folder = field.State.GrepFolder;
+        Close();
+        ApplyImport(text, format, folder, null);
+    }
+
+    private void ApplyImport(string text, string format, string? folder, string? defaultFile)
+    {
+        var import = RegexGrepToolImport.Parse(text, format, folder, defaultFile);
+        if (!import.Ok) { AppHost.Current.Notify.Error(import.Summary()); return; }
+        field.State.LoadedResults = RegexGrepToolImport.ToSavedList(import, folder, DateTimeOffset.Now);
+        AppHost.Current.Notify.Success(import.Summary());
+        field.Dispatcher.BeginInvoke(() => field.OpenBuilder());
     }
 
     // ----- action files and command line -----

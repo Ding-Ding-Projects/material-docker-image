@@ -150,6 +150,10 @@ public static class RegexFinishLocalizationChecks
     // The fixed wording of the new sections, exactly as the view passes it to the language lookup.
     static readonly string[] ViewStrings =
     [
+        "Import tool output…", "Import tool output", "Import from clipboard", "Tool output format", "Auto-detect", "The clipboard has no text to import.",
+        "Reads the saved output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json from a file into the result list. Nothing is run and no file named in the output is read.",
+        "Reads the output of grep -n, grep -nH, ripgrep --vimgrep or ripgrep --json that you copied, into the result list. Nothing is run.",
+        "How the output of an external search tool is read when you import it. Auto-detect picks the form that fits the most lines; choose one when lines of text could be mistaken for a column.",
         "Preferences and layout", "Code templates", "Edit through the tree", "Action file and command line", "Keyboard shortcuts", "Panels", "always shown",
         "Default flags for new search fields", "Time limit per match (ms)", "Font size of the pattern box", "Default explanation detail", "Save preferences", "Reset preferences",
         "Preferences saved.", "Preferences were reset.", "Layout saved.", "Template saved.", "The built-in template is used again.", "Template preview copied.", "Command line copied.", "The editor was started.", "Opening the editor…",
