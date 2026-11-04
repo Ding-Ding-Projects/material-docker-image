@@ -1,6 +1,6 @@
 # Feature completion checklist
 
-The documentation home page starts with a maintainer-owned completion checklist. It retains all 109 required capability identifiers, the 10 existing product workflows, and four explicit milestones: the checklist itself, container health checks, device mappings and GPU access. These last three container controls remain planned work.
+The documentation home page starts with a maintainer-owned completion checklist. It retains all 109 required capability identifiers, the 10 existing product workflows, and four explicit milestones: the checklist itself, container health checks, device mappings and GPU access. These last three container controls are implemented with verification pending: argument behaviour was checked against a real local engine, but they have not been exercised in the built application.
 
 ## Read the status honestly
 

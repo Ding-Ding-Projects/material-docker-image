@@ -29,6 +29,7 @@ internal sealed partial class ContainerInspector : Border
     private string inspectJson = "";
     private int version;
     private int inspectVersion;
+    private readonly System.Windows.Threading.DispatcherTimer healthTimer = new() { Interval = TimeSpan.FromSeconds(5) };
 
     public ContainerInspector(ContainersPage page)
     {
@@ -57,7 +58,23 @@ internal sealed partial class ContainerInspector : Border
         root.Children.Add(tabsScroll.At(1));
         root.Children.Add(body.At(2));
         Child = root;
+        healthTimer.Tick += (_, _) => RefreshHealth();
+        IsVisibleChanged += (_, _) => { if (IsVisible) healthTimer.Start(); else healthTimer.Stop(); };
         Show(null);
+    }
+
+    /// <summary>While the Overview shows a running container with a health check, re-reads it so status, failing streak and probe output stay live.</summary>
+    private void RefreshHealth()
+    {
+        if (current is not { IsRunning: true } row || tab != "Overview" || inspect is not { } info || !ContainerInspectFacts.Health(info).HasHealthcheck) return;
+        _ = LoadInspectAsync(row, version, ++inspectVersion, true);
+    }
+
+    private static string HealthSignature(JsonElement? info)
+    {
+        if (info is not { } e) return "";
+        var h = ContainerInspectFacts.Health(e);
+        return h.Status + "|" + h.FailingStreak + "|" + (h.Probes.Count > 0 ? h.Probes[0].Ended : "");
     }
 
     /// <summary>Stops any background log stream (called when the page is hidden).</summary>
@@ -124,16 +141,18 @@ internal sealed partial class ContainerInspector : Border
         return Ui.VStack(0, Ui.Columns(8, [1, 0], title, Ui.Badge(row.StateLabel, row.StateTone)), buttons);
     }
 
-    private async Task LoadInspectAsync(ContainerRow row, int myVersion, int myInspect)
+    private async Task LoadInspectAsync(ContainerRow row, int myVersion, int myInspect, bool quiet = false)
     {
         try
         {
             var result = await Host.Read(["container", "inspect", row.Id], page.Context);
             if (myVersion != version || myInspect != inspectVersion) return;
-            if (!result.Success) { inspect = null; inspectJson = ""; if (tab is "Overview" or "Config") body.Content = Error("docker container inspect failed: " + result.StandardError.Trim()); return; }
+            if (!result.Success) { if (quiet) return; inspect = null; inspectJson = ""; if (tab is "Overview" or "Config") body.Content = Error("docker container inspect failed: " + result.StandardError.Trim()); return; }
             var first = inspectJson.Length == 0;
+            var before = HealthSignature(inspect);
             inspectJson = result.StandardOutput;
             inspect = PageKit.FirstInspect(inspectJson);
+            if (quiet && before == HealthSignature(inspect)) return;
             if (tab == "Overview" || (tab == "Config" && first)) ShowTab();
         }
         catch (Exception e) when (e is ArgumentException or InvalidOperationException or IOException)
@@ -212,6 +231,48 @@ internal sealed partial class ContainerInspector : Border
             Section("Networks", networks),
             Section("Mounts", mounts),
             Ui.VStack(6, Ui.Overline("Environment"), envNames.Count == 0 ? Ui.Caption("No environment variables.") : Ui.VStack(6, reveal, envList)));
+    }
+
+    private static UIElement HealthSection(JsonElement info)
+    {
+        var facts = ContainerInspectFacts.Health(info);
+        if (!facts.HasHealthcheck) return Ui.VStack(6, Ui.Overline("Health check"), Ui.Caption("This container has no health check. Add one when you run it, or define HEALTHCHECK in the image."));
+        if (facts.Disabled) return Ui.VStack(6, Ui.Overline("Health check"), Ui.Caption("The health check is disabled for this container."));
+        var rows = new List<UIElement>
+        {
+            PageKit.Fact("Status", facts.Status.Length > 0 ? facts.Status : "not reported yet"),
+            PageKit.Fact("Failing streak", facts.Status.Length > 0 ? facts.FailingStreak.ToString(CultureInfo.InvariantCulture) : ""),
+            PageKit.Fact("Command", facts.Test, true),
+            PageKit.Fact("Interval", facts.Interval),
+            PageKit.Fact("Timeout", facts.Timeout),
+            PageKit.Fact("Retries", facts.Retries > 0 ? facts.Retries.ToString(CultureInfo.InvariantCulture) : ""),
+            PageKit.Fact("Start period", facts.StartPeriod),
+            PageKit.Fact("Start interval", facts.StartInterval),
+        };
+        UIElement probes = facts.Probes.Count == 0
+            ? Ui.Caption("No probe has finished yet.")
+            : Ui.VStack(6, facts.Probes.Take(5).Select(p => (UIElement)Ui.VStack(2,
+                Ui.Mono($"{PageKit.FormatTime(p.Ended)}  exit {p.ExitCode.ToString(CultureInfo.InvariantCulture)}", 12, p.ExitCode == 0 ? "OnSurface" : "Error", true),
+                p.Output.Length > 0 ? Ui.Mono(p.Output, 12, "OnSurfaceVariant", true) : Ui.Caption("No output."))).ToArray());
+        return Ui.VStack(6, Ui.Overline("Health check"), Ui.VStack(6, rows.ToArray()), Ui.Overline("Last probes"), probes);
+    }
+
+    private static UIElement HardwareSection(JsonElement info)
+    {
+        var devices = ContainerInspectFacts.Devices(info).ToList();
+        var rules = ContainerInspectFacts.CgroupRules(info).ToList();
+        var gpus = ContainerInspectFacts.GpuRequests(info).ToList();
+        if (devices.Count == 0 && rules.Count == 0 && gpus.Count == 0) return Ui.VStack(6, Ui.Overline("Devices and GPUs"), Ui.Caption("No device mappings, device rules or GPU requests."));
+        var items = new List<UIElement>();
+        void Add(string title, IReadOnlyList<string> lines) { if (lines.Count > 0) { items.Add(Ui.Caption(title)); items.AddRange(lines.Select(l => (UIElement)Ui.Mono(l, 12, "OnSurface", true))); } }
+        Add("Device mappings", devices);
+        Add("Device cgroup rules", rules);
+        Add("GPU requests", gpus);
+        var error = ContainerInspectFacts.StartError(info);
+        var note = gpus.Count > 0 || devices.Count > 0 ? ContainerInspectFacts.HardwareFailureNote(error) : "";
+        if (error.Length > 0 && note.Length > 0) { items.Add(Ui.Text(error, 12, null, "Error", true, false)); items.Add(Ui.Caption(note)); }
+        else if (gpus.Count > 0) items.Add(Ui.Caption("A GPU request is only honoured when the engine host has a GPU driver such as the NVIDIA Container Toolkit. Otherwise the container does not start."));
+        return Ui.VStack(6, Ui.Overline("Devices and GPUs"), Ui.VStack(2, items.ToArray()));
     }
 
     private static UIElement Section(string title, IReadOnlyList<string> items) =>

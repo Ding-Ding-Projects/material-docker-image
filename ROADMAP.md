@@ -47,9 +47,9 @@
 - [x] Reject source-reference verification metadata and escape rendered bindings, with an observed failing-then-passing regression and independent review.
 - [x] Declare a local browser icon and include its hash in the documentation manifest.
 - [ ] Complete checklist capture promotion and the full cleanup receipt; isolated profile removal was rejected and the profile remains retained.
-- [ ] Implement and verify container health-check configuration (`container-health-checks`).
-- [ ] Implement and verify container device mapping controls (`container-device-mappings`).
-- [ ] Implement and verify container GPU access controls (`container-gpu-access`).
+- [ ] Implement and verify container health-check configuration (`container-health-checks`). Implemented with focused checks and a real-engine argument receipt; built-application interaction still pending.
+- [ ] Implement and verify container device mapping controls (`container-device-mappings`). Implemented with focused checks and a real-engine argument receipt; built-application interaction and a real host device still pending.
+- [ ] Implement and verify container GPU access controls (`container-gpu-access`). Implemented with focused checks and a real-engine argument receipt; built-application interaction and a GPU-capable host still pending.
 
 - [ ] Complete all 109 required-feature acceptance rows without removing unfinished identifiers.
 - [ ] Deliver portable documentation and dedicated build companions.

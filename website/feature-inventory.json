@@ -3435,14 +3435,14 @@
         "en": "Container health checks",
         "zh": "容器健康檢查"
       },
-      "status": "planned",
+      "status": "implemented",
       "summary": {
-        "en": "Health-check configuration is planned; existing container creation does not establish service health.",
-        "zh": "健康檢查設定仍在計劃中；成功建立容器唔代表服務健康。"
+        "en": "The run editor builds --health-cmd, --health-interval, --health-timeout, --health-retries, --health-start-period, --health-start-interval and --no-healthcheck with structured validation, and the Containers inspector shows live health status, failing streak, configured timings and recent probe output. Argument behaviour and inspect parsing were checked against a real local engine.",
+        "zh": "執行編輯器可以組出 --health-cmd、--health-interval、--health-timeout、--health-retries、--health-start-period、--health-start-interval 同 --no-healthcheck，並有結構化驗證；容器檢視會顯示即時健康狀態、連續失敗次數、已設定時間同最近檢查輸出。參數行為同檢視解析已用本機實際引擎核對。"
       },
       "remaining": {
-        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
-        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+        "en": "Exercise the editor fields and the live inspector refresh in the built WPF application, bound to the exact source commit and artifact hash, with captures; no GUI interaction was performed yet.",
+        "zh": "喺已建置嘅 WPF 應用程式實際操作編輯器欄位同檢視即時更新，並綁定準確來源版本同成品雜湊，附畫面；暫時未有做過圖形介面操作。"
       },
       "evidence": [
         {
@@ -3451,6 +3451,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/evidence/container-controls-2026-11.json",
+          "label": {
+            "en": "Engine argument receipt (not full verification)",
+            "zh": "引擎參數紀錄（並非完整驗證）"
           }
         }
       ]
@@ -3463,14 +3471,14 @@
         "en": "Container device mappings",
         "zh": "容器裝置對應"
       },
-      "status": "planned",
+      "status": "implemented",
       "summary": {
-        "en": "Host device mapping controls and runtime acceptance are planned.",
-        "zh": "主機裝置對應控制同執行驗收仍在計劃中。"
+        "en": "The run editor builds --device host:container:permissions rows (permissions limited to a non-repeating subset of rwm, duplicate container paths refused) and --device-cgroup-rule entries, and the Containers inspector lists configured devices and rules. Argument behaviour was checked against a real local engine.",
+        "zh": "執行編輯器可以組出 --device 主機:容器:權限 行（權限只限 rwm 嘅不重複子集，重複容器路徑會被拒絕）同 --device-cgroup-rule；容器檢視會列出已設定嘅裝置同規則。參數行為已用本機實際引擎核對。"
       },
       "remaining": {
-        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
-        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+        "en": "Exercise the device rows and cgroup rule field in the built WPF application with captures, and test a real host device on a supported engine host; no GUI interaction was performed yet.",
+        "zh": "喺已建置嘅 WPF 應用程式實際操作裝置行同 cgroup 規則欄位並附畫面，另外喺支援嘅引擎主機測試真實主機裝置；暫時未有做過圖形介面操作。"
       },
       "evidence": [
         {
@@ -3479,6 +3487,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/evidence/container-controls-2026-11.json",
+          "label": {
+            "en": "Engine argument receipt (not full verification)",
+            "zh": "引擎參數紀錄（並非完整驗證）"
           }
         }
       ]
@@ -3491,14 +3507,14 @@
         "en": "Container GPU access",
         "zh": "容器 GPU 存取"
       },
-      "status": "planned",
+      "status": "implemented",
       "summary": {
-        "en": "GPU access controls and supported-host runtime acceptance are planned.",
-        "zh": "GPU 存取控制同支援主機嘅執行驗收仍在計劃中。"
+        "en": "The run editor builds --gpus all, a count or device IDs with optional capabilities, and the Containers inspector shows the engine DeviceRequests. When the engine lacks GPU support the editor and inspector explain that honestly. The local engine accepted the requests; use of a physical GPU was not exercised.",
+        "zh": "執行編輯器可以組出 --gpus all、數量或者裝置 ID，另可加入功能；容器檢視會顯示引擎嘅 DeviceRequests。引擎唔支援 GPU 時，編輯器同檢視會如實說明。本機引擎接受咗呢啲要求，但未有實際使用實體 GPU。"
       },
       "remaining": {
-        "en": "Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine.",
-        "zh": "實作專用控制、驗證、文件同重點檢查，再用支援嘅實際引擎驗證。"
+        "en": "Verify with a GPU-capable engine host that a container really sees the GPU, and exercise the controls in the built WPF application with captures; neither was performed.",
+        "zh": "用有 GPU 能力嘅引擎主機確認容器真係睇到 GPU，並喺已建置嘅 WPF 應用程式實際操作控制項並附畫面；兩樣都未做過。"
       },
       "evidence": [
         {
@@ -3507,6 +3523,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/evidence/container-controls-2026-11.json",
+          "label": {
+            "en": "Engine argument receipt (not full verification)",
+            "zh": "引擎參數紀錄（並非完整驗證）"
           }
         }
       ]

@@ -27,7 +27,7 @@ A native Windows WPF workspace for Docker with a complete Material 3 interface. 
 - Density and Momentum settings are saved but have little visible effect; the external editor setting is used by Build only.
 - The regex builder covers construction, snippets, flags and sample testing; full RegexBuddy parity remains open.
 - Element locks, the per-element appearance editor, authenticator, school-mode PIN, dim sum pictures and scheduled settings from the shared feature catalogue are not implemented.
-- The capability inventory statuses were not changed by this rewrite; health checks, devices, GPUs and terminals now have controls in the run editor and the Containers inspector and need status review with evidence.
+- Health checks, device mappings and GPU access are complete in the run editor (including --health-start-interval, --device-cgroup-rule and GPU capabilities) and the Containers inspector (live health status, failing streak, probe output, devices, rules and DeviceRequests). Their inventory rows are now implemented with verification pending: focused checks and a real-engine argument receipt (evidence/container-controls-2026-11.json) exist, but nothing was driven in the built application and no physical GPU was tried. Interactive terminals still need status review.
 - Full theme, language and 100 to 200 percent scale matrix acceptance remains open.
 
 ## Next actions

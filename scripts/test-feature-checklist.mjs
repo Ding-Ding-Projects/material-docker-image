@@ -89,9 +89,9 @@ test('Real filter controller combines selectors, reports empty results and reset
   const event=(id,value)=>{const el=elements.get(id);el.value=value;el.listeners.change();};
   assert.match(elements.get('feature-results').textContent,/123 of 123/);
   event('feature-category','milestones');assert.equal(rows.filter(r=>!r.hidden).length,4);
-  event('feature-status','planned');assert.equal(rows.filter(r=>!r.hidden).length,3);
-  event('language','zh');assert.match(elements.get('feature-results').textContent,/顯示 123 項中嘅 3 項/);
-  event('language','both');assert.match(elements.get('feature-results').textContent,/3 of 123.*顯示/);
+  event('feature-status','implemented');assert.equal(rows.filter(r=>!r.hidden).length,4);
+  event('language','zh');assert.match(elements.get('feature-results').textContent,/顯示 123 項中嘅 4 項/);
+  event('language','both');assert.match(elements.get('feature-results').textContent,/4 of 123.*顯示/);
   event('feature-status','verified');assert.equal(rows.filter(r=>!r.hidden).length,0);assert.equal(elements.get('feature-empty').hidden,false);
   elements.get('feature-clear').listeners.click();assert.equal(rows.filter(r=>!r.hidden).length,123);assert.equal(elements.get('feature-category').focused,true);
   assert.equal(context.localStorage,undefined);
