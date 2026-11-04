@@ -3,6 +3,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 

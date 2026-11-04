@@ -51,7 +51,7 @@ public static class SwarmServiceForm
             if (!isCurrent()) return PageKit.StaleMessage(context());
             List<string> args;
             try { args = Args(); } catch (ArgumentException e) { return e.Message; }
-            var label = "Create service " + (name.Text.Trim().Length > 0 ? name.Text.Trim() : "from " + image.Text.Trim());
+            var label = Loc.T("Create service") + " " + (name.Text.Trim().Length > 0 ? name.Text.Trim() : "from " + image.Text.Trim());
             var result = await host.Execute(label, args, boundContext: context());
             if (result?.Success != true) return PageKit.Failure(result);
             await reload();

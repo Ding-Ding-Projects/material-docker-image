@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 

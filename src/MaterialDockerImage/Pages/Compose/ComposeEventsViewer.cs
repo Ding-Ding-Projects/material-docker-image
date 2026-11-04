@@ -16,8 +16,8 @@ public static class ComposeEventsViewer
     {
         var host = AppHost.Current;
         var table = new DataTable<ComposeEventRow>("Compose events", "Search events");
-        table.EmptyTitle = "Waiting for events";
-        table.EmptyMessage = "Events appear when containers of this project are created, started, stopped, die or change health. Start or stop a service to see them.";
+        table.EmptyTitle = Loc.T("Waiting for events");
+        table.EmptyMessage = Loc.T("Events appear when containers of this project are created, started, stopped, die or change health. Start or stop a service to see them.");
         table.Column("Time", e => e.Time, 110, true)
             .Column("Service", e => e.Service, 130, true)
             .ChipColumn("Action", e => e.Action, e => e.Action switch { "start" or "create" or "health_status: healthy" => Tone.Success, "die" or "kill" or "oom" or "health_status: unhealthy" => Tone.Error, "stop" or "pause" or "destroy" => Tone.Warning, _ => Tone.Neutral }, 140)
@@ -65,7 +65,7 @@ public static class ComposeEventsViewer
             }
             catch (Exception e) when (e is System.ComponentModel.Win32Exception or ArgumentException or InvalidOperationException or IOException)
             {
-                state.Text = "Could not start the event stream: " + e.Message;
+                state.Text = Loc.T("Could not start the event stream:") + " " + e.Message;
             }
             finally { stop.IsEnabled = false; }
         }

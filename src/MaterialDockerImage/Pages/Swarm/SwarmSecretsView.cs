@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -18,17 +19,17 @@ public sealed class SwarmSecretsView : SwarmTabView
     public SwarmSecretsView(Func<string?> context, Func<bool> isCurrent) : base(context, isCurrent)
     {
         table.Key = s => s.Id;
-        table.EmptyTitle = "No secrets";
-        table.EmptyMessage = "This swarm stores no secrets. Create one to give services passwords or keys without putting them in images or environment variables.";
+        table.EmptyTitle = Loc.T("No secrets");
+        table.EmptyMessage = Loc.T("This swarm stores no secrets. Create one to give services passwords or keys without putting them in images or environment variables.");
         table.Column("Name", s => s.Name, 260, true)
             .Column("Driver", s => s.Driver.Length > 0 ? s.Driver : "internal", 100)
             .Column("Created", s => s.CreatedAt, 200)
             .Column("Updated", s => s.UpdatedAt, 200)
             .Column("ID", s => s.Id, 220, true)
-            .RowAction("Inspect metadata", Icons.DataObject, s => InspectAsync("secret", s.Id, "Secret " + s.Name), "Enter")
+            .RowAction("Inspect metadata", Icons.DataObject, s => InspectAsync("secret", s.Id, Loc.T("Secret") + " " + s.Name), "Enter")
             .RowAction("Copy name", Icons.ContentCopy, s => { PageKit.Copy(s.Name, "the secret name"); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true);
-        table.Activated += s => _ = Guard(() => InspectAsync("secret", s.Id, "Secret " + s.Name));
+        table.Activated += s => _ = Guard(() => InspectAsync("secret", s.Id, Loc.T("Secret") + " " + s.Name));
         var create = Ui.AsyncButton("Create secret…", Icons.VpnKey, ButtonKind.Filled, CreateAsync);
         var note = Ui.Caption("The engine never returns secret contents; inspect shows metadata only. Services read secrets as files under /run/secrets.");
         note.Margin = new Thickness(12, 0, 0, 0);
@@ -40,7 +41,7 @@ public sealed class SwarmSecretsView : SwarmTabView
         var rows = await Host.ReadRows(["secret", "ls", "--format", "{{json .}}"], Context());
         var items = rows.Select(r => new SwarmObjectRow(CliValues.Str(r, "ID"), CliValues.Str(r, "Name"), CliValues.Str(r, "Driver"), CliValues.Str(r, "CreatedAt"), CliValues.Str(r, "UpdatedAt"))).ToList();
         table.SetItems(items);
-        SetSummary($"{items.Count} secret{(items.Count == 1 ? "" : "s")}");
+        SetSummary(Loc.Line($"{items.Count} secret{(items.Count == 1 ? "" : "s")}"));
     }
 
     private Task CreateAsync()
@@ -69,12 +70,12 @@ public sealed class SwarmSecretsView : SwarmTabView
             {
                 var path = file.Text.Trim();
                 if (!File.Exists(path)) return "Choose an existing file.";
-                result = await Run("Create secret " + n, ["secret", "create", n, Path.GetFullPath(path)]);
+                result = await Run(Loc.T("Create secret") + " " + n, ["secret", "create", n, Path.GetFullPath(path)]);
             }
             else
             {
                 if (value.Password.Length == 0) return "Type the secret value.";
-                result = await Run("Create secret " + n, ["secret", "create", n, "-"], value.Password);
+                result = await Run(Loc.T("Create secret") + " " + n, ["secret", "create", n, "-"], value.Password);
                 value.Clear();
             }
             if (result?.Success != true) return PageKit.Failure(result);
@@ -87,9 +88,9 @@ public sealed class SwarmSecretsView : SwarmTabView
     private async Task RemoveAsync(SwarmObjectRow s)
     {
         if (Stale()) return;
-        if (!await Host.Overlay.ConfirmAsync("Remove secret " + s.Name, "Deletes the secret from the swarm. The engine refuses while a service still uses it. The value cannot be recovered afterwards.", "Remove", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove secret") + " " + s.Name, "Deletes the secret from the swarm. The engine refuses while a service still uses it. The value cannot be recovered afterwards.", "Remove", true)) return;
         if (Stale()) return;
-        await Run("Remove secret " + s.Name, ["secret", "rm", s.Id]);
+        await Run(Loc.T("Remove secret") + " " + s.Name, ["secret", "rm", s.Id]);
         await AfterChange();
     }
 }

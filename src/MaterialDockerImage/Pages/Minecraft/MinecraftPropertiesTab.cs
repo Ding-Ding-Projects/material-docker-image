@@ -80,7 +80,7 @@ internal sealed class MinecraftPropertiesTab : MinecraftTab
         if (diff.Count == 0) return;
         var message = "These settings change:\n" + string.Join("\n", diff) + "\n\n" + (Server.IsRunning ? "The server is saved and stopped, " : "") + $"the container {Server.ContainerName} is replaced and the world volume {Server.VolumeName} is kept. If the new container cannot be created, the previous one is restored.";
         if (edited.Version != Server.Spec.Version) message += "\n\nChanging the version upgrades the world on first start. Worlds cannot be downgraded; make a backup first.";
-        if (!await Host.Overlay.ConfirmAsync("Recreate " + Server.Name + "?", message, "Recreate")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Recreate") + " " + Server.Name + "?", message, "Recreate")) return;
         if (await MinecraftOps.RecreateAsync(Server, edited.Clone(), Context)) loadedFor = null;
         await Detail.ReloadAsync();
     }

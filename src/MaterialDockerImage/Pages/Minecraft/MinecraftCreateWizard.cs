@@ -133,7 +133,7 @@ internal sealed class MinecraftCreateWizard : Grid
         }
         var engine = context() ?? "default";
         var targets = Ui.VStack(0,
-            Target("Docker engine: context " + engine, "Runs the server as a container on the selected engine context. Contexts with an ssh:// endpoint run it on that remote host.", true, true),
+            Target(Loc.T("Docker engine: context") + " " + engine, "Runs the server as a container on the selected engine context. Contexts with an ssh:// endpoint run it on that remote host.", true, true),
             Target("Local Windows process (not available in this app)", "This app manages servers only as Docker containers. Running a bare Java or Bedrock process would need a separate process supervisor, which this app does not include.", false, false),
             Target("SSH process (not available in this app)", "This app has no SSH process runner. To use a remote machine, give it Docker and add an ssh:// engine context in Contexts.", false, false));
         var name = Ui.Input(spec.Name, "Server name", true);
@@ -157,7 +157,7 @@ internal sealed class MinecraftCreateWizard : Grid
         }, false);
         edition.Width = 280; edition.HorizontalAlignment = HorizontalAlignment.Left;
         return Ui.VStack(16,
-            MinecraftControls.Section("Where the server runs", "Every container and volume this page creates is labelled " + MinecraftSpecRules.Label + "=<name>, and only those are listed.", targets),
+            MinecraftControls.Section("Where the server runs", Loc.T("Every container and volume this page creates is labelled") + " " + MinecraftSpecRules.Label + "=<name>, and only those are listed.", targets),
             MinecraftControls.Section("Server", null,
                 Ui.Field("Edition", edition, "Java Edition uses itzg/minecraft-server (TCP 25565) and supports plugins and mods. Bedrock Edition uses itzg/minecraft-bedrock-server (UDP 19132) for phones, consoles and Windows Bedrock clients.", "Java"),
                 Ui.VStack(4, Ui.Field("Server name", name, "Lowercase letters, digits and hyphens. Used for the container (mc-<name>) and the world volume (mc-<name>-data).", "survival"), nameError, resources)));

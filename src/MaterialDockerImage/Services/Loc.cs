@@ -1,12 +1,14 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using MaterialDockerImage.UI;
 
 namespace MaterialDockerImage.Services;
 
 /// <summary>Language modes (English, Cantonese, bilingual), funny levels and the local personal-vocabulary overlay.</summary>
-public static class Loc
+public static partial class Loc
 {
     public static string Language { get; set; } = "English";
     public static int FunnyEnglish { get; set; } = 5;
@@ -50,12 +52,90 @@ public static class Loc
         ["Events"] = "事件", ["Run all checks"] = "全部檢查", ["Export report"] = "匯出報告"
     };
 
+    /// <summary>Exact phrases plus sentence templates (keys containing {0}, {1}…) built once from every dictionary file.</summary>
+    private sealed record Template(string Prefix, string Longest, Regex Pattern, string Value);
+    private sealed record Lookup(Dictionary<string, string> Exact, List<Template> Templates);
+    private static readonly Lazy<Lookup> Lookups = new(BuildLookup);
+    private static readonly ConcurrentDictionary<string, byte> TemplateMisses = new(StringComparer.Ordinal);
+
+    private static Lookup BuildLookup()
+    {
+        var exact = new Dictionary<string, string>(Cantonese, StringComparer.Ordinal);
+        foreach (var (key, value) in PageCantonese()) exact[key] = value;
+        var templates = new List<Template>();
+        var marker = new Regex(@"\{\d+\}", RegexOptions.CultureInvariant);
+        foreach (var key in exact.Keys.ToList())
+        {
+            if (!marker.IsMatch(key)) continue;
+            var literals = marker.Split(key);
+            var pattern = new System.Text.StringBuilder("^");
+            var holes = marker.Matches(key);
+            for (var i = 0; i < literals.Length; i++)
+            {
+                pattern.Append(Regex.Escape(literals[i]));
+                if (i < holes.Count) pattern.Append("(?<g").Append(int.Parse(holes[i].Value.Trim('{', '}'), CultureInfo.InvariantCulture)).Append(">.+?)");
+            }
+            pattern.Append('$');
+            var longest = literals.OrderByDescending(l => l.Length).First();
+            templates.Add(new Template(literals[0], longest, new Regex(pattern.ToString(), RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)), exact[key]));
+            exact.Remove(key);
+        }
+        return new Lookup(exact, templates.OrderByDescending(t => t.Longest.Length).ToList());
+    }
+
+    private static string? Translate(string text)
+    {
+        var lookup = Lookups.Value;
+        if (lookup.Exact.TryGetValue(text, out var found)) return found;
+        if (text.Length < 4 || text.Length > 1200 || TemplateMisses.ContainsKey(text)) return null;
+        foreach (var template in lookup.Templates)
+        {
+            if (template.Prefix.Length > 0 && !text.StartsWith(template.Prefix, StringComparison.Ordinal)) continue;
+            if (template.Longest.Length > 0 && !text.Contains(template.Longest, StringComparison.Ordinal)) continue;
+            Match match;
+            try { match = template.Pattern.Match(text); } catch (RegexMatchTimeoutException) { continue; }
+            if (!match.Success) continue;
+            return Regex.Replace(template.Value, @"\{(\d+)\}", m =>
+            {
+                var group = match.Groups["g" + m.Groups[1].Value];
+                return group.Success ? (lookup.Exact.TryGetValue(group.Value, out var inner) ? inner : group.Value) : m.Value;
+            });
+        }
+        if (TemplateMisses.Count < 6000) TemplateMisses[text] = 0;
+        return null;
+    }
+
     public static string T(string text)
     {
         if (overrides.TryGetValue(text, out var personal)) return personal;
         var language = SchoolMode ? "English" : Language;
-        if (language == "English" || !Cantonese.TryGetValue(text, out var translated)) return text;
+        if (language == "English") return text;
+        var translated = Translate(text);
+        if (translated == null) return text;
         return language == "Cantonese" ? translated : text + " · " + translated;
+    }
+
+    /// <summary>Translates a status line made of " · " separated phrases one phrase at a time, so counts and context names stay literal.</summary>
+    public static string Line(string composed)
+    {
+        if (SchoolMode || Language == "English" && overrides.Count == 0) return composed;
+        return string.Join(" · ", composed.Split(" · ").Select(T));
+    }
+
+    /// <summary>Translates the leading phrase of a title such as "Inspect nginx" or "Logs · web" and keeps the identifier that follows it.</summary>
+    public static string Lead(string text)
+    {
+        if (SchoolMode || Language == "English" && overrides.Count == 0) return text;
+        var whole = T(text);
+        if (whole != text) return whole;
+        var words = text.Split(' ');
+        for (var count = Math.Min(words.Length - 1, 4); count >= 1; count--)
+        {
+            var head = string.Join(' ', words.Take(count));
+            var translated = T(head);
+            if (translated != head) return translated + " " + string.Join(' ', words.Skip(count));
+        }
+        return text;
     }
 
     /// <summary>Changes the voice of a message, never its facts. Level 1-2 states the fact only; higher levels add a lead-in.</summary>

@@ -24,11 +24,11 @@ internal sealed class ImageLayersTab : ImageDetailTab
     public ImageLayersTab(ImageDetailContext context) : base(context)
     {
         var history = context.History;
-        if (!history.Success) { layers = []; problem = "History could not be read: " + (history.StandardError.Trim() is { Length: > 0 } e ? e : $"docker exited with code {history.ExitCode}."); }
+        if (!history.Success) { layers = []; problem = Loc.T("History could not be read:") + " " + (history.StandardError.Trim() is { Length: > 0 } e ? e : $"docker exited with code {history.ExitCode}."); }
         else
         {
             try { layers = ImageLayerHistory.Parse(history.StandardOutput); }
-            catch (JsonException e) { layers = []; problem = "History output could not be parsed: " + e.Message; }
+            catch (JsonException e) { layers = []; problem = Loc.T("History output could not be parsed:") + " " + e.Message; }
         }
 
         var total = layers.Sum(l => l.Bytes);
@@ -37,8 +37,8 @@ internal sealed class ImageLayersTab : ImageDetailTab
         var totals = Ui.Wrap(8,
             Ui.Badge($"{layers.Count} {(layers.Count == 1 ? "step" : "steps")}", Tone.Primary),
             Ui.Badge($"{nonEmpty} with content", Tone.Neutral),
-            Ui.Badge("Total " + Ui.FormatBytes(total), Tone.Neutral),
-            largest > 0 ? Ui.Badge("Largest " + Ui.FormatBytes(largest), Tone.Tertiary) : null);
+            Ui.Badge(Loc.T("Total") + " " + Ui.FormatBytes(total), Tone.Neutral),
+            largest > 0 ? Ui.Badge(Loc.T("Largest") + " " + Ui.FormatBytes(largest), Tone.Tertiary) : null);
         totals.Margin = new Thickness(0, 0, 0, 8);
 
         var hide = Ui.Switch("Hide empty layers", false, on => { hideEmpty = on; Render(); });

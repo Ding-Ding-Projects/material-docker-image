@@ -2,6 +2,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -132,6 +133,6 @@ public sealed partial class SecurityPage
             File.WriteAllText(path, csv ? ScoutReport.ToCsv(rows) : ScoutReport.ToJson(rows), new UTF8Encoding(false));
             Host.Notify.Success($"Exported {rows.Count} findings from {results.Count} {(results.Count == 1 ? "image" : "images")} to {path}.");
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error("The findings could not be saved: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The findings could not be saved:") + " " + e.Message); }
     }
 }

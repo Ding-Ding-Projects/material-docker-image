@@ -106,7 +106,7 @@ public sealed class BuildRunner
     /// </summary>
     private static Task<CommandResult> RunInFolderAsync(IReadOnlyList<string> args, string? context, string workingDirectory, IProgress<DockerOutput>? progress, CancellationToken token)
     {
-        if (!Directory.Exists(workingDirectory)) throw new DirectoryNotFoundException("The working folder does not exist: " + workingDirectory);
+        if (!Directory.Exists(workingDirectory)) throw new DirectoryNotFoundException(Loc.T("The working folder does not exist:") + " " + workingDirectory);
         if (args.Count >= 2 && args[0] == "context" && args[1] == "use") throw new ArgumentException("Global context changes are not supported.");
         var full = new List<string>();
         if (!string.IsNullOrWhiteSpace(context)) { DockerService.ValidateOperand(context, nameof(context)); full.AddRange(["--context", context]); }

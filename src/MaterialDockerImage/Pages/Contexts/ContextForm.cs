@@ -35,9 +35,9 @@ public static class ContextForm
             }
             FrameworkElement FileRow(TextBox box, string title, string info)
             {
-                var browse = Ui.IconButton(Icons.FolderOpen, "Choose " + title.ToLowerInvariant(), () =>
+                var browse = Ui.IconButton(Icons.FolderOpen, Loc.T("Choose") + " " + title.ToLowerInvariant(), () =>
                 {
-                    if (PageKit.PickOpenPath("Choose " + title.ToLowerInvariant(), "Certificates and keys|*.pem;*.crt;*.cer;*.key|All files|*.*") is { } path) box.Text = path;
+                    if (PageKit.PickOpenPath(Loc.T("Choose") + " " + title.ToLowerInvariant(), "Certificates and keys|*.pem;*.crt;*.cer;*.key|All files|*.*") is { } path) box.Text = path;
                 });
                 box.TextChanged += (_, _) => Changed?.Invoke();
                 return Ui.Field(title, Ui.Columns(8, [1, 0], box, browse), info);
@@ -121,7 +121,7 @@ public static class ContextForm
             toggle, endpoint.View,
             Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12),
             entry.Name == (Host.Context ?? "") ? Ui.Caption("This window uses this context. After an endpoint change, refresh other destinations to read from the new address.") : null);
-        PageKit.Dialog("Update context " + entry.Name, "docker context update", body, "Update", async () =>
+        PageKit.Dialog(Loc.T("Update context") + " " + entry.Name, "docker context update", body, "Update", async () =>
         {
             List<string> args;
             try { args = Args(); } catch (ArgumentException e) { return e.Message; }

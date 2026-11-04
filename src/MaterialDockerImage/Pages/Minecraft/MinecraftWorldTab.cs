@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using MaterialDockerImage.Core;
 using MaterialDockerImage.UI;
 using Microsoft.Win32;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -98,8 +99,8 @@ internal sealed class MinecraftWorldTab : MinecraftTab
     {
         if (syncing) return;
         static bool Int(TextBox b, int min, int max, out int v) => int.TryParse(b.Text.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out v) && v >= min && v <= max;
-        if (!Int(widthBox, 1, 10000, out var w) || !Int(depthBox, 1, 10000, out var d)) { areaError.Text = "Width and depth are whole numbers of chunks from 1 to 10000."; return; }
-        if (!Int(centreXBox, -1_875_000, 1_875_000, out var x) || !Int(centreZBox, -1_875_000, 1_875_000, out var z)) { areaError.Text = "Centre chunks are whole numbers within the world border (±1,875,000)."; return; }
+        if (!Int(widthBox, 1, 10000, out var w) || !Int(depthBox, 1, 10000, out var d)) { areaError.Text = Loc.T("Width and depth are whole numbers of chunks from 1 to 10000."); return; }
+        if (!Int(centreXBox, -1_875_000, 1_875_000, out var x) || !Int(centreZBox, -1_875_000, 1_875_000, out var z)) { areaError.Text = Loc.T("Centre chunks are whole numbers within the world border (±1,875,000)."); return; }
         areaError.Text = "";
         canvas.Area = MinecraftChunkArea.Centred(w, d, x, z);
         Describe(canvas.Area);
@@ -146,7 +147,7 @@ internal sealed class MinecraftWorldTab : MinecraftTab
         if (!EnsureCurrent()) return;
         var spec = Server.Spec.Clone();
         spec.ModrinthProjects.Add("chunky");
-        if (!await Host.Overlay.ConfirmAsync("Install Chunky on " + Server.Name + "?", "Adds chunky to MODRINTH_PROJECTS and recreates the container with the same world volume. " + (Server.IsRunning ? "The server is saved, stopped and started again." : "Start the server afterwards to download it."), "Install and recreate")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Install Chunky on") + " " + Server.Name + "?", Loc.T("Adds chunky to MODRINTH_PROJECTS and recreates the container with the same world volume.") + " " + (Server.IsRunning ? "The server is saved, stopped and started again." : "Start the server afterwards to download it."), "Install and recreate")) return;
         await MinecraftOps.RecreateAsync(Server, spec, Context);
         await Detail.ReloadAsync();
     }
@@ -171,11 +172,11 @@ internal sealed class MinecraftWorldTab : MinecraftTab
     {
         if (!chunkyInstalled || !Server.CanRcon) { Host.Notify.Error("Chunky must be installed and the server running with RCON on."); return; }
         var a = canvas.Area;
-        if (!await Host.Overlay.ConfirmAsync("Generate " + a.ChunkCount.ToString("N0", CultureInfo.CurrentCulture) + " chunks on " + Server.Name + "?", $"Chunky generates {a.WidthBlocks:N0} × {a.DepthBlocks:N0} blocks around {a.CentreBlockX}, {a.CentreBlockZ} on the running server. It uses CPU and disk and can take a long time for large areas; you can pause or cancel it here.", "Start")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Generate") + " " + a.ChunkCount.ToString("N0", CultureInfo.CurrentCulture) + " chunks on " + Server.Name + "?", $"Chunky generates {a.WidthBlocks:N0} × {a.DepthBlocks:N0} blocks around {a.CentreBlockX}, {a.CentreBlockZ} on the running server. It uses CPU and disk and can take a long time for large areas; you can pause or cancel it here.", "Start")) return;
         Follow();
         foreach (var c in a.ChunkyCommands())
-            if (!await SendAsync(c)) { progressText.Text = "Stopped: " + c + " failed. See the replies below."; return; }
-        progressText.Text = "Started. Progress appears when Chunky reports it in the server log.";
+            if (!await SendAsync(c)) { progressText.Text = Loc.T("Stopped:") + " " + c + " failed. See the replies below."; return; }
+        progressText.Text = Loc.T("Started. Progress appears when Chunky reports it in the server log.");
         Host.History.Record("minecraft", $"Started Chunky pre-generation on {Server.Name}: {a.WidthChunks} × {a.DepthChunks} chunks around block {a.CentreBlockX}, {a.CentreBlockZ}");
     }
 
@@ -185,7 +186,7 @@ internal sealed class MinecraftWorldTab : MinecraftTab
         if (!await SendAsync("chunky cancel")) return;
         if (replyLog.ToString().Contains("confirm", StringComparison.OrdinalIgnoreCase)) await SendAsync("chunky confirm");
         StopFollowing();
-        progressText.Text = "Canceled.";
+        progressText.Text = Loc.T("Canceled.");
     }
 
     private void StopFollowing() { follow?.Cancel(); follow = null; }
@@ -195,11 +196,11 @@ internal sealed class MinecraftWorldTab : MinecraftTab
     {
         StopFollowing();
         var s = Server;
-        if (!s.IsRunning) { progressText.Text = "The server is not running."; return; }
+        if (!s.IsRunning) { progressText.Text = Loc.T("The server is not running."); return; }
         var cts = new CancellationTokenSource();
         follow = cts;
         var partial = new StringBuilder();
-        progressText.Text = "Following the server log for Chunky progress…";
+        progressText.Text = Loc.T("Following the server log for Chunky progress…");
         var since = DateTimeOffset.UtcNow.AddSeconds(-5).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
         var report = new Progress<DockerOutput>(o =>
         {
@@ -216,14 +217,14 @@ internal sealed class MinecraftWorldTab : MinecraftTab
                     progress.Value = Math.Clamp(p.Percent, 0, 100);
                     progressText.Text = $"{p.Percent:0.00}% · {p.Chunks:N0} chunks processed" + (p.Eta != null ? " · about " + p.Eta + " left" : "") + " · from the server log";
                 }
-                if (MinecraftOutput.IsChunkyFinished(line)) { progress.Value = 100; progressText.Text = "Chunky reported the task finished: " + line.Trim(); }
+                if (MinecraftOutput.IsChunkyFinished(line)) { progress.Value = 100; progressText.Text = Loc.T("Chunky reported the task finished:") + " " + line.Trim(); }
             }
         });
         _ = Run();
         async Task Run()
         {
             try { await Host.Docker.ExecuteAsync(["container", "logs", "--follow", "--since", since, s.Id], Context, report, cts.Token); }
-            catch (Exception e) when (e is System.ComponentModel.Win32Exception or ArgumentException or InvalidOperationException or IOException) { progressText.Text = "Could not follow the log: " + e.Message; }
+            catch (Exception e) when (e is System.ComponentModel.Win32Exception or ArgumentException or InvalidOperationException or IOException) { progressText.Text = Loc.T("Could not follow the log:") + " " + e.Message; }
             finally { if (follow == cts) follow = null; cts.Dispose(); }
         }
     }
@@ -305,7 +306,7 @@ internal sealed class MinecraftWorldTab : MinecraftTab
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
         {
-            exportResult.Text = "The export failed: " + e.Message;
+            exportResult.Text = Loc.T("The export failed:") + " " + e.Message;
         }
         finally
         {

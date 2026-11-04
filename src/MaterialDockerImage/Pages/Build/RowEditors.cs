@@ -55,7 +55,7 @@ public sealed class BuildKeyValueRows : StackPanel
         }
         name.TextChanged += (_, _) => { item.Name = name.Text; Validate(); changed(); };
         value.TextChanged += (_, _) => { item.Value = value.Text; changed(); };
-        var remove = Ui.IconButton(Icons.Delete, "Remove " + Loc.T(nameLabel).ToLowerInvariant(), () => { items.Remove(item); Rebuild(); changed(); });
+        var remove = Ui.IconButton(Icons.Delete, Loc.T("Remove") + " " + Loc.T(nameLabel).ToLowerInvariant(), () => { items.Remove(item); Rebuild(); changed(); });
         var equals = Ui.Mono("=", 14, "OnSurfaceVariant");
         equals.Margin = new Thickness(6, 0, 6, 0);
         var grid = Ui.Columns(0, [2, 0, 3, 0], name, equals, value, remove);
@@ -128,7 +128,7 @@ public sealed class ListRows : StackPanel
             box.TextChanged += (_, _) => { if (index < items.Count) { items[index] = box.Text; changed(); } };
             var up = Ui.IconButton(Icons.ExpandLess, "Move up", () => Move(index, -1));
             up.IsEnabled = index > 0;
-            var remove = Ui.IconButton(Icons.Delete, "Remove " + Loc.T(itemLabel).ToLowerInvariant(), () => { items.RemoveAt(index); Rebuild(); changed(); });
+            var remove = Ui.IconButton(Icons.Delete, Loc.T("Remove") + " " + Loc.T(itemLabel).ToLowerInvariant(), () => { items.RemoveAt(index); Rebuild(); changed(); });
             var grid = Ui.Columns(4, [1, 0, 0], box, up, remove);
             grid.Margin = new Thickness(0, 0, 0, 6);
             rows.Children.Add(grid);

@@ -117,7 +117,7 @@ public sealed partial class CreatorPage : PageBase
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or InvalidDataException)
         {
-            Host.Notify.Warning("The Creator draft could not be loaded: " + e.Message);
+            Host.Notify.Warning(Loc.T("The Creator draft could not be loaded:") + " " + e.Message);
         }
         selectedStage = Math.Max(0, doc.Stages.Count - 1);
         expanded = null;
@@ -209,7 +209,7 @@ public sealed partial class CreatorPage : PageBase
     private void UpdateSubtitle()
     {
         var parts = new List<string>();
-        if (doc.Origin.Length > 0) parts.Add(doc.Origin);
+        if (doc.Origin.Length > 0) parts.Add(Loc.Lead(doc.Origin));
         parts.Add($"{doc.Stages.Count} {Loc.T(doc.Stages.Count == 1 ? "stage" : "stages")}");
         var count = DockerfileModel.InstructionCount(doc);
         parts.Add($"{count} {Loc.T(count == 1 ? "instruction" : "instructions")}");
@@ -251,7 +251,7 @@ public sealed partial class CreatorPage : PageBase
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Host.Notify.Error("The Creator draft could not be saved: " + e.Message);
+            Host.Notify.Error(Loc.T("The Creator draft could not be saved:") + " " + e.Message);
         }
     }
 
@@ -306,7 +306,7 @@ public sealed partial class CreatorPage : PageBase
         ReplaceDraft(result.Document, "importing " + info.FullName);
         if (result.Warnings.Count > 0)
             Host.Notify.Warning($"Imported with {result.Warnings.Count} note(s): " + string.Join(" ", result.Warnings.Take(3)) + (result.Warnings.Count > 3 ? " …" : ""));
-        else Host.Notify.Success("Imported " + info.FullName + ". The source was parsed, not executed.");
+        else Host.Notify.Success(Loc.T("Imported") + " " + info.FullName + ". The source was parsed, not executed.");
     }
 
     private void SaveAs()
@@ -325,7 +325,7 @@ public sealed partial class CreatorPage : PageBase
         savedPath = path;
         Host.History.Record("dockerfile", "Saved " + path + " from the Creator", new Dictionary<string, string> { ["files/dockerfile/" + HistoryStore.SafeName(path) + ".txt"] = text, ["files/creator/creator-draft.json"] = DockerfileModel.Serialize(doc) });
         UpdateSubtitle();
-        Host.Notify.Success(Loc.Voice("Dockerfile saved to " + path + ".", "Saved.", "儲存咗。"));
+        Host.Notify.Success(Loc.Voice(Loc.T("Dockerfile saved to") + " " + path + ".", "Saved.", "儲存咗。"));
     }
 
     private async Task OpenInBuildAsync()

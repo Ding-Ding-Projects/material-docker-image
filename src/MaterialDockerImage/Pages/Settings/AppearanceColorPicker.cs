@@ -95,7 +95,7 @@ public sealed class AppearanceColorPicker : StackPanel
             box.KeyDown += (_, e) => { if (e.Key == Key.Enter) { Commit(f, box.Text); e.Handled = true; } };
             box.LostKeyboardFocus += (_, _) => Commit(f, box.Text);
             formatBoxes[format] = box;
-            var copy = Ui.IconButton(Icons.ContentCopy, "Copy " + FormatName(format), () => { Clipboard.SetText(box.Text); AppHost.Current?.Notify.Info(FormatName(f) + " copied: " + box.Text); });
+            var copy = Ui.IconButton(Icons.ContentCopy, Loc.T("Copy") + " " + FormatName(format), () => { Clipboard.SetText(box.Text); AppHost.Current?.Notify.Info(FormatName(f) + " copied: " + box.Text); });
             copy.Width = copy.Height = copy.MinHeight = 32; copy.FontSize = 16;
             translator.Children.Add(Ui.Columns(8, [-64, 1, 0], Ui.Text(FormatName(format), 12, FontWeights.SemiBold, "OnSurfaceVariant", false, false), box, copy).Margin(0, 2, 0, 2));
         }

@@ -41,8 +41,8 @@ public sealed partial class SecurityPage : PageBase
             scanAll);
 
         table.Key = r => r.Id;
-        table.EmptyTitle = "No tagged local images";
-        table.EmptyMessage = "Security analyzes tagged images on this engine. Pull or build an image first, then refresh.";
+        table.EmptyTitle = Loc.T("No tagged local images");
+        table.EmptyMessage = Loc.T("Security analyzes tagged images on this engine. Pull or build an image first, then refresh.");
         table.Column("Image", r => r.Name, 220)
              .Column("Image ID", r => r.ShortId, 110, true)
              .ChipColumn("Critical", r => r.Count(ScoutSeverity.Critical), r => r.CountTone(ScoutSeverity.Critical), 84)
@@ -87,8 +87,8 @@ public sealed partial class SecurityPage : PageBase
         try { images = await Host.ReadRows(["image", "ls", "--format", "{{json .}}"], context); }
         catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException)
         {
-            banner.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text("Images could not be listed: " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 12);
-            subtitle.Text = "Could not reach the engine on context " + (context ?? "default") + ".";
+            banner.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text(Loc.T("Images could not be listed:") + " " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 12);
+            subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
             baseRows = [];
             Apply();
             return;
@@ -109,9 +109,9 @@ public sealed partial class SecurityPage : PageBase
         var availability = await ScoutRunner.CheckAsync(context, true);
         ShowAvailability(availability);
         var analysed = baseRows.Count(r => ScoutSessionCache.Get(context, r.Id) is { Succeeded: true });
-        subtitle.Text = $"{baseRows.Count} tagged {(baseRows.Count == 1 ? "image" : "images")} · {analysed} analyzed this session · "
-            + (availability.Available ? "Docker Scout " + (availability.Version.Length > 0 ? availability.Version : "available") : "Docker Scout unavailable")
-            + $" · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
+        subtitle.Text = Loc.Line($"{baseRows.Count} tagged {(baseRows.Count == 1 ? "image" : "images")} · {analysed} analyzed this session · "
+            + (availability.Available ? Loc.T("Docker Scout") + " " + (availability.Version.Length > 0 ? availability.Version : "available") : "Docker Scout unavailable")
+            + $" · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
     }
 
     private void ShowAvailability(ScoutAvailability availability)

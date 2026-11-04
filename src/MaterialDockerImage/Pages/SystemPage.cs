@@ -83,7 +83,7 @@ public sealed class SystemPage : PageBase
         // docker version exits non-zero when the server is unreachable but still prints the client half.
         if (TryParse(version, out var versionJson, allowFailure: true)) engine.SetVersion(versionJson);
         else engine.SetVersionError(Error(version));
-        subtitle.Text = $"Engine {(serverVersion.Length > 0 ? serverVersion : "unknown")} on {context ?? "the current context"}" + (usageTotal is { } t ? $" · {Ui.FormatBytes(t)} used" : "") + (reclaimTotal is { } r ? $" · {Ui.FormatBytes(r)} reclaimable" : "") + $" · measured {DateTime.Now:HH:mm:ss}";
+        subtitle.Text = Loc.Line($"Engine {(serverVersion.Length > 0 ? serverVersion : "unknown")} on {context ?? "the current context"}" + (usageTotal is { } t ? $" · {Ui.FormatBytes(t)} used" : "") + (reclaimTotal is { } r ? $" · {Ui.FormatBytes(r)} reclaimable" : "") + $" · measured {DateTime.Now:HH:mm:ss}");
     }
 
     private static string Error(CommandResult r) => r.StandardError.Trim().Length > 0 ? r.StandardError.Trim().Split('\n')[0] : $"exit code {r.ExitCode}";

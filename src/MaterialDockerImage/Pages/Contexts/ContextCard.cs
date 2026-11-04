@@ -49,7 +49,7 @@ public sealed class ContextCardView : Border
         use.ToolTip = Loc.T("Switches only this window. The docker CLI's current context is not changed.");
         var inspect = Ui.AsyncButton("Inspect", Icons.DataObject, ButtonKind.Text, () => actions.InspectAsync(entry));
         Button? more = null;
-        more = Ui.IconButton(Icons.MoreVert, "More actions for " + entry.Name, () => actions.ShowMenu(more!, entry));
+        more = Ui.IconButton(Icons.MoreVert, Loc.T("More actions for") + " " + entry.Name, () => actions.ShowMenu(more!, entry));
         var buttons = new DockPanel { Margin = new Thickness(0, 4, 0, 0) };
         buttons.Children.Add(more.Dock(Dock.Right));
         buttons.Children.Add(Ui.HStack(4, use, inspect));

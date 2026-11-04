@@ -23,6 +23,15 @@ Motion follows Material 3 easing and duration tokens. Choose Off, Reduced, Stand
 
 Reduced motion, Low stimulation, the Windows animation setting and capture mode always win over the saved level. Every animation ends on the element's normal state, so an interrupted animation never leaves anything hidden or moved.
 
+## Language
+
+English, Cantonese and Bilingual modes cover the shell and every destination page: headers and subtitles, section titles, field labels and helper text, buttons and menu items, empty states, dialog titles and bodies, tooltips, accessible names, status lines and notifications. Cantonese is written Hong Kong style in Traditional characters; Docker terms such as Compose, BuildKit, Dockerfile and image digest stay in English where that reads naturally. Bilingual shows the English text first, then the Cantonese text after a middle dot.
+
+- The phrase list lives in `Services/Loc.cs` (shell labels) and `Services/LocStrings.*.cs` (page copy). Entries whose key contains `{0}`, `{1}` and so on are sentence templates: the numbers, names and paths in the English message stay exactly as the engine or the app produced them, and only the wording around them is translated.
+- Status lines under page titles are translated phrase by phrase (`Loc.Line`), so counts, context names and times stay literal.
+- Docker CLI output, engine data (image, container, volume and network names, tags, digests, log lines) and error text returned by Docker are shown as returned and are never translated. A few long explanations built from several fragments, or from conditional wording that does not form one fixed sentence, are still English in every mode; School mode forces English everywhere.
+- Personal wording files still win over the built-in Cantonese. Clearing them restores the built-in text.
+
 ## Status
 
 Built and covered by UI-state checks for colour conversions, contrast, presets, import validation and undo. The animations, templates and floating panel have not yet been exercised interactively on Windows.

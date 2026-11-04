@@ -151,8 +151,8 @@ internal static class MinecraftSpecEditor
             var spigetNote = Ui.Caption("");
             void Notes()
             {
-                modrinthNote.Text = Loc.T(MinecraftSpecRules.SupportsModrinth(spec.Flavour) ? "Available for " + spec.Flavour + "." : "Not available for " + spec.Flavour + ": choose Paper, Purpur, Folia, Spigot, Bukkit, Fabric, Quilt, Forge or NeoForge.");
-                spigetNote.Text = Loc.T(MinecraftSpecRules.SupportsSpiget(spec.Flavour) ? "Available for " + spec.Flavour + "." : "Not available for " + spec.Flavour + ": choose Paper, Purpur, Folia, Spigot or Bukkit.");
+                modrinthNote.Text = Loc.T(MinecraftSpecRules.SupportsModrinth(spec.Flavour) ? Loc.T("Available for") + " " + spec.Flavour + "." : Loc.T("Not available for") + " " + spec.Flavour + ": choose Paper, Purpur, Folia, Spigot, Bukkit, Fabric, Quilt, Forge or NeoForge.");
+                spigetNote.Text = Loc.T(MinecraftSpecRules.SupportsSpiget(spec.Flavour) ? Loc.T("Available for") + " " + spec.Flavour + "." : Loc.T("Not available for") + " " + spec.Flavour + ": choose Paper, Purpur, Folia, Spigot or Bukkit.");
             }
             Notes();
             children.Add(Ui.VStack(4, Ui.Field("Modrinth projects", new MinecraftListRows(spec.ModrinthProjects, "Project slug", "Add project", v => System.Text.RegularExpressions.Regex.IsMatch(v, "^[A-Za-z0-9._:-]{1,80}$") ? null : "Use the project slug or id from its Modrinth address.", v => { spec.ModrinthProjects = v; changed(); Notes(); }), "Mods or plugins downloaded from Modrinth when the container starts (MODRINTH_PROJECTS). The image picks the build matching the server version and loader.", "chunky\nfabric-api\nluckperms"), modrinthNote));

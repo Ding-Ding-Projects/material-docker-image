@@ -53,7 +53,7 @@ public sealed class ToolsPage : PageBase
             Ui.Columns(16, [-180, 1], Ui.Overline("Runtime"), Ui.Mono(".NET " + Environment.Version, 14)));
         var open = Ui.AsyncButton("Open releases page", Icons.OpenInNew, ButtonKind.Filled, async () =>
         {
-            if (await AppHost.Current.Overlay.ConfirmAsync("Open in your browser?", "This opens " + ReleasesUrl + " in your default browser.", "Open browser"))
+            if (await AppHost.Current.Overlay.ConfirmAsync("Open in your browser?", Loc.T("This opens") + " " + ReleasesUrl + " in your default browser.", "Open browser"))
                 PageParts.OpenExternal(ReleasesUrl);
         });
         open.HorizontalAlignment = HorizontalAlignment.Left;

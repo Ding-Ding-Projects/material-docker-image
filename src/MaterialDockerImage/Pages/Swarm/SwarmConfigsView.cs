@@ -13,14 +13,14 @@ public sealed class SwarmConfigsView : SwarmTabView
     public SwarmConfigsView(Func<string?> context, Func<bool> isCurrent) : base(context, isCurrent)
     {
         table.Key = c => c.Id;
-        table.EmptyTitle = "No configs";
-        table.EmptyMessage = "This swarm stores no configs. Create one from a file to mount non-secret configuration into services.";
+        table.EmptyTitle = Loc.T("No configs");
+        table.EmptyMessage = Loc.T("This swarm stores no configs. Create one from a file to mount non-secret configuration into services.");
         table.Column("Name", c => c.Name, 260, true)
             .Column("Created", c => c.CreatedAt, 200)
             .Column("Updated", c => c.UpdatedAt, 200)
             .Column("ID", c => c.Id, 220, true)
             .RowAction("Show content", Icons.Description, ShowContentAsync, "Enter")
-            .RowAction("Inspect", Icons.DataObject, c => InspectAsync("config", c.Id, "Config " + c.Name))
+            .RowAction("Inspect", Icons.DataObject, c => InspectAsync("config", c.Id, Loc.T("Config") + " " + c.Name))
             .RowAction("Copy name", Icons.ContentCopy, c => { PageKit.Copy(c.Name, "the config name"); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true);
         table.Activated += c => _ = Guard(() => ShowContentAsync(c));
@@ -35,7 +35,7 @@ public sealed class SwarmConfigsView : SwarmTabView
         var rows = await Host.ReadRows(["config", "ls", "--format", "{{json .}}"], Context());
         var items = rows.Select(r => new SwarmObjectRow(CliValues.Str(r, "ID"), CliValues.Str(r, "Name"), "", CliValues.Str(r, "CreatedAt"), CliValues.Str(r, "UpdatedAt"))).ToList();
         table.SetItems(items);
-        SetSummary($"{items.Count} config{(items.Count == 1 ? "" : "s")}");
+        SetSummary(Loc.Line($"{items.Count} config{(items.Count == 1 ? "" : "s")}"));
     }
 
     private async Task ShowContentAsync(SwarmObjectRow c)
@@ -44,7 +44,7 @@ public sealed class SwarmConfigsView : SwarmTabView
         if (!r.Success) { Host.Notify.Error($"Inspect {c.Name} failed: {r.StandardError.Trim()}"); return; }
         string? data;
         try { data = SwarmRules.ConfigDataFromInspect(r.StandardOutput); }
-        catch (JsonException e) { Host.Notify.Error("The config could not be parsed: " + e.Message); return; }
+        catch (JsonException e) { Host.Notify.Error(Loc.T("The config could not be parsed:") + " " + e.Message); return; }
         ResourceTextViewer.Show("Config " + c.Name, data == null ? "(The engine returned no data for this config.)" : SwarmRules.DecodeConfigData(data), "Content decoded from base64 (Spec.Data of docker config inspect)");
     }
 
@@ -64,7 +64,7 @@ public sealed class SwarmConfigsView : SwarmTabView
             var path = file.Text.Trim();
             if (!File.Exists(path)) return "Choose an existing file.";
             if (Stale()) return PageKit.StaleMessage(Context());
-            var result = await Run("Create config " + n, ["config", "create", n, Path.GetFullPath(path)]);
+            var result = await Run(Loc.T("Create config") + " " + n, ["config", "create", n, Path.GetFullPath(path)]);
             if (result?.Success != true) return PageKit.Failure(result);
             await AfterChange();
             return null;
@@ -75,9 +75,9 @@ public sealed class SwarmConfigsView : SwarmTabView
     private async Task RemoveAsync(SwarmObjectRow c)
     {
         if (Stale()) return;
-        if (!await Host.Overlay.ConfirmAsync("Remove config " + c.Name, "Deletes the config from the swarm. The engine refuses while a service still uses it.", "Remove", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove config") + " " + c.Name, "Deletes the config from the swarm. The engine refuses while a service still uses it.", "Remove", true)) return;
         if (Stale()) return;
-        await Run("Remove config " + c.Name, ["config", "rm", c.Id]);
+        await Run(Loc.T("Remove config") + " " + c.Name, ["config", "rm", c.Id]);
         await AfterChange();
     }
 }

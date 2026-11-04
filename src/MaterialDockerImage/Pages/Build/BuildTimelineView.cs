@@ -127,7 +127,7 @@ public sealed class BuildTimelineView : Border
         busy.Visibility = Visibility.Collapsed;
         if (cancelled) SetStatus("Canceled", Tone.Warning);
         else if (success) SetStatus("Completed", Tone.Success);
-        else SetStatus("Failed · exit " + exitCode, Tone.Error);
+        else SetStatus(Loc.T("Failed · exit") + " " + exitCode, Tone.Error);
         if (!success && !cancelled)
         {
             var failed = Progress.Steps.LastOrDefault(s => s.Status == BuildKitStepStatus.Error);

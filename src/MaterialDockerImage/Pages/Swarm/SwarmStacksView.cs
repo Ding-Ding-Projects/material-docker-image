@@ -19,8 +19,8 @@ public sealed class SwarmStacksView : SwarmTabView
     public SwarmStacksView(Func<string?> context, Func<bool> isCurrent) : base(context, isCurrent)
     {
         table.Key = s => s.Name;
-        table.EmptyTitle = "No stacks";
-        table.EmptyMessage = "No stack is deployed on this swarm. Deploy one from a Compose file.";
+        table.EmptyTitle = Loc.T("No stacks");
+        table.EmptyMessage = Loc.T("No stack is deployed on this swarm. Deploy one from a Compose file.");
         table.Column("Name", s => s.Name, 220, true)
             .Column("Services", s => s.Services, 90)
             .Column("Orchestrator", s => s.Orchestrator, 120)
@@ -29,8 +29,8 @@ public sealed class SwarmStacksView : SwarmTabView
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true);
         table.FocusedChanged += s => _ = Guard(() => ShowServicesAsync(s));
         table.Activated += s => _ = Guard(() => ShowServicesAsync(s));
-        services.EmptyTitle = "No services";
-        services.EmptyMessage = "Select a stack to see its services.";
+        services.EmptyTitle = Loc.T("No services");
+        services.EmptyMessage = Loc.T("Select a stack to see its services.");
         services.Column("Name", s => s.Name, 220, true)
             .ChipColumn("Replicas", s => s.Replicas, s => ToneOf(s.Health), 110)
             .Column("Mode", s => s.Mode, 100)
@@ -46,7 +46,7 @@ public sealed class SwarmStacksView : SwarmTabView
         var rows = await Host.ReadRows(["stack", "ls", "--format", "{{json .}}"], Context());
         var items = rows.Select(r => new SwarmStackRow(CliValues.Str(r, "Name"), CliValues.Str(r, "Services"), CliValues.Str(r, "Orchestrator"))).ToList();
         table.SetItems(items);
-        SetSummary($"{items.Count} stack{(items.Count == 1 ? "" : "s")}");
+        SetSummary(Loc.Line($"{items.Count} stack{(items.Count == 1 ? "" : "s")}"));
         await ShowServicesAsync(table.Focused);
     }
 
@@ -65,7 +65,7 @@ public sealed class SwarmStacksView : SwarmTabView
         {
             var list = await StackServices(stack.Name);
             if (v != version) return;
-            services.EmptyMessage = "The stack reported no services.";
+            services.EmptyMessage = Loc.T("The stack reported no services.");
             services.SetItems(list);
         }
         catch (InvalidOperationException e)
@@ -94,7 +94,7 @@ public sealed class SwarmStacksView : SwarmTabView
             var path = file.Text.Trim();
             if (!File.Exists(path)) return "Choose an existing Compose file.";
             if (SwarmRules.ValidateName(name.Text.Trim(), "stack") is { } problem) return problem;
-            if (!await Host.Overlay.ConfirmAsync("Deploy stack " + name.Text.Trim(), $"Creates or updates the services of stack {name.Text.Trim()} on context {Context() ?? "current"} from {path}." + (prune ? " Services of the stack that the file no longer defines are removed." : ""), "Deploy")) return "Deployment canceled.";
+            if (!await Host.Overlay.ConfirmAsync(Loc.T("Deploy stack") + " " + name.Text.Trim(), $"Creates or updates the services of stack {name.Text.Trim()} on context {Context() ?? "current"} from {path}." + (prune ? " Services of the stack that the file no longer defines are removed." : ""), "Deploy")) return "Deployment canceled.";
             if (Stale()) return PageKit.StaleMessage(Context());
             var args = new List<string> { "stack", "deploy", "--compose-file", Path.GetFullPath(path) };
             if (prune) args.Add("--prune");
@@ -114,9 +114,9 @@ public sealed class SwarmStacksView : SwarmTabView
         try { affected = (await StackServices(stack.Name)).Select(s => $"service {s.Name} ({s.Replicas}, {s.Image})").ToList(); }
         catch (InvalidOperationException e) { affected = ["(services could not be listed: " + e.Message + ")"]; }
         affected.Add($"networks of stack {stack.Name}, plus its secrets and configs");
-        if (!await Host.Overlay.SuperConfirmAsync("Remove stack " + stack.Name, "Every service of the stack and all their tasks are stopped and deleted, with the stack's networks, secrets and configs. Volumes are kept.", affected)) return;
+        if (!await Host.Overlay.SuperConfirmAsync(Loc.T("Remove stack") + " " + stack.Name, "Every service of the stack and all their tasks are stopped and deleted, with the stack's networks, secrets and configs. Volumes are kept.", affected)) return;
         if (Stale()) return;
-        await Run("Remove stack " + stack.Name, ["stack", "rm", stack.Name]);
+        await Run(Loc.T("Remove stack") + " " + stack.Name, ["stack", "rm", stack.Name]);
         await AfterChange();
     }
 }

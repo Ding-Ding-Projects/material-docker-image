@@ -29,7 +29,7 @@ public sealed partial class SettingsPage
     /// <summary>A control followed by a reset button that returns just this property to its default (one undo step).</summary>
     private static FrameworkElement Resettable(FrameworkElement control, string what, Action<AppearanceState, AppearanceState> restore)
     {
-        var reset = Ui.IconButton(Icons.RestartAlt, "Reset " + what + " to default", () => AppearanceRuntime.Change(what + " reset to default", m => restore(m, new AppearanceState())));
+        var reset = Ui.IconButton(Icons.RestartAlt, Loc.T("Reset") + " " + what + " to default", () => AppearanceRuntime.Change(what + " reset to default", m => restore(m, new AppearanceState())));
         reset.Width = reset.Height = reset.MinHeight = 32; reset.FontSize = 18;
         // A grid (not a horizontal stack) so wide controls such as the colour picker get the full row width.
         var row = Ui.Columns(8, [1, 0], control, reset);
@@ -230,7 +230,7 @@ public sealed partial class SettingsPage
             var dialog = new SaveFileDialog { Filter = "Appearance preset|*.json", FileName = string.Concat(preset.Name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c)) + ".appearance.json", Title = Loc.T("Export appearance preset") };
             if (dialog.ShowDialog() != true) return;
             try { File.WriteAllText(dialog.FileName, AppearancePresets.Export(preset)); Host.Notify.Success($"Preset \"{preset.Name}\" exported to {Path.GetFileName(dialog.FileName)}."); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error("The preset could not be exported: " + e.Message); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset could not be exported:") + " " + e.Message); }
         });
         var import = Ui.AsyncButton("Import…", Icons.Upload, ButtonKind.Text, async () =>
         {
@@ -242,7 +242,7 @@ public sealed partial class SettingsPage
                 if (new FileInfo(dialog.FileName).Length > AppearancePresets.MaxPresetBytes) throw new InvalidDataException("The file is larger than 64 KiB, so it is not an appearance preset.");
                 preset = AppearancePresets.Import(await File.ReadAllTextAsync(dialog.FileName));
             }
-            catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { Host.Notify.Error("The preset was not imported, nothing changed: " + e.Message); return; }
+            catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset was not imported, nothing changed:") + " " + e.Message); return; }
             var list = AppearanceRuntime.UserPresets.ToList();
             var name = preset.Name; var n = 2;
             while (AppearanceRuntime.AllPresets.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) name = $"{preset.Name} ({n++})";
@@ -264,7 +264,7 @@ public sealed partial class SettingsPage
             try { text = Clipboard.ContainsText() ? Clipboard.GetText() : ""; } catch (System.Runtime.InteropServices.ExternalException) { text = ""; }
             if (text.Length == 0) { Host.Notify.Info("The clipboard has no text. Copy a style first."); return; }
             try { var preset = AppearancePresets.Import(text); AppearanceRuntime.Set(AppearanceRuntime.Current.WithLookOf(preset.State), "pasted style " + preset.Name); }
-            catch (InvalidDataException e) { Host.Notify.Error("The clipboard does not hold a valid appearance style, nothing changed: " + e.Message); }
+            catch (InvalidDataException e) { Host.Notify.Error(Loc.T("The clipboard does not hold a valid appearance style, nothing changed:") + " " + e.Message); }
         });
         var undo = Ui.Button("Undo", Icons.Undo, ButtonKind.Tonal, AppearanceRuntime.Undo);
         var redo = Ui.Button("Redo", Icons.Redo, ButtonKind.Tonal, AppearanceRuntime.Redo);

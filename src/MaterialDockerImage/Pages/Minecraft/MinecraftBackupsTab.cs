@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
 using Microsoft.Win32;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -23,8 +24,8 @@ internal sealed class MinecraftBackupsTab : MinecraftTab
     public MinecraftBackupsTab(MinecraftServerDetail detail) : base(detail)
     {
         table.Key = b => b.Path;
-        table.EmptyTitle = "No backups in this folder";
-        table.EmptyMessage = "Create backup archives the whole /data volume (world, settings, plugins) into this folder.";
+        table.EmptyTitle = Loc.T("No backups in this folder");
+        table.EmptyMessage = Loc.T("Create backup archives the whole /data volume (world, settings, plugins) into this folder.");
         table.Column("File", b => b.Name, 300, true)
             .Column("Size", b => Ui.FormatBytes(b.Size), 100)
             .Column("Created", b => b.Modified.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture), 160)
@@ -56,7 +57,7 @@ internal sealed class MinecraftBackupsTab : MinecraftTab
                 foreach (var f in new DirectoryInfo(folder).EnumerateFiles(MinecraftOps.BackupPrefix(Server) + "*.tar.gz"))
                     list.Add(new MinecraftBackupFile(f.FullName, f.Name, f.Length, f.LastWriteTime));
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { summary.Text = "The folder could not be read: " + e.Message; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { summary.Text = Loc.T("The folder could not be read:") + " " + e.Message; }
         table.SetItems(list.OrderByDescending(b => b.Modified));
         summary.Text = list.Count == 0 ? $"No backups of {Server.Name} yet." : $"{list.Count} backups of {Server.Name} · {Ui.FormatBytes(list.Sum(b => b.Size))} in total · newest {list.Max(b => b.Modified):yyyy-MM-dd HH:mm}";
     }
@@ -100,7 +101,7 @@ internal sealed class MinecraftBackupsTab : MinecraftTab
     {
         if (!await Host.Overlay.SuperConfirmAsync("Delete backup file", "Permanently deletes this backup archive from the folder.", [b.Path])) return;
         try { File.Delete(b.Path); Host.History.Record("minecraft", "Deleted Minecraft backup " + b.Path); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error("The file could not be deleted: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The file could not be deleted:") + " " + e.Message); }
         Load();
     }
 }

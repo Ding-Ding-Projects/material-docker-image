@@ -105,7 +105,7 @@ internal sealed class MinecraftVersionPicker : StackPanel
         shown.Clear();
         if (cached == null)
         {
-            listStatus.Text = "No version list loaded. Use Refresh versions to download Mojang's manifest, or type a version above.";
+            listStatus.Text = Loc.T("No version list loaded. Use Refresh versions to download Mojang's manifest, or type a version above.");
             return;
         }
         foreach (var v in cached.Versions)
@@ -119,9 +119,9 @@ internal sealed class MinecraftVersionPicker : StackPanel
 
     private async Task FetchAsync(string? context)
     {
-        listStatus.Text = "Downloading the version manifest… The first run also pulls the " + MinecraftVersions.CurlImage + " image.";
+        listStatus.Text = Loc.T("Downloading the version manifest… The first run also pulls the") + " " + MinecraftVersions.CurlImage + " image.";
         var r = await Host.Read(MinecraftVersions.ManifestFetchArguments(), context);
-        if (!r.Success) { listStatus.Text = "The version manifest could not be downloaded: " + MinecraftOps.Trim(r) + " You can still type a version."; return; }
+        if (!r.Success) { listStatus.Text = Loc.T("The version manifest could not be downloaded:") + " " + MinecraftOps.Trim(r) + " You can still type a version."; return; }
         try { cached = MinecraftVersions.ParseManifest(r.StandardOutput); cachedAt = DateTimeOffset.Now; Render(); }
         catch (FormatException e) { listStatus.Text = e.Message; }
     }

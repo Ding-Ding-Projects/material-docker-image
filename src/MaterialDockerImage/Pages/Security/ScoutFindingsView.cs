@@ -92,8 +92,8 @@ internal sealed class ScoutFindingsView : Grid
         Children.Add(filterRow);
 
         table.Key = f => f.Id + "|" + f.Purl + "|" + f.Package + "|" + f.InstalledVersion;
-        table.EmptyTitle = "No findings";
-        table.EmptyMessage = "Analyze the image with Docker Scout to list its vulnerabilities.";
+        table.EmptyTitle = Loc.T("No findings");
+        table.EmptyMessage = Loc.T("Analyze the image with Docker Scout to list its vulnerabilities.");
         table.ChipColumn("Severity", f => f.SeverityText, f => ScoutSeverityUi.ToneOf(f.Severity), 100)
              .Column("ID", f => f.Id, 150, true)
              .Column("Package", f => f.Package, 150)
@@ -146,7 +146,7 @@ internal sealed class ScoutFindingsView : Grid
     private static UIElement Detail(ScoutFinding f)
     {
         var top = Ui.Wrap(8, Ui.Badge(f.SeverityText, ScoutSeverityUi.ToneOf(f.Severity), true),
-            f.Score is { } s ? Ui.Badge("CVSS " + s.ToString("0.0", CultureInfo.InvariantCulture), Tone.Neutral) : null,
+            f.Score is { } s ? Ui.Badge(Loc.T("CVSS") + " " + s.ToString("0.0", CultureInfo.InvariantCulture), Tone.Neutral) : null,
             f.Fixable ? Ui.Badge("Fix available", Tone.Success, true) : Ui.Badge("No fix yet", Tone.Neutral, true));
         var id = Ui.Mono(f.Id, 16, "OnSurface", true);
         id.FontWeight = FontWeights.SemiBold;

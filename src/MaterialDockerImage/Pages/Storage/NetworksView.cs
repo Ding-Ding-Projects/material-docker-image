@@ -31,8 +31,8 @@ public sealed class NetworksView : Grid
     {
         context = boundContext; isCurrent = current; setSummary = summary;
         table.Key = n => n.Id;
-        table.EmptyTitle = "No networks";
-        table.EmptyMessage = "The engine reported no networks. Every engine normally has bridge, host and none; check the engine connection in Diagnostics.";
+        table.EmptyTitle = Loc.T("No networks");
+        table.EmptyMessage = Loc.T("The engine reported no networks. Every engine normally has bridge, host and none; check the engine connection in Diagnostics.");
         table.Column("Name", n => n.Name, 220, true)
             .ChipColumn("Driver", n => n.Driver, n => n.BuiltIn ? Tone.Neutral : Tone.Primary, 100)
             .Column("Scope", n => n.Scope, 70)
@@ -113,7 +113,7 @@ public sealed class NetworksView : Grid
         }).ToList();
         table.SetItems(items);
         CountChanged?.Invoke(items.Count);
-        setSummary($"{items.Count} network{(items.Count == 1 ? "" : "s")} · {items.Count(i => i.BuiltIn)} built-in · {items.Count(i => !i.BuiltIn && i.Containers.Count == 0)} user-defined without containers");
+        setSummary(Loc.Line($"{items.Count} network{(items.Count == 1 ? "" : "s")} · {items.Count(i => i.BuiltIn)} built-in · {items.Count(i => !i.BuiltIn && i.Containers.Count == 0)} user-defined without containers"));
     }
 
     private async Task InspectAsync(NetworkRow n)
@@ -152,7 +152,7 @@ public sealed class NetworksView : Grid
             done.TrySetResult(args); close!();
         }
         var body = Ui.VStack(14,
-            Ui.Title("Connect to " + n.Name, 20),
+            Ui.Title(Loc.T("Connect to") + " " + n.Name, 20),
             Ui.Field("Container", picker, "Only running containers that are not already on this network are listed."),
             Ui.Columns(12, [1, 1],
                 Ui.Field("Alias (optional)", alias, "An extra DNS name other containers on this network can use to reach this one.", "api"),
@@ -175,7 +175,7 @@ public sealed class NetworksView : Grid
         var done = new TaskCompletionSource<(string, bool)?>();
         Action? close = null;
         var body = Ui.VStack(14,
-            Ui.Title("Disconnect from " + n.Name, 20),
+            Ui.Title(Loc.T("Disconnect from") + " " + n.Name, 20),
             Ui.Field("Container", picker),
             Ui.Field("Force", force, "Forces the disconnect even when the engine reports the endpoint is in use. Use only when a normal disconnect fails."),
             Ui.Columns(8, [1, 0, 0], new Border(), Ui.Button("Cancel", null, ButtonKind.Text, () => { done.TrySetResult(null); close!(); }),
@@ -195,7 +195,7 @@ public sealed class NetworksView : Grid
         if (Stale()) return;
         if (n.BuiltIn) { Host.Notify.Warning($"{n.Name} is a built-in network and cannot be removed."); return; }
         var detail = n.Containers.Count > 0 ? $" It still has {n.Containers.Count} container(s) attached ({string.Join(", ", n.Containers)}); the engine refuses to remove it until they disconnect." : "";
-        if (!await Host.Overlay.ConfirmAsync("Remove network " + n.Name + "?", "Containers that use this network by name will fail to start until it is created again." + detail, "Remove", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove network") + " " + n.Name + "?", "Containers that use this network by name will fail to start until it is created again." + detail, "Remove", true)) return;
         if (Stale()) return;
         await Host.Execute("Remove network " + n.Name, ["network", "rm", n.Name], boundContext: context());
         if (Reload != null) await Reload();
@@ -206,7 +206,7 @@ public sealed class NetworksView : Grid
         if (Stale()) return;
         var builtIn = items.Where(i => i.BuiltIn).ToList();
         var removable = items.Where(i => !i.BuiltIn).ToList();
-        if (builtIn.Count > 0) Host.Notify.Warning("Built-in networks are skipped: " + string.Join(", ", builtIn.Select(b => b.Name)));
+        if (builtIn.Count > 0) Host.Notify.Warning(Loc.T("Built-in networks are skipped:") + " " + string.Join(", ", builtIn.Select(b => b.Name)));
         if (removable.Count == 0) return;
         if (!await Host.Overlay.SuperConfirmAsync($"Remove {removable.Count} networks", "Each listed network is removed. Networks with attached containers are refused by the engine.", removable.Select(r => r.Name + (r.Containers.Count > 0 ? $" ({r.Containers.Count} attached)" : "")).ToList())) return;
         if (Stale()) return;

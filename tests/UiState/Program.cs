@@ -707,4 +707,48 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     Check(new UserSettings().SuggestionsWhileTyping, "suggestions while typing default on");
     Check(DockerfileSyntaxVersion.Parse("docker/dockerfile:1.4")!.Satisfies("1.4") && !DockerfileSyntaxVersion.Parse("docker/dockerfile:1.3")!.Satisfies("1.4") && DockerfileSyntaxVersion.Parse("example.com/custom:1")!.Satisfies("1.20"), "syntax version comparison");
 }
+{
+    // Page-specific copy: representative strings from every destination must follow the language mode.
+    var pageLocPrior = MaterialDockerImage.Services.Loc.Language;
+    var pageLocSchool = MaterialDockerImage.Services.Loc.SchoolMode;
+    MaterialDockerImage.Services.Loc.SchoolMode = false;
+    bool HasCjk(string text) => text.Any(c => c >= '一' && c <= '鿿');
+    var pageSamples = new[]
+    {
+        "Search history", "Refresh builders", "No containers", "No local images", "Create volume", "Pull image…", "Choose a folder",
+        "Prune dangling images", "Remove container", "Restart policy", "Port mapping", "Environment variables", "Build cache", "Compose projects",
+        "Swarm nodes", "Swarm secrets", "Join swarm", "Leave swarm", "Create Minecraft server…", "Chunky commands", "Backup folder", "Delete preset",
+        "Reset appearance", "Export settings", "Import settings", "Show local history", "Scan all images", "Select an image in Images first.",
+        "Sign in to a registry…", "Run all diagnostic checks", "Stream engine events", "Detect Docker", "Setup finished", "Set as build target",
+        "Open Dockerfile…", "Copy as build command", "Generate SBOM", "Remove unused data", "Engine disk usage", "No networks", "No secrets",
+        "No services", "Take one sample now", "Live monitor", "Choose a build context folder first: COPY and ADD paths are relative to it.",
+        "The server is not running. Start it first.", "Enter a volume name.", "Docker CLI not found", "Waiting for events", "Not analyzed"
+    };
+    Check(pageSamples.Length >= 40, "at least forty page strings are sampled");
+    foreach (var language in new[] { "Cantonese", "Bilingual" })
+    {
+        MaterialDockerImage.Services.Loc.Language = language;
+        var untranslated = pageSamples.Where(x => { var t = MaterialDockerImage.Services.Loc.T(x); return t == x || !HasCjk(t) || (language == "Bilingual" && !t.StartsWith(x + " · ", StringComparison.Ordinal)); }).ToList();
+        Check(untranslated.Count == 0, language + " mode translates every sampled page string" + (untranslated.Count == 0 ? "" : ": " + string.Join(" | ", untranslated)));
+    }
+    MaterialDockerImage.Services.Loc.Language = "English";
+    Check(pageSamples.All(x => MaterialDockerImage.Services.Loc.T(x) == x), "English mode leaves page strings unchanged");
+    MaterialDockerImage.Services.Loc.Language = "Cantonese";
+    var restored = MaterialDockerImage.Services.Loc.T("Restored abc123 as a new history revision.");
+    Check(HasCjk(restored) && restored.Contains("abc123") && !restored.Contains("history revision"), "sentence template keeps the revision identifier and translates the wording");
+    var copied = MaterialDockerImage.Services.Loc.T("Copied 12 characters.");
+    Check(HasCjk(copied) && copied.Contains("12"), "sentence template keeps counts");
+    var volumeName = "my_data-01";
+    var backupPath = "C:/backups/x.tar.gz";
+    var backedUp = MaterialDockerImage.Services.Loc.T("Backed up volume " + volumeName + " to " + backupPath);
+    Check(HasCjk(backedUp) && backedUp.Contains(volumeName) && backedUp.Contains(backupPath), "sentence template keeps volume names and paths literal");
+    var statusLine = MaterialDockerImage.Services.Loc.Line("3 images · 2 unique IDs · context default · refreshed 10:20:30");
+    Check(HasCjk(statusLine) && statusLine.Contains("3") && statusLine.Contains("default") && statusLine.Contains("10:20:30") && !statusLine.Contains("images"), "status line translates each phrase and keeps counts and context names");
+    Check(MaterialDockerImage.Services.Loc.T("nginx:1.27") == "nginx:1.27" && MaterialDockerImage.Services.Loc.T("registry-1.docker.io/library/redis") == "registry-1.docker.io/library/redis", "Docker identifiers are never translated");
+    MaterialDockerImage.Services.Loc.Language = "Bilingual";
+    var bilingualRestored = MaterialDockerImage.Services.Loc.T("Copied 12 characters.");
+    Check(bilingualRestored.StartsWith("Copied 12 characters. · ", StringComparison.Ordinal) && HasCjk(bilingualRestored), "bilingual mode shows the English sentence first and the Cantonese sentence second");
+    MaterialDockerImage.Services.Loc.Language = pageLocPrior;
+    MaterialDockerImage.Services.Loc.SchoolMode = pageLocSchool;
+}
 Console.WriteLine($"UI state checks: {count} passed.");

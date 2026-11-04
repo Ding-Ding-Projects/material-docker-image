@@ -283,7 +283,7 @@ internal sealed class Base64Panel
             Sync();
         }
         catch (OperationCanceledException) { error.Text = Loc.T("Loading was canceled."); return; }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { error.Text = "The file could not be read: " + e.Message; return; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { error.Text = Loc.T("The file could not be read:") + " " + e.Message; return; }
         finally { EndWork(); }
         await ConvertAsync(false);
         Record("File");
@@ -311,7 +311,7 @@ internal sealed class Base64Panel
             Host.Notify.Success(lastSummary + ".");
         }
         catch (OperationCanceledException) { error.Text = Loc.T("Canceled. The partial output file was left in place; delete it if you do not need it."); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { error.Text = "Encoding failed: " + e.Message; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { error.Text = Loc.T("Encoding failed:") + " " + e.Message; }
         finally { EndWork(); }
     }
 
@@ -344,7 +344,7 @@ internal sealed class Base64Panel
         if (encode) File.WriteAllText(dialog.FileName, outputText, new UTF8Encoding(false));
         else File.WriteAllBytes(dialog.FileName, outputBytes);
         Record("Save");
-        Host.Notify.Success("Saved " + Path.GetFileName(dialog.FileName) + ".");
+        Host.Notify.Success(Loc.T("Saved") + " " + Path.GetFileName(dialog.FileName) + ".");
     }
 
     private void Record(string how)

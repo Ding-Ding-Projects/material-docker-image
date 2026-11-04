@@ -26,14 +26,14 @@ internal sealed partial class ContainerInspector
             if (!result.Success) { host.Content = Error("docker container stats failed: " + result.StandardError.Trim()); return; }
             JsonElement stats;
             try { var rows = DockerJson.ParseRows(result.StandardOutput); if (rows.Count == 0) { host.Content = Ui.Caption("The engine returned no statistics."); return; } stats = rows[0]; }
-            catch (JsonException e) { host.Content = Error("Statistics could not be parsed: " + e.Message); return; }
+            catch (JsonException e) { host.Content = Error(Loc.T("Statistics could not be parsed:") + " " + e.Message); return; }
             host.Content = Ui.VStack(10,
                 Tile("CPU", DockerJson.Text(stats, "CPUPerc"), "Share of one CPU core; above 100% means several cores."),
                 Tile("Memory", DockerJson.Text(stats, "MemUsage"), DockerJson.Text(stats, "MemPerc") + " of the limit"),
                 Tile("Network I/O", DockerJson.Text(stats, "NetIO"), "Received / sent since start"),
                 Tile("Block I/O", DockerJson.Text(stats, "BlockIO"), "Read / written since start"),
                 Tile("Processes", DockerJson.Text(stats, "PIDs"), "PIDs inside the container"));
-            stamp.Text = "Sampled at " + DateTime.Now.ToString("HH:mm:ss") + ". Monitor shows live charts over time.";
+            stamp.Text = Loc.T("Sampled at") + " " + DateTime.Now.ToString("HH:mm:ss") + ". Monitor shows live charts over time.";
         }
         var refresh = Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, Load);
         var view = Ui.VStack(12, Ui.Columns(8, [1, 0], stamp, refresh), host);
@@ -54,13 +54,13 @@ internal sealed partial class ContainerInspector
         async Task Load()
         {
             var my = version;
-            if (!row.IsRunning && !row.IsPaused) { note.Text = "Processes are listed only for a running or paused container."; text.SetText(""); return; }
-            note.Text = "Reading docker container top…";
+            if (!row.IsRunning && !row.IsPaused) { note.Text = Loc.T("Processes are listed only for a running or paused container."); text.SetText(""); return; }
+            note.Text = Loc.T("Reading docker container top…");
             var result = await Host.Read(["container", "top", row.Id], page.Context);
             if (my != version) return;
             if (!result.Success) { note.Text = "docker container top failed: " + result.StandardError.Trim(); return; }
             text.SetText(result.StandardOutput);
-            note.Text = "Read at " + DateTime.Now.ToString("HH:mm:ss") + ".";
+            note.Text = Loc.T("Read at") + " " + DateTime.Now.ToString("HH:mm:ss") + ".";
         }
         var refresh = Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, Load);
         text.Extra.Children.Add(refresh);
@@ -79,7 +79,7 @@ internal sealed partial class ContainerInspector
         async Task Load()
         {
             var my = version;
-            note.Text = "Reading docker container diff…";
+            note.Text = Loc.T("Reading docker container diff…");
             var result = await Host.Read(["container", "diff", row.Id], page.Context);
             if (my != version) return;
             if (!result.Success) { note.Text = "docker container diff failed: " + result.StandardError.Trim(); return; }
@@ -109,7 +109,7 @@ internal sealed partial class ContainerInspector
     private async Task CopyFromAsync(ContainerRow row)
     {
         if (!page.EnsureCurrent()) return;
-        var source = await Host.Overlay.PromptAsync("Copy from " + row.Name, "Path in the container", "/", "docker cp copies a file or folder out of the container into a folder you choose next. Works for running and stopped containers.", ContainerPath);
+        var source = await Host.Overlay.PromptAsync(Loc.T("Copy from") + " " + row.Name, "Path in the container", "/", "docker cp copies a file or folder out of the container into a folder you choose next. Works for running and stopped containers.", ContainerPath);
         if (source == null) return;
         var picker = new OpenFolderDialog { Title = Loc.T("Choose the local folder to copy into") };
         if (picker.ShowDialog() != true) return;
@@ -125,9 +125,9 @@ internal sealed partial class ContainerInspector
     private async Task CopyIntoAsync(ContainerRow row)
     {
         if (!page.EnsureCurrent()) return;
-        var file = PageKit.PickOpenPath("Choose a local file to copy into " + row.Name, "All files|*.*");
+        var file = PageKit.PickOpenPath(Loc.T("Choose a local file to copy into") + " " + row.Name, "All files|*.*");
         if (file == null) return;
-        var target = await Host.Overlay.PromptAsync("Copy into " + row.Name, "Destination path in the container", "/tmp/", $"Copies {Path.GetFileName(file)} into the container. A path ending in / is treated as a folder. Existing files at the destination are replaced.", ContainerPath);
+        var target = await Host.Overlay.PromptAsync(Loc.T("Copy into") + " " + row.Name, "Destination path in the container", "/tmp/", $"Copies {Path.GetFileName(file)} into the container. A path ending in / is treated as a folder. Existing files at the destination are replaced.", ContainerPath);
         if (target == null) return;
         if (!await Host.Overlay.ConfirmAsync("Copy into container?", $"{file}\n→ {row.Name}:{target}\n\nAn existing file with the same path inside the container is replaced. This changes the container's filesystem.", "Copy", true)) return;
         if (!page.EnsureCurrent()) return;

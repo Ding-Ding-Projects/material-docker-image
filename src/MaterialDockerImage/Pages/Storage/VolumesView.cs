@@ -30,8 +30,8 @@ public sealed class VolumesView : Grid
     {
         context = boundContext; isCurrent = current; setSummary = summary;
         table.Key = v => v.Name;
-        table.EmptyTitle = "No volumes";
-        table.EmptyMessage = "This engine has no volumes. Create one to keep data outside a container's writable layer.";
+        table.EmptyTitle = Loc.T("No volumes");
+        table.EmptyMessage = Loc.T("This engine has no volumes. Create one to keep data outside a container's writable layer.");
         table.Column("Name", v => v.Name, 300, true)
             .Column("Driver", v => v.Driver, 90)
             .Column("Size", v => v.Size, 100)
@@ -103,7 +103,7 @@ public sealed class VolumesView : Grid
                 }
             }
         }
-        catch (Exception e) when (e is InvalidOperationException or JsonException) { Host.Notify.Warning("Volume usage could not be read: " + e.Message); }
+        catch (Exception e) when (e is InvalidOperationException or JsonException) { Host.Notify.Warning(Loc.T("Volume usage could not be read:") + " " + e.Message); }
         // Sizes: docker system df -v reports per-volume sizes on engines that support it.
         var sizes = new Dictionary<string, string>(StringComparer.Ordinal);
         var df = await Host.Read(["system", "df", "-v", "--format", "{{json .}}"], ctx);
@@ -128,7 +128,7 @@ public sealed class VolumesView : Grid
         var total = items.Where(i => i.SizeBytes.HasValue).Sum(i => i.SizeBytes!.Value);
         var unused = items.Count(i => !i.InUse);
         StatsChanged?.Invoke(items.Count, sizes.Count > 0 ? total : null, unused);
-        setSummary($"{items.Count} volume{(items.Count == 1 ? "" : "s")}" + (sizes.Count > 0 ? $" · {Ui.FormatBytes(total)}" : " · sizes not reported by this engine") + $" · {unused} not used by any container");
+        setSummary(Loc.Line($"{items.Count} volume{(items.Count == 1 ? "" : "s")}" + (sizes.Count > 0 ? $" · {Ui.FormatBytes(total)}" : " · sizes not reported by this engine") + $" · {unused} not used by any container"));
     }
 
     private async Task InspectAsync(VolumeRow v)

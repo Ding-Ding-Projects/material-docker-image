@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using MaterialDockerImage.Core;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -48,7 +49,7 @@ public sealed record ComposeTarget(string? ProjectName, IReadOnlyList<string> Fi
         if (HasFiles)
         {
             var dir = Directory!;
-            if (!System.IO.Directory.Exists(dir)) throw new DirectoryNotFoundException("The project directory no longer exists: " + dir);
+            if (!System.IO.Directory.Exists(dir)) throw new DirectoryNotFoundException(Loc.T("The project directory no longer exists:") + " " + dir);
             args.AddRange(["--project-directory", dir]);
             foreach (var f in Files)
             {
@@ -113,6 +114,6 @@ public static class ComposeRecentFiles
             File.WriteAllText(temporary, JsonSerializer.Serialize(list, new JsonSerializerOptions { WriteIndented = true }), new UTF8Encoding(false));
             File.Move(temporary, StorePath, true);
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Services.AppHost.Current?.Notify.Warning("Recent Compose files could not be saved: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Services.AppHost.Current?.Notify.Warning(Loc.T("Recent Compose files could not be saved:") + " " + e.Message); }
     }
 }

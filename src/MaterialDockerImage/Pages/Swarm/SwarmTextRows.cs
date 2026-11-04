@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -25,7 +26,7 @@ public sealed class SwarmTextRows : StackPanel
     {
         var box = Ui.Input(value, itemName, true);
         Grid? row = null;
-        var remove = Ui.IconButton(Icons.Close, "Remove " + itemName.ToLowerInvariant(), () => { rows.Children.Remove(row); Changed?.Invoke(); });
+        var remove = Ui.IconButton(Icons.Close, Loc.T("Remove") + " " + itemName.ToLowerInvariant(), () => { rows.Children.Remove(row); Changed?.Invoke(); });
         row = Ui.Columns(8, [1, 0], box, remove);
         row.Margin = new Thickness(0, rows.Children.Count == 0 ? 0 : 6, 0, 0);
         box.TextChanged += (_, _) => Changed?.Invoke();

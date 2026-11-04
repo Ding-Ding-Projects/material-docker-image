@@ -123,7 +123,7 @@ internal static class PageKit
     public static void Copy(string text, string what)
     {
         try { Clipboard.SetText(text); Host.Notify.Info($"Copied {what}."); }
-        catch (System.Runtime.InteropServices.ExternalException e) { Host.Notify.Error("The clipboard is busy: " + e.Message); }
+        catch (System.Runtime.InteropServices.ExternalException e) { Host.Notify.Error(Loc.T("The clipboard is busy:") + " " + e.Message); }
     }
 
     /// <summary>Asks for a destination file (the dialog confirms overwriting) and writes UTF-8 text without a byte order mark.</summary>
@@ -194,16 +194,16 @@ internal static class PageKit
 
     /// <summary>Message used when a list was loaded from an engine context that is no longer selected.</summary>
     public static string StaleMessage(string? context) =>
-        $"This list was loaded from engine context {context ?? "(default)"}, which is no longer the selected context. Refresh before acting.";
+        Loc.T("This list was loaded from engine context {0}, which is no longer the selected context. Refresh before acting.").Replace("{0}", context ?? "(default)");
 
     /// <summary>Short summary of a failed command for inline display.</summary>
     public static string Failure(CommandResult? result)
     {
-        if (result == null) return "The operation did not start (another operation may be active).";
-        if (result.Cancelled) return "The operation was canceled. Refresh to see the actual state.";
+        if (result == null) return Loc.T("The operation did not start (another operation may be active).");
+        if (result.Cancelled) return Loc.T("The operation was canceled. Refresh to see the actual state.");
         var detail = result.StandardError.Trim();
         if (detail.Length > 600) detail = "…" + detail[^600..];
-        return $"docker exited with code {result.ExitCode}." + (detail.Length > 0 ? " " + detail : "");
+        return Loc.T("docker exited with code {0}.").Replace("{0}", result.ExitCode.ToString()) + (detail.Length > 0 ? " " + detail : "");
     }
 
     /// <summary>Shows read-only text in a wide overlay with search, copy and save.</summary>
@@ -215,7 +215,7 @@ internal static class PageKit
         configure?.Invoke(view);
         Action? close = null;
         var closeButton = Ui.IconButton(Icons.Close, "Close", () => close!());
-        var head = Ui.Columns(8, [1, 0], Ui.VStack(2, Ui.Title(title, 20), Ui.Caption(subtitle)), closeButton);
+        var head = Ui.Columns(8, [1, 0], Ui.VStack(2, Ui.Title(Loc.Lead(title), 20), Ui.Caption(subtitle)), closeButton);
         var body = Ui.VStack(12, head, view);
         close = Host.Overlay.Show(new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false }, 900);
     }

@@ -77,7 +77,7 @@ internal sealed class RegistryAccounts
             row.Children.Add(Ui.Icon(Icons.Cloud, 20, false, "Primary").Margin(0, 0, 12, 0).Dock(Dock.Left));
             var e = entry;
             row.Children.Add(Ui.AsyncButton("Sign out", Icons.Logout, ButtonKind.Text, () => SignOutAsync(e.Registry)).Dock(Dock.Right));
-            row.Children.Add(Ui.VStack(2, Ui.Text(entry.Registry, 14, FontWeights.SemiBold, "OnSurface", false, false), Ui.Caption("Listed under " + entry.Source)));
+            row.Children.Add(Ui.VStack(2, Ui.Text(entry.Registry, 14, FontWeights.SemiBold, "OnSurface", false, false), Ui.Caption(Loc.T("Listed under") + " " + entry.Source)));
             signedIn.Children.Add(row);
         }
         fileNote.Text = $"Source: {path}" + (file.CredentialStore != null ? $" · credential store: {file.CredentialStore}" : "") + ". Docker Desktop may list registries here that the credential store no longer holds.";
@@ -107,7 +107,7 @@ internal sealed class RegistryAccounts
 
     private async Task SignOutAsync(string host)
     {
-        if (!await Host.Overlay.ConfirmAsync("Sign out of " + host + "?", $"Runs docker logout {host}. Docker removes the stored credential for this registry. Pulls and pushes that need it will fail until you sign in again.", "Sign out", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Sign out of") + " " + host + "?", $"Runs docker logout {host}. Docker removes the stored credential for this registry. Pulls and pushes that need it will fail until you sign in again.", "Sign out", true)) return;
         var result = await Host.Execute("Sign out of " + host, ["logout", host], true, snapshot());
         if (result != null) Reload();
     }

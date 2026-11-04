@@ -49,8 +49,8 @@ public sealed partial class ContainersPage : PageBase
             Ui.AsyncButton("Run container", Icons.PlayArrow, ButtonKind.Filled, RunContainerAsync));
 
         table.Key = c => c.Id;
-        table.EmptyTitle = "No containers";
-        table.EmptyMessage = "This engine has no containers. Run one from a local image with Run container, or from Images.";
+        table.EmptyTitle = Loc.T("No containers");
+        table.EmptyMessage = Loc.T("This engine has no containers. Run one from a local image with Run container, or from Images.");
         table.ChipColumn("State", c => c.StateLabel, c => c.StateTone, 110)
              .Column("Name", c => c.Name, 180)
              .Column("Image", c => c.Image, 200)
@@ -98,8 +98,8 @@ public sealed partial class ContainersPage : PageBase
             try { rows = await Host.ReadRows(["container", "ls", "--all", "--no-trunc", "--format", "{{json .}}"], context); }
             catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException)
             {
-                errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text("Containers could not be listed: " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
-                subtitle.Text = "Could not reach the engine on context " + (context ?? "default") + ".";
+                errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text(Loc.T("Containers could not be listed:") + " " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
+                subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
                 table.SetItems([]);
                 return;
             }
@@ -113,7 +113,7 @@ public sealed partial class ContainersPage : PageBase
             inspector.Show(table.Focused);
             var running = list.Count(c => c.IsRunning);
             var paused = list.Count(c => c.IsPaused);
-            subtitle.Text = $"{list.Count} {(list.Count == 1 ? "container" : "containers")} · {running} running · {paused} paused · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
+            subtitle.Text = Loc.Line($"{list.Count} {(list.Count == 1 ? "container" : "containers")} · {running} running · {paused} paused · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
         }
         finally
         {

@@ -56,7 +56,7 @@ internal sealed class ActivityInspector
         foreach (var path in value.Paths.Where(Restorable))
         {
             var p = path;
-            bar.Children.Add(Ui.AsyncButton("Restore " + Path.GetFileName(p), Icons.Undo, ButtonKind.Tonal, () => RestoreAsync(value, p), false).Margin(0, 0, 8, 8));
+            bar.Children.Add(Ui.AsyncButton(Loc.T("Restore") + " " + Path.GetFileName(p), Icons.Undo, ButtonKind.Tonal, () => RestoreAsync(value, p), false).Margin(0, 0, 8, 8));
             if (IsProjectFile(p)) bar.Children.Add(Ui.Button("Save restored content as…", Icons.Save, ButtonKind.Text, () => SaveAs(value, p)).Margin(0, 0, 8, 8));
         }
         bar.Children.Add(Ui.AsyncButton("Label…", Icons.Label, ButtonKind.Text, () => LabelAsync(value)).Margin(0, 0, 8, 8));
@@ -70,7 +70,7 @@ internal sealed class ActivityInspector
         var message = settings
             ? $"Restores the settings saved in revision {value.ShortSha} ({value.WhenText}). The restore is recorded as a new revision, and nothing is deleted from history.\n\nRestored settings are saved to settings.json right away. Theme and appearance update immediately; labels on open pages, the engine context and tabs take full effect after you restart the app."
             : $"Writes the content of {path} from revision {value.ShortSha} into local history as a new revision. Your project files on disk are not changed; use Save restored content as… to write a copy where you want it.";
-        if (!await Host.Overlay.ConfirmAsync("Restore " + Path.GetFileName(path) + "?", message, "Restore")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Restore") + " " + Path.GetFileName(path) + "?", message, "Restore")) return;
         var content = Host.History.Restore(value.Sha, path);
         if (content == null) { Host.Notify.Error("The file could not be read from that revision" + (Host.History.LastError != null ? ": " + Host.History.LastError : ".")); return; }
         if (settings)
@@ -88,7 +88,7 @@ internal sealed class ActivityInspector
             }
             catch (Exception e) when (e is System.Text.Json.JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
             {
-                Host.Notify.Error("The revision's settings were recorded in history but not applied: " + e.Message);
+                Host.Notify.Error(Loc.T("The revision's settings were recorded in history but not applied:") + " " + e.Message);
             }
         }
         else Host.Notify.Success($"Restored {path} as a new history revision.");
@@ -104,7 +104,7 @@ internal sealed class ActivityInspector
         if (dialog.ShowDialog() != true) return;
         File.WriteAllText(dialog.FileName, content, new UTF8Encoding(false));
         Host.History.Record("restore", $"Saved {path} from {value.ShortSha} as {Path.GetFileName(dialog.FileName)}", new Dictionary<string, string> { ["files/" + HistoryStore.SafeName(Path.GetFileName(dialog.FileName))] = content });
-        Host.Notify.Success("Saved " + Path.GetFileName(dialog.FileName) + ".");
+        Host.Notify.Success(Loc.T("Saved") + " " + Path.GetFileName(dialog.FileName) + ".");
         changed();
     }
 

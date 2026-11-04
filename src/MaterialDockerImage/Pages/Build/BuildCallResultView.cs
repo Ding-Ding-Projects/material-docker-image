@@ -21,7 +21,7 @@ public static class BuildCallResultView
             foreach (var t in targets.Where(t => search.Matches(t.Name + " " + t.Description + " " + t.Base + " " + t.Platform)))
             {
                 var head = Ui.HStack(8, Ui.Mono(t.Name, 14, "OnSurface"), t.IsDefault ? Ui.Badge("default", Tone.Primary, true) : null, t.Line is { } line ? Ui.Caption(Loc.T("Line") + " " + line) : null);
-                var details = Ui.Wrap(6, t.Base.Length > 0 ? Ui.Badge("FROM " + t.Base) : null, t.Platform.Length > 0 ? Ui.Badge(t.Platform) : null);
+                var details = Ui.Wrap(6, t.Base.Length > 0 ? Ui.Badge(Loc.T("FROM") + " " + t.Base) : null, t.Platform.Length > 0 ? Ui.Badge(t.Platform) : null);
                 var use = Ui.Button("Use as target", Icons.CenterFocusStrong, ButtonKind.Text, () => useTarget(t.Name));
                 var body = new DockPanel();
                 body.Children.Add(use.Dock(System.Windows.Controls.Dock.Right));

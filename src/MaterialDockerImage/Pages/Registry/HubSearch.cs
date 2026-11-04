@@ -37,8 +37,8 @@ internal sealed class HubSearch
         officialOnly = Ui.Switch("Official images only", false, _ => { });
         Table = new DataTable<HubResult>("Docker Hub results", "Filter these results")
         {
-            EmptyTitle = "No search yet",
-            EmptyMessage = "Type a term and press Search. Results come from docker search; nothing is shown until the engine answers.",
+            EmptyTitle = Loc.T("No search yet"),
+            EmptyMessage = Loc.T("Type a term and press Search. Results come from docker search; nothing is shown until the engine answers."),
             Key = r => r.Name
         };
         Table.Column("Name", r => r.Name, 220, true)
@@ -75,7 +75,7 @@ internal sealed class HubSearch
             var rows = await Host.ReadRows(args, snapshot());
             var results = rows.Select(HubResult.From).Where(r => r.Name.Length > 0).ToList();
             Table.SetItems(results);
-            Table.EmptyTitle = "No results";
+            Table.EmptyTitle = Loc.T("No results");
             Table.EmptyMessage = $"docker search returned no repositories for \"{text}\".";
             Table.Apply();
             state.Text = $"{results.Count} result(s) for \"{text}\"" + (officialOnly.IsChecked == true ? " · official only" : "") + $" · {DateTime.Now:HH:mm:ss}";
@@ -90,7 +90,7 @@ internal sealed class HubSearch
     private async Task PullAsync(HubResult result)
     {
         if (!isCurrent()) { Host.Notify.Warning("The engine context changed after these results loaded. Refresh before pulling."); return; }
-        var tag = await Host.Overlay.PromptAsync("Pull " + result.Name, "Tag", "latest", "The image is pulled into the engine of the current context. Use a specific version tag for repeatable builds.",
+        var tag = await Host.Overlay.PromptAsync(Loc.T("Pull") + " " + result.Name, "Tag", "latest", "The image is pulled into the engine of the current context. Use a specific version tag for repeatable builds.",
             v => v.Any(c => char.IsWhiteSpace(c) || c is ':' or '/' or '@') ? "A tag cannot contain spaces, colons, slashes or @." : v.Length > 128 ? "A tag is at most 128 characters." : null);
         if (tag == null) return;
         var reference = result.Name + ":" + tag;

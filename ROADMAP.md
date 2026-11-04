@@ -14,7 +14,7 @@
 - [ ] Capture and review the full language x theme x 100-200% scale matrix with the new options.
 - [x] Accept a personal wording file dropped anywhere on the window with validation, celebration and outcome sounds (checks pass; hands-on verification pending).
 - [x] Record a source audit of the shared feature requirements in `evidence/uh-features-audit.md`.
-- [ ] Localize page-specific copy in Cantonese and bilingual modes.
+- [x] Localize page-specific copy in Cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).
 - [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
 
 ## Delivered and bounded verification

@@ -42,7 +42,7 @@ public sealed partial class BakePage
         if (output == BakeOutput.Push) args.Add("--push");
         foreach (var (key, value) in overrides.Pairs())
         {
-            if (BakePlan.ValidateSetKey(key) is { } problem) throw new ArgumentException("Overrides: " + problem);
+            if (BakePlan.ValidateSetKey(key) is { } problem) throw new ArgumentException(Loc.T("Overrides:") + " " + problem);
             if (value.Any(char.IsControl)) throw new ArgumentException("Overrides: values cannot contain control characters.");
             args.AddRange(["--set", key + "=" + value]);
         }
@@ -56,7 +56,7 @@ public sealed partial class BakePage
         {
             var multi = resolved.Where(t => t.Platforms.Count > 1).Select(t => t.Name).ToList();
             if (multi.Count > 0 && !overrides.Pairs().Any(p => p.Key.EndsWith(".platform", StringComparison.Ordinal)))
-                throw new InvalidOperationException("Load locally supports one platform per target, but these targets list several: " + string.Join(", ", multi) + ". Choose Push or As defined, or add a platform override.");
+                throw new InvalidOperationException(Loc.T("Load locally supports one platform per target, but these targets list several:") + " " + string.Join(", ", multi) + ". Choose Push or As defined, or add a platform override.");
         }
         if (output == BakeOutput.Push)
         {
@@ -65,7 +65,7 @@ public sealed partial class BakePage
         }
         tabs.SelectedItem = runTab;
         timeline.SetResult(null);
-        var label = "Bake " + string.Join(", ", operands);
+        var label = Loc.T("Bake") + " " + string.Join(", ", operands);
         var result = await runner.RunAsync(label, args, Host.Context, folder, string.Join(", ", resolved.SelectMany(t => t.Tags)));
         if (result?.Success == true) timeline.SetResult(ResultCard(resolved));
     }

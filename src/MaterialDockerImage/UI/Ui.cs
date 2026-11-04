@@ -16,8 +16,8 @@ public enum Tone { Neutral, Primary, Success, Warning, Error, Tertiary }
 public static class Ui
 {
     public static T Bind<T>(this T element, DependencyProperty property, string resourceKey) where T : FrameworkElement { element.SetResourceReference(property, resourceKey); return element; }
-    public static T Named<T>(this T element, string name) where T : DependencyObject { AutomationProperties.SetName(element, name); return element; }
-    public static T Tip<T>(this T element, string text) where T : FrameworkElement { element.ToolTip = text; return element; }
+    public static T Named<T>(this T element, string name) where T : DependencyObject { AutomationProperties.SetName(element, Loc.T(name)); return element; }
+    public static T Tip<T>(this T element, string text) where T : FrameworkElement { element.ToolTip = Loc.T(text); return element; }
     public static T At<T>(this T element, int row = 0, int column = 0, int rowSpan = 1, int columnSpan = 1) where T : UIElement { Grid.SetRow(element, row); Grid.SetColumn(element, column); Grid.SetRowSpan(element, rowSpan); Grid.SetColumnSpan(element, columnSpan); return element; }
     public static T Margin<T>(this T element, double left, double top, double right, double bottom) where T : FrameworkElement { element.Margin = new Thickness(left, top, right, bottom); return element; }
     public static T Margin<T>(this T element, double uniform) where T : FrameworkElement { element.Margin = new Thickness(uniform); return element; }
@@ -245,7 +245,7 @@ public static class Ui
         return border;
     }
 
-    public static Border Badge(string text, Tone tone = Tone.Neutral, bool translate = false)
+    public static Border Badge(string text, Tone tone = Tone.Neutral, bool translate = true)
     {
         var (bg, fg) = ToneKeys(tone);
         var label = Text(translate ? Loc.T(text) : text, 12, FontWeights.SemiBold, fg, false, false);

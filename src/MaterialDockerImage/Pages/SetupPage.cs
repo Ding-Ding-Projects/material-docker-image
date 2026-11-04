@@ -48,7 +48,7 @@ public sealed class SetupPage : PageBase
         footer.Children.Add(actions.Dock(Dock.Right));
         footer.Children.Add(summary);
         var card = Ui.Card(Ui.VStack(20,
-            Ui.Text("Welcome to " + Host.Settings.DisplayName, 14, FontWeights.SemiBold, "Primary", true, false),
+            Ui.Text(Loc.T("Welcome to") + " " + Host.Settings.DisplayName, 14, FontWeights.SemiBold, "Primary", true, false),
             Ui.VStack(6, title, intro),
             Ui.Scroll(stepper, true),
             stepHost,
@@ -132,8 +132,8 @@ public sealed class SetupPage : PageBase
         back.ToolTip = Loc.T("Alt+Left");
         var parts = new List<string>();
         if (steps.DetectSummary != null) parts.Add(steps.DetectSummary);
-        parts.Add("Context: " + (Host.Context ?? "CLI default"));
-        if (Host.Settings.BuildFolder.Length > 0) parts.Add("Folder: " + Path.GetFileName(Path.TrimEndingDirectorySeparator(Host.Settings.BuildFolder)));
+        parts.Add(Loc.T("Context:") + " " + (Host.Context ?? "CLI default"));
+        if (Host.Settings.BuildFolder.Length > 0) parts.Add(Loc.T("Folder:") + " " + Path.GetFileName(Path.TrimEndingDirectorySeparator(Host.Settings.BuildFolder)));
         summary.Text = string.Join(" · ", parts);
     }
 

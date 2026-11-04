@@ -28,8 +28,8 @@ public sealed class ActivityPage : PageBase
         inspector = new ActivityInspector(() => { });
         table = new DataTable<HistoryEntry>("Activity history", "Search history")
         {
-            EmptyTitle = "No history yet",
-            EmptyMessage = "Saves, settings changes and operations are recorded here as they happen.",
+            EmptyTitle = Loc.T("No history yet"),
+            EmptyMessage = Loc.T("Saves, settings changes and operations are recorded here as they happen."),
             NoMatchMessage = "No revisions match the search, action and date filters.",
             Key = e => e.Sha
         };
@@ -66,7 +66,7 @@ public sealed class ActivityPage : PageBase
         var exportVisible = Ui.Button("Export visible…", Icons.FileExport, ButtonKind.Tonal, () => Export(table.Visible, "visible"));
         var openFolder = Ui.Button("Open folder", Icons.FolderOpen, ButtonKind.Text, () => PageParts.OpenFolder(Host.History.Root));
         var header = Ui.Header("Activity", "", out subtitle, openFolder, exportVisible, Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
-        subtitle.Text = "Local version history in " + PageParts.Sanitize(Host.History.Root);
+        subtitle.Text = Loc.T("Local version history in") + " " + PageParts.Sanitize(Host.History.Root);
         Layout(header, body);
         body.Content = main;
         Host.History.Changed += () => Dispatcher.BeginInvoke(() => { if (IsVisible) _ = SafeRefresh(); else dirty = true; });
@@ -88,7 +88,7 @@ public sealed class ActivityPage : PageBase
         if (Host.History.LastError is { } error)
         {
             body.Content = Ui.EmptyState(Icons.Warning, "Local history is unavailable",
-                "The history repository could not be opened, so nothing can be listed, restored or exported. Saving your work still succeeds; it just is not recorded. Reason: " + error,
+                Loc.T("The history repository could not be opened, so nothing can be listed, restored or exported. Saving your work still succeeds; it just is not recorded. Reason:") + " " + error,
                 Ui.Button("Open folder", Icons.FolderOpen, ButtonKind.Tonal, () => PageParts.OpenFolder(Host.History.Root)),
                 Ui.AsyncButton("Try again", Icons.Refresh, ButtonKind.Filled, RefreshAsync));
             return;
@@ -136,7 +136,7 @@ public sealed class ActivityPage : PageBase
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            Host.Notify.Error("The export could not be written: " + e.Message);
+            Host.Notify.Error(Loc.T("The export could not be written:") + " " + e.Message);
         }
     }
 

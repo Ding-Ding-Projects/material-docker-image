@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -36,6 +37,6 @@ internal sealed class MinecraftPrefs
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
             LoadedFromFile = true;
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Services.AppHost.Current.Notify.Error("Minecraft folder choices could not be saved: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Services.AppHost.Current.Notify.Error(Loc.T("Minecraft folder choices could not be saved:") + " " + e.Message); }
     }
 }

@@ -16,14 +16,14 @@ A native Windows WPF workspace for Docker with a complete Material 3 interface. 
 
 ## Verification
 
-- `build.bat -Tests` on Windows: 23 core checks, 113 UI-state checks (structured inputs, Dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, Base64 variants and strict offsets, every Creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.
+- `build.bat -Tests` on Windows: 23 core checks, 691 UI-state checks (structured inputs, Dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, Cantonese and bilingual coverage of 50 sampled page strings and sentence templates, Base64 variants and strict offsets, every Creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.
 - Two regressions were observed failing before their repairs: history revisions made in the same second listed out of order (restore returned the wrong revision), and the documentation site was stale after new articles.
 - `Tests and screenshots` workflow run 41698541353 at source `afc72c0df9be118fdb6d07c238a4ff3b458edc0d`: the published application rendered all 18 surfaces in dark and light themes at 1440 x 960 and in dark at 960 x 720, on Windows Server 2025 with a real Windows container engine and labelled resources that were removed afterwards. The 54 captures are in `evidence/screenshots/` with hashes in `evidence/inventory.json`. They were reviewed; layout problems they showed (stretched captures, a 320 px dialog limit, squeezed inspectors, wrapped chips, rail overlap, a tall empty output panel) were fixed before this run.
 - Capture mode only renders; interactive behaviour of each workflow on a personal machine (clicking through builds, runs, removals, prunes, sign-in, history restores) has not been exercised in this rewrite. Earlier native workflow evidence (source f370d66 and release v0.5.1) belongs to the previous interface and is not relabelled.
 
 ## Known limits
 
-- Language modes cover the shell and common labels; page-specific copy is English in all modes.
+- Language modes cover the shell and the copy of every destination page (about 3,200 Cantonese phrases and sentence templates). Docker CLI output, engine data, log lines and some long explanations assembled from several fragments are shown as produced and stay English in every mode.
 - Density and Momentum settings are saved but have little visible effect; the external editor setting is used by Build only.
 - The regex builder covers construction, snippets, flags and sample testing; full RegexBuddy parity remains open.
 - Element locks, the per-element appearance editor, authenticator, school-mode PIN, dim sum pictures and scheduled settings from the shared feature catalogue are not implemented.

@@ -98,7 +98,7 @@ public sealed class TagInput : Border
         if (tags.Contains(tag)) return;
         tags.Add(tag);
         var text = Ui.Mono(tag, 13, "OnSecondaryContainer");
-        var remove = Ui.IconButton(Icons.Close, "Remove tag " + tag, () => Remove(tag), "OnSecondaryContainer");
+        var remove = Ui.IconButton(Icons.Close, Loc.T("Remove tag") + " " + tag, () => Remove(tag), "OnSecondaryContainer");
         remove.Width = remove.Height = remove.MinHeight = remove.MinWidth = 24; remove.FontSize = 14; remove.Margin = new Thickness(4, 0, -4, 0);
         var chip = new Border { Child = Ui.HStack(0, text, remove), CornerRadius = new CornerRadius(8), Padding = new Thickness(10, 2, 6, 2), Margin = new Thickness(0, 2, 6, 2), Tag = tag };
         chip.SetResourceReference(BackgroundProperty, "SecondaryContainer");

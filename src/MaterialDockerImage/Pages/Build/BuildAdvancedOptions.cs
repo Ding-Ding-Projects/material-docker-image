@@ -66,7 +66,7 @@ public sealed class BuildAdvancedOptions
         SandboxSection = Section("RUN sandbox", Ui.VStack(14,
             Ui.VStack(6, Ui.Field("Network for RUN", network, "Default uses the builder's sandbox network. None disables networking for RUN steps. Host shares the builder host's network (--network).", "--network none"), networkWarning),
             Ui.Field("Shared memory size", shmSize, "Size of /dev/shm for RUN steps (--shm-size). Leave empty for the builder default.", "256m"),
-            Ui.Field("Ulimits", ulimits, "Resource limits for RUN steps (--ulimit name=soft:hard). Names: " + string.Join(", ", BuildKitCommand.UlimitNames) + ".", "nofile = 1024:65536"),
+            Ui.Field("Ulimits", ulimits, Loc.T("Resource limits for RUN steps (--ulimit name=soft:hard). Names:") + " " + string.Join(", ", BuildKitCommand.UlimitNames) + ".", "nofile = 1024:65536"),
             Ui.Field("Extra hosts", hosts, "Adds entries to /etc/hosts during RUN steps (--add-host). Use an IP address or host-gateway.", "db.internal = 10.0.0.12\nhost.docker.internal = host-gateway")));
     }
 

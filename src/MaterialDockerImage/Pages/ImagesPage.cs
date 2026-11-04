@@ -41,8 +41,8 @@ public sealed partial class ImagesPage : PageBase
             Ui.AsyncButton("Pull image", Icons.CloudDownload, ButtonKind.Filled, PullAsync));
 
         table.Key = i => i.Key;
-        table.EmptyTitle = "No local images";
-        table.EmptyMessage = "This engine has no images yet. Pull one from a registry, load an archive, or build from a Dockerfile.";
+        table.EmptyTitle = Loc.T("No local images");
+        table.EmptyMessage = Loc.T("This engine has no images yet. Pull one from a registry, load an archive, or build from a Dockerfile.");
         table.Column("Repository and tag", i => i.Name, 260)
              .Column("Image ID", i => i.ShortId, 120, true)
              .Column("Size", i => i.Size, 90)
@@ -99,8 +99,8 @@ public sealed partial class ImagesPage : PageBase
         }
         catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException)
         {
-            errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text("Images could not be listed: " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
-            subtitle.Text = "Could not reach the engine on context " + (context ?? "default") + ".";
+            errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text(Loc.T("Images could not be listed:") + " " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
+            subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
             table.SetItems([]);
             UpdateStats([]);
             return;
@@ -118,7 +118,7 @@ public sealed partial class ImagesPage : PageBase
         inspector.Show(table.Focused);
         var unique = rows.GroupBy(r => r.Id).Select(g => g.First()).ToList();
         var total = unique.Sum(r => ImageRow.ParseSize(r.Size));
-        subtitle.Text = $"{rows.Count} {(rows.Count == 1 ? "image" : "images")} · {unique.Count} unique IDs · {Ui.FormatBytes(total)} · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
+        subtitle.Text = Loc.Line($"{rows.Count} {(rows.Count == 1 ? "image" : "images")} · {unique.Count} unique IDs · {Ui.FormatBytes(total)} · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
         UpdateStats(rows);
     }
 

@@ -28,7 +28,7 @@ public sealed class AppearancePreview : Border
         var bar = new DockPanel { Height = 36 };
         bar.Children.Add(Ui.Icon(Icons.DeployedCode, 18, true, "Primary").Margin(12, 0, 8, 0).Dock(Dock.Left));
         bar.Children.Add(Ui.HStack(14, Ui.Icon(Icons.Minimize, 14, false, "OnSurface"), Ui.Icon(Icons.CropSquare, 14, false, "OnSurface"), Ui.Icon(Icons.Close, 14, false, "OnSurface")).Margin(0, 0, 12, 0).Dock(Dock.Right));
-        bar.Children.Add(Ui.Text("Material Docker Image", 12, FontWeights.SemiBold, "OnSurface", false, false));
+        bar.Children.Add(Ui.Text("Material Docker Image", 12, FontWeights.SemiBold, "OnSurface", false, true));
         var titleBar = new Border { Child = bar, BorderThickness = new Thickness(0, 0, 0, 1) };
         titleBar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
 
@@ -58,7 +58,7 @@ public sealed class AppearancePreview : Border
         var card = Ui.Card(Ui.VStack(8, Ui.Text("Card on a low surface", 13, FontWeights.SemiBold), Ui.Caption("Secondary text uses On surface variant."), row), 12, "SurfaceLow", 16);
         var toastRow = new DockPanel();
         toastRow.Children.Add(Ui.Icon(Icons.CheckCircle, 18, true, "OnSuccessContainer").Margin(0, 0, 10, 0).Dock(Dock.Left));
-        toastRow.Children.Add(Ui.Text("Image built in 18 s.", 13, null, "OnSurface", false, false));
+        toastRow.Children.Add(Ui.Text("Image built in 18 s.", 13, null, "OnSurface", false, true));
         var toast = Ui.Card(toastRow, 10, "SurfaceHighest", 12);
         toast.Effect = Ui.Elevation(14, 3, .35);
         toast.HorizontalAlignment = HorizontalAlignment.Right;
