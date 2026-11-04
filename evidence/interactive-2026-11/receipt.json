@@ -79,6 +79,16 @@
       "action": "Registry › Sign in to a local test registry on 127.0.0.1 with a generated throwaway user",
       "observed": "The application passed the password on standard input and reported docker's exact error (401 Unauthorized), 'Sign-in failed', a toast and a cleared password field. The test registry also refused the same credentials from the Docker CLI and from curl, so the positive path could not be shown with it.",
       "result": "failure path pass; success path not shown (test registry rejected every client)"
+    },
+    {
+      "action": "Containers › Regular expression builder (Alt+R), opened through UI Automation in the 0.99.25 build",
+      "artifact": {
+        "version": "0.99.25",
+        "dll_sha256": "2f7316ab9c7e316472dbea7e8de2766a3f844cd0a67eecdb4fed785cf2d2e13d",
+        "source": "merge of the regex-remaining lane on b257406, committed unchanged as 0108f3b"
+      },
+      "observed": "The popover opened as its own window with the scope line for the Containers search, the 'Use as a regular expression' toggle, the pattern field, all eight flags (IgnoreCase, Multiline, Singleline, IgnorePatternWhitespace, ExplicitCapture, CultureInvariant, RightToLeft, NonBacktracking), the More, Library, My patterns, Parameters and History tabs and the Text, Classes, Anchors, Groups, Repeat and Blocks palettes.",
+      "result": "pass (opened and rendered; individual tool sections not driven)"
     }
   ],
   "findings": [

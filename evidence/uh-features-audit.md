@@ -266,3 +266,16 @@ Source-level changes since the audit commit (still not runtime verification unle
 - Partial: regular expression parity (see `docs/features/regex-parity.md`), element locks (no PIN or authenticator policies), scheduled settings (language and theme only, local file source only), context menus.
 - Unchanged: unlock ladder, support tickets, authenticator, dim sum photo source review, release line counts.
 - Interactive evidence: `evidence/interactive-2026-11/receipt.json`.
+
+## Update at the end of the 4 November 2026 pass (main 0108f3b)
+
+Supersedes the partial and unchanged lists of the previous update where they differ.
+
+- Element locks: confirm-only, PIN and authenticator-app policies on settings rows and major page buttons, with credentials in `locks.json` (`Shell/LockUi.cs`). Still partial: password and combined policies, unlock durations, locks on arbitrary elements.
+- Unlock ladder: confirm, credential, persistent exponential wait and single-use recovery codes. Still partial: the dim sum, sums and whack-a-mole rungs and Support Tickets are not built.
+- Authenticator: a Tools section with an in-process QR code for lock enrolment. A general authenticator for arbitrary accounts is not built.
+- Scheduled settings: seven settings by time, weekday and optional date range, with a local JSON file, an https address or a Home Assistant entity as value source. The remote sources have not talked to a real server.
+- Action sounds: volume and quiet hours added; reduced-volume playback has not been tried on a real audio device.
+- Regular expression parity: 50 of 83 topics implemented, 18 partial, 15 unavailable (most are impossible on the .NET engine). The popover was opened in the built window on a hidden desktop; its tool sections have logic checks only.
+- Interactive evidence: the receipt now has 14 steps, including Compose up and down, exec, file changes, the prune confirmation and Emergency exit, a settings history restore, the registry sign-in failure path and the regex popover. Not exercised: a successful registry sign-in and the terminal window.
+- Checks: `build.bat -Tests` passes 23 core, 1,618 UI-state and 24 checklist checks.
