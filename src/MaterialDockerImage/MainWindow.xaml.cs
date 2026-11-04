@@ -605,10 +605,9 @@ public partial class MainWindow : Window
     public async Task<int> CaptureAsync(string directory, string suffix, double width = 1440, double height = 960, double scale = 1)
     {
         // Lay the window content out at the exact requested size, independent of the runner's screen size.
-        // A display scale above 100% keeps the physical pixel size and gives the layout fewer device-independent pixels,
-        // exactly as Windows does, then renders at the matching DPI.
+        // The requested size is the window size in device-independent pixels. A display scale above 100% renders that
+        // same layout at the matching DPI, as Windows does for a window of that size, so the image is size x scale pixels.
         scale = Math.Clamp(scale, 1, 3);
-        width = Math.Round(width / scale); height = Math.Round(height / scale);
         Width = width; Height = height;
         Root.Width = width; Root.Height = height; Root.HorizontalAlignment = HorizontalAlignment.Left; Root.VerticalAlignment = VerticalAlignment.Top;
         Directory.CreateDirectory(directory);
