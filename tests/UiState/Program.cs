@@ -969,6 +969,7 @@ count += LockExtraChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
 count += PasskeyQrChecks.Run();
+count += CameraQrChecks.Run();
 count += RegexPartialChecks.Run();
 
 {

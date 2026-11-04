@@ -23,7 +23,8 @@
 - [ ] Scan the lock QR code with a real phone authenticator app
 - [x] Add a general authenticator for arbitrary accounts: otpauth link and manual entry, live codes with countdown and next code, rename, reorder, delete, DPAPI-protected storage and encrypted backup (RFC 6238 vectors and rule checks pass; nothing driven in the built window)
 - [x] Add QR image-file and clipboard registration to the authenticator (ZXing.Net decoder, round trip checked; not driven in the built window)
-- [ ] Add camera registration, grouping and a super-confirmed secrets export to the authenticator
+- [x] Add camera registration to the authenticator (live preview, sampled ZXing decode, honest permission, missing, busy and timeout messages; the rules are checked in code, but the camera path was not driven because it needs a real camera and the Windows permission prompt)
+- [ ] Add grouping and a super-confirmed secrets export to the authenticator
 - [x] Add a per-element appearance editor: pick any element, edit colours, corner radius, font size and weight, padding and visibility with live preview, stable element identity, persistence, reset per element and all, an overrides list and lock awareness (rule checks pass; not driven in the built window)
 - [ ] Bring per-element overrides into appearance presets, export and Undo, and cover the remaining property types (italic, underline, shadow, spacing, alignment)
 - [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)

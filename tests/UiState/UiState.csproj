@@ -41,5 +41,6 @@
     <Compile Include="../../src/MaterialDockerImage/UI/DimSumSurprise.cs" Link="DimSumSurprise.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/SchoolPasskey.cs" Link="SchoolPasskey.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/OtpQrImport.cs" Link="OtpQrImport.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/CameraQrScan.cs" Link="CameraQrScan.cs"/>
   </ItemGroup>
 </Project>

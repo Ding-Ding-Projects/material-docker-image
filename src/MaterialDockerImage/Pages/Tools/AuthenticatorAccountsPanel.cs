@@ -81,8 +81,9 @@ internal sealed class AuthenticatorAccountsPanel
         var button = Ui.Button("Add account", Icons.Add, ButtonKind.Filled, AddFromLink);
         var fromImage = Ui.Button("From an image file…", Icons.FolderOpen, ButtonKind.Tonal, AddFromImageFile);
         var fromClipboard = Ui.Button("From the clipboard", Icons.ContentCopy, ButtonKind.Tonal, AddFromClipboard);
+        var fromCamera = Ui.Button("From the camera…", Icons.Visibility, ButtonKind.Tonal, AddFromCamera);
         return Ui.VStack(8, Ui.Field("otpauth:// link", link, "Paste the link a service shows next to its QR code. Its issuer, algorithm, digits and period are used as given.", "otpauth://totp/Example:me@example.com?secret=…"), button,
-            Ui.Caption("Or read the QR code from a picture. The picture is read on this computer and is not kept."), Ui.Wrap(8, fromImage, fromClipboard));
+            Ui.Caption("Or read the QR code from a picture or the camera. It is read on this computer and nothing is kept."), Ui.Wrap(8, fromImage, fromClipboard, fromCamera));
     }
 
     private FrameworkElement ManualForm()
@@ -123,6 +124,12 @@ internal sealed class AuthenticatorAccountsPanel
         {
             addError.Text = Loc.T("That picture could not be opened.");
         }
+    }
+
+    private void AddFromCamera()
+    {
+        addError.Text = "";
+        AuthenticatorCameraDialog.Open(parsed => Commit(parsed, () => { }));
     }
 
     private void AddFromClipboard()
