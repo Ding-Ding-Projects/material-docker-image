@@ -63,7 +63,11 @@ public sealed partial class SecurityPage : PageBase
         table.FocusedChanged += r => { if (!reloading) panel.Show(r); };
         table.Activated += r => _ = Guarded(() => ScanAsync([r]));
 
-        var top = Ui.VStack(0, banner, ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile), progressCard);
+        // A long state card (for example the full output when Docker Scout is missing) scrolls within a quarter of the
+        // page so the list below always keeps its rows.
+        var bannerScroll = new ScrollViewer { Content = banner, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
+        SizeChanged += (_, _) => bannerScroll.MaxHeight = Math.Max(120, ActualHeight * 0.25);
+        var top = Ui.VStack(0, bannerScroll, ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile), progressCard);
         var split = Ui.SplitInspector(table, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
         table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
         var body = new Grid();

@@ -37,13 +37,16 @@ public sealed class ComposeProjectList : Border
         var title = new DockPanel();
         title.Children.Add(open.Dock(Dock.Right));
         title.Children.Add(Ui.Text("Projects", 16, FontWeights.SemiBold));
-        var openButton = Ui.Button("Open Compose file…", Icons.FolderOpen, ButtonKind.Tonal, Browse);
+        openButton = Ui.Button("Open Compose file…", Icons.FolderOpen, ButtonKind.Tonal, Browse);
         openButton.HorizontalAlignment = HorizontalAlignment.Stretch;
         var listHost = new Grid();
         listHost.Children.Add(list);
         listHost.Children.Add(empty);
         Child = Ui.Rows(10, [0, 0, 1, 0, 0], title, search, listHost, status, openButton);
     }
+
+    // Hidden while the empty state already offers the same action, so an empty page shows it once per panel.
+    private readonly Button openButton;
 
     public void Browse()
     {
@@ -97,6 +100,7 @@ public sealed class ComposeProjectList : Border
             ? Ui.EmptyState(Icons.Stacks, "No Compose projects", "The engine reports no Compose projects and no file was opened yet.", Ui.Button("Open Compose file…", Icons.FolderOpen, ButtonKind.Filled, Browse))
             : list.Items.Count == 0 ? Ui.EmptyState(Icons.FilterList, "No matches", search.Status.Length > 0 ? search.Status : "No projects match the search.") : null;
         empty.Visibility = empty.Content == null ? Visibility.Collapsed : Visibility.Visible;
+        openButton.Visibility = entries.Count == 0 ? Visibility.Collapsed : Visibility.Visible;
         if (Selected?.Key != previous) SelectionChanged?.Invoke(Selected);
     }
 
