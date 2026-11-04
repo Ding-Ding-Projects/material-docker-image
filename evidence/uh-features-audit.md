@@ -257,3 +257,12 @@ Ordered by user impact inside each lane. Ids refer to the tables above.
 22. `completeness-parity`: move the 109-id list to the current ids and update statuses (`website/required-feature-ids.json`, `website/feature-inventory.json`).
 23. `product-evidence`, `screen-recording`, `design-reference-parity`: more state captures, a recording, a reference renderer.
 24. `tabbed-readme`, `human-time-estimate`, `sanitized-instruction-copy`, `wiki-documentation-sync`, `feature-docs`, `vocabulary-hash-lock`: README folding and estimate, wiki content, hook.
+
+## Update after the 4 November 2026 feature pass
+
+Source-level changes since the audit commit (still not runtime verification unless a receipt says so):
+
+- Now implemented with checks: personal wording drop, page-copy localization, display name, application icon, logo customization, container health checks, device mappings, GPU access, build companion, offline documentation companion, download button, link previews, front provenance, documentation search, changelog, exports, menu shortcuts, info icons, update checks, attention modes, action sounds, collapsible filters.
+- Partial: regular expression parity (see `docs/features/regex-parity.md`), element locks (no PIN or authenticator policies), scheduled settings (language and theme only, local file source only), context menus.
+- Unchanged: unlock ladder, support tickets, authenticator, dim sum photo source review, release line counts.
+- Interactive evidence: `evidence/interactive-2026-11/receipt.json`.

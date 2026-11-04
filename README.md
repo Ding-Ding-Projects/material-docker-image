@@ -21,7 +21,10 @@ A native Windows WPF workspace for Docker: build images, create Dockerfiles step
 - **Registry, Diagnostics and Tools**: registry sign-in with the password on standard input only, Docker Hub search, Buildx builders, read-only checks with sanitized reports, a live events stream, a Base64 toolkit and the offline documentation.
 - **Local history**: an append-only history of settings, saved files, drafts and operations, kept in the application's own data folder, with diffs, restores, labels and export.
 - **Appearance and motion**: an appearance editor with presets, a colour picker in eight colour formats with contrast badges, per-role colour overrides, shape, density, fonts and effects, a floating per-element editor (`Ctrl+Shift+E`), and Material 3 motion for pages, tabs, dialogs, notifications and controls with Off, Reduced, Standard and Expressive levels.
-- **Settings**: English, Cantonese or bilingual labels with funny levels and a personal wording file, accessibility, focus modes, sounds and narration, engine, data and privacy. Each setting explains itself and says whether it is the default.
+- **Settings**: English, Cantonese or bilingual copy on every page (about 3,400 phrases and templates) with funny levels and a personal wording file you can also drop anywhere on the window, accessibility, schedules for language and theme, setting locks, Focus, Low stimulation and Momentum modes, action sounds, engine, data and privacy, title-bar logo and display name. Each setting explains itself and says whether it is the default.
+- **Records and updates**: an in-app changelog built from the project history, exports as CSV, TSV, JSON, Markdown and HTML from every list, menu shortcuts taken from the commands themselves, and a background update check that stages an unsigned update only after you confirm.
+- **Small windows**: at the 960 x 720 minimum, lists keep their rows: the detail panel folds into a one-line summary with Show details, statistic tiles shrink to one line, and filter bars collapse.
+- **Build companion**: `MaterialDockerImageBuild.exe`, a single-file window that runs `build.bat` and `build-installer.bat` with live output, the real exit code and cancellation.
 
 ## Screenshots
 
@@ -41,7 +44,7 @@ All captures come from the built application on a Windows Server 2025 runner wit
 
 Run `build.bat` to publish the self-contained application, `build.bat -Tests` for the engine, UI-state and documentation checks, `build.bat -DockerSmoke` for an explicitly mutating local-engine smoke test, and `build-installer.bat` for the unsigned Squirrel.Windows package. Docker operations need the Docker CLI and a reachable engine; editors, the Creator, history and settings work offline.
 
-`MaterialDockerImage.exe --capture <folder>` renders every destination, the command palette, the super confirmation and the notification centre to PNG files and exits. Add `--capture-theme Light` or `--capture-size 960x720`, and `--software-rendering` on machines without a GPU. The `Tests and screenshots` workflow runs the tests and these captures on every change.
+`MaterialDockerImage.exe --capture <folder>` renders every destination, the command palette, the super confirmation and the notification centre to PNG files and exits. Add `--capture-theme Light`, `--capture-size 960x720`, `--capture-language Cantonese|Bilingual` or `--capture-scale 125|150|200`, and `--software-rendering` on machines without a GPU. Capture mode never writes your settings and never loads personal wording. The `Tests and screenshots` workflow runs the tests and these captures on every change.
 
 ## Safety
 
@@ -49,4 +52,4 @@ Commands use structured arguments without a host shell. The global Docker contex
 
 ## Verification state
 
-The UI-state checks (676), core engine checks (23) and documentation checklist checks (13) pass through `build.bat -Tests` on Windows. The screenshots above show real engine data. Interactive acceptance of every workflow on a personal machine, the full theme, language and display-scale matrix, and the complete required-feature inventory remain open; see the [capability inventory](docs/features/capability-inventory.md) and [handoff](HANDOFF.md).
+The UI-state checks (1,082), core engine checks (23) and documentation checklist checks (24) pass through `build.bat -Tests` on Windows. The screenshots above show real engine data. The built application was also driven through UI Automation on a desktop host at 150 % scale: setup, listing, stopping, starting and reading logs of a labelled container, and a build from the companion, all confirmed against the engine ([receipt](evidence/interactive-2026-11/receipt.json)). Compose, prune, exec, history restore and sign-in have not been exercised that way yet, and the complete required-feature inventory remains open; see the [feature audit](evidence/uh-features-audit.md), [capability inventory](docs/features/capability-inventory.md) and [handoff](HANDOFF.md).
