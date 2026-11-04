@@ -43,7 +43,7 @@ public sealed class StoragePage : PageBase
     private void UpdateSubtitle()
     {
         var text = mode == "Volumes" ? volumeSummary : networkSummary;
-        subtitle.Text = text.Length > 0 ? text + $" · context {SnapshotContext ?? "current"}" : Loc.T("Volumes and networks");
+        subtitle.Text = Loc.Line(text.Length > 0 ? text + $" · context {SnapshotContext ?? "current"}" : Loc.T("Volumes and networks"));
     }
 
     public override async Task RefreshAsync()

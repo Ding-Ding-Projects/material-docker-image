@@ -85,7 +85,7 @@ public sealed class ContextActions
     {
         var path = PageKit.PickSavePath(PageKit.SafeFileName(entry.Name) + ".dockercontext", "Docker context export|*.dockercontext|All files|*.*");
         if (path == null) return;
-        if (!await Host.Overlay.ConfirmAsync("Export context " + entry.Name,
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Export context") + " " + entry.Name,
             "The export contains the endpoint and any TLS certificate and private key stored with this context. Treat the file like a password and share it only with people who should control this engine." + (File.Exists(path) ? " The existing file at the chosen path is replaced when the export succeeds." : ""),
             "Export")) return;
         // Export to a temporary file next to the destination, then replace, so a failed export never destroys the old file.
@@ -116,7 +116,7 @@ public sealed class ContextActions
     {
         if (ContextEndpoint.RemovalRefusal(entry.Name, Host.Context, cliCurrent()) is { } refusal) { Host.Notify.Error(refusal); return; }
         var cliNote = entry.CliCurrent ? " It is the docker CLI's current context; the CLI refuses to remove it until another context is current there." : "";
-        if (!await Host.Overlay.ConfirmAsync("Remove context " + entry.Name,
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove context") + " " + entry.Name,
             $"Removes the context and its stored TLS material from the docker CLI configuration. The engine itself and its data are not touched. Endpoint: {entry.Endpoint}.{cliNote}", "Remove", true)) return;
         var result = await Host.Execute("Remove context " + entry.Name, ["context", "rm", entry.Name]);
         if (result?.Success == true && !Host.IsCapture) Host.History.Record("context", $"Removed context {entry.Name} (endpoint {entry.Endpoint})");

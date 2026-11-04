@@ -134,7 +134,7 @@ internal sealed partial class RunEditor
     private void Open()
     {
         var head = Ui.Columns(8, [1, 0],
-            Ui.VStack(2, Ui.Text("Run container from " + image, 20, FontWeights.SemiBold, "OnSurface", true, false), imageFacts),
+            Ui.VStack(2, Ui.Text(Loc.T("Run container from") + " " + image, 20, FontWeights.SemiBold, "OnSurface", true, false), imageFacts),
             Ui.IconButton(Icons.Close, "Close", () => close?.Invoke()));
 
         var form = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
@@ -389,7 +389,7 @@ internal sealed partial class RunEditor
                 var os = PageKit.Field(info, "Os"); var arch = PageKit.Field(info, "Architecture");
                 imageFacts.Text = $"{(id.Length > 19 ? id[..19] : id)} · {os}/{arch} · " + (exposedPorts.Length > 0 ? "exposes " + string.Join(", ", exposedPorts) : "no exposed ports") + " · runs as " + (imageUser.Length > 0 ? imageUser : "root (image default)") + " · context " + (context ?? "default");
             }
-            else imageFacts.Text = "Image details could not be read: " + inspect.StandardError.Trim();
+            else imageFacts.Text = Loc.T("Image details could not be read:") + " " + inspect.StandardError.Trim();
             var nets = await Host.ReadRows(["network", "ls", "--format", "{{json .}}"], context);
             var names = new List<string> { "(engine default)" };
             names.AddRange(nets.Select(n => DockerJson.Text(n, "Name")).Where(n => n.Length > 0).OrderBy(n => n, StringComparer.OrdinalIgnoreCase));
@@ -397,7 +397,7 @@ internal sealed partial class RunEditor
         }
         catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException)
         {
-            Host.Notify.Warning("Network list could not be read: " + e.Message);
+            Host.Notify.Warning(Loc.T("Network list could not be read:") + " " + e.Message);
         }
     }
 }

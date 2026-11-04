@@ -86,7 +86,7 @@ internal sealed class MinecraftServerDetail : DockPanel
         if (server == null)
         {
             gone = true;
-            headerHost.Content = Ui.VStack(12, Back(), Ui.Card(Ui.Text($"The server {Server.Name} is no longer on this engine. It may have been removed outside this page.", 14, null, "OnErrorContainer", true, false), 14, "ErrorContainer", 12));
+            headerHost.Content = Ui.VStack(12, Back(), Ui.Card(Ui.Text($"The server {Server.Name} is no longer on this engine. It may have been removed outside this page.", 14, null, "OnErrorContainer", true, true), 14, "ErrorContainer", 12));
             return;
         }
         gone = false;

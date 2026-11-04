@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -31,8 +32,8 @@ internal sealed class ImageSbomTab : ImageDetailTab
         actions.Margin = new Thickness(0, 0, 0, 8);
 
         table.Key = p => p.Type + "|" + p.Name + "|" + p.Version + "|" + p.Purl;
-        table.EmptyTitle = "No SBOM yet";
-        table.EmptyMessage = "Generate an SBOM with Docker Scout to list the packages in this image.";
+        table.EmptyTitle = Loc.T("No SBOM yet");
+        table.EmptyMessage = Loc.T("Generate an SBOM with Docker Scout to list the packages in this image.");
         table.ChipColumn("Type", p => p.Type.Length > 0 ? p.Type : "other", _ => Tone.Primary, 90)
              .Column("Name", p => p.Name, 170)
              .Column("Version", p => p.Version, 130, true)
@@ -102,8 +103,8 @@ internal sealed class ImageSbomTab : ImageDetailTab
             badge.Margin = new Thickness(0, 0, 6, 6);
             types.Children.Add(badge);
         }
-        table.EmptyTitle = "No packages";
-        table.EmptyMessage = "Docker Scout detected no packages in this image.";
+        table.EmptyTitle = Loc.T("No packages");
+        table.EmptyMessage = Loc.T("Docker Scout detected no packages in this image.");
         table.SetItems(packages);
     }
 
@@ -111,6 +112,6 @@ internal sealed class ImageSbomTab : ImageDetailTab
     {
         if (json.Length == 0) return;
         try { PageKit.SaveText(PageKit.SafeFileName(Ctx.Image.Reference) + "-sbom.json", "JSON|*.json|All files|*.*", json, "the SBOM"); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error("The SBOM could not be saved: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The SBOM could not be saved:") + " " + e.Message); }
     }
 }

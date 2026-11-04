@@ -18,7 +18,7 @@ public sealed class ComposeSourceEditor : Grid
     private static AppHost Host => AppHost.Current;
     private readonly TextBox editor = Ui.CodeBox("", 200);
     private readonly SearchFilter search = new("Search source", 220);
-    private readonly TextBlock fileName = Ui.Text("No file loaded", 15, FontWeights.SemiBold, "OnSurface", false, false);
+    private readonly TextBlock fileName = Ui.Text("No file loaded", 15, FontWeights.SemiBold, "OnSurface", false, true);
     private readonly TextBlock pathText = Ui.Mono("", 12, "OnSurfaceVariant");
     private readonly Border stateBadge = Ui.Badge("", Tone.Neutral);
     private readonly TextBlock validation = Ui.Caption("");
@@ -143,7 +143,7 @@ public sealed class ComposeSourceEditor : Grid
             if (!await Host.Overlay.ConfirmAsync("The file changed on disk", $"{path} was modified outside this app after it was loaded. Saving replaces those changes with the editor's text. The current disk version is kept in local history first.", "Overwrite", true)) return;
             if (!Host.IsCapture) Host.History.Record("compose-external", "Disk version before overwrite: " + path, new Dictionary<string, string> { [HistoryKey(path) + ".disk"] = await File.ReadAllTextAsync(path) });
         }
-        await WriteAsync(path, "Saved Compose file " + path);
+        await WriteAsync(path, Loc.T("Saved Compose file") + " " + path);
     }
 
     private async Task SaveAsAsync()
@@ -156,7 +156,7 @@ public sealed class ComposeSourceEditor : Grid
         if (!await Host.Overlay.ConfirmAsync("Save Compose source to this destination?", destination + (exists ? "\n\nThis file already exists and will be replaced. The replaced version is kept in local history." : ""), exists ? "Replace" : "Save", exists))
             return;
         if (exists && !Host.IsCapture) Host.History.Record("compose-overwrite", "Version replaced by Save as: " + destination, new Dictionary<string, string> { [HistoryKey(destination) + ".replaced"] = await File.ReadAllTextAsync(destination) });
-        await WriteAsync(destination, "Saved Compose file as " + destination);
+        await WriteAsync(destination, Loc.T("Saved Compose file as") + " " + destination);
         ComposeRecentFiles.Add(destination);
     }
 

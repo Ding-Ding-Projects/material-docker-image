@@ -294,6 +294,15 @@ motion follows material 3 easing and duration tokens. choose off, reduced, stand
 
 reduced motion, low stimulation, the windows animation setting and capture mode always win over the saved level. every animation ends on the element&#39;s normal state, so an interrupted animation never leaves anything hidden or moved.
 
+## language
+
+english, cantonese and bilingual modes cover the shell and every destination page: headers and subtitles, section titles, field labels and helper text, buttons and menu items, empty states, dialog titles and bodies, tooltips, accessible names, status lines and notifications. cantonese is written hong kong style in traditional characters; docker terms such as compose, buildkit, dockerfile and image digest stay in english where that reads naturally. bilingual shows the english text first, then the cantonese text after a middle dot.
+
+- the phrase list lives in `services/loc.cs` (shell labels) and `services/locstrings.*.cs` (page copy). entries whose key contains `{0}`, `{1}` and so on are sentence templates: the numbers, names and paths in the english message stay exactly as the engine or the app produced them, and only the wording around them is translated.
+- status lines under page titles are translated phrase by phrase (`loc.line`), so counts, context names and times stay literal.
+- docker cli output, engine data (image, container, volume and network names, tags, digests, log lines) and error text returned by docker are shown as returned and are never translated. a few long explanations built from several fragments, or from conditional wording that does not form one fixed sentence, are still english in every mode; school mode forces english everywhere.
+- personal wording files still win over the built-in cantonese. clearing them restores the built-in text.
+
 ## status
 
 built and covered by ui-state checks for colour conversions, contrast, presets, import validation and undo. the animations, templates and floating panel have not yet been exercised interactively on windows.
@@ -313,6 +322,12 @@ built and covered by ui-state checks for colour conversions, contrast, presets, 
 <p class="source-item">• The rail indicator grows from its centre, buttons respond to presses, switches slide and expanders reveal their content.</p>
 <p class="source-item">• Table rows fade in on first load.</p>
 <p>Reduced motion, Low stimulation, the Windows animation setting and capture mode always win over the saved level. Every animation ends on the element&#39;s normal state, so an interrupted animation never leaves anything hidden or moved.</p>
+<h4>Language</h4>
+<p>English, Cantonese and Bilingual modes cover the shell and every destination page: headers and subtitles, section titles, field labels and helper text, buttons and menu items, empty states, dialog titles and bodies, tooltips, accessible names, status lines and notifications. Cantonese is written Hong Kong style in Traditional characters; Docker terms such as Compose, BuildKit, Dockerfile and image digest stay in English where that reads naturally. Bilingual shows the English text first, then the Cantonese text after a middle dot.</p>
+<p class="source-item">• The phrase list lives in <code>Services/Loc.cs</code> (shell labels) and <code>Services/LocStrings.*.cs</code> (page copy). Entries whose key contains <code>{0}</code>, <code>{1}</code> and so on are sentence templates: the numbers, names and paths in the English message stay exactly as the engine or the app produced them, and only the wording around them is translated.</p>
+<p class="source-item">• Status lines under page titles are translated phrase by phrase (<code>Loc.Line</code>), so counts, context names and times stay literal.</p>
+<p class="source-item">• Docker CLI output, engine data (image, container, volume and network names, tags, digests, log lines) and error text returned by Docker are shown as returned and are never translated. A few long explanations built from several fragments, or from conditional wording that does not form one fixed sentence, are still English in every mode; School mode forces English everywhere.</p>
+<p class="source-item">• Personal wording files still win over the built-in Cantonese. Clearing them restores the built-in text.</p>
 <h4>Status</h4>
 <p>Built and covered by UI-state checks for colour conversions, contrast, presets, import validation and undo. The animations, templates and floating panel have not yet been exercised interactively on Windows.</p></article>
 <article id="doc-docs-features-build-and-run-md" class="article" data-search="build and run # build and run
@@ -1720,7 +1735,7 @@ the ui-state checks (676), core engine checks (23) and documentation checklist c
 - [x] add append-only local history beside the application data with diff, restore, labels and export.
 - [x] replace every screenshot with captures of the built application on windows with a real engine (dark, light and minimum size).
 - [ ] exercise every destination interactively on a personal windows machine and record receipts.
-- [ ] localize page-specific copy in cantonese and bilingual modes.
+- [x] localize page-specific copy in cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).
 - [ ] review capability inventory statuses for health checks, devices, gpus and terminals with evidence.
 
 ## delivered and bounded verification
@@ -1773,7 +1788,7 @@ the ui-state checks (676), core engine checks (23) and documentation checklist c
 <p class="source-item">Completed: Add append-only local history beside the application data with diff, restore, labels and export.</p>
 <p class="source-item">Completed: Replace every screenshot with captures of the built application on Windows with a real engine (dark, light and minimum size).</p>
 <p class="source-item">Pending: Exercise every destination interactively on a personal Windows machine and record receipts.</p>
-<p class="source-item">Pending: Localize page-specific copy in Cantonese and bilingual modes.</p>
+<p class="source-item">Completed: Localize page-specific copy in Cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).</p>
 <p class="source-item">Pending: Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.</p>
 <h4>Delivered and bounded verification</h4>
 <p class="source-item">Completed: Implement native WPF Build, Images, Containers, Compose, Canvas, Volumes, Networks, Diagnostics, Settings and Setup workspaces.</p>
@@ -1827,14 +1842,14 @@ a native windows wpf workspace for docker with a complete material 3 interface. 
 
 ## verification
 
-- `build.bat -tests` on windows: 23 core checks, 113 ui-state checks (structured inputs, dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, base64 variants and strict offsets, every creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.
+- `build.bat -tests` on windows: 23 core checks, 686 ui-state checks (structured inputs, dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, cantonese and bilingual coverage of 50 sampled page strings and sentence templates, base64 variants and strict offsets, every creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.
 - two regressions were observed failing before their repairs: history revisions made in the same second listed out of order (restore returned the wrong revision), and the documentation site was stale after new articles.
 - `tests and screenshots` workflow run 41698541353 at source `afc72c0df9be118fdb6d07c238a4ff3b458edc0d`: the published application rendered all 18 surfaces in dark and light themes at 1440 x 960 and in dark at 960 x 720, on windows server 2025 with a real windows container engine and labelled resources that were removed afterwards. the 54 captures are in `evidence/screenshots/` with hashes in `evidence/inventory.json`. they were reviewed; layout problems they showed (stretched captures, a 320 px dialog limit, squeezed inspectors, wrapped chips, rail overlap, a tall empty output panel) were fixed before this run.
 - capture mode only renders; interactive behaviour of each workflow on a personal machine (clicking through builds, runs, removals, prunes, sign-in, history restores) has not been exercised in this rewrite. earlier native workflow evidence (source f370d66 and release v0.5.1) belongs to the previous interface and is not relabelled.
 
 ## known limits
 
-- language modes cover the shell and common labels; page-specific copy is english in all modes.
+- language modes cover the shell and the copy of every destination page (about 3,200 cantonese phrases and sentence templates). docker cli output, engine data, log lines and some long explanations assembled from several fragments are shown as produced and stay english in every mode.
 - density and momentum settings are saved but have little visible effect; the external editor setting is used by build only.
 - the regex builder covers construction, snippets, flags and sample testing; full regexbuddy parity remains open.
 - element locks, the per-element appearance editor, authenticator, school-mode pin, dim sum pictures and scheduled settings from the shared feature catalogue are not implemented.
@@ -1864,12 +1879,12 @@ the second pass added build v2 with a buildkit timeline and bake, image detail t
 <p class="source-item">• <code>Assets/Fonts/</code>: Material Symbols Rounded subset to the icons in use (outline and filled, Apache 2.0).</p>
 <p class="source-item">• <code>design/workspace-redesign-2026-11/</code>: the design canvas for every screen, with its handoff and review notes.</p>
 <h4>Verification</h4>
-<p class="source-item">• <code>build.bat -Tests</code> on Windows: 23 core checks, 113 UI-state checks (structured inputs, Dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, Base64 variants and strict offsets, every Creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.</p>
+<p class="source-item">• <code>build.bat -Tests</code> on Windows: 23 core checks, 686 UI-state checks (structured inputs, Dockerfile graph, local history including restore of a restore and path containment, personal wording bounds, language modes and funny levels, Cantonese and bilingual coverage of 50 sampled page strings and sentence templates, Base64 variants and strict offsets, every Creator starter round trip, exec-form escaping, lint findings and an automatic fix) and 13 documentation checklist checks.</p>
 <p class="source-item">• Two regressions were observed failing before their repairs: history revisions made in the same second listed out of order (restore returned the wrong revision), and the documentation site was stale after new articles.</p>
 <p class="source-item">• <code>Tests and screenshots</code> workflow run 41698541353 at source <code>afc72c0df9be118fdb6d07c238a4ff3b458edc0d</code>: the published application rendered all 18 surfaces in dark and light themes at 1440 x 960 and in dark at 960 x 720, on Windows Server 2025 with a real Windows container engine and labelled resources that were removed afterwards. The 54 captures are in <code>evidence/screenshots/</code> with hashes in <code>evidence/inventory.json</code>. They were reviewed; layout problems they showed (stretched captures, a 320 px dialog limit, squeezed inspectors, wrapped chips, rail overlap, a tall empty output panel) were fixed before this run.</p>
 <p class="source-item">• Capture mode only renders; interactive behaviour of each workflow on a personal machine (clicking through builds, runs, removals, prunes, sign-in, history restores) has not been exercised in this rewrite. Earlier native workflow evidence (source f370d66 and release v0.5.1) belongs to the previous interface and is not relabelled.</p>
 <h4>Known limits</h4>
-<p class="source-item">• Language modes cover the shell and common labels; page-specific copy is English in all modes.</p>
+<p class="source-item">• Language modes cover the shell and the copy of every destination page (about 3,200 Cantonese phrases and sentence templates). Docker CLI output, engine data, log lines and some long explanations assembled from several fragments are shown as produced and stay English in every mode.</p>
 <p class="source-item">• Density and Momentum settings are saved but have little visible effect; the external editor setting is used by Build only.</p>
 <p class="source-item">• The regex builder covers construction, snippets, flags and sample testing; full RegexBuddy parity remains open.</p>
 <p class="source-item">• Element locks, the per-element appearance editor, authenticator, school-mode PIN, dim sum pictures and scheduled settings from the shared feature catalogue are not implemented.</p>

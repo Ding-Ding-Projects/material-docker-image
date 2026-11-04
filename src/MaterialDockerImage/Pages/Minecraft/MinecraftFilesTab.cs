@@ -21,8 +21,8 @@ internal sealed class MinecraftFilesTab : MinecraftTab
     public MinecraftFilesTab(MinecraftServerDetail detail) : base(detail)
     {
         table.Key = f => f.Name;
-        table.EmptyTitle = "Empty folder";
-        table.EmptyMessage = "This folder has no files. Use Copy file in to add one.";
+        table.EmptyTitle = Loc("Empty folder");
+        table.EmptyMessage = Loc("This folder has no files. Use Copy file in to add one.");
         table.ChipColumn("Kind", f => f.IsDirectory ? "folder" : "file", f => f.IsDirectory ? Tone.Primary : Tone.Neutral, 90)
             .Column("Name", f => f.Name, 260, true)
             .Column("Size", f => f.IsDirectory ? "—" : Ui.FormatBytes(f.Size), 100)
@@ -64,7 +64,7 @@ internal sealed class MinecraftFilesTab : MinecraftTab
         }
         var r = await Host.Read(["exec", Server.Id, "ls", "-la", path], Context);
         if (mine != version) return;
-        if (!r.Success) { notice.Content = Notice("The folder could not be listed: " + MinecraftOps.Trim(r), Tone.Warning); table.SetItems([]); return; }
+        if (!r.Success) { notice.Content = Notice(Loc("The folder could not be listed:") + " " + MinecraftOps.Trim(r), Tone.Warning); table.SetItems([]); return; }
         notice.Content = null;
         table.SetItems(MinecraftOutput.ParseLs(r.StandardOutput).OrderByDescending(f => f.IsDirectory).ThenBy(f => f.Name, StringComparer.OrdinalIgnoreCase));
     }
@@ -75,9 +75,9 @@ internal sealed class MinecraftFilesTab : MinecraftTab
         var picker = new OpenFolderDialog { Title = Loc("Choose the folder to copy into") };
         if (picker.ShowDialog() != true) return;
         var local = Path.Combine(picker.FolderName, f.Name);
-        if ((File.Exists(local) || Directory.Exists(local)) && !await Host.Overlay.ConfirmAsync("Replace " + f.Name + "?", $"{local} already exists. docker cp overwrites files with the same names.", "Replace", true)) return;
+        if ((File.Exists(local) || Directory.Exists(local)) && !await Host.Overlay.ConfirmAsync(Loc("Replace") + " " + f.Name + "?", $"{local} already exists. docker cp overwrites files with the same names.", "Replace", true)) return;
         var r = await Host.Execute($"Copy {f.Name} out of {Server.Name}", ["container", "cp", Server.Id + ":" + Join(path, f.Name), local], true, Context);
-        if (r is { Success: true }) Host.Notify.Show(Services.NoticeKind.Success, "Copied to " + local, "Open folder", () => PageParts.OpenExternal(picker.FolderName));
+        if (r is { Success: true }) Host.Notify.Show(Services.NoticeKind.Success, Loc("Copied to") + " " + local, "Open folder", () => PageParts.OpenExternal(picker.FolderName));
     }
 
     private async Task CopyInAsync()

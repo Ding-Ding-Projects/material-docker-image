@@ -55,7 +55,7 @@ public sealed partial class BakePage
         {
             plan = null;
             subtitle.Text = folder;
-            ShowEmpty("No bake file found", "This folder has none of " + string.Join(", ", BakePlan.DefaultFiles) + ". Open another folder, or open a bake file with a different name.");
+            ShowEmpty("No bake file found", Loc.T("This folder has none of") + " " + string.Join(", ", BakePlan.DefaultFiles) + ". Open another folder, or open a bake file with a different name.");
             return;
         }
         await LoadPlanAsync();
@@ -77,8 +77,8 @@ public sealed partial class BakePage
     private async Task LoadPlanAsync()
     {
         if (folder.Length == 0) { Host.Notify.Info("Open a folder or bake file first."); return; }
-        if (!Directory.Exists(folder)) { ShowEmpty("Folder unavailable", "The folder " + folder + " no longer exists. Open another folder."); return; }
-        if (bakeFile.Length > 0 && !File.Exists(bakeFile)) { ShowEmpty("Bake file unavailable", "The file " + bakeFile + " no longer exists. Open another file."); return; }
+        if (!Directory.Exists(folder)) { ShowEmpty("Folder unavailable", Loc.T("The folder") + " " + folder + " no longer exists. Open another folder."); return; }
+        if (bakeFile.Length > 0 && !File.Exists(bakeFile)) { ShowEmpty("Bake file unavailable", Loc.T("The file") + " " + bakeFile + " no longer exists. Open another file."); return; }
         var files = FileArguments();
         var context = Host.Context;
         subtitle.Text = (bakeFile.Length > 0 ? bakeFile : folder) + " · " + Loc.T("resolving plan…");

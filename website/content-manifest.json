@@ -24,7 +24,7 @@
     },
     {
       "path": "docs/features/appearance-and-motion.md",
-      "sha256": "48b9c2077bda74c2dc4cc2031bc3340cc954ddb2243b4a7fc1d28fced6ba3bae"
+      "sha256": "fd6e7a9d7bec91d695c6d6ef1addc50cc0bf008c153e9d89b9a076debc438d72"
     },
     {
       "path": "docs/features/build-and-run.md",
@@ -96,11 +96,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "3574d9fcfc89899d32db4a475c40b20bc3395c07b558da95aec59678adbeb07c"
+      "sha256": "5691c997c26b7e6ecdf013f43c7de2164297904686ed23d50ba32c7c91ffd937"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "c6e8bd32dba2cabd4924fde6530673ff35d3e2f441da1e93279d680863a0db09"
+      "sha256": "fabb1e545727e4c2138f294b7f2d5580768c210c46f2ed8189d39fa27170e60d"
     },
     {
       "path": "wiki/Home.md",

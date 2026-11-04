@@ -23,7 +23,7 @@ public sealed partial class ImagesPage
             Ui.Field("Platform", platform, "Optional --platform os/arch[/variant] for multi-platform images. Leave empty for the engine's platform.", "linux/arm64"),
             allTags,
             Ui.Caption("Uses the registry credentials already stored by the engine. Sign in from Registry when a private registry asks for authentication."));
-        PageKit.Dialog("Pull image", "Downloads an image from a registry into context " + (SnapshotContext ?? "default") + ".", form, "Pull", async () =>
+        PageKit.Dialog("Pull image", Loc.T("Downloads an image from a registry into context") + " " + (SnapshotContext ?? "default") + ".", form, "Pull", async () =>
         {
             var value = reference.Text.Trim();
             if (PageKit.ValidateReference(value, allTags.IsChecked != true, allTags.IsChecked != true) is { } problem) return problem;
@@ -97,7 +97,7 @@ public sealed partial class ImagesPage
     {
         if (!EnsureCurrent()) return;
         var target = await Host.Overlay.PromptAsync("Tag " + image.Name, "New reference", image.Tagged ? image.Repository + ":" : "",
-            "Adds another name to image " + image.ShortId + ". Nothing is copied or uploaded. Use registry/repository:tag to prepare a push.",
+            Loc.T("Adds another name to image") + " " + image.ShortId + ". Nothing is copied or uploaded. Use registry/repository:tag to prepare a push.",
             v => PageKit.ValidateReference(v, false) ?? (PageKit.HasTag(v) || !v.EndsWith(':') ? null : "Enter a tag after the colon."));
         if (target == null) return;
         if (!EnsureCurrent()) return;
@@ -174,7 +174,7 @@ public sealed partial class ImagesPage
         var dangling = table.Items.Where(i => i.Dangling).Select(i => i.ShortId + "  " + i.Size + "  " + i.CreatedSince).ToList();
         if (dangling.Count == 0) { Host.Notify.Info("There are no dangling images in the current list. Refresh to check again."); return; }
         if (!await Host.Overlay.SuperConfirmAsync("Prune dangling images",
-            "Runs docker image prune --force on context " + (SnapshotContext ?? "default") + ". It deletes untagged images that no container uses. The engine decides the final set, which may differ if the engine changed since the last refresh.", dangling)) return;
+            Loc.T("Runs docker image prune --force on context") + " " + (SnapshotContext ?? "default") + ". It deletes untagged images that no container uses. The engine decides the final set, which may differ if the engine changed since the last refresh.", dangling)) return;
         if (!EnsureCurrent()) return;
         var result = await Host.Execute("Prune dangling images", ["image", "prune", "--force"], boundContext: SnapshotContext);
         if (result?.Success == true && result.StandardOutput.Split('\n').LastOrDefault(l => l.Contains("reclaimed", StringComparison.OrdinalIgnoreCase)) is { } reclaimed) Host.Notify.Info(reclaimed.Trim());

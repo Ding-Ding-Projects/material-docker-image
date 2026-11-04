@@ -35,8 +35,8 @@ public sealed class MinecraftPage : PageBase
             Ui.Button("Create server", Icons.Add, ButtonKind.Filled, OpenWizard));
 
         table.Key = s => s.Name;
-        table.EmptyTitle = "No Minecraft servers yet";
-        table.EmptyMessage = "Create a server to run Minecraft Java or Bedrock Edition in a container on this engine. Only containers this page created (labelled " + MinecraftSpecRules.Label + ") are listed.";
+        table.EmptyTitle = Loc.T("No Minecraft servers yet");
+        table.EmptyMessage = Loc.T("Create a server to run Minecraft Java or Bedrock Edition in a container on this engine. Only containers this page created (labelled") + " " + MinecraftSpecRules.Label + ") are listed.";
         table.ChipColumn("State", s => s.State, s => s.StateTone, 100)
             .Column("Name", s => s.Name, 150)
             .ChipColumn("Edition", s => s.EditionText, s => s.IsJava ? Tone.Primary : Tone.Tertiary, 90)
@@ -106,8 +106,8 @@ public sealed class MinecraftPage : PageBase
             try { (loaded, orphans) = await MinecraftOps.LoadAsync(context); }
             catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException)
             {
-                errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text("Minecraft servers could not be listed: " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
-                subtitle.Text = "Could not reach the engine on context " + (context ?? "default") + ".";
+                errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text(Loc.T("Minecraft servers could not be listed:") + " " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
+                subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
                 table.SetItems([]);
                 return;
             }
@@ -122,7 +122,7 @@ public sealed class MinecraftPage : PageBase
             servers = loaded;
             table.SetItems(servers);
             orphanHost.Content = orphans.Count == 0 ? null : OrphanCard(orphans);
-            subtitle.Text = $"{servers.Count} {(servers.Count == 1 ? "server" : "servers")} · {servers.Count(s => s.IsRunning)} running · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
+            subtitle.Text = Loc.Line($"{servers.Count} {(servers.Count == 1 ? "server" : "servers")} · {servers.Count(s => s.IsRunning)} running · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
             detail?.Update(servers.FirstOrDefault(s => s.Name == detail.Server.Name));
             await MinecraftOps.FillPlayersAsync(servers, context);
             if (context != SnapshotContext || !ReferenceEquals(loaded, servers)) return;
@@ -236,7 +236,7 @@ public sealed class MinecraftPage : PageBase
     internal async Task RemoveAsync(MinecraftServer s)
     {
         if (!EnsureCurrent()) return;
-        var proceed = await Host.Overlay.ConfirmAsync("Remove Minecraft server " + s.Name + "?", $"Stops and removes the container {s.ContainerName}. The world volume {s.VolumeName} is kept unless you choose to delete it in the next step.", "Continue", true);
+        var proceed = await Host.Overlay.ConfirmAsync(Loc.T("Remove Minecraft server") + " " + s.Name + "?", $"Stops and removes the container {s.ContainerName}. The world volume {s.VolumeName} is kept unless you choose to delete it in the next step.", "Continue", true);
         if (!proceed) return;
         var keep = await AskVolumeAsync(s);
         if (keep == null) return;
@@ -253,7 +253,7 @@ public sealed class MinecraftPage : PageBase
     {
         var done = new TaskCompletionSource<bool?>();
         Action? close = null;
-        var delete = Ui.Check("Also delete the world volume " + s.VolumeName, false);
+        var delete = Ui.Check(Loc.T("Also delete the world volume") + " " + s.VolumeName, false);
         var ok = Ui.Button("Continue", null, ButtonKind.Danger, () => { done.TrySetResult(delete.IsChecked != true); close!(); });
         var cancel = Ui.Button("Cancel", null, ButtonKind.Text, () => { done.TrySetResult(null); close!(); });
         var actions = Ui.HStack(8, cancel, ok); actions.HorizontalAlignment = HorizontalAlignment.Right;

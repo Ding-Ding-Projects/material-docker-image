@@ -112,7 +112,7 @@ internal sealed class MinecraftListRows : StackPanel
     {
         if (emptyText != null) { Children.Remove(emptyText); emptyText = null; }
         var box = Ui.Input(value, itemName, true);
-        var remove = Ui.IconButton(Icons.Close, "Remove " + itemName);
+        var remove = Ui.IconButton(Icons.Close, Loc.T("Remove") + " " + itemName);
         var row = new DockPanel { Margin = new Thickness(0, 0, 0, 6) };
         row.Children.Add(remove.Dock(Dock.Right));
         box.Margin = new Thickness(0, 0, 8, 0);

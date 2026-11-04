@@ -78,7 +78,7 @@ internal static class DiagnosticReport
             if (dialog.ShowDialog() != true) return;
             File.WriteAllText(dialog.FileName, current, new UTF8Encoding(false));
             Host.History.Record("diagnostics", $"Exported sanitized diagnostics report ({format})");
-            Host.Notify.Success("Saved the sanitized report to " + PageParts.Sanitize(dialog.FileName) + ".");
+            Host.Notify.Success(Loc.T("Saved the sanitized report to") + " " + PageParts.Sanitize(dialog.FileName) + ".");
             close!();
         });
         var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => close!()), save);

@@ -62,13 +62,13 @@ internal static class PageParts
     {
         try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = true }); }
         catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException or FileNotFoundException or PlatformNotSupportedException)
-        { AppHost.Current.Notify.Error("Could not open " + target + ": " + e.Message); }
+        { AppHost.Current.Notify.Error(Loc.T("Could not open") + " " + target + ": " + e.Message); }
     }
 
     public static void OpenFolder(string path)
     {
         try { Directory.CreateDirectory(path); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppHost.Current.Notify.Error("The folder could not be created: " + e.Message); return; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { AppHost.Current.Notify.Error(Loc.T("The folder could not be created:") + " " + e.Message); return; }
         OpenExternal(path);
     }
 

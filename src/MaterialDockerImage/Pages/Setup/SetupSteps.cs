@@ -129,7 +129,7 @@ internal sealed class SetupSteps
         CommandResult r;
         try { r = await Host.Read(["version", "--format", "{{.Server.Version}}"], name, timeout.Token); }
         catch (OperationCanceledException) { r = new CommandResult(-1, "", "No answer within 8 seconds.", true); }
-        reach[name] = r.Success && r.StandardOutput.Trim().Length > 0 ? (CheckStatus.Passed, "Reachable · engine " + r.StandardOutput.Trim()) : (CheckStatus.Failed, r.Cancelled ? "No answer within 8 seconds" : "Not responding");
+        reach[name] = r.Success && r.StandardOutput.Trim().Length > 0 ? (CheckStatus.Passed, Loc.T("Reachable · engine") + " " + r.StandardOutput.Trim()) : (CheckStatus.Failed, r.Cancelled ? "No answer within 8 seconds" : "Not responding");
         RenderContexts();
     }
 
@@ -213,12 +213,12 @@ internal sealed class SetupSteps
             var dockerfiles = files.Where(f => f.Equals("Dockerfile", StringComparison.OrdinalIgnoreCase) || f.EndsWith(".Dockerfile", StringComparison.OrdinalIgnoreCase) || f.StartsWith("Dockerfile.", StringComparison.OrdinalIgnoreCase)).ToList();
             var compose = files.Where(f => f is "compose.yaml" or "compose.yml" or "docker-compose.yml" or "docker-compose.yaml").ToList();
             var parts = new List<string>();
-            if (dockerfiles.Count > 0) parts.Add("Dockerfile found: " + string.Join(", ", dockerfiles));
-            if (compose.Count > 0) parts.Add("Compose file found: " + string.Join(", ", compose));
+            if (dockerfiles.Count > 0) parts.Add(Loc.T("Dockerfile found:") + " " + string.Join(", ", dockerfiles));
+            if (compose.Count > 0) parts.Add(Loc.T("Compose file found:") + " " + string.Join(", ", compose));
             if (files.Any(f => f.Equals(".dockerignore", StringComparison.OrdinalIgnoreCase))) parts.Add(".dockerignore present");
             folderState.Text = parts.Count > 0 ? string.Join(" · ", parts) : Loc.T("No Dockerfile or Compose file in this folder. You can create one with Creator.");
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { folderState.Text = "The folder could not be read: " + e.Message; }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { folderState.Text = Loc.T("The folder could not be read:") + " " + e.Message; }
     }
 
     public FrameworkElement Personalize()

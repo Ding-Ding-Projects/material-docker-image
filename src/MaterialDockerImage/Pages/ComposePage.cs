@@ -25,7 +25,7 @@ public sealed class ComposePage : PageBase, IDirtyAware
     private bool switching;
 
     public bool IsDirty => source.IsDirty;
-    public string DirtyLabel => "Compose source: " + source.LoadedPath;
+    public string DirtyLabel => Loc.T("Compose source:") + " " + source.LoadedPath;
 
     public ComposePage()
     {
@@ -124,9 +124,9 @@ public sealed class ComposePage : PageBase, IDirtyAware
             entries.Add(new ComposeEntry(dir, File.Exists(path) ? "file · not running" : "file missing", [path], false, true));
         }
         var running = listed.Count(e => e.StatusTone == Tone.Success);
-        subtitle.Text = error != null
-            ? "docker compose ls failed: " + error
-            : $"{listed.Count} project{(listed.Count == 1 ? "" : "s")} reported by the engine · {running} running · {entries.Count - listed.Count} recent file{(entries.Count - listed.Count == 1 ? "" : "s")} · context {context ?? "current"}";
+        subtitle.Text = Loc.Line(error != null
+            ? Loc.T("docker compose ls failed:") + " " + error
+            : $"{listed.Count} project{(listed.Count == 1 ? "" : "s")} reported by the engine · {running} running · {entries.Count - listed.Count} recent file{(entries.Count - listed.Count == 1 ? "" : "s")} · context {context ?? "current"}");
         projects.SetEntries(entries, error != null ? "The engine list is unavailable; recent files are still shown." : null, selectKey ?? projects.Selected?.Key);
         selectKey = null;
         if (projects.Selected is { } current && panel.Entry?.Key == current.Key) await panel.ShowAsync(current);

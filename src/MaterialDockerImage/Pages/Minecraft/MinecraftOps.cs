@@ -81,7 +81,7 @@ internal static class MinecraftOps
     {
         if (path == null) return;
         try { File.Delete(path); }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Warning("The temporary env file could not be deleted: " + path + ". Delete it manually; it contains the RCON password."); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Warning(Loc.T("The temporary env file could not be deleted:") + " " + path + ". Delete it manually; it contains the RCON password."); }
     }
 
     /// <summary>Runs docker run for the spec with the password (if any) supplied through a temporary env file.</summary>

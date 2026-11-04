@@ -111,7 +111,7 @@ internal sealed class ImageScoutTab : ImageDetailTab
         status.Content = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(c.Total == 0 ? Icons.GppGood : Icons.Security, 20, true, c.Critical + c.High > 0 ? "Error" : "Success"),
             Ui.VStack(2,
                 Ui.Text($"{c.Total} {(c.Total == 1 ? "finding" : "findings")} · {c.Fixable} fixable", 14, FontWeights.SemiBold, "OnSurface", true, false),
-                Ui.Caption("Analyzed " + result.AnalysedText + " with docker scout cves. Results are kept for this session only."))), 12, "SurfaceContainer", 12).Margin(0, 0, 0, 10);
+                Ui.Caption(Loc.T("Analyzed") + " " + result.AnalysedText + " with docker scout cves. Results are kept for this session only."))), 12, "SurfaceContainer", 12).Margin(0, 0, 0, 10);
         setTiles(c, "");
         analyze.ToolTip = Loc.T("Analyze again to refresh the findings.");
         findings.Show(result.Findings, true);

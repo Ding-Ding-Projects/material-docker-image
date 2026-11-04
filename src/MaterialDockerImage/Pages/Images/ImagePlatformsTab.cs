@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.Core;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -49,7 +50,7 @@ internal sealed class ImagePlatformsTab : ImageDetailTab
     private async Task QueryAsync(string reference)
     {
         if (PageKit.ValidateReference(reference) is { } invalid) { registry.Content = Ui.Text(invalid, 13, null, "Error", true, false); return; }
-        registry.Content = Loading("Reading the manifest of " + reference + " from the registry…");
+        registry.Content = Loading(Loc.T("Reading the manifest of") + " " + reference + " from the registry…");
         var result = await Host.Read(["buildx", "imagetools", "inspect", "--raw", reference], Ctx.Context);
         if (!result.Success)
         {
@@ -142,7 +143,7 @@ internal sealed class ImagePlatformsTab : ImageDetailTab
     private static UIElement AttestationCard(ImageManifestEntry a, string forPlatform)
     {
         var head = Ui.Columns(8, [0, 1], Ui.Icon(Icons.VerifiedUser, 18, true, "Tertiary"),
-            Ui.Text(forPlatform.Length > 0 ? "Attestation for " + forPlatform : "Attestation manifest", 13.5, FontWeights.SemiBold, "OnSurface", true, false));
+            Ui.Text(forPlatform.Length > 0 ? Loc.T("Attestation for") + " " + forPlatform : "Attestation manifest", 13.5, FontWeights.SemiBold, "OnSurface", true, false));
         var target = a.AttestsDigest.Length > 0 ? PageKit.Fact("Describes", a.AttestsDigest, true) : null;
         return Card(head, a, target);
     }

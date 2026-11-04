@@ -87,7 +87,7 @@ public sealed class SwarmMembershipPanel
             "active" => ("This engine is a worker node", "Workers run tasks but cannot list or manage services, stacks, nodes, secrets or configs. Switch this window to a manager's context to manage the swarm, or promote this node from a manager."),
             "pending" => ("Joining a swarm", "The engine is waiting to finish joining. Refresh in a moment."),
             "locked" => ("The swarm is locked", "Autolock is on and this manager restarted. Unlock it with docker swarm unlock and the unlock key on the engine host."),
-            _ => ("Swarm state: " + m.LocalNodeState, m.Error.Length > 0 ? m.Error : "The engine reported a swarm state this page cannot manage."),
+            _ => (Loc.T("Swarm state:") + " " + m.LocalNodeState, m.Error.Length > 0 ? m.Error : "The engine reported a swarm state this page cannot manage."),
         };
         return Ui.VStack(16,
             SummaryStrip(m),

@@ -53,8 +53,8 @@ public sealed class ContextsPage : PageBase
             Ui.Text("Docker CLI configuration", 14, FontWeights.SemiBold),
             Ui.Caption("Contexts and plugins belong to the docker CLI on this computer. Context metadata is stored under the folder below (contexts\\meta), TLS material under contexts\\tls, and CLI plugins in cli-plugins."),
             Ui.Mono(folder + (configured ? "  (set by the DOCKER_CONFIG environment variable)" : ""), 12, "OnSurface", true),
-            hostVariable ? Ui.Text("DOCKER_HOST is set in this environment. The docker CLI then ignores the current context for commands without --context; this window always passes its context explicitly.", 12, null, "OnWarningContainer", true, false) : null,
-            contextVariable ? Ui.Text("DOCKER_CONTEXT is set in this environment and overrides the CLI's current context for commands without --context.", 12, null, "OnWarningContainer", true, false) : null);
+            hostVariable ? Ui.Text("DOCKER_HOST is set in this environment. The docker CLI then ignores the current context for commands without --context; this window always passes its context explicitly.", 12, null, "OnWarningContainer", true, true) : null,
+            contextVariable ? Ui.Text("DOCKER_CONTEXT is set in this environment and overrides the CLI's current context for commands without --context.", 12, null, "OnWarningContainer", true, true) : null);
         var row = new DockPanel();
         row.Children.Add(Ui.Icon(Icons.Info, 22, false, "OnSurfaceVariant").Dock(Dock.Left).Margin(0, 0, 12, 0));
         row.Children.Add(text);
@@ -68,7 +68,7 @@ public sealed class ContextsPage : PageBase
         if (!r.Success)
         {
             entries = new();
-            subtitle.Text = "docker context ls failed: " + (r.StandardError.Trim().Split('\n').FirstOrDefault() ?? $"exit code {r.ExitCode}");
+            subtitle.Text = Loc.T("docker context ls failed:") + " " + (r.StandardError.Trim().Split('\n').FirstOrDefault() ?? $"exit code {r.ExitCode}");
             RenderCards();
             cardsState.Content = Ui.EmptyState(Icons.SyncProblem, "Contexts unavailable", "The docker CLI did not list contexts. Check that docker is installed and on PATH, then refresh.", Ui.Button("Open Diagnostics", Icons.Stethoscope, ButtonKind.Tonal, () => Host.Navigate("Diagnostics")));
             await plugins.LoadAsync();
@@ -80,11 +80,11 @@ public sealed class ContextsPage : PageBase
                 CliValues.Str(x, "Name"), CliValues.Str(x, "Description"), CliValues.Str(x, "DockerEndpoint"),
                 CliValues.Bool(x, "Current"), CliValues.Str(x, "Error"))).Where(e => e.Name.Length > 0).ToList();
         }
-        catch (JsonException e) { entries = new(); subtitle.Text = "The context list could not be parsed: " + e.Message; }
+        catch (JsonException e) { entries = new(); subtitle.Text = Loc.T("The context list could not be parsed:") + " " + e.Message; }
         cliCurrent = entries.FirstOrDefault(e => e.CliCurrent)?.Name;
         probes.Clear();
         var window = actions.WindowContext;
-        subtitle.Text = $"{entries.Count} context{(entries.Count == 1 ? "" : "s")} · this window uses {window ?? "the CLI's current context"}" + (cliCurrent != null ? $" · CLI current: {cliCurrent}" : "");
+        subtitle.Text = Loc.Line($"{entries.Count} context{(entries.Count == 1 ? "" : "s")} · this window uses {window ?? "the CLI's current context"}" + (cliCurrent != null ? $" · CLI current: {cliCurrent}" : ""));
         RenderCards();
         _ = ProbeAllAsync();
         await plugins.LoadAsync();

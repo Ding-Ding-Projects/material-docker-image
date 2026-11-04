@@ -41,8 +41,8 @@ public sealed class BuildHistoryCard : DockPanel
             .RowAction("Copy reference", Icons.ContentCopy, r => { Clipboard.SetText(r.Reference.Length > 0 ? r.Reference : r.Name); Host.Notify.Info("Copied."); return Task.CompletedTask; })
             .RowAction("Copy digest", Icons.Fingerprint, r => { if (r.Digest.Length == 0) Host.Notify.Info("This build reported no digest."); else { Clipboard.SetText(r.Digest); Host.Notify.Info("Copied the digest."); } return Task.CompletedTask; });
         table.Key = r => r.Source + "|" + r.Reference + "|" + r.Started?.ToUnixTimeMilliseconds();
-        table.EmptyTitle = "No builds yet";
-        table.EmptyMessage = "Builds you start here appear immediately. Builder records appear when Buildx supports history.";
+        table.EmptyTitle = Loc.T("No builds yet");
+        table.EmptyMessage = Loc.T("Builds you start here appear immediately. Builder records appear when Buildx supports history.");
         var refresh = Ui.AsyncIconButton(Icons.Refresh, "Refresh builder history", RefreshAsync);
         var head = new DockPanel { Margin = new Thickness(0, 0, 0, 10) };
         head.Children.Add(refresh.Dock(System.Windows.Controls.Dock.Right));

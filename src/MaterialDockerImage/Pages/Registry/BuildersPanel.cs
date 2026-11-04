@@ -46,7 +46,7 @@ internal sealed class BuildersPanel
         this.isCurrent = isCurrent; this.snapshot = snapshot;
         Table = new DataTable<BuilderRow>("Builders", "Search builders")
         {
-            EmptyTitle = "No builders listed",
+            EmptyTitle = Loc.T("No builders listed"),
             EmptyMessage = "docker buildx ls returned no builders, or buildx is not installed. Diagnostics checks buildx availability.",
             Key = b => b.Name
         };
@@ -109,7 +109,7 @@ internal sealed class BuildersPanel
         if (Stale()) return;
         if (bootstrap)
         {
-            if (!await Host.Overlay.ConfirmAsync("Start builder " + b.Name + "?", "Bootstrap starts the builder if it is not running. For the docker-container driver this creates and starts a BuildKit container on the engine.", "Inspect and start")) return;
+            if (!await Host.Overlay.ConfirmAsync(Loc.T("Start builder") + " " + b.Name + "?", "Bootstrap starts the builder if it is not running. For the docker-container driver this creates and starts a BuildKit container on the engine.", "Inspect and start")) return;
             var result = await Host.Execute("Bootstrap builder " + b.Name, ["buildx", "inspect", "--bootstrap", b.Name], true, snapshot());
             if (result != null) Show("buildx inspect --bootstrap " + b.Name, result);
             await RefreshAsync();
@@ -134,7 +134,7 @@ internal sealed class BuildersPanel
     private async Task PruneAsync(BuilderRow b)
     {
         if (Stale()) return;
-        if (!await Host.Overlay.SuperConfirmAsync("Prune build cache", $"Runs docker buildx prune --force --builder {b.Name}. All unused build cache on this builder is deleted; the next builds take longer because layers are rebuilt.", [$"Build cache of builder {b.Name} ({b.Driver})", "Context: " + (snapshot() ?? "current")])) return;
+        if (!await Host.Overlay.SuperConfirmAsync("Prune build cache", $"Runs docker buildx prune --force --builder {b.Name}. All unused build cache on this builder is deleted; the next builds take longer because layers are rebuilt.", [$"Build cache of builder {b.Name} ({b.Driver})", Loc.T("Context:") + " " + (snapshot() ?? "current")])) return;
         var result = await Host.Execute("Prune build cache on " + b.Name, ["buildx", "prune", "--force", "--builder", b.Name], true, snapshot());
         if (result != null) Show("buildx prune --builder " + b.Name, result);
     }
@@ -143,7 +143,7 @@ internal sealed class BuildersPanel
     {
         if (Stale()) return;
         if (b.Driver == "docker") { Host.Notify.Warning("Builders with the docker driver belong to an engine context and cannot be removed with buildx rm."); return; }
-        if (!await Host.Overlay.ConfirmAsync("Remove builder " + b.Name + "?", $"Runs docker buildx rm {b.Name}. The builder and its BuildKit state are removed, including its build cache.", "Remove builder", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove builder") + " " + b.Name + "?", $"Runs docker buildx rm {b.Name}. The builder and its BuildKit state are removed, including its build cache.", "Remove builder", true)) return;
         await Host.Execute("Remove builder " + b.Name, ["buildx", "rm", b.Name], true, snapshot());
         await RefreshAsync();
     }

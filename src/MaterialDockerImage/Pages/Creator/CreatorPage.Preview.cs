@@ -86,7 +86,7 @@ public sealed partial class CreatorPage
 
         previewTabs = new TabControl();
         dockerfilePanel.Margin = new Thickness(0, 10, 0, 0);
-        dockerfileTab = new TabItem { Header = "Dockerfile", Content = dockerfilePanel };
+        dockerfileTab = new TabItem { Header = Loc.T("Dockerfile"), Content = dockerfilePanel };
         previewTabs.Items.Add(dockerfileTab);
         previewTabs.Items.Add(new TabItem { Header = ".dockerignore", Content = BuildIgnorePanel().Margin(0, 10, 0, 0) });
         previewTabs.Items.Add(BuildComposeTab());

@@ -152,9 +152,9 @@ public sealed class MonitorPage : PageBase
         foreach (var c in cardByName.Values) c.IsSelectedCard = c.ContainerName == focused;
         FilterCards();
         var count = history.Current.Count;
-        subtitle.Text = history.LastSuccess == null
+        subtitle.Text = Loc.Line(history.LastSuccess == null
             ? Loc.T("Live CPU, memory, network and disk from docker stats")
-            : $"{count} running container{(count == 1 ? "" : "s")} · window {FormatWindow(StatsHistory.Capacity * CurrentInterval)} · docker stats every {CurrentInterval} s";
+            : $"{count} running container{(count == 1 ? "" : "s")} · window {FormatWindow(StatsHistory.Capacity * CurrentInterval)} · docker stats every {CurrentInterval} s");
         stateText.Text = history.LastError != null
             ? $"Latest read failed: {history.LastError}" + (history.LastSuccess is { } ok ? $" Last good sample {(int)(DateTimeOffset.Now - ok).TotalSeconds} s ago." : "")
             : history.LastSuccess is { } t ? $"Last sample {t.ToLocalTime():HH:mm:ss} · context {SnapshotContext ?? "current"} · keeps the last {StatsHistory.Capacity} samples per container" : "";

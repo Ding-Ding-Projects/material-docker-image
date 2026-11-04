@@ -69,7 +69,7 @@ public sealed class SwarmServiceInspector : Border
             loaded = rows;
             var running = rows.Count(r => r.CurrentState.StartsWith("Running", StringComparison.OrdinalIgnoreCase));
             var failed = rows.Count(r => SwarmRules.TaskHealth(r.CurrentState) == SwarmHealth.Down);
-            taskSummary.Text = $"{rows.Count} task{(rows.Count == 1 ? "" : "s")} including history · {running} running" + (failed > 0 ? $" · {failed} failed or rejected" : "");
+            taskSummary.Text = Loc.Line($"{rows.Count} task{(rows.Count == 1 ? "" : "s")} including history · {running} running" + (failed > 0 ? $" · {failed} failed or rejected" : ""));
         }
         catch (InvalidOperationException e)
         {

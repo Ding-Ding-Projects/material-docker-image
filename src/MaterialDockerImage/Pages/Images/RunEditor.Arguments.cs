@@ -94,7 +94,7 @@ internal sealed partial class RunEditor
         if (Optional(envFile) is { } file)
         {
             var full = Path.GetFullPath(file);
-            if (!File.Exists(full)) throw new ArgumentException("The environment file does not exist on this computer: " + full);
+            if (!File.Exists(full)) throw new ArgumentException(Loc.T("The environment file does not exist on this computer:") + " " + full);
             Flag("--env-file", full);
         }
 
@@ -233,7 +233,7 @@ internal sealed partial class RunEditor
         }
         else
         {
-            resultText.Text = "The container was not created. " + PageKit.Failure(result) + " The output panel has the full transcript.";
+            resultText.Text = Loc.T("The container was not created.") + " " + PageKit.Failure(result) + " The output panel has the full transcript.";
         }
     }
 }

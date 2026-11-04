@@ -90,7 +90,7 @@ public sealed class OverlayHost : Grid
         var ok = Ui.Button(confirmLabel, null, danger ? ButtonKind.Danger : ButtonKind.Filled, () => { done.TrySetResult(true); close!(); });
         var actions = Ui.HStack(8, cancel, ok); actions.HorizontalAlignment = HorizontalAlignment.Right;
         var emoji = Loc.Emoji(danger ? "danger" : "question");
-        var body = Ui.VStack(16, Ui.Text((emoji.Length > 0 ? emoji + " " : "") + Loc.T(title), 22, FontWeights.SemiBold, "OnSurface", true, false), Ui.Text(message, 14, null, "OnSurfaceVariant", true, false), actions);
+        var body = Ui.VStack(16, Ui.Text((emoji.Length > 0 ? emoji + " " : "") + Loc.T(title), 22, FontWeights.SemiBold, "OnSurface", true, false), Ui.Text(Loc.T(message), 14, null, "OnSurfaceVariant", true, false), actions);
         close = Show(body, 520, () => done.TrySetResult(false));
         cancel.Loaded += (_, _) => cancel.Focus();
         return done.Task;
@@ -106,7 +106,7 @@ public sealed class OverlayHost : Grid
         {
             var value = input.Text.Trim();
             var problem = value.Length == 0 ? "Enter a value." : value.StartsWith('-') ? "Values cannot begin with a hyphen." : validate?.Invoke(value);
-            if (problem != null) { error.Text = problem; return; }
+            if (problem != null) { error.Text = Loc.T(problem); return; }
             done.TrySetResult(value); close!();
         }
         input.KeyDown += (_, e) => { if (e.Key == Key.Enter) Apply(); };
@@ -144,12 +144,12 @@ public sealed class OverlayHost : Grid
         };
         slider.LostMouseCapture += (_, _) => { if (slider.Value < 100) slider.Value = 0; };
         var list = Ui.VStack(4, affected.Take(40).Select(a => (UIElement)Ui.Mono("• " + a, 13, "OnSurface", true)).ToArray());
-        if (affected.Count > 40) list.Children.Add(Ui.Caption($"…and {affected.Count - 40} more."));
+        if (affected.Count > 40) list.Children.Add(Ui.Caption(Loc.T("…and {0} more.").Replace("{0}", (affected.Count - 40).ToString())));
         var exit = Ui.Button("Emergency exit", Icons.ExitToApp, ButtonKind.Outlined, () => { done.TrySetResult(false); close!(); });
         var emoji = Loc.Emoji("danger");
         var body = Ui.VStack(14,
-            Ui.Text((emoji.Length > 0 ? emoji + " " : "") + title, 22, FontWeights.SemiBold, "OnSurface", true, false),
-            Ui.Text(action, 14, null, "OnSurfaceVariant", true, false),
+            Ui.Text((emoji.Length > 0 ? emoji + " " : "") + Loc.T(title), 22, FontWeights.SemiBold, "OnSurface", true, false),
+            Ui.Text(Loc.T(action), 14, null, "OnSurfaceVariant", true, false),
             Ui.Card(Ui.VStack(6, Ui.Overline("Affected"), list), 12, "SurfaceHigh", 12),
             Ui.Columns(16, [1, 1], key1, key2),
             Ui.Field("Slide to confirm", slider), state,

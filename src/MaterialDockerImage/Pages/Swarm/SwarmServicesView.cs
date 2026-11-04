@@ -24,8 +24,8 @@ public sealed class SwarmServicesView : SwarmTabView
     {
         inspector = new SwarmServiceInspector(this);
         table.Key = s => s.Id;
-        table.EmptyTitle = "No services";
-        table.EmptyMessage = "This swarm runs no services yet. Create one, or deploy a stack from a Compose file.";
+        table.EmptyTitle = Loc.T("No services");
+        table.EmptyMessage = Loc.T("This swarm runs no services yet. Create one, or deploy a stack from a Compose file.");
         table.Column("Name", s => s.Name, 200, true)
             .ChipColumn("Mode", s => s.Mode, s => s.Replicated ? Tone.Neutral : Tone.Tertiary, 110)
             .ChipColumn("Replicas", s => s.Replicas, s => ToneOf(s.Health), 120)
@@ -33,7 +33,7 @@ public sealed class SwarmServicesView : SwarmTabView
             .Column("Ports", s => s.Ports, 180, true)
             .Filter("Not converged", s => s.Health is SwarmHealth.Partial or SwarmHealth.Down)
             .Filter("Global", s => !s.Replicated)
-            .RowAction("Inspect", Icons.DataObject, s => InspectAsync("service", s.Id, "Service " + s.Name), "Enter")
+            .RowAction("Inspect", Icons.DataObject, s => InspectAsync("service", s.Id, Loc.T("Service") + " " + s.Name), "Enter")
             .RowAction("Logs…", Icons.Terminal, LogsAsync)
             .RowAction("Scale…", Icons.UnfoldMore, ScaleAsync)
             .RowAction("Update image…", Icons.CloudSync, UpdateImageAsync)
@@ -41,7 +41,7 @@ public sealed class SwarmServicesView : SwarmTabView
             .RowAction("Copy name", Icons.ContentCopy, s => { PageKit.Copy(s.Name, "the service name"); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
-        table.Activated += s => _ = Guard(() => InspectAsync("service", s.Id, "Service " + s.Name));
+        table.Activated += s => _ = Guard(() => InspectAsync("service", s.Id, Loc.T("Service") + " " + s.Name));
         table.FocusedChanged += s => _ = Guard(() => inspector.ShowAsync(s));
         var create = Ui.Button("Create service", Icons.Add, ButtonKind.Filled, () => SwarmServiceForm.Show(Context, IsCurrent, AfterChange));
         LayoutWith(Ui.Wrap(8, create), Ui.SplitInspector(table, inspector, 1150, 420));
@@ -53,7 +53,7 @@ public sealed class SwarmServicesView : SwarmTabView
         var items = rows.Select(r => new SwarmServiceRow(CliValues.Str(r, "ID"), CliValues.Str(r, "Name"), CliValues.Str(r, "Mode"), CliValues.Str(r, "Replicas"), CliValues.Str(r, "Image"), CliValues.Str(r, "Ports"))).ToList();
         table.SetItems(items);
         var converged = items.Count(i => i.Health == SwarmHealth.Healthy);
-        SetSummary($"{items.Count} service{(items.Count == 1 ? "" : "s")} · {converged} at desired replicas");
+        SetSummary(Loc.Line($"{items.Count} service{(items.Count == 1 ? "" : "s")} · {converged} at desired replicas"));
         await inspector.ShowAsync(table.Focused);
     }
 
@@ -72,7 +72,7 @@ public sealed class SwarmServicesView : SwarmTabView
         if (Stale()) return;
         if (!s.Replicated) { Host.Notify.Error($"{s.Name} runs in global mode: one task per eligible node. Only replicated services can be scaled."); return; }
         var current = SwarmRules.ParseReplicas(s.Replicas)?.Desired.ToString(CultureInfo.InvariantCulture) ?? "1";
-        var value = await Host.Overlay.PromptAsync("Scale " + s.Name, "Replicas", current,
+        var value = await Host.Overlay.PromptAsync(Loc.T("Scale") + " " + s.Name, "Replicas", current,
             $"Currently {s.Replicas}. The swarm starts or stops tasks until this many run. 0 stops every task but keeps the service.",
             v => int.TryParse(v, NumberStyles.None, CultureInfo.InvariantCulture, out var n) && n is >= 0 and <= 10000 ? null : "Enter a whole number from 0 to 10000.");
         if (value == null || Stale()) return;
@@ -84,7 +84,7 @@ public sealed class SwarmServicesView : SwarmTabView
     {
         if (Stale()) return;
         var current = s.Image.Split('@')[0];
-        var value = await Host.Overlay.PromptAsync("Update image of " + s.Name, "Image", current,
+        var value = await Host.Overlay.PromptAsync(Loc.T("Update image of") + " " + s.Name, "Image", current,
             "Starts a rolling update to this image using the service's update policy. The previous specification is kept for Roll back.",
             v => PageKit.ValidateReference(v));
         if (value == null || Stale()) return;
@@ -95,18 +95,18 @@ public sealed class SwarmServicesView : SwarmTabView
     public async Task RollbackAsync(SwarmServiceRow s)
     {
         if (Stale()) return;
-        if (!await Host.Overlay.ConfirmAsync("Roll back " + s.Name, "Returns the service to its previous specification (image, environment, ports and other settings) using the rollback policy. Only one previous specification is kept.", "Roll back")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Roll back") + " " + s.Name, "Returns the service to its previous specification (image, environment, ports and other settings) using the rollback policy. Only one previous specification is kept.", "Roll back")) return;
         if (Stale()) return;
-        await Run("Roll back " + s.Name, ["service", "rollback", s.Id]);
+        await Run(Loc.T("Roll back") + " " + s.Name, ["service", "rollback", s.Id]);
         await AfterChange();
     }
 
     public async Task RemoveAsync(SwarmServiceRow s)
     {
         if (Stale()) return;
-        if (!await Host.Overlay.ConfirmAsync("Remove service " + s.Name, $"Stops every task of {s.Name} ({s.Replicas}) and deletes the service definition. Volumes, secrets and configs it uses are kept.", "Remove", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Remove service") + " " + s.Name, $"Stops every task of {s.Name} ({s.Replicas}) and deletes the service definition. Volumes, secrets and configs it uses are kept.", "Remove", true)) return;
         if (Stale()) return;
-        await Run("Remove service " + s.Name, ["service", "rm", s.Id]);
+        await Run(Loc.T("Remove service") + " " + s.Name, ["service", "rm", s.Id]);
         await AfterChange();
     }
 

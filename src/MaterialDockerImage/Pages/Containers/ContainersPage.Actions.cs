@@ -65,9 +65,9 @@ public sealed partial class ContainersPage
         if (!(row.IsRunning || row.IsPaused || row.IsRestarting)) { Host.Notify.Info($"{row.Name} is not running."); return; }
         var signal = Ui.Combo(["SIGKILL", "SIGTERM", "SIGINT", "SIGHUP", "SIGQUIT", "SIGUSR1", "SIGUSR2"], "SIGKILL", true);
         var form = Ui.VStack(12,
-            Ui.Text($"Sends a signal to the main process of {row.Name}. SIGKILL ends it immediately without cleanup and can lose unsaved data; Stop is the graceful option.", 14, null, "OnSurfaceVariant", true, false),
+            Ui.Text($"Sends a signal to the main process of {row.Name}. SIGKILL ends it immediately without cleanup and can lose unsaved data; Stop is the graceful option.", 14, null, "OnSurfaceVariant", true, true),
             Ui.Field("Signal", signal, "The signal docker container kill sends. Names (SIGTERM) or numbers (15) are accepted.", "SIGTERM"));
-        PageKit.Dialog("Kill " + row.Name, null, form, "Kill", async () =>
+        PageKit.Dialog(Loc.T("Kill") + " " + row.Name, null, form, "Kill", async () =>
         {
             var s = signal.Text.Trim().ToUpperInvariant();
             if (!Regex.IsMatch(s, @"^(SIG[A-Z0-9+-]+|[0-9]{1,2})$", RegexOptions.None, TimeSpan.FromMilliseconds(100))) return "Enter a signal name such as SIGTERM or a number such as 15.";
@@ -81,7 +81,7 @@ public sealed partial class ContainersPage
     private async Task RenameAsync(ContainerRow row)
     {
         if (!EnsureCurrent()) return;
-        var name = await Host.Overlay.PromptAsync("Rename " + row.Name, "New name", row.Name, "Container names must be unique on this engine and start with a letter or digit.",
+        var name = await Host.Overlay.PromptAsync(Loc.T("Rename") + " " + row.Name, "New name", row.Name, "Container names must be unique on this engine and start with a letter or digit.",
             v => ContainerName.IsMatch(v) ? v == row.Name ? "Enter a different name." : null : "Use letters, digits, underscores, periods and hyphens, starting with a letter or digit.");
         if (name == null || !EnsureCurrent()) return;
         var result = await Host.Execute($"Rename {row.Name} to {name}", ["container", "rename", row.Id, name], boundContext: SnapshotContext);
@@ -101,7 +101,7 @@ public sealed partial class ContainersPage
             Ui.Field("Commit message", message, "Optional --message stored in the image history.", "State after reproducing issue 412"),
             Ui.Field("Author", author, "Optional --author.", "Jane Doe <jane@example.com>"),
             pause);
-        PageKit.Dialog("Commit " + row.Name + " to image", null, form, "Commit", async () =>
+        PageKit.Dialog(Loc.T("Commit") + " " + row.Name + " to image", null, form, "Commit", async () =>
         {
             var r = reference.Text.Trim();
             if (PageKit.ValidateReference(r, false) is { } problem) return problem;
@@ -135,8 +135,8 @@ public sealed partial class ContainersPage
         if (!EnsureCurrent()) return;
         if (row.IsRunning || row.IsPaused || row.IsRestarting) { Host.Notify.Warning($"{row.Name} is {row.StateLabel}. Stop it before removing; this app does not force-remove running containers."); return; }
         var volumes = Ui.Switch("Also remove anonymous volumes", false, _ => { }, "docker container rm --volumes deletes unnamed volumes created for this container. Their data cannot be recovered. Named volumes are kept.");
-        var form = Ui.VStack(12, Ui.Text($"Removes container {row.Name} ({row.ShortId}). Its writable layer is deleted; the image is kept.", 14, null, "OnSurfaceVariant", true, false), volumes);
-        PageKit.Dialog("Remove " + row.Name, null, form, "Remove", async () =>
+        var form = Ui.VStack(12, Ui.Text($"Removes container {row.Name} ({row.ShortId}). Its writable layer is deleted; the image is kept.", 14, null, "OnSurfaceVariant", true, true), volumes);
+        PageKit.Dialog(Loc.T("Remove") + " " + row.Name, null, form, "Remove", async () =>
         {
             var args = new List<string> { "container", "rm" };
             if (volumes.IsChecked == true)
@@ -181,7 +181,7 @@ public sealed partial class ContainersPage
         var stopped = table.Items.Where(c => c.IsStopped).Select(c => $"{c.Name}  ({c.ShortId}, {c.Status})").ToList();
         if (stopped.Count == 0) { Host.Notify.Info("There are no stopped containers in the current list."); return; }
         if (!await Host.Overlay.SuperConfirmAsync("Remove all stopped containers",
-            "Runs docker container prune --force on context " + (SnapshotContext ?? "default") + ". The engine decides the final set, which may differ if containers changed since the last refresh.", stopped)) return;
+            Loc.T("Runs docker container prune --force on context") + " " + (SnapshotContext ?? "default") + ". The engine decides the final set, which may differ if containers changed since the last refresh.", stopped)) return;
         if (!EnsureCurrent()) return;
         await Host.Execute("Prune stopped containers", ["container", "prune", "--force"], boundContext: SnapshotContext);
         await SafeRefresh();
@@ -192,7 +192,7 @@ public sealed partial class ContainersPage
         if (!EnsureCurrent()) return;
         IReadOnlyList<System.Text.Json.JsonElement> images;
         try { images = await Host.ReadRows(["image", "ls", "--format", "{{json .}}"], SnapshotContext); }
-        catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException) { Host.Notify.Error("Local images could not be listed: " + e.Message); return; }
+        catch (Exception e) when (e is InvalidOperationException or System.Text.Json.JsonException) { Host.Notify.Error(Loc.T("Local images could not be listed:") + " " + e.Message); return; }
         var refs = images.Select(ImageRow.From).Where(i => i.Tagged).Select(i => i.Reference).Distinct().OrderBy(r => r, StringComparer.OrdinalIgnoreCase).ToList();
         if (refs.Count == 0)
         {

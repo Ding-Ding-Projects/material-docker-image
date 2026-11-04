@@ -9,6 +9,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/UserSettings.cs" Link="UserSettings.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/StructuredInputs.cs" Link="StructuredInputs.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/Loc.cs" Link="Loc.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/Services/LocStrings*.cs" LinkBase="Loc"/>
     <Compile Include="../../src/MaterialDockerImage/Services/HistoryStore.cs" Link="HistoryStore.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/Base64Tools.cs" Link="Base64Tools.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/DockerfileModel*.cs" LinkBase="Dockerfile"/>

@@ -64,9 +64,9 @@ public static class VolumeRestoreDialog
             var usersNote = users.Count > 0 ? $" Running containers use this volume: {string.Join(", ", users)}." : "";
             if (wipe)
             {
-                if (!await Host.Overlay.SuperConfirmAsync("Replace the contents of " + name, "Every file currently in the volume is deleted, then the archive is extracted. This cannot be undone." + usersNote, [$"volume {name}: all current files", $"archive {file}"])) return "Restore canceled.";
+                if (!await Host.Overlay.SuperConfirmAsync(Loc.T("Replace the contents of") + " " + name, "Every file currently in the volume is deleted, then the archive is extracted. This cannot be undone." + usersNote, [$"volume {name}: all current files", $"archive {file}"])) return "Restore canceled.";
             }
-            else if (!isNew && !await Host.Overlay.ConfirmAsync("Restore into " + name, "Files from the archive are added to the volume and overwrite files with the same path." + usersNote, "Restore", true)) return "Restore canceled.";
+            else if (!isNew && !await Host.Overlay.ConfirmAsync(Loc.T("Restore into") + " " + name, "Files from the archive are added to the volume and overwrite files with the same path." + usersNote, "Restore", true)) return "Restore canceled.";
             if (!isCurrent()) return PageKit.StaleMessage(context());
             if (isNew)
             {
@@ -88,7 +88,7 @@ public static class VolumeRestoreDialog
     public static async Task CloneAsync(VolumeRow source, IReadOnlyList<string> existing, Func<string?> context, Func<bool> isCurrent, Func<Task> reload)
     {
         if (!isCurrent()) { Host.Notify.Error(PageKit.StaleMessage(context())); return; }
-        var name = await Host.Overlay.PromptAsync("Clone volume " + source.Name, "New volume name", source.Name + "-copy",
+        var name = await Host.Overlay.PromptAsync(Loc.T("Clone volume") + " " + source.Name, "New volume name", source.Name + "-copy",
             "A new volume is created and every file is copied into it with a helper container (" + VolumeArchiveCommands.DefaultHelperImage + "). The source is mounted read-only. No host folder is used, so this also works on remote engines.",
             v => VolumeArchiveCommands.ValidateVolumeName(v) ?? (existing.Contains(v, StringComparer.Ordinal) ? "A volume with this name already exists. Clone only creates new volumes." : null));
         if (name == null) return;

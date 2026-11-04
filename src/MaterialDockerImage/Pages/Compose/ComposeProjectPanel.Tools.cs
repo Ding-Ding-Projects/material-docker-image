@@ -48,7 +48,7 @@ public sealed partial class ComposeProjectPanel
         foreach (var file in envFiles.ToList())
         {
             var f = file;
-            var remove = Ui.IconButton(Icons.Close, "Remove env file " + Path.GetFileName(f), () => { envFiles.Remove(f); ApplyEnvFiles(); });
+            var remove = Ui.IconButton(Icons.Close, Loc.T("Remove env file") + " " + Path.GetFileName(f), () => { envFiles.Remove(f); ApplyEnvFiles(); });
             remove.Width = remove.Height = remove.MinHeight = 24; remove.FontSize = 14;
             var label = Ui.Mono("--env-file " + Path.GetFileName(f), 12, "OnPrimaryContainer");
             var chip = new Border { Child = Ui.HStack(4, label, remove), CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 2, 4, 2), Margin = new Thickness(0, 0, 8, 6), ToolTip = f };
@@ -96,13 +96,13 @@ public sealed partial class ComposeProjectPanel
         if (!config.Success) { ShowOutput("Compose config is invalid", config, "Watch needs a valid Compose file"); return; }
         IReadOnlyList<string> watched;
         try { watched = ComposeWatchSupport.ServicesWithWatch(config.StandardOutput); }
-        catch (JsonException e) { Host.Notify.Error("The resolved Compose model could not be read: " + e.Message); return; }
+        catch (JsonException e) { Host.Notify.Error(Loc.T("The resolved Compose model could not be read:") + " " + e.Message); return; }
         if (watched.Count == 0)
         {
             Action? close = null;
             var body = Ui.VStack(14,
                 Ui.Title("Nothing to watch", 20),
-                Ui.Text("No service in this project declares develop.watch rules, so docker compose watch would exit without watching anything. Add a develop section to the services you want to rebuild or sync on change, save, and try again.", 14, null, "OnSurfaceVariant", true, false),
+                Ui.Text("No service in this project declares develop.watch rules, so docker compose watch would exit without watching anything. Add a develop section to the services you want to rebuild or sync on change, save, and try again.", 14, null, "OnSurfaceVariant", true, true),
                 Ui.Card(Ui.VStack(4, Ui.Overline("Worked example"), Ui.Mono("services:\n  web:\n    build: .\n    develop:\n      watch:\n        - action: sync\n          path: ./src\n          target: /app/src\n        - action: rebuild\n          path: package.json", 12, "OnSurface", true)), 12, "SurfaceHigh", 12),
                 Ui.Button("Close", null, ButtonKind.Filled, () => close?.Invoke()).Margin(0, 4, 0, 0));
             close = Host.Overlay.Show(body, 560);
@@ -117,7 +117,7 @@ public sealed partial class ComposeProjectPanel
     {
         if (target == null || entry == null) { Host.Notify.Info("Select a Compose project first."); return; }
         var r = await Host.Read(target.Args(activeProfiles, "top"), Context());
-        ShowOutput("Processes · " + entry.Name, r, "docker compose top · one table per running container");
+        ShowOutput(Loc.T("Processes ·") + " " + entry.Name, r, "docker compose top · one table per running container");
     }
 
     private async Task ImagesAsync()
@@ -127,8 +127,8 @@ public sealed partial class ComposeProjectPanel
         try { rows = await Host.ReadRows(target.Args(activeProfiles, "images", "--format", "json"), Context()); }
         catch (Exception e) when (e is InvalidOperationException or JsonException) { Host.Notify.Error("docker compose images failed: " + e.Message); return; }
         var table = new DataTable<JsonElement>("Compose images", "Search images");
-        table.EmptyTitle = "No images";
-        table.EmptyMessage = "No container of this project exists yet, so Compose reports no images. Run Up first.";
+        table.EmptyTitle = Loc.T("No images");
+        table.EmptyMessage = Loc.T("No container of this project exists yet, so Compose reports no images. Run Up first.");
         string Size(JsonElement x) => CliValues.Get(x, "Size") is { ValueKind: JsonValueKind.Number } ? Ui.FormatBytes(CliValues.Long(x, "Size")) : CliValues.Str(x, "Size");
         string ShortId(JsonElement x) { var id = CliValues.Str(x, "ID").Replace("sha256:", ""); return id.Length > 12 ? id[..12] : id; }
         table.Column("Container", x => CliValues.Str(x, "ContainerName"), 200, true)
@@ -149,7 +149,7 @@ public sealed partial class ComposeProjectPanel
     {
         if (target == null || entry == null) { Host.Notify.Info("Select a Compose project first."); return Task.CompletedTask; }
         if (!IsCurrent()) { Host.Notify.Error("The engine context changed. Refresh Compose first."); return Task.CompletedTask; }
-        ComposeEventsViewer.Show("Events · " + entry.Name, target.Args(activeProfiles, "events", "--json"), Context());
+        ComposeEventsViewer.Show(Loc.T("Events ·") + " " + entry.Name, target.Args(activeProfiles, "events", "--json"), Context());
         return Task.CompletedTask;
     }
 

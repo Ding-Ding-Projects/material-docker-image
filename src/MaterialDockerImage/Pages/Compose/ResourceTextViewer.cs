@@ -114,7 +114,7 @@ public sealed class ResourceTextViewer : Grid
         Action? close = null;
         var closeButton = Ui.Button("Close", null, ButtonKind.Filled, () => close?.Invoke());
         closeButton.HorizontalAlignment = HorizontalAlignment.Right;
-        var body = Ui.Rows(12, [0, 1, 0], Ui.VStack(2, Ui.Title(title, 20), subtitle == null ? null : Ui.Caption(subtitle)), viewer, closeButton);
+        var body = Ui.Rows(12, [0, 1, 0], Ui.VStack(2, Ui.Title(Loc.Lead(title), 20), subtitle == null ? null : Ui.Caption(subtitle)), viewer, closeButton);
         body.Height = DialogHeight(600);
         close = AppHost.Current.Overlay.Show(body, 900);
     }
@@ -135,7 +135,7 @@ public sealed class ResourceTextViewer : Grid
         var stop = Ui.Button(stopLabel, Icons.Stop, ButtonKind.Tonal, () => cts.Cancel());
         var closeButton = Ui.Button("Close", null, ButtonKind.Filled, () => close?.Invoke());
         var actions = Ui.Columns(8, [1, 0, 0], state, stop, closeButton);
-        var body = Ui.Rows(12, [0, 1, 0], Ui.VStack(2, Ui.Title(title, 20), Ui.Caption(subtitle)), viewer, actions);
+        var body = Ui.Rows(12, [0, 1, 0], Ui.VStack(2, Ui.Title(Loc.Lead(title), 20), Ui.Caption(subtitle)), viewer, actions);
         body.Height = DialogHeight(620);
         close = host.Overlay.Show(body, 960, () => cts.Cancel());
         // The overlay's close handle does not report Close button closes, so cancel on unload as well.
@@ -154,7 +154,7 @@ public sealed class ResourceTextViewer : Grid
             }
             catch (Exception e) when (e is System.ComponentModel.Win32Exception or ArgumentException or InvalidOperationException or IOException)
             {
-                state.Text = "Could not start the command: " + e.Message;
+                state.Text = Loc.T("Could not start the command:") + " " + e.Message;
             }
             finally { stop.IsEnabled = false; }
         }

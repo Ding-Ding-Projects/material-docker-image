@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -26,8 +27,8 @@ internal sealed class MinecraftPlayersTab : MinecraftTab
     public MinecraftPlayersTab(MinecraftServerDetail detail) : base(detail)
     {
         table.Key = p => p.Name;
-        table.EmptyTitle = "No players known yet";
-        table.EmptyMessage = "Nobody is online and the operator and whitelist files are empty. Add a player below.";
+        table.EmptyTitle = Loc.T("No players known yet");
+        table.EmptyMessage = Loc.T("Nobody is online and the operator and whitelist files are empty. Add a player below.");
         table.ChipColumn("Status", p => p.Status, p => p.Online ? Tone.Success : Tone.Neutral, 100)
             .Column("Name", p => p.Name, 200, true)
             .Column("Roles", p => p.Roles, 220)
@@ -76,7 +77,7 @@ internal sealed class MinecraftPlayersTab : MinecraftTab
         var white = whiteTask.Result.Success ? MinecraftOutput.NamesFromJson(whiteTask.Result.StandardOutput) : [];
         var names = online.Concat(ops).Concat(white).Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
         table.SetItems(names.Select(n => new MinecraftPlayerRow(n, online.Contains(n, StringComparer.OrdinalIgnoreCase), ops.Contains(n, StringComparer.OrdinalIgnoreCase), white.Contains(n, StringComparer.OrdinalIgnoreCase))));
-        summary.Text = (list is { } l ? $"{l.Online} of {l.Max} online" : "Online players unknown: " + MinecraftOps.Trim(listTask.Result))
+        summary.Text = (list is { } l ? $"{l.Online} of {l.Max} online" : Loc.T("Online players unknown:") + " " + MinecraftOps.Trim(listTask.Result))
             + $" · {ops.Count} operators · {white.Count} whitelisted · whitelist {(s.Spec.Whitelist ? "on" : "off")} · read {DateTime.Now:HH:mm:ss}";
     }
 
@@ -90,7 +91,7 @@ internal sealed class MinecraftPlayersTab : MinecraftTab
 
     private async Task KickAsync(MinecraftPlayerRow p)
     {
-        if (!await Host.Overlay.ConfirmAsync("Kick " + p.Name + "?", "Disconnects the player. They can join again unless removed from the whitelist.", "Kick", true)) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Kick") + " " + p.Name + "?", "Disconnects the player. They can join again unless removed from the whitelist.", "Kick", true)) return;
         await RunAsync("kick " + p.Name);
     }
 

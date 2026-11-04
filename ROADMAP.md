@@ -9,7 +9,7 @@
 - [x] Add append-only local history beside the application data with diff, restore, labels and export.
 - [x] Replace every screenshot with captures of the built application on Windows with a real engine (dark, light and minimum size).
 - [ ] Exercise every destination interactively on a personal Windows machine and record receipts.
-- [ ] Localize page-specific copy in Cantonese and bilingual modes.
+- [x] Localize page-specific copy in Cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).
 - [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
 
 ## Delivered and bounded verification

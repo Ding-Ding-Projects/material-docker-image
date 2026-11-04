@@ -57,9 +57,9 @@ public sealed class ContextPluginsPanel : Border
             foreach (var w in CliValues.Arr(root, "Warnings"))
                 warnings.Children.Add(Ui.Card(Ui.HStack(10, Ui.Icon(Icons.WarningAmber, 18, true, "OnWarningContainer"), Ui.Text(w.ToString(), 13, null, "OnWarningContainer", true, false)), 10, "WarningContainer", 12).Margin(0, 0, 0, 6));
             var failed = plugins.Count(p => p.Failed);
-            summary.Text = $"{plugins.Count} plugin{(plugins.Count == 1 ? "" : "s")} found by the docker CLI" + (failed > 0 ? $" · {failed} failed to load" : " · all loaded") + (r.Success ? "" : " · engine unreachable, client details still shown");
+            summary.Text = Loc.Line($"{plugins.Count} plugin{(plugins.Count == 1 ? "" : "s")} found by the docker CLI" + (failed > 0 ? $" · {failed} failed to load" : " · all loaded") + (r.Success ? "" : " · engine unreachable, client details still shown"));
         }
-        catch (JsonException e) { summary.Text = "The client information could not be parsed: " + e.Message; }
+        catch (JsonException e) { summary.Text = Loc.T("The client information could not be parsed:") + " " + e.Message; }
         Render();
     }
 

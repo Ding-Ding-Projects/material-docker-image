@@ -43,7 +43,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
     private int caretLine = 1, caretColumn = 1, stageCount;
 
     public bool IsDirty => dirty;
-    public string DirtyLabel => "Build: " + (dockerfilePath.Length > 0 ? dockerfilePath : "unsaved Dockerfile draft");
+    public string DirtyLabel => Loc.T("Build:") + " " + (dockerfilePath.Length > 0 ? dockerfilePath : "unsaved Dockerfile draft");
 
     public BuildPage()
     {
@@ -160,7 +160,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException or ArgumentException or NotSupportedException or InvalidOperationException or System.Security.SecurityException)
         {
-            Host.Notify.Warning("The saved Dockerfile could not be resumed: " + e.Message + " Choose another file to continue.");
+            Host.Notify.Warning(Loc.T("The saved Dockerfile could not be resumed:") + " " + e.Message + " Choose another file to continue.");
         }
         return Task.CompletedTask;
     }
@@ -343,7 +343,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         dirty = false; savedAt = DateTime.Now; draftOrigin = "";
         UpdateSubtitle();
         Host.History.Record("dockerfile", "Saved " + path, new Dictionary<string, string> { ["files/dockerfile/" + HistoryStore.SafeName(path) + ".txt"] = text });
-        Host.Notify.Success(Loc.Voice("Dockerfile saved to " + path + ".", "Saved.", "儲存咗。"));
+        Host.Notify.Success(Loc.Voice(Loc.T("Dockerfile saved to") + " " + path + ".", "Saved.", "儲存咗。"));
         return Task.FromResult(true);
     }
 

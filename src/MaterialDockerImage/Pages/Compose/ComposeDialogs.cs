@@ -28,7 +28,7 @@ public static class ComposeDialogs
         var dryRun = Ui.Switch("Dry run", false, _ => { }, "--dry-run: Compose reports what it would do without changing containers, networks or volumes");
         var body = Ui.VStack(14,
             Ui.Title(service == null ? "Up" : "Up " + service, 20),
-            Ui.Caption("Starts in the background (--detach). " + target),
+            Ui.Caption(Loc.T("Starts in the background (--detach).") + " " + target),
             build, orphans, recreate, dryRun,
             Ui.Field("Pull policy", pull, "When to pull images before starting. always pulls every time, missing pulls only absent images, never uses local images only. Default leaves the choice to Compose (missing).", "--pull always"),
             Actions(() => { done.TrySetResult(null); close!(); }, "Up", Icons.PlayArrow, ButtonKind.Filled, () =>
@@ -50,8 +50,8 @@ public static class ComposeDialogs
         volumes.SetResourceReference(Control.ForegroundProperty, "Error");
         var dryRun = Ui.Switch("Dry run", false, _ => { }, "--dry-run: Compose reports what it would stop and remove without changing anything");
         var body = Ui.VStack(14,
-            Ui.Title("Down " + project, 20),
-            Ui.Text("Stops and removes the project's containers and networks. Images are kept. Volumes are kept unless you choose to remove them.", 14, null, "OnSurfaceVariant", true, false),
+            Ui.Title(Loc.T("Down") + " " + project, 20),
+            Ui.Text("Stops and removes the project's containers and networks. Images are kept. Volumes are kept unless you choose to remove them.", 14, null, "OnSurfaceVariant", true, true),
             Ui.Caption(target),
             orphans, volumes, dryRun,
             Actions(() => { done.TrySetResult(null); close!(); }, "Down", Icons.Stop, ButtonKind.Danger, () => { done.TrySetResult(new ComposeDownOptions(volumes.IsChecked == true, orphans.IsChecked == true, dryRun.IsChecked == true)); close!(); }));
@@ -67,7 +67,7 @@ public static class ComposeDialogs
         var follow = Ui.Switch("Follow", true, _ => { }, "Keep streaming new lines until you stop or close the viewer");
         var timestamps = Ui.Switch("Timestamps", false, _ => { }, "Prefix each line with the engine's timestamp");
         var body = Ui.VStack(14,
-            Ui.Title("Logs · " + scope, 20),
+            Ui.Title(Loc.T("Logs ·") + " " + scope, 20),
             Ui.Field("Lines from the end", tail, "How many existing lines to show before following. all reads the whole log, which can be large.", "--tail 500"),
             follow, timestamps,
             Actions(() => { done.TrySetResult(null); close!(); }, "Show logs", Icons.Terminal, ButtonKind.Filled, () =>

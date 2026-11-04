@@ -137,7 +137,7 @@ public sealed partial class CreatorPage
             var row = Ui.Columns(8, [0, 1, 0],
                 Ui.Icon(entry.IsDirectory ? Icons.FolderOpen : Icons.Description, 18, false, entry.Excluded ? "Outline" : "OnSurfaceVariant"),
                 Ui.Mono(entry.Path + (entry.IsDirectory ? "/" : ""), 12, entry.Excluded ? "Outline" : "OnSurface"),
-                Ui.Badge(entry.Excluded ? "Excluded" : entry.IsDirectory ? "Included" : "Included · " + Ui.FormatBytes(entry.Size), entry.Excluded ? Tone.Warning : Tone.Success, true));
+                Ui.Badge(entry.Excluded ? "Excluded" : entry.IsDirectory ? "Included" : Loc.T("Included ·") + " " + Ui.FormatBytes(entry.Size), entry.Excluded ? Tone.Warning : Tone.Success, true));
             var item = new ListBoxItem { Content = row };
             System.Windows.Automation.AutomationProperties.SetName(item, $"{entry.Path}: {(entry.Excluded ? Loc.T("excluded") : Loc.T("included"))}");
             ignoreList.Items.Add(item);
@@ -223,6 +223,6 @@ public sealed partial class CreatorPage
         File.WriteAllText(temporary, composeText);
         File.Move(temporary, path, true);
         Host.History.Record("compose", "Saved " + path + " from the Creator", new Dictionary<string, string> { ["files/compose/" + HistoryStore.SafeName(path) + ".txt"] = composeText });
-        Host.Notify.Success(Loc.Voice("Compose file saved to " + path + ".", "Saved.", "儲存咗。"));
+        Host.Notify.Success(Loc.Voice(Loc.T("Compose file saved to") + " " + path + ".", "Saved.", "儲存咗。"));
     }
 }

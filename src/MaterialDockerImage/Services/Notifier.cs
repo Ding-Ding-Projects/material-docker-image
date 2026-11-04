@@ -42,6 +42,7 @@ public sealed class Notifier
     public void Show(NoticeKind kind, string message, string? actionLabel = null, Action? action = null)
     {
         if (!dispatcher.CheckAccess()) { dispatcher.Invoke(() => Show(kind, message, actionLabel, action)); return; }
+        message = Loc.T(message);
         var notice = new Notice(DateTimeOffset.Now, kind, message);
         Centre.Insert(0, notice);
         while (Centre.Count > 500) Centre.RemoveAt(Centre.Count - 1);

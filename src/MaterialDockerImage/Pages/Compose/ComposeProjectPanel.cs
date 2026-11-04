@@ -60,8 +60,8 @@ public sealed partial class ComposeProjectPanel : Grid
         BuildTools();
 
         services.Key = s => s.Service + "/" + s.Container;
-        services.EmptyTitle = "No services";
-        services.EmptyMessage = "Compose reported no services for this project.";
+        services.EmptyTitle = Loc.T("No services");
+        services.EmptyMessage = Loc.T("Compose reported no services for this project.");
         services.Column("Service", s => s.Service, 140, true)
             .Column("Image", s => s.Image, 200, true)
             .ChipColumn("State", s => s.Created ? s.State : "not created", s => s.StateTone, 110)
@@ -71,9 +71,9 @@ public sealed partial class ComposeProjectPanel : Grid
             .Filter("Running", s => s.State == "running")
             .Filter("Not running", s => s.State != "running")
             .RowAction("Logs", Icons.Terminal, s => LogsAsync(s.Service), "Enter")
-            .RowAction("Start", Icons.PlayArrow, s => Simple("Start " + s.Service, false, "start", s.Service))
-            .RowAction("Stop", Icons.Stop, s => Simple("Stop " + s.Service, false, "stop", s.Service))
-            .RowAction("Restart", Icons.RestartAlt, s => Simple("Restart " + s.Service, false, "restart", s.Service))
+            .RowAction("Start", Icons.PlayArrow, s => Simple(Loc.T("Start") + " " + s.Service, false, "start", s.Service))
+            .RowAction("Stop", Icons.Stop, s => Simple(Loc.T("Stop") + " " + s.Service, false, "stop", s.Service))
+            .RowAction("Restart", Icons.RestartAlt, s => Simple(Loc.T("Restart") + " " + s.Service, false, "restart", s.Service))
             .RowAction("Up this service…", Icons.RocketLaunch, s => UpAsync(s.Service))
             .RowAction("Copy container name", Icons.ContentCopy, s => { if (s.Container.Length > 0) Clipboard.SetText(s.Container); return Task.CompletedTask; });
         services.Activated += s => _ = Ui.RunGuarded(services, () => LogsAsync(s.Service));
@@ -122,7 +122,7 @@ public sealed partial class ComposeProjectPanel : Grid
         var newBadge = Ui.Badge(selected.Status, selected.StatusTone);
         var child = newBadge.Child; newBadge.Child = null; status.Child = child;
         status.SetResourceReference(Border.BackgroundProperty, Ui.ToneKeys(selected.StatusTone).Background);
-        meta.Text = target.HasFiles ? string.Join(" · ", target.Files) : selected.Files.Count > 0 ? "Files reported by the engine are not on this computer: " + string.Join(", ", selected.Files) : "No config files reported";
+        meta.Text = target.HasFiles ? string.Join(" · ", target.Files) : selected.Files.Count > 0 ? Loc.T("Files reported by the engine are not on this computer:") + " " + string.Join(", ", selected.Files) : "No config files reported";
         foreach (var b in fileOnly.Concat(fileOnlyTools)) { b.IsEnabled = target.HasFiles; b.ToolTip = target.HasFiles ? null : Loc.T("Needs the project's Compose file on this computer. Open it with Open Compose file."); }
         await LoadDetailsAsync();
     }
@@ -314,6 +314,6 @@ public sealed partial class ComposeProjectPanel : Grid
     {
         if (target == null || !target.HasFiles) return (false, "No file to validate.");
         var r = await Host.Read(target.Args(activeProfiles, "config", "--quiet"), Context());
-        return r.Success ? (true, "docker compose config --quiet reported the file as valid.") : (false, "Invalid: " + (r.StandardError.Trim().Length > 0 ? r.StandardError.Trim() : "exit code " + r.ExitCode));
+        return r.Success ? (true, "docker compose config --quiet reported the file as valid.") : (false, Loc.T("Invalid:") + " " + (r.StandardError.Trim().Length > 0 ? r.StandardError.Trim() : "exit code " + r.ExitCode));
     }
 }

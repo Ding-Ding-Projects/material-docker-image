@@ -56,10 +56,10 @@ public sealed class SwarmPage : PageBase
     private void UpdateSubtitle()
     {
         var ctx = "context " + (SnapshotContext ?? "current");
-        subtitle.Text = state == null ? ctx
+        subtitle.Text = Loc.Line(state == null ? ctx
             : !state.IsActive ? $"Swarm mode {state.LocalNodeState} · {ctx}"
             : !state.IsManager ? $"Worker node · {ctx}"
-            : (tabSummary.Length > 0 ? tabSummary + " · " : "") + $"{state.Nodes} node{(state.Nodes == 1 ? "" : "s")} · {ctx}";
+            : (tabSummary.Length > 0 ? tabSummary + " · " : "") + $"{state.Nodes} node{(state.Nodes == 1 ? "" : "s")} · {ctx}");
     }
 
     public override async Task RefreshAsync()
@@ -78,7 +78,7 @@ public sealed class SwarmPage : PageBase
         catch (JsonException e)
         {
             state = null;
-            host.Content = Ui.EmptyState(Icons.SyncProblem, "Swarm state unreadable", "The engine's swarm information could not be parsed: " + e.Message);
+            host.Content = Ui.EmptyState(Icons.SyncProblem, "Swarm state unreadable", Loc.T("The engine's swarm information could not be parsed:") + " " + e.Message);
             UpdateSubtitle();
             return;
         }

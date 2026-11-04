@@ -56,7 +56,7 @@ public sealed partial class CanvasPage
                 c.TryGetProperty("State", out var s) ? DockerJson.Text(s, "Status") : "unknown",
                 c.TryGetProperty("Config", out var cfg) ? DockerJson.Text(cfg, "Image") : "", c)).ToList();
         }
-        catch (JsonException e) { ShowRuntimeError("The inspection output could not be read: " + e.Message); return; }
+        catch (JsonException e) { ShowRuntimeError(Loc.T("The inspection output could not be read:") + " " + e.Message); return; }
         DrawRuntime(containers, context);
     }
 

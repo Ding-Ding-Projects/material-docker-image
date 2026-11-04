@@ -72,7 +72,7 @@ public sealed class CleanupPanel : Border
             if (c.Id == "build") Ui.Add(container, Ui.Field("Build cache age", buildAge, "Limits build cache removal to records last used before this age, using --filter until=24h or until=168h. Any age removes all unused build cache.", "docker builder prune -f --filter until=24h").Margin(36, 8, 0, 0), 0);
             if (c.Id == "volumes")
             {
-                var warn = Ui.Card(Ui.HStack(8, Ui.Icon(Icons.Warning, 18, true, "OnErrorContainer"), Ui.Text("Off by default. Without --all only anonymous unused volumes are removed; with --all every unused named volume is removed too.", 13, null, "OnErrorContainer", true, false)), 10, "ErrorContainer", 12).Margin(36, 8, 0, 0);
+                var warn = Ui.Card(Ui.HStack(8, Ui.Icon(Icons.Warning, 18, true, "OnErrorContainer"), Ui.Text("Off by default. Without --all only anonymous unused volumes are removed; with --all every unused named volume is removed too.", 13, null, "OnErrorContainer", true, true)), 10, "ErrorContainer", 12).Margin(36, 8, 0, 0);
                 Ui.Add(container, warn, 0);
                 Ui.Add(container, allVolumes, 0);
             }
@@ -182,7 +182,7 @@ public sealed class CleanupPanel : Border
         }
         if (!selected.Any(c => c.Danger)) affected.Add("Volumes: not included (kept)");
         var title = selected.Any(c => c.Danger) ? "Remove unused data including volumes" : "Remove unused data";
-        if (!await Host.Overlay.SuperConfirmAsync(title, "This cannot be undone. Each selected category runs as its own prune command against context " + (boundContext() ?? "current") + ".", affected)) return;
+        if (!await Host.Overlay.SuperConfirmAsync(title, Loc.T("This cannot be undone. Each selected category runs as its own prune command against context") + " " + (boundContext() ?? "current") + ".", affected)) return;
         if (!isCurrent()) { Host.Notify.Error("The engine context changed during confirmation. Nothing was removed."); return; }
 
         var report = new List<string>();

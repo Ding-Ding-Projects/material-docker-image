@@ -208,7 +208,7 @@ public sealed class CreatorChipsInput : StackPanel
         for (var k = 0; k < values.Count; k++)
         {
             var index = k;
-            var remove = Ui.IconButton(Icons.Close, "Remove " + values[k], () => { values.RemoveAt(index); Rebuild(); changed(); });
+            var remove = Ui.IconButton(Icons.Close, Loc.T("Remove") + " " + values[k], () => { values.RemoveAt(index); Rebuild(); changed(); });
             remove.Width = remove.Height = remove.MinHeight = 24; remove.FontSize = 14;
             var chip = new Border { CornerRadius = new CornerRadius(8), Padding = new Thickness(10, 2, 2, 2), Margin = new Thickness(0, 0, 6, 6), Child = Ui.HStack(4, Ui.Mono(values[k], 12, "OnSecondaryContainer"), remove) };
             ((FrameworkElement)((StackPanel)chip.Child).Children[0]).VerticalAlignment = VerticalAlignment.Center;

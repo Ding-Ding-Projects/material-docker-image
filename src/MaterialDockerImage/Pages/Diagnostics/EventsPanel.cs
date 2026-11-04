@@ -169,7 +169,7 @@ internal sealed class EventsPanel
         }
         catch (OperationCanceledException) { end = "Stopped"; }
         catch (System.ComponentModel.Win32Exception) { end = "Stream ended: the docker command was not found"; }
-        catch (Exception e) when (e is ArgumentException or InvalidOperationException or IOException) { end = "Stream ended: " + e.Message; }
+        catch (Exception e) when (e is ArgumentException or InvalidOperationException or IOException) { end = Loc.T("Stream ended:") + " " + e.Message; }
         if (stream == source) { stream = null; toggle.IsChecked = false; }
         source.Dispose();
         state = end;

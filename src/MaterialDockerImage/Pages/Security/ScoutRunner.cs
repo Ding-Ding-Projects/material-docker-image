@@ -100,7 +100,7 @@ internal static class ScoutRunner
         }
         catch (Exception e) when (e is FormatException or IOException or UnauthorizedAccessException)
         {
-            return new ScoutScanResult(reference, imageId, context, ScoutState.Failed, [], "The SARIF report could not be read: " + e.Message, DateTime.UtcNow);
+            return new ScoutScanResult(reference, imageId, context, ScoutState.Failed, [], Loc.T("The SARIF report could not be read:") + " " + e.Message, DateTime.UtcNow);
         }
     }
 
@@ -140,6 +140,6 @@ internal static class ScoutRunner
         if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps) { Host.Notify.Warning("This finding has no https advisory link."); return; }
         if (!await Host.Overlay.ConfirmAsync("Open advisory", "Opens this page in your default browser:\n\n" + url, "Open")) return;
         try { System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true }); }
-        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException) { Host.Notify.Error("The browser could not be opened: " + e.Message); }
+        catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException) { Host.Notify.Error(Loc.T("The browser could not be opened:") + " " + e.Message); }
     }
 }

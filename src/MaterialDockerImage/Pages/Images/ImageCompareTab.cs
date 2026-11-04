@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -58,7 +59,7 @@ internal sealed class ImageCompareTab : ImageDetailTab
     {
         if (picker?.Selected is not { } other) { Host.Notify.Warning("Choose an image to compare with."); return; }
         if (!EnsureCurrent()) return;
-        result.Content = Loading("Inspecting " + other + "…");
+        result.Content = Loading(Loc.T("Inspecting") + " " + other + "…");
         var inspect = await Host.Read(["image", "inspect", other], Ctx.Context);
         if (!inspect.Success) { result.Content = Ui.Text("docker image inspect " + other + " failed: " + inspect.StandardError.Trim(), 13, null, "Error", true, false); return; }
         try
@@ -66,7 +67,7 @@ internal sealed class ImageCompareTab : ImageDetailTab
             left = ImageCompare.FromInspect(Ctx.RawJson, Ctx.Image.Reference);
             right = ImageCompare.FromInspect(inspect.StandardOutput, other);
         }
-        catch (Exception e) when (e is JsonException or FormatException) { result.Content = Ui.Text("The image details could not be parsed: " + e.Message, 13, null, "Error", true, false); return; }
+        catch (Exception e) when (e is JsonException or FormatException) { result.Content = Ui.Text(Loc.T("The image details could not be parsed:") + " " + e.Message, 13, null, "Error", true, false); return; }
         diff = ImageCompare.Diff(left, right);
         result.Content = Render(left, right);
     }

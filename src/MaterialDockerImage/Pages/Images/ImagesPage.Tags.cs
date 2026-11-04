@@ -1,5 +1,6 @@
 using System.Windows;
 using MaterialDockerImage.UI;
+using MaterialDockerImage.Services;
 
 namespace MaterialDockerImage.Pages;
 
@@ -18,7 +19,7 @@ public sealed partial class ImagesPage
             Ui.Field("New references, one per line", box,
                 $"Each line is registry/repository:tag. Empty lines and duplicates are ignored. At most {MaxRetagTargets} names at once.",
                 "ghcr.io/acme/api:1.4.0\nghcr.io/acme/api:1.4\nghcr.io/acme/api:latest"));
-        PageKit.Dialog("Retag " + image.Name + " to multiple tags", null, form, "Add tags", async () =>
+        PageKit.Dialog(Loc.T("Retag") + " " + image.Name + " to multiple tags", null, form, "Add tags", async () =>
         {
             var targets = box.Text.Replace("\r\n", "\n").Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).Distinct(StringComparer.Ordinal).ToList();
             if (targets.Count == 0) return "Enter at least one reference.";

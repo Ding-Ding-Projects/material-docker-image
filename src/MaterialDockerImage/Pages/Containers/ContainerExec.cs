@@ -104,7 +104,7 @@ internal sealed class ContainerExec : StackPanel
         }
         catch (System.ComponentModel.Win32Exception e)
         {
-            Host.Notify.Error("The terminal could not be opened: " + e.Message + ". Check that docker is installed and on PATH.");
+            Host.Notify.Error(Loc.T("The terminal could not be opened:") + " " + e.Message + ". Check that docker is installed and on PATH.");
         }
     }
 }

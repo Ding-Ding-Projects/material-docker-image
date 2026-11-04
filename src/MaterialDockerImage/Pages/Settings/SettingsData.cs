@@ -86,7 +86,7 @@ public sealed partial class SettingsPage
             Commit("Display name set to " + value);
         }
         var save = Ui.Button("Save", Icons.Save, ButtonKind.Tonal, () => SaveName(name.Text));
-        var reset = Ui.Button("Reset to " + UserSettings.ShippedName, null, ButtonKind.Text, () => { name.Text = UserSettings.ShippedName; SaveName(UserSettings.ShippedName); }, false);
+        var reset = Ui.Button(Loc.T("Reset to") + " " + UserSettings.ShippedName, null, ButtonKind.Text, () => { name.Text = UserSettings.ShippedName; SaveName(UserSettings.ShippedName); }, false);
         name.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) SaveName(name.Text); };
         rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.HStack(8, name, save, reset), error), s => s.DisplayName, null, true);
         var (version, _, built) = PageParts.AppInfo();
@@ -108,9 +108,9 @@ public sealed partial class SettingsPage
         try
         {
             File.WriteAllText(dialog.FileName, S.ToJson(), new UTF8Encoding(false));
-            Host.Notify.Success("Settings exported to " + Path.GetFileName(dialog.FileName) + ".");
+            Host.Notify.Success(Loc.T("Settings exported to") + " " + Path.GetFileName(dialog.FileName) + ".");
         }
-        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error("The settings could not be exported: " + e.Message); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The settings could not be exported:") + " " + e.Message); }
     }
 
     private async Task ImportSettingsAsync()
@@ -127,13 +127,13 @@ public sealed partial class SettingsPage
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
         {
-            Host.Notify.Error("The file is not a valid settings file: " + e.Message);
+            Host.Notify.Error(Loc.T("The file is not a valid settings file:") + " " + e.Message);
             return;
         }
         var changes = Differences(S, imported);
         if (changes.Count == 0) { Host.Notify.Info("The file matches your current settings. Nothing changed."); return; }
         var preview = string.Join("\n", changes.Take(30)) + (changes.Count > 30 ? $"\n…and {changes.Count - 30} more" : "");
-        if (!await Host.Overlay.ConfirmAsync("Import " + changes.Count + " setting change(s)?", preview + "\n\nThe current settings are kept in local history, so you can restore them from Activity.", "Import")) return;
+        if (!await Host.Overlay.ConfirmAsync(Loc.T("Import") + " " + changes.Count + " setting change(s)?", preview + "\n\nThe current settings are kept in local history, so you can restore them from Activity.", "Import")) return;
         RecordCurrent("Settings before import");
         PageParts.CopySettings(imported, S);
         if (S.PersonalVocabularyPath.Length > 0 && File.Exists(S.PersonalVocabularyPath)) Loc.LoadVocabulary(S.PersonalVocabularyPath); else Loc.ClearVocabulary();
