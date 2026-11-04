@@ -974,6 +974,7 @@ count += RegexPartialChecks.Run();
 count += RegexFinishChecks.Run();
 count += RegexGrepAttributeEncodingChecks.Run();
 count += RegexGrepToolChecks.Run();
+count += RegexFlavorVersionToolChecks.Run();
 
 {
     // ----- App identity: display name and logo -----
