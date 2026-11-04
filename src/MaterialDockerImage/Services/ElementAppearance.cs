@@ -102,12 +102,48 @@ public static class ElementAppearance
     {
         error = "";
         if (loadProblem != null) { error = "element-appearance.json could not be read (" + loadProblem + "). Move or fix the file first."; return false; }
+        style = Guarded(key, style, out var heldBack);
+        if (heldBack.Count > 0) error = LockedMessage;
         if (!Store.Set(key, style) && !(style.Normalized().IsEmpty)) { error = ElementKey.IsValid(key) ? $"At most {ElementAppearanceStore.MaxItems} elements can be customised. Reset one first." : "That element cannot be identified."; return false; }
-        return Persist(historyLabel, out error, onlyThis);
+        var saved = Persist(historyLabel, out var persistError, onlyThis);
+        if (!saved || persistError.Length > 0) error = persistError;
+        return saved;
     }
 
-    public static bool Reset(string key, out string error) { Store.Reset(key); return Persist("element reset", out error); }
-    public static bool ResetAll(out string error) { Store.ResetAll(); return Persist("all elements reset", out error); }
+    /// <summary>The style that may be stored for an element: every property a lock covers keeps its existing value.</summary>
+    private static ElementStyle Guarded(string key, ElementStyle proposed, out IReadOnlyList<string> heldBack)
+    {
+        heldBack = Array.Empty<string>();
+        if (AppHost.Current is not { } host) return proposed;
+        return AppearanceLocks.Guard(host.Settings, key, Store.Get(key), proposed, out heldBack);
+    }
+
+    private const string LockedMessage = "Locked properties kept their values. Unlock them to change them.";
+
+    public static bool Reset(string key, out string error)
+    {
+        error = "";
+        var kept = Guarded(key, new ElementStyle(), out var heldBack);
+        if (heldBack.Count > 0) { Store.Set(key, kept); error = LockedMessage; } else Store.Reset(key);
+        var saved = Persist("element reset", out var persistError);
+        if (!saved || persistError.Length > 0) error = persistError;
+        return saved && heldBack.Count == 0;
+    }
+
+    public static bool ResetAll(out string error)
+    {
+        error = "";
+        var protectedKeys = new List<string>();
+        foreach (var (key, _) in Store.Items.ToList())
+        {
+            var kept = Guarded(key, new ElementStyle(), out var heldBack);
+            if (heldBack.Count > 0) { Store.Set(key, kept); protectedKeys.Add(key); } else Store.Reset(key);
+        }
+        var saved = Persist("all elements reset", out var persistError);
+        if (!saved || persistError.Length > 0) error = persistError;
+        else if (protectedKeys.Count > 0) error = "Some elements keep locked properties. Unlock them to reset them.";
+        return saved && protectedKeys.Count == 0;
+    }
 
     private static bool Persist(string? historyLabel, out string error, FrameworkElement? onlyThis = null)
     {

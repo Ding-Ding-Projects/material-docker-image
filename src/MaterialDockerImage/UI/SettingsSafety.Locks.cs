@@ -66,6 +66,7 @@ public static class ElementLocks
                 kept.Add(name);
             }
         }
+        kept.AddRange(AppearanceLocks.PreserveRoles(current, target).Select(r => "RoleOverrides." + r));
         target.LockedSettings = current.LockedSettings.ToList();
         target.LockLabels = new Dictionary<string, string>(current.LockLabels, StringComparer.Ordinal);
         return kept;
@@ -91,6 +92,7 @@ public static class ElementLocks
     /// <summary>A comparable text of the values a settings row owns, so "this action only" can tell when the person changed the row. Empty for a lock that is not a settings row.</summary>
     public static string Snapshot(UserSettings settings, string id)
     {
+        if (AppearanceLocks.SnapshotOf(settings, id) is { } role) return role;
         if (!Properties.TryGetValue(id, out var names)) return "";
         return string.Join("", names.Select(name =>
         {

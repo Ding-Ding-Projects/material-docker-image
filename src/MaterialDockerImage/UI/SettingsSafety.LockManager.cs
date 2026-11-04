@@ -72,7 +72,9 @@ public static class LockManager
 
     /// <summary>The readable name of a lock: its stored label, else the settings row it belongs to, else the id itself.</summary>
     public static string LabelOf(UserSettings settings, string id) =>
-        settings.LockLabels.TryGetValue(id, out var label) ? label : ElementLocks.Properties.ContainsKey(id) ? "Setting: " + id : id;
+        settings.LockLabels.TryGetValue(id, out var label) ? label
+        : TabLocks.LabelFor(id) ?? AppearanceLocks.LabelFor(id)
+        ?? (id.StartsWith("tab.", StringComparison.Ordinal) ? "Tab: " + id[4..] : ElementLocks.Properties.ContainsKey(id) ? "Setting: " + id : id);
 
     /// <summary>The text a search matches: id, label, policy, duration and the locked or unlocked state, so a locked result is always labelled as locked.</summary>
     public static string SearchText(LockRow row) =>
