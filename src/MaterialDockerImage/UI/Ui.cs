@@ -227,12 +227,11 @@ public static class Ui
     public static Border Segmented(IReadOnlyList<string> options, string selected, Action<string> changed, bool translate = true)
     {
         var group = "seg" + Guid.NewGuid().ToString("N");
-        // Equal segments sized to the widest label plus the selected check mark, so a selected label is never cut.
+        // Star columns fill a fixed width; with no width set they size equally to the widest label and its check mark.
         var grid = new Grid();
-        Grid.SetIsSharedSizeScope(grid, true);
         for (var i = 0; i < options.Count; i++)
         {
-            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, SharedSizeGroup = "Segment" });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var option = options[i];
             var radius = options.Count == 1 ? new CornerRadius(20) : i == 0 ? new CornerRadius(20, 0, 0, 20) : i == options.Count - 1 ? new CornerRadius(0, 20, 20, 0) : new CornerRadius(0);
             var r = new RadioButton { Style = (Style)Application.Current.FindResource("Segment"), GroupName = group, Content = translate ? Loc.T(option) : option, IsChecked = option == selected, Tag = radius, BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
@@ -241,7 +240,7 @@ public static class Ui
             Grid.SetColumn(r, i);
             grid.Children.Add(r);
         }
-        var border = new Border { Child = grid, CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1), ClipToBounds = true, HorizontalAlignment = HorizontalAlignment.Left };
+        var border = new Border { Child = grid, CornerRadius = new CornerRadius(20), BorderThickness = new Thickness(1), ClipToBounds = true };
         border.SetResourceReference(Border.BorderBrushProperty, "Outline");
         return border;
     }
@@ -333,8 +332,8 @@ public static class Ui
             else
             {
                 // Stacked: the list keeps enough height for its header, filters and several full rows above any scroll bar.
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1.6, GridUnitType.Star), MinHeight = 240 });
-                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 140 });
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star), MinHeight = 240 });
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 150 });
                 list.At(0, 0); inspector.At(1, 0);
                 inspector.Width = double.NaN; inspector.Margin = new Thickness(0, gap, 0, 0);
             }

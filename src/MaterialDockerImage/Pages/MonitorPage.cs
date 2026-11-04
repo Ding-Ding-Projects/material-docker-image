@@ -51,9 +51,10 @@ public sealed class MonitorPage : PageBase
             Host.SaveSettings($"Monitor sampling interval set to {seconds} s");
             ApplyInterval();
         }, false);
-        interval.Width = 240;
+        // No fixed width: the segments size to their labels so the selected one keeps its check mark and text.
+        interval.HorizontalAlignment = HorizontalAlignment.Left;
         var liveToggle = Ui.Segmented(["Paused", "Live"], "Live", v => SetLive(v == "Live"));
-        liveToggle.Width = 220;
+        liveToggle.HorizontalAlignment = HorizontalAlignment.Left;
         var header = Ui.Header("Live monitor", "Live CPU, memory, network and disk from docker stats", out subtitle,
             Ui.Field("Sampling interval", interval, "How often the page asks the engine for one stats reading of every running container. Shorter intervals give smoother charts and cost more engine work. Saved in settings.json as MonitorIntervalSeconds (default 2 s, built-in).", "2 s keeps 120 samples, about 4 minutes of history per container."),
             Ui.Field("Sampling", liveToggle, "Live polls while this page is visible. Paused keeps the samples already taken and stops asking the engine. Polling also stops whenever you leave this page."),

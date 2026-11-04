@@ -650,6 +650,8 @@ public partial class MainWindow : Window
             Navigate(d.Key);
             var page = Page(d.Key);
             try { await page.SafeRefresh().WaitAsync(TimeSpan.FromSeconds(30)); } catch (TimeoutException) { }
+            // A refresh queued behind an earlier one (for example after the context switch) returns at once; wait for it.
+            for (var waited = 0; page.Busy && waited < 30_000; waited += 200) await Task.Delay(200);
             if (d.Key == "Monitor") await Task.Delay(4000);
             await Shot(d.Key.ToLowerInvariant());
         }

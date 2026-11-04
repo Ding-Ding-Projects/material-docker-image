@@ -43,6 +43,9 @@ public abstract class PageBase : Grid
 
     public virtual void OnShown() { }
 
+    /// <summary>True while a refresh, or one queued behind it, is still loading. Capture mode waits for it to settle.</summary>
+    public virtual bool Busy => false;
+
     /// <summary>Commands this page adds to the command palette.</summary>
     public virtual IEnumerable<AppCommand> PageCommands() => [];
 

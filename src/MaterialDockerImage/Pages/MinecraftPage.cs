@@ -23,6 +23,9 @@ public sealed class MinecraftPage : PageBase
     private MinecraftServerDetail? detail;
     private List<MinecraftServer> servers = new();
     private bool refreshing;
+    // A request that arrives mid-refresh (for example an engine context switch) runs once the current one ends.
+    private bool refreshAgain;
+    public override bool Busy => refreshing || refreshAgain;
     /// <summary>Engine context the open detail view or wizard belongs to; both close when the context changes.</summary>
     private string? viewContext;
 
@@ -97,7 +100,7 @@ public sealed class MinecraftPage : PageBase
 
     public override async Task RefreshAsync()
     {
-        if (refreshing) return;
+        if (refreshing) { refreshAgain = true; return; }
         refreshing = true;
         var context = SnapshotContext;
         try
@@ -111,7 +114,7 @@ public sealed class MinecraftPage : PageBase
                 table.SetItems([]);
                 return;
             }
-            if (context != SnapshotContext) return;
+            if (context != SnapshotContext) { refreshAgain = true; return; }
             if (!ReferenceEquals(view.Content, listView) && viewContext != context)
             {
                 detail?.Close(); detail = null;
@@ -129,7 +132,11 @@ public sealed class MinecraftPage : PageBase
             table.SetItems(servers);
             detail?.Update(servers.FirstOrDefault(s => s.Name == detail.Server.Name));
         }
-        finally { refreshing = false; }
+        finally
+        {
+            refreshing = false;
+            if (refreshAgain) { refreshAgain = false; _ = SafeRefresh(); }
+        }
     }
 
     private FrameworkElement OrphanCard(List<string> volumes)

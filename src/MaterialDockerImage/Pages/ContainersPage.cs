@@ -18,6 +18,9 @@ public sealed partial class ContainersPage : PageBase
     private readonly DispatcherTimer timer = new() { Interval = TimeSpan.FromSeconds(5) };
     private readonly CheckBox autoRefresh;
     private bool refreshing;
+    // A request that arrives mid-refresh (for example an engine context switch) runs once the current one ends.
+    private bool refreshAgain;
+    public override bool Busy => refreshing || refreshAgain;
     private bool reloading;
 
     /// <summary>The engine context the current list was loaded from.</summary>
@@ -85,7 +88,7 @@ public sealed partial class ContainersPage : PageBase
 
     public override async Task RefreshAsync()
     {
-        if (refreshing) return;
+        if (refreshing) { refreshAgain = true; return; }
         refreshing = true;
         var context = SnapshotContext;
         try
@@ -99,7 +102,7 @@ public sealed partial class ContainersPage : PageBase
                 table.SetItems([]);
                 return;
             }
-            if (context != SnapshotContext) return;
+            if (context != SnapshotContext) { refreshAgain = true; return; }
             errorHost.Content = null;
             var list = rows.Select(ContainerRow.From).ToList();
             // Selection is restored by key; the inspector sees only the final focus, so an open log stream survives a refresh.
@@ -111,7 +114,11 @@ public sealed partial class ContainersPage : PageBase
             var paused = list.Count(c => c.IsPaused);
             subtitle.Text = $"{list.Count} {(list.Count == 1 ? "container" : "containers")} · {running} running · {paused} paused · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}";
         }
-        finally { refreshing = false; }
+        finally
+        {
+            refreshing = false;
+            if (refreshAgain) { refreshAgain = false; _ = SafeRefresh(); }
+        }
     }
 
     public override IEnumerable<AppCommand> PageCommands() =>
