@@ -36,7 +36,7 @@ public static class LayoutProbe
         {
             if (fe is TextBlock tb && tb.Text is { Length: > 0 } text && tb.TextWrapping == TextWrapping.NoWrap)
             {
-                var needed = Measure(tb, text, dpi);
+                var needed = Measure(tb);
                 var available = tb.ActualWidth - tb.Padding.Left - tb.Padding.Right;
                 if (needed > available + 1)
                     findings.Add(new(tb.TextTrimming == TextTrimming.None ? "cut" : "ellipsis", nameof(TextBlock), Short(text), Math.Round(available), Math.Round(needed), PathOf(tb)));
@@ -51,8 +51,17 @@ public static class LayoutProbe
             Walk(VisualTreeHelper.GetChild(node, i), root, findings, dpi, reportedOutside);
     }
 
-    private static double Measure(TextBlock tb, string text, double dpi) =>
-        new FormattedText(text, CultureInfo.CurrentUICulture, tb.FlowDirection, new Typeface(tb.FontFamily, tb.FontStyle, tb.FontWeight, tb.FontStretch), tb.FontSize, Brushes.Black, dpi).WidthIncludingTrailingWhitespace;
+    // Ask the real TextBlock, in place, how wide it wants to be with no limit: that is WPF's own answer at the window's
+    // real DPI, formatting mode and rounding, which a FormattedText estimate or an off-tree twin can miss by a pixel.
+    // The probe runs after the capture, and the element's normal measure is restored straight away.
+    private static double Measure(TextBlock tb)
+    {
+        tb.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+        var wanted = tb.DesiredSize.Width;
+        tb.InvalidateMeasure();
+        tb.UpdateLayout();
+        return wanted - tb.Margin.Left - tb.Margin.Right - tb.Padding.Left - tb.Padding.Right; // DesiredSize includes the margin
+    }
 
     private static double RightEdge(FrameworkElement fe, FrameworkElement root) =>
         fe.TransformToAncestor(root).TransformBounds(new Rect(0, 0, fe.ActualWidth, fe.ActualHeight)).Right;
