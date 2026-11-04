@@ -44,18 +44,41 @@
       "action": "Containers: select capture-web, open the Logs tab (08:25:30 local)",
       "observed": "244 lines loaded with timestamps and stream labels; newest lines at 08:19:33 match the Start performed in the earlier step",
       "result": "pass"
+    },
+    {
+      "action": "Containers › Exec: run `cat /etc/os-release` in capture-web (09:39)",
+      "observed": "Command output 'NAME=\"Alpine Linux\" … VERSION_ID=3.24.3 … [exit code 0]', identical to docker exec run directly",
+      "result": "pass"
+    },
+    {
+      "action": "Settings › Sounds: switch Action sounds off, then on; Activity: restore the earlier 'Action sounds off' revision and confirm",
+      "observed": "settings.json Sounds went False, True, then False after the restore; two history revisions listed; Sounds switched back on afterwards",
+      "result": "pass"
+    },
+    {
+      "action": "System › Prune: open the cleanup chooser and super confirmation, then Emergency exit without turning the keys",
+      "observed": "The confirmation listed the exact items the engine would remove and kept the slider locked until both keys are on; 25 containers before and after",
+      "result": "pass (destructive confirmation deliberately not completed: other projects' containers on this host)"
+    },
+    {
+      "action": "Compose: select a labelled one-service project from recent files, Up with --detach",
+      "observed": "docker compose ls: mdi-receipt-compose running(1); container mdi-receipt-compose-web-1 running with the capture label",
+      "result": "pass"
+    },
+    {
+      "action": "Compose: Down without volumes",
+      "observed": "No project, container or network left for mdi-receipt-compose",
+      "result": "pass"
     }
   ],
   "findings": [
-    "Confirmation title uses 'container(s)' instead of a real plural.",
-    "While the confirmation dialog was open, the strip below the list rendered black instead of the dimmed operation panel (software rendering)."
+    "Fixed: confirmation title used 'container(s)'.",
+    "Fixed: table rows announced a type name to screen readers; they now read their visible cells (checked through UI Automation).",
+    "Capture route artifact, not a product defect: window captures of a live window on the hidden desktop show a black band at the bottom while a dialog is open; the application's own render of the same dialog is complete."
   ],
   "notExercised": [
-    "build and run from Build page",
-    "compose up/down",
-    "prune with super confirmation",
-    "history restore",
-    "registry sign-in",
-    "exec and files tabs"
+    "registry sign-in (needs real credentials)",
+    "files tab",
+    "interactive terminal window"
   ]
 }

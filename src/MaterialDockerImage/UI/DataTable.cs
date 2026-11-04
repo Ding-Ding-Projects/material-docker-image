@@ -22,6 +22,8 @@ public sealed class TableRow<T> : INotifyPropertyChanged
     public string[] Cells { get; }
     public string[] Tones { get; }
     public string SearchText => string.Join(" ", Cells);
+    /// <summary>List items are announced by ToString(); read the visible cells rather than the type name.</summary>
+    public override string ToString() => string.Join(", ", Cells.Where(c => !string.IsNullOrWhiteSpace(c)));
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 
