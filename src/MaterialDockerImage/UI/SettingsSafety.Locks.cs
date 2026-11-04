@@ -67,7 +67,42 @@ public static class ElementLocks
             }
         }
         target.LockedSettings = current.LockedSettings.ToList();
+        target.LockLabels = new Dictionary<string, string>(current.LockLabels, StringComparer.Ordinal);
         return kept;
+    }
+
+    public const int MaxLabelLength = 80;
+
+    /// <summary>Keeps only labels for valid ids, trimmed and bounded. A label describes the element and is never a credential.</summary>
+    public static Dictionary<string, string> NormalizeLabels(IReadOnlyDictionary<string, string>? labels)
+    {
+        var result = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (labels == null) return result;
+        foreach (var (id, label) in labels)
+        {
+            if (result.Count >= MaxLocks) break;
+            var text = (label ?? "").Trim();
+            if (!IsValidId(id) || text.Length == 0 || text.Any(char.IsControl)) continue;
+            result[id] = text.Length > MaxLabelLength ? text[..MaxLabelLength] : text;
+        }
+        return result;
+    }
+
+    /// <summary>A comparable text of the values a settings row owns, so "this action only" can tell when the person changed the row. Empty for a lock that is not a settings row.</summary>
+    public static string Snapshot(UserSettings settings, string id)
+    {
+        if (!Properties.TryGetValue(id, out var names)) return "";
+        return string.Join("", names.Select(name =>
+        {
+            var value = typeof(UserSettings).GetProperty(name, BindingFlags.Public | BindingFlags.Instance)?.GetValue(settings);
+            return value switch
+            {
+                null => "",
+                string text => text,
+                System.Collections.IEnumerable items => string.Join(",", items.Cast<object?>().Select(x => x?.ToString())),
+                _ => value.ToString() ?? ""
+            };
+        }));
     }
 
     public static string HistorySummary(string label, bool locked) => (locked ? "Locked setting: " : "Unlocked setting: ") + label;

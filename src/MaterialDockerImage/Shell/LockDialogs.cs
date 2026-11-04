@@ -85,68 +85,84 @@ public static class LockDialogs
     {
         var copy = Ui.Button("Copy folder path", Icons.ContentCopy, ButtonKind.Text, () => Copy(Folder));
         var open = Ui.Button("Open folder", Icons.FolderOpen, ButtonKind.Text, () => Pages.PageParts.OpenFolder(Folder));
+        var tickets = Ui.Button("Support Tickets…", Icons.Help, ButtonKind.Text, () => SupportDeskUi.Show());
         return Ui.VStack(6,
             Ui.Caption(ElementLocks.Disclosure),
             Ui.Caption("Locked out completely? Close the app and delete the lock file locks.json in the data folder (or the whole folder) to clear every lock:"),
             Ui.Mono(Pages.PageParts.Sanitize(Folder), 12, "OnSurfaceVariant", true),
-            Ui.HStack(4, copy, open));
+            Ui.Wrap(4, copy, open, tickets));
     }
 
     // ---- Choose a policy -------------------------------------------------------------------------------------------------
 
-    /// <summary>The "Lock this control" wizard. Returns true when a policy was stored (the caller then locks the element).</summary>
+    /// <summary>
+    /// The "Lock this control" wizard: pick one of the policies, set each credential it needs in the order it will be asked, and pick how long an unlock lasts.
+    /// Returns true when a policy was stored (the caller then locks the element).
+    /// </summary>
     public static Task<bool> ConfigureAsync(string id, string label)
     {
         var done = new TaskCompletionSource<bool>();
         Action? close = null;
         var policy = LockPolicy.None;
+        var duration = UnlockDuration.UntilRestart;
         var panel = new ContentControl();
         var pin = new PasswordBox { MaxLength = PinRules.MaxLength }; var pinAgain = new PasswordBox { MaxLength = PinRules.MaxLength };
+        var password = new PasswordBox { MaxLength = PasswordRules.MaxLength }; var passwordAgain = new PasswordBox { MaxLength = PasswordRules.MaxLength };
         TotpSetup? totp = null;
         var error = Ui.Text("", 13, null, "Error");
-        var choices = new[] { "None (confirm only)", "PIN", "Authenticator app" };
-        Border segmented = null!;
+        var policies = LockPolicies.Choosable;
+        var policyBox = Ui.Combo(policies.Select(p => Loc.T(LockPolicies.Label(p))), Loc.T(LockPolicies.Label(LockPolicy.None)));
         void Show()
         {
             error.Text = "";
-            switch (policy)
-            {
-                case LockPolicy.None: panel.Content = Ui.Caption("Unlocking will only ask you to confirm. Pick a PIN or an authenticator app for something harder to click through."); break;
-                case LockPolicy.Pin: panel.Content = Ui.VStack(10, Ui.Field("PIN (4 to 12 digits)", pin), Ui.Field("Repeat the PIN", pinAgain), Ui.Caption("The PIN is stored as a salted PBKDF2 hash, never as typed.")); break;
-                default: totp ??= new TotpSetup(Account(id)); panel.Content = totp.Root; break;
-            }
+            var factors = LockPolicies.Factors(policy);
+            if (factors == LockFactors.None) { panel.Content = Ui.Caption("Unlocking will only ask you to confirm. Pick a PIN, a password or an authenticator app for something harder to click through."); return; }
+            var steps = Ui.VStack(12, Ui.Caption("Set up the factors in order."));
+            if (factors.HasFlag(LockFactors.Pin))
+                steps.Children.Add(Ui.VStack(10, Ui.Field("PIN (4 to 12 digits)", pin), Ui.Field("Repeat the PIN", pinAgain), Ui.Caption("The PIN is stored as a salted PBKDF2 hash, never as typed.")));
+            if (factors.HasFlag(LockFactors.Password))
+                steps.Children.Add(Ui.VStack(10, Ui.Field("Password (8 to 128 characters)", password), Ui.Field("Repeat the password", passwordAgain), Ui.Caption("The password is stored as a salted PBKDF2 hash, never as typed.")));
+            if (factors.HasFlag(LockFactors.Totp)) { totp ??= new TotpSetup(Account(id)); steps.Children.Add(totp.Root); }
+            panel.Content = steps;
         }
-        segmented = Ui.Segmented(choices, choices[0], choice => { policy = choice == choices[1] ? LockPolicy.Pin : choice == choices[2] ? LockPolicy.Authenticator : LockPolicy.None; Show(); });
+        policyBox.SelectionChanged += (_, _) => { if (policyBox.SelectedIndex >= 0) { policy = policies[policyBox.SelectedIndex]; Show(); } };
+        var durationLabels = UnlockDurations.Choosable.Select(UnlockDurations.Label).ToList();
+        var durationBar = Ui.Segmented(durationLabels, UnlockDurations.Label(duration), choice => duration = UnlockDurations.Choosable[durationLabels.IndexOf(choice)]);
         void Save()
         {
             IReadOnlyList<string>? codes;
+            var factors = LockPolicies.Factors(policy);
             try
             {
-                if (policy == LockPolicy.Pin)
+                if (factors.HasFlag(LockFactors.Pin))
                 {
                     if (PinRules.Problem(pin.Password) is { } problem) { error.Text = Loc.T(problem); return; }
                     if (pin.Password != pinAgain.Password) { error.Text = Loc.T("The two PINs do not match."); return; }
-                    codes = Host.Locks.Configure(id, policy, pin.Password);
                 }
-                else if (policy == LockPolicy.Authenticator)
+                if (factors.HasFlag(LockFactors.Password))
+                {
+                    if (PasswordRules.Problem(password.Password) is { } problem) { error.Text = Loc.T(problem); return; }
+                    if (password.Password != passwordAgain.Password) { error.Text = Loc.T("The two passwords do not match."); return; }
+                }
+                if (factors.HasFlag(LockFactors.Totp))
                 {
                     if (!DpapiProtector.IsAvailable) { error.Text = Loc.T("Authenticator locks need Windows secret protection, which is not available here."); return; }
                     if (totp == null || !totp.CodeMatches()) { error.Text = Loc.T("That code did not match. Check the app and try the current code."); return; }
-                    codes = Host.Locks.Configure(id, policy, null, totp.Secret);
                 }
-                else codes = Host.Locks.Configure(id, LockPolicy.None);
+                codes = Host.Locks.Configure(id, policy, factors.HasFlag(LockFactors.Pin) ? pin.Password : null, factors.HasFlag(LockFactors.Totp) ? totp!.Secret : null, factors.HasFlag(LockFactors.Password) ? password.Password : null, duration);
             }
             catch (Exception e) when (e is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException or System.Security.Cryptography.CryptographicException)
             { error.Text = Loc.T("The lock could not be saved: ") + e.Message; return; }
-            pin.Clear(); pinAgain.Clear();
+            pin.Clear(); pinAgain.Clear(); password.Clear(); passwordAgain.Clear();
             close!();
             if (codes == null) { done.TrySetResult(true); return; }
             _ = ShowCodesThenFinish(label, codes, done);
         }
         var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => { done.TrySetResult(false); close!(); }), Ui.Button("Lock", Icons.Lock, ButtonKind.Filled, Save));
         actions.HorizontalAlignment = HorizontalAlignment.Right;
-        segmented.HorizontalAlignment = HorizontalAlignment.Left;
-        var body = Ui.VStack(14, Ui.Title(Loc.T("Lock this control") + ": " + Loc.T(label), 20), Ui.Caption("Choose what unlocking should ask for."), segmented, panel, error, RecoveryFooter(), actions);
+        durationBar.HorizontalAlignment = HorizontalAlignment.Left;
+        var body = Ui.VStack(14, Ui.Title(Loc.T("Lock this control") + ": " + Loc.T(label), 20), Ui.Caption("Choose what unlocking should ask for."), Ui.Field("Lock policy", policyBox), panel,
+            Ui.Field("How long should unlocking last?", durationBar), error, RecoveryFooter(), actions);
         Show();
         close = Host.Overlay.Show(body, 560, () => done.TrySetResult(false));
         return done.Task;
@@ -205,7 +221,7 @@ public static class LockDialogs
     // ---- The unlock ladder -----------------------------------------------------------------------------------------------
 
     /// <summary>
-    /// Confirm, then credential, then the honest wait with a live countdown, with the recovery code reachable from the credential and wait rungs.
+    /// Confirm, then the credential steps in their fixed order (PIN, password, authenticator code), then the honest wait with a live countdown, with the recovery code reachable from the credential and wait rungs.
     /// Returns true when the person got through. Nothing here changes the lock itself; the caller does that on true.
     /// </summary>
     public static Task<bool> LadderAsync(string id, string label)
@@ -216,6 +232,7 @@ public static class LockDialogs
         var recovery = false;
         var content = new ContentControl();
         var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
+        var attempt = store.Begin(id);
         string? message = null;
         Action? tick = null;
         timer.Tick += (_, _) => tick?.Invoke();
@@ -224,17 +241,19 @@ public static class LockDialogs
         {
             timer.Stop(); tick = null;
             var stage = recovery ? LadderStage.Recovery : store.Stage(id);
-            var policy = store.PolicyOf(id);
             var error = Ui.Text(message ?? "", 13, null, "Error");
             var cancel = Ui.Button("Cancel", null, ButtonKind.Text, () => Finish(false));
             var rows = Ui.VStack(12);
+            var factor = attempt?.Next ?? LockFactors.None;
             rows.Children.Add(Ui.Caption(stage switch
             {
                 LadderStage.Confirm => "Confirm that you want to unlock this control.",
-                LadderStage.Credential => policy == LockPolicy.Pin ? "Enter your PIN." : "Enter the 6-digit code from your authenticator app.",
+                LadderStage.Credential => factor == LockFactors.Pin ? "Enter your PIN." : factor == LockFactors.Password ? "Enter your password." : "Enter the 6-digit code from your authenticator app.",
                 LadderStage.Wait => "Too many wrong answers. Wait it out, or use a recovery code.",
                 _ => "Enter one of your recovery codes. Each works once."
             }));
+            if (stage == LadderStage.Credential && attempt != null && attempt.Steps.Count > 1)
+                rows.Children.Add(Ui.Text(Loc.T($"Step {attempt.Index + 1} of {attempt.Steps.Count}") + ": " + Loc.T(LockPolicies.FactorLabel(factor)), 14, FontWeights.SemiBold, "Primary", true, false));
             switch (stage)
             {
                 case LadderStage.Confirm:
@@ -246,15 +265,16 @@ public static class LockDialogs
                 case LadderStage.Recovery:
                 {
                     FrameworkElement entry; Func<string> read; Action clear;
-                    if (stage == LadderStage.Credential && policy == LockPolicy.Pin) { var box = new PasswordBox { MaxLength = PinRules.MaxLength }; entry = box; read = () => box.Password; clear = box.Clear; }
+                    if (stage == LadderStage.Credential && factor is LockFactors.Pin or LockFactors.Password) { var box = new PasswordBox { MaxLength = factor == LockFactors.Pin ? PinRules.MaxLength : PasswordRules.MaxLength }; entry = box; read = () => box.Password; clear = box.Clear; }
                     else { var box = Ui.Input("", stage == LadderStage.Recovery ? "Recovery code" : "Code from your authenticator", true); box.MaxLength = stage == LadderStage.Recovery ? 16 : 7; entry = box; read = () => box.Text; clear = () => box.Clear(); }
                     void Submit()
                     {
-                        var result = stage == LadderStage.Recovery ? store.UseRecoveryCode(id, read()) : store.Attempt(id, read());
+                        var result = stage == LadderStage.Recovery ? store.UseRecoveryCode(id, read()) : attempt!.Submit(read());
                         clear();
                         switch (result.Outcome)
                         {
                             case UnlockOutcome.Unlocked: Finish(true); return;
+                            case UnlockOutcome.NextFactor: message = null; break;
                             case UnlockOutcome.Unavailable: message = Loc.T("The stored authenticator secret could not be read on this account. Use a recovery code."); break;
                             case UnlockOutcome.Waiting: message = ""; break;
                             default: message = stage == LadderStage.Recovery ? Loc.T("That recovery code did not match, or it was already used.") : result.FreeAttemptsLeft > 0 ? Loc.T("That did not match.") + " " + Loc.T(result.FreeAttemptsLeft == 1 ? "1 more try before a wait starts." : result.FreeAttemptsLeft + " more tries before a wait starts.") : Loc.T("That did not match."); break;
@@ -262,7 +282,7 @@ public static class LockDialogs
                         Render();
                     }
                     entry.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Submit(); };
-                    rows.Children.Add(Ui.Field(stage == LadderStage.Recovery ? "Recovery code" : policy == LockPolicy.Pin ? "PIN" : "Code from your authenticator", entry));
+                    rows.Children.Add(Ui.Field(stage == LadderStage.Recovery ? "Recovery code" : LockPolicies.FactorLabel(factor), entry));
                     rows.Children.Add(error);
                     var toggle = stage == LadderStage.Recovery
                         ? Ui.Button("Back", null, ButtonKind.Text, () => { recovery = false; message = null; Render(); })
@@ -299,6 +319,7 @@ public static class LockDialogs
                     break;
                 }
             }
+            if (stage != LadderStage.Confirm) rows.Children.Add(Ui.Button("Forgotten your password?", Icons.Help, ButtonKind.Text, () => SupportDeskUi.Show()));
             content.Content = rows;
         }
         var body = Ui.VStack(14, Ui.Title(Loc.T("Unlock this control") + ": " + Loc.T(label), 20), content, RecoveryFooter());

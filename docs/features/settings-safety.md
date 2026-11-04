@@ -4,7 +4,16 @@ This guide covers five related controls in Settings and the shell. Every rule be
 
 ## Element locks
 
-Every settings row that holds a value has a lock button beside its title, and every row and every major page action button (the filled and danger buttons) has **Lock this control...** on its right-click menu. Locking an element shares one helper (`Shell/LockUi.cs`) between settings rows and page buttons. Button lock ids are `btn.<page>.<label>` in lower case, at most 40 characters, so two buttons with the same label on the same page share a lock.
+Every settings row that holds a value has a lock button beside its title, and every row and every interactive element on a page has **Lock this control...** on its right-click menu: buttons, switches, check boxes, options, drop-downs, text fields and sliders. Locking an element shares one helper (`Shell/LockUi.cs`) between settings rows, page buttons and every other element. Major page action buttons (the filled and danger buttons) keep their ids `btn.<page>.<label>` in lower case, at most 40 characters, so two buttons with the same label on the same page share a lock.
+
+### Locks on any element
+
+`LockUi.AttachPage` walks each page when it is shown and attaches the lock menu to every supported element that does not already have one. The id comes from `ElementIdentity.Derive` (`UI/SettingsSafety.LockManager.cs`): `el.<page>.<kind-name>-<hash>`, at most 36 characters and always a valid lock id.
+
+- An element with an `AutomationProperties.AutomationId` keeps the same lock when it moves or is renamed. No page sets one today, so in practice the next rule applies.
+- Otherwise the id is built from the page, the element kind, the English name (`Loc.Original` turns a translated accessible name back into English, so switching language does not change the id) and the position among identical elements on that page, so two identical `OK` buttons get two locks.
+- A name that is a sentence with numbers in it is not reversed to English, and an element whose accessible name changes for another reason gets a new id. Elements built after the page is shown are picked up the next time it is shown. Settings rows keep their own lock and are skipped.
+- Not built: a context-menu lock on tabs, tab groups and on individual appearance values, and opening the unlock prompt by clicking a disabled element (it is reached from the right-click menu).
 
 - A locked row or button is disabled, and a page that re-enables it (for example after an async action) is overruled. The right-click menu stays available on a locked element and offers **Unlock this control...**. The settings lock button also stays enabled as the unlock target. A disabled button cannot be clicked or focused, so unlocking a page button needs its context menu.
 - Locks are stored in `settings.json` as `LockedSettings` (identifiers, at most 200) and every lock or unlock is recorded in local history ("Locked setting: ..."). The history never holds a credential.
@@ -19,18 +28,40 @@ The first time a control is locked, a wizard asks what unlocking should require.
 | --- | --- | --- |
 | None | A confirmation that repeats the disclosure below. | Nothing. |
 | PIN | 4 to 12 digits. | A PBKDF2-SHA256 hash (150,000 iterations) with a random per-hash salt, mixed with a random per-install salt kept in the lock file. The PIN is never stored, logged or exported. |
+| Password | 8 to 128 characters, no control characters. | A PBKDF2-SHA256 hash with the same parameters as the PIN. The password is never stored, logged or exported. |
 | Authenticator app | A 6-digit RFC 6238 code (SHA-1, 30 seconds, one step of clock skew either side). A code that was accepted cannot be used again. | The 20-byte secret, generated with `RandomNumberGenerator`, protected with Windows DPAPI for the current user (entropy: the install salt). |
+| PIN plus password, password plus authenticator, PIN plus authenticator, password plus PIN plus authenticator | Every factor of the policy, always asked in the order PIN, password, authenticator code. | Each factor as above, in the same lock record. |
+
+A combined policy is one bounded attempt (`LockStore.Begin`, `UnlockAttempt`). The dialog shows **Step n of m**. A factor that is right is remembered only inside that attempt, so closing the prompt starts again at the first factor. A wrong answer at any step counts once against the lock's single attempt budget and sends the attempt back to the first factor; the authenticator step is spent only when every factor is right, so a code cannot be replayed. One value cannot answer a combined policy. A factor that cannot be checked (the authenticator secret cannot be read) is reported as unavailable and never skipped.
+
+The stored policy numbers are `None 0, PIN 1, Authenticator 2, Password 3, PIN plus password 4, Password plus authenticator 5, PIN plus authenticator 6, Password plus PIN plus authenticator 7`. Existing numbers never change, a lock file written before durations loads, and an unknown number is dropped.
 
 Credentials live in `locks.json` in the data folder, apart from `settings.json`, exports and history. An authenticator lock needs DPAPI; where it is unavailable the wizard says so and refuses the policy. In capture mode the store is held in memory only.
 
 Pairing an authenticator shows the secret only after **Show secret and QR code**: a QR code of the `otpauth://totp/` link, the grouped Base32 secret, copy buttons and the algorithm, digits and period. The lock arms only after one current code is typed back.
+
+### Unlock durations
+
+The wizard asks how long an unlock lasts (`UnlockDuration`, stored with the lock):
+
+| Choice | The lock closes again |
+| --- | --- |
+| This action only | After the protected action: a button click, a drop-down or slider change, a text field that lost focus with new text, or, for a settings row, the first save that changes its values. |
+| 5 minutes, 1 hour | When the time is up. The expiry is saved in `locks.json`, checked every 15 seconds while the app runs, and honoured across a restart. |
+| Until the app closes | At the next launch, always. This is the default for a new lock. |
+
+Locks written before durations existed read as "until I lock it again" and are never closed by themselves. Locking again by hand ends the grant. `LockLifecycle` (`UI/SettingsSafety.LockManager.cs`) holds these rules; the launch pass and the timer call `LockLifecycle.Reconcile`. The record keeps only a flag and a time, never a credential.
+
+### Locks manager
+
+Settings has a **Locks** section: one table of every lock the app knows, whatever it guards, with the lock id, what it is, its policy, how long an unlock lasts and whether it is locked or unlocked until a time. It has the shared search with its regex builder, the filters **Locked only** and **Has a credential**, export (the shared table export) and row actions **Unlock this control...**, **Lock again**, **Change lock policy...**, **Remove lock** and **Support Tickets...**. **Remove selected locks** removes many at once. A lock that is locked is never removed: it has to be unlocked first, and a bulk removal reports the locked ones it skipped. Removal deletes the lock, its credentials, its recovery codes and its label. The command palette has **Locks manager**. Labels for locks that are not settings rows are kept in `settings.json` (`LockLabels`, descriptions only, never a credential). An export contains only descriptions, never a hash or a secret.
 
 ### Unlock ladder
 
 Unlocking climbs these rungs (`LockStore.Stage`, `LockStore.Attempt`, `LockStore.UseRecoveryCode`):
 
 1. **Confirm.** A lock with no policy only asks for a confirmation.
-2. **Credential.** The PIN or authenticator code. The first two wrong answers cost nothing and the dialog says how many free tries remain.
+2. **Credential.** The PIN, password or authenticator code, one step at a time for a combined policy. The first two wrong answers cost nothing and the dialog says how many free tries remain.
 3. **Wait.** From the third consecutive wrong answer the wait is 30 seconds, then 60, 120 and so on, doubling to a cap of one hour. The dialog shows a live countdown and the clock time the wait ends. The failure count and the wait are saved, so a restart does not clear them. While waiting, an answer is refused without being checked and without counting. Waiting alone never unlocks anything: the credential is still needed afterwards.
 4. **Recovery code.** Eight single-use codes (`XXXXX-XXXXX`) are made when a PIN or authenticator policy is saved, shown once with Copy all and Save to file, and stored only as hashes. A code works at any time, including during a wait, clears the failure count and the wait, and is spent. Typing ignores case, spaces, hyphens and the look-alike letters I, L and O.
 
@@ -58,7 +89,7 @@ What keeps it from becoming a second, weaker password:
 
 The dialogs use the real keyboard path (number keys for choices and cells, Enter on the last sum), a numeric seconds-left readout beside the round (never colour-only), a live region for the score, no animation, and large cells.
 
-Not built: password and combined policies; unlock durations; locks on tabs, groups and appearance values; locks on every rendered element; the Support Tickets recovery desk. The three games have been checked as rules only; none has been driven in the built window.
+Not built: the access-control style keypad for PIN entry; locks on tabs, groups and individual appearance values; locked items labelled in the command palette and tab searches. Grading runs in the same process as the views. The three games have been checked as rules only; none has been driven in the built window.
 
 ## School mode
 
@@ -86,6 +117,19 @@ Names and pictures come only from the public dim sum catalogue at `Ding-Ding-Pro
 The rules, parsing and address building are checked in code (`DimSumRules`); the live fetch has not been run inside the app.
 
 Disclosure shown every time: a lock is a speed bump you set for yourself, not security. It does not protect anything from another person who has this computer. Anyone who can delete the data folder can remove every lock.
+
+## Support Tickets
+
+The recovery route for a locked-out person is dressed as a support desk. It is reached from the unlock prompt (**Forgotten your password?**), from the footer of the lock wizard, the ladder and the Locks manager (**Support Tickets...**), from the Tools page (**Support Tickets**) and from the command palette. The code is `Shell/SupportDeskUi.cs` and `UI/SettingsSafety.SupportTickets.cs`.
+
+- **Filing.** A category (forgot my PIN, forgot my password, lost my authenticator, lost my recovery codes, something else), a severity and a description of up to 1,000 characters. The ticket number is generated locally (`TKT-yyyyMMdd-0001`, counting up within a day). A blank description is refused. The list holds at most 200 tickets.
+- **Severity.** It is recorded and then treated exactly like every other severity, and the screen says so.
+- **Status.** New, acknowledged, investigating, resolved. It advances on request (**Advance status**), by itself every 20 seconds while the screen is open, or straight to resolved (**Resolve**, which still records every reply). Each step adds a canned reply. The factual sentence is always shown; a playful lead-in is added by the funny level.
+- **Resolution.** The resolution opens the application-data folder in the platform's file manager (`PageParts.OpenFolder`, which reports a failure to launch) and shows the exact path with a copy button. The path shown and the folder opened are the same value. The app never deletes anything: `SupportDesk.Resolve` returns only the folder to open, and a check asserts that neither source file contains a delete call.
+- **The disclosure.** One plain line, outside the comedy and identical at every funny level and in every language mode, states: nothing is sent anywhere, a ticket exists only on this computer, no network request is made, no data is collected, and nobody is reading it. A check pins its exact wording and asserts that the source files contain no network call.
+- **Storage.** Tickets live in `tickets.json` in the data folder, so deleting the data folder clears them with the locks they point at. The list uses the shared table: search with its regex builder, export, row actions and bulk Advance, Resolve and Remove.
+
+No real person, company, case system or response time is named or implied.
 
 ## Authenticator tool
 
@@ -238,9 +282,9 @@ All new copy has Hong Kong Cantonese wording in `Services/LocStrings.Settings.cs
 
 ## Verification
 
-Run `build.bat -Tests`. The UI-state project covers locks (including `tests/UiState/LockChecks.cs`: Base32 and the RFC 4648 vectors, the RFC 4226 and RFC 6238 vectors, skew and replay, PBKDF2 hashing, recovery codes, the backoff table, the ladder stages with a fake clock across a restart, the credential file never holding a PIN, code or secret, real DPAPI, and the QR encoder checked against a published Reed-Solomon vector and against matrices an independent scanner decoded), schedule boundaries (start, last minute, end, cross-midnight, weekday ownership, whole day, priority, file values), the base-versus-live behaviour of the language and theme, the attention rules, the sound mapping and the collapsed state. During development one boundary check was watched failing on a deliberately wrong weekday rule before it was fixed, and a gap it did not cover (a same-day window using the wrong weekday) led to an extra check.
+Run `build.bat -Tests`. The UI-state project covers locks (including `tests/UiState/LockPolicyChecks.cs`: the password and every combined policy with ordered steps, a shared attempt budget, replay and skew on a combined lock, hashes in place of plain values, unlock durations with a fake clock across a restart, stable element ids, the Locks manager list, search, removal and export, the ticket desk with its status, persistence, bounds, export, exact disclosure and the absence of network and delete code, and Cantonese wording for every new string; and `tests/UiState/LockChecks.cs`: Base32 and the RFC 4648 vectors, the RFC 4226 and RFC 6238 vectors, skew and replay, PBKDF2 hashing, recovery codes, the backoff table, the ladder stages with a fake clock across a restart, the credential file never holding a PIN, code or secret, real DPAPI, and the QR encoder checked against a published Reed-Solomon vector and against matrices an independent scanner decoded), schedule boundaries (start, last minute, end, cross-midnight, weekday ownership, whole day, priority, file values), the base-versus-live behaviour of the language and theme, the attention rules, the sound mapping and the collapsed state. During development one boundary check was watched failing on a deliberately wrong weekday rule before it was fixed, and a gap it did not cover (a same-day window using the wrong weekday) led to an extra check.
 
-Not verified: the lock wizard, the ladder dialog, the disabled behaviour of page buttons, the Authenticator section and a real phone scanning the QR code; any interaction in the built window, real sound playback, the file watcher, the 20-second timer across a real boundary, screen reader names and narrow layouts. These stay open on the capability inventory.
+Not verified: the lock wizard with its new policy and duration controls, the ladder dialog with its steps, the disabled behaviour of every newly lockable element, the timed relock in a running window, the Locks section, the Support Tickets screen (including the folder that opens), the Authenticator section and a real phone scanning the QR code; any interaction in the built window, real sound playback, the file watcher, the 20-second timer across a real boundary, screen reader names and narrow layouts. These stay open on the capability inventory.
 Run `build.bat -Tests`. The UI-state project covers locks, schedule boundaries (start, last minute, end, cross-midnight, weekday ownership, whole day, priority, file values), date-range boundaries (both end dates, the day before and after, cross-midnight windows that start on the last date, weekday plus date, leap days and malformed dates), all seven settings and their value validation, source payload validation with many malformed documents (unknown, duplicate, nested, oversized, wrongly typed and half-valid), https and Home Assistant address rules, entity and token rules, Home Assistant state mapping, poll cadence, last-good behaviour on failure (including a check that a failed poll changes no setting), the base-versus-live behaviour of every lent setting, attention-mode decisions, quiet-hours boundaries (including across midnight), the volume gate and `WavScaler` on synthetic and real WAV bytes. Cantonese wording and its bilingual form are checked for samples of the new strings.
 
 Not verified: any interaction in the built window, real sound playback at reduced volume on an audio device, a real https or Home Assistant server (no check makes a network request), DPAPI storage of the token on a real profile, the file watcher, the 20-second timer across a real boundary, screen reader names and narrow layouts. These stay open on the capability inventory.

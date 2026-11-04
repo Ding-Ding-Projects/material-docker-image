@@ -22,9 +22,10 @@ public sealed class ToolsPage : PageBase
             ["Base64"] = () => new Base64Panel().Root,
             ["Documentation"] = () => new DocsBrowser().Root,
             ["Authenticator"] = () => new AuthenticatorPanel().Root,
+            ["Support Tickets"] = () => Ui.Scroll(Shell.SupportDeskUi.Panel()),
             ["Changelog"] = Changelog,
         };
-        tabs = Ui.Segmented(["Base64", "Documentation", "Authenticator", "Changelog"], "Base64", Show);
+        tabs = Ui.Segmented(["Base64", "Documentation", "Authenticator", "Support Tickets", "Changelog"], "Base64", Show);
         tabs.HorizontalAlignment = HorizontalAlignment.Left; tabs.MinWidth = 560;
         var header = Ui.Header("Tools", "Everything here works offline", out _, tabs);
         Layout(header, host);
@@ -39,7 +40,7 @@ public sealed class ToolsPage : PageBase
 
     private void Select(string tab)
     {
-        var index = Array.IndexOf(["Base64", "Documentation", "Authenticator", "Changelog"], tab);
+        var index = Array.IndexOf(["Base64", "Documentation", "Authenticator", "Support Tickets", "Changelog"], tab);
         if (tabs.Child is Grid grid && index >= 0 && grid.Children[index] is RadioButton r) r.IsChecked = true;
         Show(tab);
     }

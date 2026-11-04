@@ -27,7 +27,9 @@
 - [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)
 - [ ] Drive the three games, the School mode PIN and the surprise toast in the built window, and run the live catalogue fetch in the app
 - [ ] Add a passkey choice for School mode and hide every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under it
-- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks and the Support Tickets desk
+- [x] Add the password lock policy, the four combined policies with ordered steps and one shared attempt budget, unlock durations (this action only, 5 minutes, 1 hour, until the app closes) with persisted expiry, a lock command on every button, switch, option, drop-down, text field and slider with stable derived ids, a Locks manager in Settings and the local Support Tickets desk (rule checks pass and were seen failing first; nothing driven in the built window)
+- [ ] Drive the new wizard, the ordered unlock steps, the timed relock, the Locks manager and the Support Tickets screen in the built window, and confirm the folder it opens matches the path shown
+- [ ] Add tab, tab group and appearance locks, the disabled-click authentication prompt, locked labels in the palette and tab searches and the keypad PIN entry
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts

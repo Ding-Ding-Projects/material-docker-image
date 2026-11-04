@@ -85,7 +85,7 @@ internal sealed class AuthenticatorPanel
     private void Check()
     {
         var id = Id;
-        if (Host.Locks.PolicyOf(id) != LockPolicy.Authenticator) { result.Text = Loc.T("This lock has no authenticator yet."); return; }
+        if (!LockPolicies.Factors(Host.Locks.PolicyOf(id)).HasFlag(LockFactors.Totp)) { result.Text = Loc.T("This lock has no authenticator yet."); return; }
         result.Text = Host.Locks.CheckCode(id, check.Text) ? Loc.T("That code is valid right now.") : Loc.T("That code does not match. It may be old, or this computer's clock may be off.");
         check.Clear();
     }
@@ -100,11 +100,11 @@ internal sealed class AuthenticatorPanel
     {
         list.Children.Clear();
         var records = Host.Locks.Records.OrderBy(r => r.Id, StringComparer.Ordinal).ToList();
-        if (records.Count == 0) { list.Children.Add(Ui.Caption("No lock has a PIN or authenticator yet. Lock a control from its right-click menu to choose one.")); return; }
+        if (records.Count == 0) { list.Children.Add(Ui.Caption("No lock has a PIN, password or authenticator yet. Lock a control from its right-click menu to choose one.")); return; }
         foreach (var record in records)
         {
             var id = record.Id;
-            var policy = record.Policy switch { LockPolicy.Pin => "PIN", LockPolicy.Authenticator => "Authenticator app", _ => "None (confirm only)" };
+            var policy = LockPolicies.Label(record.Policy);
             var line = Ui.HStack(10, Ui.Mono(id, 13, "OnSurface", false), Ui.Badge(policy, Tone.Neutral), Ui.Badge(Host.IsLocked(id) ? "Locked" : "Unlocked", Host.IsLocked(id) ? Tone.Warning : Tone.Success),
                 Ui.Caption(Loc.T("Recovery codes left:") + " " + record.RecoveryHashes.Count));
             var remove = Ui.Button("Remove policy", Icons.Delete, ButtonKind.Text, () => _ = RemoveAsync(id));

@@ -142,6 +142,7 @@ public static class SearchSurfaceCatalogue
         F("settings.search", "Settings", "Pages/SettingsPage.cs", "Search settings"),
         F("settings.shortcuts", "Settings", "Pages/Settings/SettingsSections.cs", "Search shortcuts"),
         F("settings.fonts", "Settings", "Pages/Settings/AppearanceFontPicker.cs", "mono ? \"Search monospace and code fonts\" : \"Search installed fonts\""),
+        T("settings.locks", "Settings", "Pages/Settings/SettingsLocks.cs", "Locks manager"),
         F("settings.colour-roles", "Settings", "Pages/Settings/AppearanceEditor.cs", "Search colour roles"),
         // Setup
         F("setup.contexts", "Setup", "Pages/Setup/SetupSteps.cs", "Search contexts"),
@@ -166,6 +167,7 @@ public static class SearchSurfaceCatalogue
         // System
         F("system.engine-facts", "System", "Pages/System/EngineInfoCard.cs", "Search engine facts"),
         // Tools
+        T("tools.support-tickets", "Tools", "Shell/SupportDeskUi.cs", "Support tickets"),
         F("tools.docs", "Tools", "Pages/Tools/DocsBrowser.cs", "Search documentation"),
         F("tools.changelog", "Tools", "Pages/Tools/ChangelogView.cs", "Search the changelog"),
     ];

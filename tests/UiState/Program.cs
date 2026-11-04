@@ -964,6 +964,7 @@ count += RecordsChecks.Run();
 count += LockChecks.Run();
 count += AppearanceAuthChecks.Run();
 count += LadderChecks.Run();
+count += LockPolicyChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
 

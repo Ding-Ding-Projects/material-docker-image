@@ -8,7 +8,11 @@ using System.Text.Json;
 
 namespace MaterialDockerImage.UI;
 
-public enum LockPolicy { None, Pin, Authenticator }
+/// <summary>
+/// What unlocking asks for. The numeric values are stored in locks.json, so existing values never change: new policies are only appended.
+/// <see cref="Authenticator"/> is the authenticator code on its own; the combined policies ask for every listed factor in a fixed order (PIN, password, authenticator).
+/// </summary>
+public enum LockPolicy { None = 0, Pin = 1, Authenticator = 2, Password = 3, PinPassword = 4, PasswordTotp = 5, PinTotp = 6, PasswordPinTotp = 7 }
 
 /// <summary>Protects a secret at rest. The app uses Windows DPAPI for the current user; checks may substitute their own.</summary>
 public interface ISecretProtector
@@ -62,6 +66,14 @@ public sealed class LockRecord
     public string Id { get; set; } = "";
     public LockPolicy Policy { get; set; }
     public string? PinHash { get; set; }
+    /// <summary>Salted PBKDF2 hash of the password. The password itself is never stored or logged.</summary>
+    public string? PasswordHash { get; set; }
+    /// <summary>How long an unlock lasts. Records written before durations existed read as <see cref="UnlockDuration.Manual"/>.</summary>
+    public UnlockDuration Duration { get; set; }
+    /// <summary>True while the lock is unlocked under a duration, so a restart or the timer knows to lock it again.</summary>
+    public bool GrantActive { get; set; }
+    /// <summary>When a timed unlock ends (Unix seconds); zero for the other durations.</summary>
+    public long GrantUntilUnix { get; set; }
     /// <summary>The TOTP secret, protected at rest (Base64 of the DPAPI blob). Never the plain secret.</summary>
     public string? TotpProtected { get; set; }
     public long LastTotpStep { get; set; } = -1;
@@ -70,7 +82,8 @@ public sealed class LockRecord
     public long WaitUntilUnix { get; set; }
 }
 
-public enum UnlockOutcome { Unlocked, Wrong, Waiting, NotConfigured, Unavailable }
+/// <summary><see cref="NextFactor"/> means one factor of a combined policy was right and the next is needed; nothing is unlocked yet.</summary>
+public enum UnlockOutcome { Unlocked, Wrong, Waiting, NotConfigured, Unavailable, NextFactor }
 
 public sealed record UnlockResult(UnlockOutcome Outcome, int FreeAttemptsLeft = 0, DateTimeOffset? WaitUntil = null)
 {
@@ -122,7 +135,7 @@ public sealed partial class LockStore
             if (shape == null) return;
             var salt = Convert.FromBase64String(shape.InstallSalt);
             if (salt.Length == 16) installSalt = salt;
-            foreach (var r in shape.Locks.Take(MaxRecords)) if (ElementLocks.IsValidId(r.Id)) { r.RecoveryHashes = r.RecoveryHashes.Take(RecoveryCodes.Count * 2).ToList(); records[r.Id] = r; }
+            foreach (var r in shape.Locks.Take(MaxRecords)) if (ElementLocks.IsValidId(r.Id) && Enum.IsDefined(r.Policy)) { if (!Enum.IsDefined(r.Duration)) r.Duration = UnlockDuration.Manual; r.RecoveryHashes = r.RecoveryHashes.Take(RecoveryCodes.Count * 2).ToList(); records[r.Id] = r; }
         }
         catch (Exception e) when (e is JsonException or FormatException or IOException or UnauthorizedAccessException) { records.Clear(); LoadError = "The lock file could not be read, so its locks were ignored: " + e.Message; }
     }
@@ -142,23 +155,31 @@ public sealed partial class LockStore
     /// Sets or replaces one lock's policy. Returns the recovery codes in plain text exactly once (they are stored only as hashes),
     /// or null for a confirm-only lock. Throws for an invalid PIN or authenticator secret; nothing is stored in that case.
     /// </summary>
-    public IReadOnlyList<string>? Configure(string id, LockPolicy policy, string? pin = null, byte[]? totpSecret = null)
+    public IReadOnlyList<string>? Configure(string id, LockPolicy policy, string? pin = null, byte[]? totpSecret = null, string? password = null, UnlockDuration duration = UnlockDuration.UntilRestart)
     {
+        var factors = LockPolicies.Factors(policy);
         if (!ElementLocks.IsValidId(id)) throw new ArgumentException("Invalid lock id.", nameof(id));
         if (!records.ContainsKey(id) && records.Count >= MaxRecords) throw new InvalidOperationException("The lock list is full.");
-        var record = new LockRecord { Id = id, Policy = policy };
+        if (!Enum.IsDefined(policy)) throw new ArgumentException("Unknown lock policy.", nameof(policy));
+        if (!Enum.IsDefined(duration) || duration == UnlockDuration.Manual) duration = UnlockDuration.UntilRestart;
+        var record = new LockRecord { Id = id, Policy = policy, Duration = duration };
         IReadOnlyList<string>? codes = null;
-        if (policy == LockPolicy.Pin)
+        if (factors.HasFlag(LockFactors.Pin))
         {
             if (!PinRules.IsValid(pin)) throw new ArgumentException(PinRules.Problem(pin), nameof(pin));
-            record.PinHash = CredentialHasher.Hash(pin!, installSalt, iterations);
         }
-        else if (policy == LockPolicy.Authenticator)
+        if (factors.HasFlag(LockFactors.Password))
+        {
+            if (!PasswordRules.IsValid(password)) throw new ArgumentException(PasswordRules.Problem(password), nameof(password));
+        }
+        if (factors.HasFlag(LockFactors.Totp))
         {
             if (totpSecret == null || totpSecret.Length < 10) throw new ArgumentException("An authenticator lock needs a secret of at least 10 bytes.", nameof(totpSecret));
             if (protector == null) throw new InvalidOperationException("No secret protection is available, so an authenticator lock cannot be stored.");
             record.TotpProtected = Convert.ToBase64String(protector.Protect(totpSecret, installSalt));
         }
+        if (factors.HasFlag(LockFactors.Pin)) record.PinHash = CredentialHasher.Hash(pin!, installSalt, iterations);
+        if (factors.HasFlag(LockFactors.Password)) record.PasswordHash = CredentialHasher.Hash(password!, installSalt, iterations);
         if (policy != LockPolicy.None)
         {
             codes = RecoveryCodes.Generate();
@@ -188,30 +209,73 @@ public sealed partial class LockStore
         return WaitUntil(id) != null ? LadderStage.Wait : LadderStage.Credential;
     }
 
-    /// <summary>Checks a PIN or authenticator code. During a wait the answer is refused unchecked and uncounted; a wrong answer extends the wait.</summary>
+    /// <summary>
+    /// Checks the one credential of a single-factor policy (PIN, password or authenticator code). During a wait the answer is refused unchecked and uncounted;
+    /// a wrong answer extends the wait. A combined policy is never answered by one value: use <see cref="Begin"/> for it, and this method refuses without counting.
+    /// </summary>
     public UnlockResult Attempt(string id, string? input)
     {
         var r = Get(id);
         if (r == null || r.Policy == LockPolicy.None) return new UnlockResult(UnlockOutcome.Unlocked);
-        if (WaitUntil(id) is { } wait) return new UnlockResult(UnlockOutcome.Waiting, 0, wait);
-        bool ok = false;
-        if (r.Policy == LockPolicy.Pin) ok = input != null && CredentialHasher.Verify(input, r.PinHash, installSalt);
-        else
+        if (LockPolicies.Steps(r.Policy).Count != 1) return new UnlockResult(UnlockOutcome.Wrong);
+        return Begin(id)!.Submit(input);
+    }
+
+    /// <summary>Starts one bounded attempt at a lock with a policy, walking its factors in order. Null for a lock with no policy.</summary>
+    public UnlockAttempt? Begin(string id)
+    {
+        var r = Get(id);
+        return r == null || r.Policy == LockPolicy.None ? null : new UnlockAttempt(this, id, LockPolicies.Steps(r.Policy));
+    }
+
+    internal enum FactorCheck { Ok, Wrong, Unavailable }
+
+    /// <summary>Checks one factor against a record without touching the failure count. The authenticator step is returned, not yet spent.</summary>
+    internal FactorCheck VerifyFactor(string id, LockFactors factor, string? input, out long totpStep)
+    {
+        totpStep = -1;
+        var r = Get(id);
+        if (r == null || input == null) return FactorCheck.Wrong;
+        switch (factor)
         {
-            var secret = ReadSecret(r);
-            if (secret == null) return new UnlockResult(UnlockOutcome.Unavailable);
-            var step = Totp.Verify(secret, input, clock(), r.LastTotpStep);
-            CryptographicOperations.ZeroMemory(secret);
-            if (step >= 0) { r.LastTotpStep = step; ok = true; }
+            case LockFactors.Pin: return CredentialHasher.Verify(input, r.PinHash, installSalt) ? FactorCheck.Ok : FactorCheck.Wrong;
+            case LockFactors.Password: return CredentialHasher.Verify(input, r.PasswordHash, installSalt) ? FactorCheck.Ok : FactorCheck.Wrong;
+            case LockFactors.Totp:
+                var secret = ReadSecret(r);
+                if (secret == null) return FactorCheck.Unavailable;
+                var step = Totp.Verify(secret, input, clock(), r.LastTotpStep);
+                CryptographicOperations.ZeroMemory(secret);
+                if (step < 0) return FactorCheck.Wrong;
+                totpStep = step;
+                return FactorCheck.Ok;
+            default: return FactorCheck.Wrong;
         }
-        return Finish(r, ok);
+    }
+
+    internal UnlockResult RegisterFailure(string id)
+    {
+        var r = Get(id)!;
+        r.Failures++;
+        var wait = AttemptLimiter.WaitAfter(r.Failures);
+        if (wait > TimeSpan.Zero) r.WaitUntilUnix = (clock() + wait).ToUnixTimeSeconds();
+        Save();
+        return new UnlockResult(UnlockOutcome.Wrong, AttemptLimiter.FreeAttemptsLeft(r.Failures), wait > TimeSpan.Zero ? clock() + wait : null);
+    }
+
+    internal UnlockResult RegisterSuccess(string id, long totpStep)
+    {
+        var r = Get(id)!;
+        r.Failures = 0; r.WaitUntilUnix = 0;
+        if (totpStep >= 0) r.LastTotpStep = totpStep;
+        Save();
+        return new UnlockResult(UnlockOutcome.Unlocked);
     }
 
     /// <summary>Checks an authenticator code without consuming its step. Used while setting up and by the Authenticator tool.</summary>
     public bool CheckCode(string id, string? code)
     {
         var r = Get(id);
-        if (r?.Policy != LockPolicy.Authenticator) return false;
+        if (r == null || !LockPolicies.Factors(r.Policy).HasFlag(LockFactors.Totp)) return false;
         var secret = ReadSecret(r);
         if (secret == null) return false;
         var step = Totp.Verify(secret, code, clock());
@@ -233,15 +297,34 @@ public sealed partial class LockStore
         return new UnlockResult(UnlockOutcome.Unlocked);
     }
 
-    private UnlockResult Finish(LockRecord r, bool ok)
+
+    // ---- Unlock durations ----------------------------------------------------------------------------------------------
+
+    /// <summary>Starts the unlock grant for a lock that was just unlocked. Returns when a timed grant ends, or null for the other durations.</summary>
+    public DateTimeOffset? StartGrant(string id)
     {
-        if (ok) { r.Failures = 0; r.WaitUntilUnix = 0; Save(); return new UnlockResult(UnlockOutcome.Unlocked); }
-        r.Failures++;
-        var wait = AttemptLimiter.WaitAfter(r.Failures);
-        if (wait > TimeSpan.Zero) r.WaitUntilUnix = (clock() + wait).ToUnixTimeSeconds();
+        var r = Get(id);
+        if (r == null || r.Duration == UnlockDuration.Manual) return null;
+        r.GrantActive = true;
+        r.GrantUntilUnix = UnlockDurations.Span(r.Duration) is { } span ? (clock() + span).ToUnixTimeSeconds() : 0;
         Save();
-        return new UnlockResult(UnlockOutcome.Wrong, AttemptLimiter.FreeAttemptsLeft(r.Failures), wait > TimeSpan.Zero ? clock() + wait : null);
+        return r.GrantUntilUnix > 0 ? DateTimeOffset.FromUnixTimeSeconds(r.GrantUntilUnix) : null;
     }
+
+    /// <summary>Ends a grant (the lock is being locked again, or removed). Safe to call for a lock with no grant.</summary>
+    public void EndGrant(string id)
+    {
+        var r = Get(id);
+        if (r == null || !r.GrantActive && r.GrantUntilUnix == 0) return;
+        r.GrantActive = false; r.GrantUntilUnix = 0;
+        Save();
+    }
+
+    public bool GrantIsActive(string id) => Get(id)?.GrantActive == true;
+    public UnlockDuration DurationOf(string id) => Get(id)?.Duration ?? UnlockDuration.Manual;
+    /// <summary>The soonest end among timed grants still running, or null when none is.</summary>
+    public DateTimeOffset? NextExpiry() => records.Values.Where(r => r.GrantActive && r.GrantUntilUnix > 0).Select(r => DateTimeOffset.FromUnixTimeSeconds(r.GrantUntilUnix)).Cast<DateTimeOffset?>().Min();
+    public DateTimeOffset Now => clock();
 
     private byte[]? ReadSecret(LockRecord r)
     {

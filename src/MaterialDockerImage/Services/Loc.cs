@@ -109,6 +109,25 @@ public static partial class Loc
         return null;
     }
 
+    private static readonly Lazy<Dictionary<string, string>> ReverseLookup = new(() =>
+    {
+        var reverse = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (english, cantonese) in Lookups.Value.Exact) reverse.TryAdd(cantonese, english);
+        return reverse;
+    });
+
+    /// <summary>
+    /// The English wording behind a label that may already be translated, so an id built from a label does not change when the language does.
+    /// Bilingual labels use their English half. Sentence templates with numbers in them are not reversed, and a label with no known translation is returned as it is.
+    /// </summary>
+    public static string Original(string? text)
+    {
+        var value = text ?? "";
+        var join = value.IndexOf(" · ", StringComparison.Ordinal);
+        if (join > 0) value = value[..join];
+        return ReverseLookup.Value.TryGetValue(value, out var english) ? english : value;
+    }
+
     public static string T(string text)
     {
         if (overrides.TryGetValue(text, out var personal)) return personal;

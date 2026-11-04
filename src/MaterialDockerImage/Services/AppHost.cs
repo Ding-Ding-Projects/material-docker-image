@@ -44,6 +44,26 @@ public sealed class AppHost
         Locks = new LockStore(capture ? null : LockStore.DefaultPath, DpapiProtector.IsAvailable ? new DpapiProtector() : null);
         Current = this;
         Schedules = new ScheduleRuntime(this);
+        // Locks whose unlock was only meant to last until the app closes, or for one action, are locked again at launch.
+        ReconcileLocks(true);
+        if (!capture)
+        {
+            lockTimer = new System.Windows.Threading.DispatcherTimer(System.Windows.Threading.DispatcherPriority.Background) { Interval = TimeSpan.FromSeconds(15) };
+            lockTimer.Tick += (_, _) => ReconcileLocks(false);
+            lockTimer.Start();
+        }
+    }
+
+    private readonly System.Windows.Threading.DispatcherTimer? lockTimer;
+
+    /// <summary>Locks again every lock whose unlock has ended (a timed unlock that ran out, or at launch the ones that last only until the app closes).</summary>
+    public void ReconcileLocks(bool startup)
+    {
+        var relocked = LockLifecycle.Reconcile(Settings, Locks, startup);
+        if (relocked.Count == 0) return;
+        SaveSettings("Locked again after the unlock ended: " + string.Join(", ", relocked));
+        foreach (var id in relocked) LockUi.Refresh(id);
+        if (!startup) Notify.Info("A timed unlock ended, so the lock is closed again.");
     }
 
     /// <summary>Tells the window to re-read settings that changed in memory only (a scheduled override), without saving them.</summary>
@@ -78,6 +98,13 @@ public sealed class AppHost
         try { Settings.Save(); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Notify.Error("Settings could not be saved: " + e.Message); return; }
         if (historyAction != null && !IsCapture) History.Record("settings", historyAction, new Dictionary<string, string> { ["settings/settings.json"] = Settings.ToJson() });
+        // A settings row unlocked for one action closes again once the person has changed it.
+        var closed = LockUi.SettingsSaved();
+        if (closed.Count > 0)
+        {
+            try { Settings.Save(); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Notify.Error("Settings could not be saved: " + e.Message); }
+            foreach (var id in closed) LockUi.Refresh(id);
+        }
         SettingsChanged?.Invoke();
     }
 
