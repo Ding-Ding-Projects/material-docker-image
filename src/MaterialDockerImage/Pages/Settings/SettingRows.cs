@@ -150,6 +150,7 @@ internal sealed class SettingRows
     private void AddLock(string id, string label, StackPanel title, TextBlock note, FrameworkElement control)
     {
         Button? button = null;
+        LockUi.SetClickTarget(control, id, label);
         void Apply()
         {
             var locked = ElementLocks.IsLocked(Host.Settings, id);

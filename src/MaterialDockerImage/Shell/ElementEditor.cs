@@ -40,11 +40,14 @@ public static class ElementEditor
         {
             changedSinceOpen = true;
             contrast.Text = style.ContrastWarning() is { } warning ? Loc.T(warning) : "";
-            if (!ElementAppearance.Set(key, style, out var error, null, target)) status.Text = Loc.T(error); else status.Text = "";
+            var saved = ElementAppearance.Set(key, style, out var error, null, target);
+            status.Text = error.Length > 0 ? Loc.T(error) : "";
+            // A locked property keeps its stored value, so the editor shows what is really stored.
+            if (saved && error.StartsWith("Locked", StringComparison.Ordinal)) { style = ElementAppearance.Store.Get(key)?.Clone() ?? new ElementStyle(); content.Content = ElementTab(); }
         }
 
-        bool Locked(string property) => ElementStyle.LockIdFor(property) is { } id && host.IsLocked(id);
-        FrameworkElement LockedNote(string property) => Ui.Caption("Locked in Settings. Unlock it there to change it.").Margin(0, 2, 0, 0);
+        bool Locked(string property) => AppearanceLocks.ElementPropertyBlocker(host.Settings, key, property) != null;
+        FrameworkElement LockedNote(string property) => Ui.Caption("Locked. Click the switch or right-click it to unlock it.").Margin(0, 2, 0, 0);
 
         // A switch that turns one override on or off, with its editor underneath while it is on.
         FrameworkElement Property(string property, string label, bool on, Action<bool> toggle, Func<FrameworkElement> editor)
@@ -52,8 +55,20 @@ public static class ElementEditor
             var locked = Locked(property);
             var holder = new ContentControl { Focusable = false, Content = on ? editor() : null };
             var sw = Ui.Switch(label, on, v => { toggle(v); holder.Content = v ? editor() : null; Live(); });
-            sw.IsEnabled = !locked;
+            LockProperty(sw, property);
+            if (locked) sw.IsEnabled = false;
             return Ui.VStack(6, sw, locked ? LockedNote(property) : null, holder);
+        }
+
+        // Each property of this element has its own lock: the right-click menu locks it, and clicking it while locked asks for the unlock.
+        void LockProperty(FrameworkElement control, string property)
+        {
+            var name = AppearanceLocks.ElementProperties.First(p => p.Property == property).Name;
+            var id = AppearanceLocks.ElementPropertyId(key, property);
+            var label = "Customized element: " + name + " (" + ElementAppearance.TitleFor(target) + ")";
+            LockUi.Attach(control, id, label);
+            LockUi.SetClickTarget(control, id, label);
+            if (AppearanceLocks.ElementPropertyBlocker(host.Settings, key, property) is { } block && block.Id != id) LockUi.SetClickTarget(control, block.Id, block.Label);
         }
 
         FrameworkElement Slider(double min, double max, double value, string name, Action<double> set)
@@ -71,6 +86,29 @@ public static class ElementEditor
             var picker = new AppearanceColorPicker(initial, true, [foreground ? "Surface" : "OnSurface"]);
             picker.ColorChanged += color => { set(color.ToStorageHex()); Live(); };
             return picker;
+        }
+
+        // One lock for the whole element, and a bulk command that gives every property its own lock (each with its own wizard, policy and credentials).
+        FrameworkElement LockWholeElement()
+        {
+            var title = ElementAppearance.TitleFor(target);
+            var wholeId = AppearanceLocks.ElementId(key);
+            var whole = Ui.AsyncButton(host.IsLocked(wholeId) ? "Unlock this element…" : "Lock this element…", host.IsLocked(wholeId) ? Icons.LockOpen : Icons.Lock, ButtonKind.Text, async () =>
+            {
+                await LockUi.ToggleAsync(wholeId, "Customized element: " + title + " (all properties)");
+                content.Content = ElementTab();
+            });
+            var every = Ui.AsyncButton("Lock every property…", Icons.ShieldLock, ButtonKind.Text, async () =>
+            {
+                var plan = AppearanceLocks.PlanBulk(host.Settings, AppearanceLocks.ElementProperties.Select(p => AppearanceLocks.ElementPropertyId(key, p.Property)));
+                foreach (var id in plan.ToLock)
+                {
+                    var name = AppearanceLocks.LabelFor(id) ?? id;
+                    if (!await LockUi.ToggleAsync(id, name + " (" + title + ")")) break;
+                }
+                content.Content = ElementTab();
+            });
+            return Ui.VStack(4, Ui.Wrap(8, whole, every), Ui.Caption("Each lock has its own policy and credentials."), Ui.Caption(ElementLocks.Disclosure));
         }
 
         FrameworkElement ElementTab()
@@ -103,7 +141,10 @@ public static class ElementEditor
                     v => style.Padding = v ? Math.Round(ElementAppearance.CurrentPadding(target), 1) : null,
                     () => Slider(0, ElementStyle.MaxPadding, style.Padding ?? 0, "Padding", v => style.Padding = v)));
             var hide = Ui.Switch("Hide this element (it keeps its space)", style.Hidden, v => { style.Hidden = v; Live(); }, "Reset it from the Overrides tab or with Reset element if it disappears.");
+            LockProperty(hide, nameof(ElementStyle.Hidden));
+            if (Locked(nameof(ElementStyle.Hidden))) hide.IsEnabled = false;
             parts.Add(hide);
+            parts.Add(LockWholeElement());
             parts.Add(contrast);
             var reset = Ui.Button("Reset element", Icons.RestartAlt, ButtonKind.Tonal, () =>
             {
@@ -173,6 +214,7 @@ public static class ElementEditor
         card.Effect = Ui.Elevation(24, 6, .4);
         card.Margin = new Thickness(8, 0, 16, 16);
         KeyboardNavigation.SetTabNavigation(card, KeyboardNavigationMode.Cycle);
+        LockUi.InstallDisabledClickPrompt(card);
         AutomationProperties.SetName(card, Loc.T("Customize this element") + ": " + ElementAppearance.TitleFor(target));
         var popup = new Popup { PlacementTarget = target, Placement = PlacementMode.Right, StaysOpen = true, AllowsTransparency = true, Child = card };
         var window = Window.GetWindow(target);

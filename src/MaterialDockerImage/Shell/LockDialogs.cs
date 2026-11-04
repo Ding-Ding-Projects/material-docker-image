@@ -283,6 +283,7 @@ public static class LockDialogs
                     }
                     entry.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) Submit(); };
                     rows.Children.Add(Ui.Field(stage == LadderStage.Recovery ? "Recovery code" : LockPolicies.FactorLabel(factor), entry));
+                    if (stage == LadderStage.Credential && factor == LockFactors.Pin && entry is PasswordBox pinBox) rows.Children.Add(PinKeypadView.Create(pinBox, Render));
                     rows.Children.Add(error);
                     var toggle = stage == LadderStage.Recovery
                         ? Ui.Button("Back", null, ButtonKind.Text, () => { recovery = false; message = null; Render(); })

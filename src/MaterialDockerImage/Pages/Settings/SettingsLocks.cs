@@ -49,6 +49,20 @@ public sealed partial class SettingsPage
 
         Extra(Ui.Caption("Every lock the app knows about, whether it guards a settings row, a button, a switch, a field, a slider or a drop-down. Each lock has its own policy and its own credentials; unlocking one never unlocks another."));
         Extra(Ui.Caption(Loc.T(ElementLocks.Disclosure)).Margin(0, 4, 0, 4));
+        Extra(Ui.Switch("Hide locked items in searches", Host.Settings.HideLockedInSearch, v => { Host.Settings.HideLockedInSearch = v; Host.SaveSettings("Hide locked items in searches " + (v ? "on" : "off")); },
+            "Off by default: locked tabs, settings and commands stay listed and are labelled Locked. When on, they are left out, and every list says how many it hid."));
+        Extra(Ui.Switch("Shuffle the PIN keypad", Host.Settings.PinKeypadShuffle, v => { Host.Settings.PinKeypadShuffle = v; Host.SaveSettings("PIN keypad shuffle " + (v ? "on" : "off")); },
+            "Off by default. When on, the digits on the unlock keypad change places each time it opens."));
+        // Locks that are not a single control: tab groups, the navigation rail and every colour role. Each one still gets its own policy and credentials.
+        var groupButtons = TabLocks.Groups.Select(g => (UIElement)Ui.AsyncButton(Loc.T(Host.IsLocked(TabLocks.GroupId(g)) ? "Unlock:" : "Lock:") + " " + Loc.T(TabLocks.GroupLabel(g)), Icons.Lock, ButtonKind.Tonal,
+            async () => { await LockUi.ToggleAsync(TabLocks.GroupId(g), TabLocks.GroupLabel(g)); Refresh(); }, false)).ToList();
+        groupButtons.Add(Ui.AsyncButton("Lock every colour role…", Icons.Palette, ButtonKind.Tonal, async () =>
+        {
+            var plan = AppearanceLocks.PlanBulk(Host.Settings, AppearanceLocks.AllRoleIds());
+            foreach (var id in plan.ToLock) if (!await LockUi.ToggleAsync(id, AppearanceLocks.LabelFor(id) ?? id)) break;
+            Refresh();
+        }));
+        Extra(Ui.Wrap(8, groupButtons.ToArray()).Margin(0, 8, 0, 8));
         Extra(table);
         Extra(Ui.Card(LockDialogs.RecoveryFooter(), 16, "SurfaceContainer", 12).Margin(0, 12, 0, 0));
     }

@@ -62,10 +62,11 @@ public partial class MainWindow : Window
         var notifier = new Notifier(Toasts) { SoundsEnabled = () => SoundCueRules.MayPlay(settings, CaptureMode) };
         host = new AppHost(settings, notifier, overlay, dock, capture);
         if (!capture) _ = new Shell.VocabularyDrop(this, Root, host);
+        Shell.LockUi.InstallDisabledClickPrompt(this);
         Shell.SchoolModeUi.Attach(host);
         notifier.Narrate = Narrator.Speak;
         Narrator.Enabled = () => settings.Narration && !CaptureMode;
-        host.Navigate = Navigate;
+        host.Navigate = key => Navigate(key);
         host.NavigateWith = (destination, _) => Navigate(destination);
         host.SettingsChanged += ApplyAppearance;
         if (lastLogoNotice.Length > 0 && !capture) host.Notify.Info(lastLogoNotice);
@@ -263,10 +264,13 @@ public partial class MainWindow : Window
         {
             var item = new RadioButton { Style = (Style)FindResource("Rail.Item"), Tag = destination.Icon, Content = new TextBlock { Text = Loc.T(destination.Key), TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 76, TextAlignment = TextAlignment.Center }, GroupName = "rail", ToolTip = Loc.T(destination.Description) };
             AutomationProperties.SetName(item, Loc.T(destination.Key));
-            item.Checked += (_, _) => { if (!navigating) Navigate(destination.Key); };
+            item.Checked += (_, _) => { if (!navigating) Navigate(destination.Key, true); };
             item.ContextMenu = new ContextMenu();
             item.ContextMenu.Items.Add(Ui.MenuItem("Open in new tab", Icons.Tab, () => OpenTab(destination.Key, false)));
             item.ContextMenu.Items.Add(Ui.CommandMenuItem("Edit appearance…", Icons.Palette, "appearance.element", () => OpenAppearancePanel(item, new[] { "SecondaryContainer", "OnSecondaryContainer", "OnSurfaceVariant", "Surface", "HoverLayer" }, "Navigation item")));
+            item.ContextMenu.Items.Add(new Separator());
+            Shell.LockUi.AddLockItems(item.ContextMenu, TabLocks.TabId(destination.Key), TabLocks.TabLabel(destination.Key), "Lock this destination…", "Unlock this destination…");
+            Shell.LockUi.AddLockItems(item.ContextMenu, TabLocks.GroupId(TabGroup.Rail), TabLocks.GroupLabel(TabGroup.Rail), "Lock the navigation rail…", "Unlock the navigation rail…");
             railItems[destination.Key] = item;
             (destination.Key == "Settings" ? RailBottom : Rail).Children.Add(item);
         }
@@ -314,12 +318,28 @@ public partial class MainWindow : Window
         shownKey = key; shownTab = currentTab;
     }
 
-    public void Navigate(string key)
+    /// <summary>Shows a destination in the current tab. A locked destination (or a locked rail) asks for the unlock first, so a shortcut, the palette or a rail click cannot walk around the lock.</summary>
+    public void Navigate(string key, bool viaRail = false)
     {
         if (Destinations.Find(key) is null) return;
+        if (TabLocks.NavigationBlocker(settings, key, viaRail) is { } block)
+        {
+            ResyncRail();
+            _ = Shell.LockUi.UnlockThenAsync(block.Id, block.Label, () => Navigate(key, viaRail));
+            return;
+        }
         if (tabs.Count == 0) { tabs.Add(new(key, false, true)); currentTab = 0; }
         tabs[currentTab] = tabs[currentTab] with { Destination = key };
         ShowCurrent();
+    }
+
+    /// <summary>Puts the rail's selection back on the destination that is really shown (after a click that a lock refused).</summary>
+    private void ResyncRail()
+    {
+        navigating = true;
+        var shown = tabs.Count > 0 ? tabs[Math.Clamp(currentTab, 0, tabs.Count - 1)].Destination : null;
+        foreach (var pair in railItems) pair.Value.IsChecked = pair.Key == shown;
+        navigating = false;
     }
 
     private PageBase Page(string key)
@@ -377,13 +397,44 @@ public partial class MainWindow : Window
         ? (string.IsNullOrWhiteSpace(settings.BuildFolder) ? Loc.T("Workspace") : Path.GetFileName(Path.TrimEndingDirectorySeparator(settings.BuildFolder))) + " · " + Loc.T(tab.Destination)
         : Loc.T(tab.Destination);
 
+    private TabGroup GroupOf(TabState tab) => TabLocks.GroupOf(tab.Pinned, tab.Workspace);
+    private LockBlock? TabBlocker(TabState tab, UI.TabAction action) => TabLocks.Blocker(settings, tab.Destination, GroupOf(tab), action);
+
+    /// <summary>
+    /// Runs a tab action unless a lock refuses it. A refused action does not run: the unlock prompt for the refusing lock opens, and the action is tried again once the person has got through.
+    /// Returns whether it ran right now.
+    /// </summary>
+    private bool RunTabAction(TabState tab, UI.TabAction action, Action run)
+    {
+        if (TabBlocker(tab, action) is not { } block) { run(); return true; }
+        var key = tab.Destination;
+        _ = Shell.LockUi.UnlockThenAsync(block.Id, block.Label, () =>
+        {
+            var index = tabs.FindIndex(t => t.Destination == key);
+            if (index >= 0 && TabBlocker(tabs[index], action) == null) run();
+        });
+        return false;
+    }
+
+    /// <summary>A tab in a locked group is listed as locked too: its structure (closing, moving, pinning) is guarded by the group lock.</summary>
+    private bool RunsLockedGroup(TabState tab) => TabLocks.IsGroupLocked(settings, GroupOf(tab));
+
+    private void ActivateTab(int index)
+    {
+        if (index < 0 || index >= tabs.Count) return;
+        var tab = tabs[index];
+        RunTabAction(tab, UI.TabAction.Activate, () => { var at = tabs.FindIndex(t => t.Destination == tab.Destination); if (at >= 0) { currentTab = at; ShowCurrent(); } });
+    }
+
     private void RenderTabs()
     {
         Tabs.Children.Clear();
         for (var i = 0; i < tabs.Count; i++)
         {
             var index = i; var tab = tabs[i];
+            var tabLocked = TabLocks.IsTabLocked(settings, tab.Destination);
             var content = new StackPanel { Orientation = Orientation.Horizontal };
+            if (tabLocked) content.Children.Add(Ui.Icon(Icons.Lock, 16, true, "Primary").Margin(0, 0, 8, 0));
             if (tab.Pinned || tab.Workspace) content.Children.Add(Ui.Icon(tab.Workspace ? Icons.FolderOpen : Icons.Keep, 16, true, "Primary").Margin(0, 0, 8, 0));
             content.Children.Add(new TextBlock { Text = TabTitle(tab), VerticalAlignment = VerticalAlignment.Center, MaxWidth = 220, TextTrimming = TextTrimming.CharacterEllipsis });
             if (!tab.Workspace)
@@ -394,11 +445,19 @@ public partial class MainWindow : Window
             }
             else content.Children.Add(new Border { Width = 8 });
             var radio = new RadioButton { Style = (Style)FindResource("Tab.Item"), Content = content, GroupName = "tabs", IsChecked = i == currentTab, VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 4, 0) };
-            AutomationProperties.SetName(radio, TabTitle(tab));
-            radio.Checked += (_, _) => { if (currentTab != index) { currentTab = index; ShowCurrent(); } };
+            AutomationProperties.SetName(radio, TabTitle(tab) + (tabLocked ? ", " + Loc.T("locked") : ""));
+            if (tabLocked) AutomationProperties.SetHelpText(radio, Loc.T("Locked. Select it to unlock this tab."));
+            radio.Checked += (_, _) =>
+            {
+                if (currentTab == index) return;
+                if (TabBlocker(tab, UI.TabAction.Activate) == null) { currentTab = index; ShowCurrent(); return; }
+                // A locked tab does not open: the strip goes back to the tab that is really shown, and the unlock prompt opens for this one.
+                Dispatcher.BeginInvoke(RenderTabs, DispatcherPriority.Background);
+                ActivateTab(index);
+            };
             radio.MouseUp += (_, e) => { if (e.ChangedButton == MouseButton.Middle && !tab.Workspace) CloseTab(index); };
             var menu = new ContextMenu();
-            if (!tab.Workspace) menu.Items.Add(Ui.MenuItem(tab.Pinned ? "Unpin tab" : "Pin tab", Icons.Keep, () => { tabs[index] = tab with { Pinned = !tab.Pinned }; Reorder(); }));
+            if (!tab.Workspace) menu.Items.Add(Ui.MenuItem(tab.Pinned ? "Unpin tab" : "Pin tab", Icons.Keep, () => RunTabAction(tab, UI.TabAction.Pin, () => { var at = tabs.FindIndex(t => t.Destination == tab.Destination); if (at >= 0) { tabs[at] = tabs[at] with { Pinned = !tab.Pinned }; Reorder(); } })));
             if (!tab.Workspace) menu.Items.Add(Ui.CommandMenuItem("Close tab", Icons.Close, "tab.close", () => CloseTab(index)));
             menu.Items.Add(Ui.MenuItem("Close other tabs", Icons.Close, () => CloseWhere(t => t != tab)));
             menu.Items.Add(Ui.MenuItem("Close tabs containing text…", Icons.FilterList, () => CloseByText(true)));
@@ -406,6 +465,12 @@ public partial class MainWindow : Window
             menu.Items.Add(new Separator());
             if (i > 1) menu.Items.Add(Ui.MenuItem("Move left", Icons.ChevronLeft, () => Move(index, -1)));
             if (i > 0 && i < tabs.Count - 1) menu.Items.Add(Ui.MenuItem("Move right", Icons.ChevronRight, () => Move(index, 1)));
+            menu.Items.Add(new Separator());
+            Shell.LockUi.AddLockItems(menu, TabLocks.TabId(tab.Destination), TabLocks.TabLabel(tab.Destination), "Lock this tab…", "Unlock this tab…");
+            var group = GroupOf(tab);
+            var groupToggle = Ui.MenuItem("Lock this tab group…", Icons.Lock, () => _ = Shell.LockUi.ToggleAsync(TabLocks.GroupId(group), TabLocks.GroupLabel(group)));
+            menu.Opened += (_, _) => groupToggle.Header = Loc.T(TabLocks.IsGroupLocked(settings, group) ? "Unlock this tab group…" : "Lock this tab group…");
+            menu.Items.Add(groupToggle);
             radio.ContextMenu = menu;
             Tabs.Children.Add(radio);
         }
@@ -422,6 +487,9 @@ public partial class MainWindow : Window
     {
         var target = index + delta;
         if (target < 1 || target >= tabs.Count) return;
+        var moving = tabs[index]; var displaced = tabs[target];
+        if (TabBlocker(displaced, UI.TabAction.Move) is { } other) { _ = Shell.LockUi.UnlockThenAsync(other.Id, other.Label, () => Move(tabs.IndexOf(moving), delta)); return; }
+        if (!RunTabAction(moving, UI.TabAction.Move, () => Move(tabs.IndexOf(moving), delta))) return;
         (tabs[index], tabs[target]) = (tabs[target], tabs[index]);
         if (currentTab == index) currentTab = target; else if (currentTab == target) currentTab = index;
         PersistTabs(); RenderTabs();
@@ -430,7 +498,8 @@ public partial class MainWindow : Window
     {
         if (settings.OneThingAtATime) { host.Notify.Info("One thing at a time is on, so the current tab shows " + Loc.T(key) + " instead of opening another tab."); Navigate(key); return; }
         var existing = tabs.FindIndex(t => !t.Workspace && t.Destination == key);
-        if (existing >= 0) { currentTab = existing; ShowCurrent(); return; }
+        if (existing >= 0) { ActivateTab(existing); return; }
+        if (TabLocks.NavigationBlocker(settings, key, false) is { } blocked) { _ = Shell.LockUi.UnlockThenAsync(blocked.Id, blocked.Label, () => OpenTab(key, pinned)); return; }
         tabs.Add(new(key, pinned, false));
         currentTab = tabs.Count - 1;
         ShowCurrent();
@@ -438,16 +507,25 @@ public partial class MainWindow : Window
     private void CloseTab(int index)
     {
         if (index <= 0 || index >= tabs.Count || tabs[index].Workspace) return;
-        tabs.RemoveAt(index);
-        if (currentTab >= index) currentTab = Math.Max(0, currentTab - 1);
-        ShowCurrent();
+        var tab = tabs[index];
+        RunTabAction(tab, UI.TabAction.Close, () =>
+        {
+            var at = tabs.IndexOf(tab);
+            if (at <= 0) return;
+            tabs.RemoveAt(at);
+            if (currentTab >= at) currentTab = Math.Max(0, currentTab - 1);
+            ShowCurrent();
+        });
     }
     private void CloseWhere(Func<TabState, bool> predicate)
     {
         var current = tabs[currentTab];
-        tabs.RemoveAll(t => !t.Workspace && !t.Pinned && predicate(t));
+        // Locked tabs (and tabs in a locked group) are left open exactly as pinned tabs are.
+        var kept = tabs.Count(t => !t.Workspace && !t.Pinned && predicate(t) && TabBlocker(t, UI.TabAction.Close) != null);
+        tabs.RemoveAll(t => !t.Workspace && !t.Pinned && predicate(t) && TabBlocker(t, UI.TabAction.Close) == null);
         currentTab = Math.Max(0, tabs.IndexOf(current));
         ShowCurrent();
+        if (kept > 0) host.Notify.Info(kept + " " + Loc.T("locked tab(s) stayed open."));
     }
     /// <summary>
     /// Close tabs containing (or not containing) text: one field with its own regex builder, a live preview and
@@ -460,6 +538,7 @@ public partial class MainWindow : Window
         var search = new SearchFilter("Text to match in tab titles", 440) { Width = double.NaN };
         var mode = containing;
         var includePinned = false;
+        var includeLocked = false;
         var preview = new ListBox { MinHeight = 120, MaxHeight = 260 };
         AutomationProperties.SetName(preview, Loc.T("Preview of tabs that will close"));
         var summary = Ui.Caption("");
@@ -470,8 +549,10 @@ public partial class MainWindow : Window
         void Update()
         {
             snapshot = tabs.ToList();
-            var candidates = snapshot.Select((t, i) => new TabCloseCandidate(i, TabTitle(t), t.Pinned, t.Workspace, pages.TryGetValue(t.Destination, out var p) && p is IDirtyAware { IsDirty: true }));
-            selection = TabCloseSelector.Select(candidates, search.Predicate, mode, includePinned);
+            var candidates = snapshot.Select((t, i) => new TabCloseCandidate(i, TabTitle(t), t.Pinned, t.Workspace, pages.TryGetValue(t.Destination, out var p) && p is IDirtyAware { IsDirty: true })).ToList();
+            // Locked tabs (and tabs in a locked group) stay open unless the person explicitly includes them, exactly as pinned tabs do.
+            var marked = TabLocks.MarkLocked(settings, candidates, snapshot.Select(t => (t.Destination, GroupOf(t))).ToList(), includeLocked);
+            selection = TabCloseSelector.Select(marked, search.Predicate, mode, includePinned, includeLocked);
             preview.Items.Clear();
             foreach (var t in selection.ToClose) preview.Items.Add(new ListBoxItem { Content = t.Label });
             foreach (var (t, reason) in selection.Kept) preview.Items.Add(new ListBoxItem { Content = t.Label + " · " + Loc.T("stays open:") + " " + Loc.T(reason), IsEnabled = false });
@@ -483,23 +564,34 @@ public partial class MainWindow : Window
             if (!selection.Valid || selection.ToClose.Count == 0) return;
             var targets = selection.ToClose.Select(c => snapshot[c.Index]).Where(t => !t.Workspace).ToList();
             close!();
+            _ = CloseTargets(targets);
+        }
+        // Including locked tabs never skips their locks: each locked tab asks for its unlock and stays open when the person does not get through.
+        async Task CloseTargets(List<TabState> targets)
+        {
             var current = tabs[currentTab];
-            foreach (var t in targets) tabs.Remove(t);
+            var closed = 0;
+            foreach (var t in targets)
+            {
+                if (TabBlocker(t, UI.TabAction.Close) is { } block && !await Shell.LockUi.ToggleAsync(block.Id, block.Label)) continue;
+                if (tabs.Remove(t)) { closed++; Shell.LockUi.ActionPerformed(TabLocks.GroupId(GroupOf(t))); Shell.LockUi.ActionPerformed(TabLocks.TabId(t.Destination)); }
+            }
             currentTab = Math.Max(0, tabs.IndexOf(current));
             ShowCurrent();
-            host.Notify.Info($"Closed {targets.Count} tab{(targets.Count == 1 ? "" : "s")}.");
+            host.Notify.Info($"Closed {closed} tab{(closed == 1 ? "" : "s")}.");
         }
         search.Changed += Update;
         search.Box.PreviewKeyDown += (_, e) => { if (e.Key == Key.Enter && confirm?.IsEnabled == true) { Apply(); e.Handled = true; } };
         var modes = Ui.Segmented(["Containing", "Not containing"], mode ? "Containing" : "Not containing", v => { mode = v == "Containing"; Update(); });
         var pinned = Ui.Switch("Include pinned tabs", false, v => { includePinned = v; Update(); }, "Off by default. The workspace tab and tabs with unsaved work always stay open.");
+        var lockedSwitch = Ui.Switch("Include locked tabs", false, v => { includeLocked = v; Update(); }, "Off by default. Locked tabs still ask for their unlock before they close.");
         confirm = Ui.Button("Close matching tabs", Icons.Close, ButtonKind.Filled, Apply);
         var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => close!()), confirm);
         actions.HorizontalAlignment = HorizontalAlignment.Right;
         Update();
         close = overlay.Show(Ui.VStack(12, Ui.Title("Close tabs by text"),
             Ui.Caption("Matches tab titles with plain text by default; turn on .* or open the builder (Alt+R) for a regular expression. Nothing closes until you confirm."),
-            modes, search, pinned, summary, preview, actions), 600);
+            modes, search, pinned, lockedSwitch, summary, preview, actions), 600);
         Dispatcher.BeginInvoke(() => search.Box.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
@@ -509,12 +601,19 @@ public partial class MainWindow : Window
         Action? close = null;
         var search = new SearchFilter("Search destinations, tools and settings", 480);
         var list = new ListBox { MinHeight = 320, MaxHeight = 460 };
+        var catalogNote = Ui.Caption("");
+        catalogNote.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
         void Fill()
         {
             list.Items.Clear();
-            foreach (var d in Destinations.All.Where(d => search.Matches(d.Key + " " + Loc.T(d.Key) + " " + d.Description)))
+            var shown = LockedResults.Apply(Destinations.All.Where(d => search.Matches(LockedResults.SearchText(d.Key + " " + Loc.T(d.Key) + " " + d.Description, TabLocks.IsTabLocked(settings, d.Key)))),
+                d => TabLocks.IsTabLocked(settings, d.Key), settings.HideLockedInSearch, out var hidden);
+            catalogNote.Text = LockedResults.HiddenStatement(hidden, Loc.T);
+            catalogNote.Visibility = hidden > 0 ? Visibility.Visible : Visibility.Collapsed;
+            foreach (var d in shown)
             {
-                var row = Ui.HStack(14, Ui.Icon(d.Icon, 22, false, "Primary"), Ui.VStack(2, Ui.Text(d.Key, 14, FontWeights.SemiBold), Ui.Caption(d.Description)));
+                var locked = TabLocks.IsTabLocked(settings, d.Key);
+                var row = Ui.HStack(14, Ui.Icon(locked ? Icons.Lock : d.Icon, 22, false, "Primary"), Ui.VStack(2, Ui.Text(d.Key, 14, FontWeights.SemiBold), Ui.Caption(locked ? Loc.T(d.Description) + " · " + Loc.T(LockedResults.Marker) : d.Description)));
                 list.Items.Add(new ListBoxItem { Content = row, Tag = d.Key });
             }
             if (list.Items.Count > 0) list.SelectedIndex = 0;
@@ -527,7 +626,7 @@ public partial class MainWindow : Window
         Fill();
         var actions = Ui.HStack(8, Ui.Button("Cancel", null, ButtonKind.Text, () => close!()), Ui.Button("Open in new tab", Icons.Tab, ButtonKind.Filled, Open));
         actions.HorizontalAlignment = HorizontalAlignment.Right;
-        close = overlay.Show(Ui.VStack(14, Ui.Title("New tab"), Ui.Caption("Opening a destination that already has a tab focuses that tab, so drafts are never duplicated."), search, list, actions), 620);
+        close = overlay.Show(Ui.VStack(14, Ui.Title("New tab"), Ui.Caption("Opening a destination that already has a tab focuses that tab, so drafts are never duplicated."), search, catalogNote, list, actions), 620);
     }
 
     private void SearchTabs()
@@ -535,12 +634,28 @@ public partial class MainWindow : Window
         Action? close = null;
         var search = new SearchFilter("Search open tabs", 440);
         var list = new ListBox { MinHeight = 200 };
-        void Fill() { list.Items.Clear(); for (var i = 0; i < tabs.Count; i++) if (search.Matches(TabTitle(tabs[i]))) list.Items.Add(new ListBoxItem { Content = TabTitle(tabs[i]), Tag = i }); if (list.Items.Count > 0) list.SelectedIndex = 0; }
-        void Go() { if (list.SelectedItem is ListBoxItem { Tag: int i }) { close!(); currentTab = i; ShowCurrent(); } }
+        var note = Ui.Caption("");
+        note.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
+        void Fill()
+        {
+            list.Items.Clear();
+            var hidden = 0;
+            for (var i = 0; i < tabs.Count; i++)
+            {
+                var locked = TabLocks.IsTabLocked(settings, tabs[i].Destination) || RunsLockedGroup(tabs[i]);
+                if (!search.Matches(LockedResults.SearchText(TabTitle(tabs[i]), locked))) continue;
+                if (locked && settings.HideLockedInSearch) { hidden++; continue; }
+                list.Items.Add(new ListBoxItem { Content = TabTitle(tabs[i]) + (locked ? " · " + Loc.T(LockedResults.Marker) : ""), Tag = i });
+            }
+            note.Text = LockedResults.HiddenStatement(hidden, Loc.T);
+            if (list.Items.Count > 0) list.SelectedIndex = 0;
+        }
+        // Choosing a locked tab asks for its unlock instead of teleporting past the lock.
+        void Go() { if (list.SelectedItem is ListBoxItem { Tag: int i }) { close!(); ActivateTab(i); } }
         search.Changed += Fill; list.MouseDoubleClick += (_, _) => Go(); list.KeyDown += (_, e) => { if (e.Key == Key.Enter) Go(); };
         search.Box.PreviewKeyDown += (_, e) => { if (e.Key == Key.Enter) { Go(); e.Handled = true; } else if (e.Key == Key.Down) list.Focus(); };
         Fill();
-        close = overlay.Show(Ui.VStack(12, Ui.Title("Search open tabs"), search, list), 540);
+        close = overlay.Show(Ui.VStack(12, Ui.Title("Search open tabs"), search, note, list), 540);
     }
 
     // ----- Commands and palette -----
@@ -550,7 +665,7 @@ public partial class MainWindow : Window
         c.Register(new AppCommand { Id = "palette", Title = "Open command palette", Icon = Icons.Search, Gesture = new KeyGesture(Key.F, ModifierKeys.Control | ModifierKeys.Shift), Run = OpenPalette });
         c.Register(new AppCommand { Id = "tab.new", Title = "New tab", Icon = Icons.Tab, Gesture = new KeyGesture(Key.T, ModifierKeys.Control), Run = ShowCatalog });
         c.Register(new AppCommand { Id = "tab.close", Title = "Close tab", Icon = Icons.Close, Gesture = new KeyGesture(Key.W, ModifierKeys.Control), Run = () => CloseTab(currentTab) });
-        c.Register(new AppCommand { Id = "tab.next", Title = "Next tab", Icon = Icons.ChevronRight, Gesture = new KeyGesture(Key.Tab, ModifierKeys.Control), Run = () => { currentTab = (currentTab + 1) % tabs.Count; ShowCurrent(); } });
+        c.Register(new AppCommand { Id = "tab.next", Title = "Next tab", Icon = Icons.ChevronRight, Gesture = new KeyGesture(Key.Tab, ModifierKeys.Control), Run = () => ActivateTab((currentTab + 1) % tabs.Count) });
         c.Register(new AppCommand { Id = "tab.search", Title = "Search open tabs", Icon = Icons.Search, Gesture = new KeyGesture(Key.A, ModifierKeys.Control | ModifierKeys.Shift), Run = SearchTabs });
         c.Register(new AppCommand { Id = "tab.close-containing", Title = "Close tabs containing text…", Icon = Icons.FilterList, Keywords = "bulk close tabs regex", Run = () => CloseByText(true) });
         c.Register(new AppCommand { Id = "tab.close-not-containing", Title = "Close tabs not containing text…", Icon = Icons.FilterList, Keywords = "bulk close tabs regex", Run = () => CloseByText(false) });

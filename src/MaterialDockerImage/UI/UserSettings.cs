@@ -59,6 +59,10 @@ public sealed class UserSettings
     public string TabDock { get; set; } = "Top";
     public Dictionary<string, bool> CollapsedFilters { get; set; } = new();
     /// <summary>Ids of settings rows the person locked against change (see ElementLocks).</summary>
+    /// <summary>Locked items stay listed and labelled in searches and the command palette; this hides them instead, and every list says when it did.</summary>
+    public bool HideLockedInSearch { get; set; }
+    /// <summary>Shuffles the digit positions of the on-screen PIN keypad. Off by default: the standard layout is used unless the person chooses this.</summary>
+    public bool PinKeypadShuffle { get; set; }
     public List<string> LockedSettings { get; set; } = new();
     /// <summary>Readable names for locks on elements that are not settings rows, so the Locks manager can say what each lock is. Never holds a credential.</summary>
     public Dictionary<string, string> LockLabels { get; set; } = new();

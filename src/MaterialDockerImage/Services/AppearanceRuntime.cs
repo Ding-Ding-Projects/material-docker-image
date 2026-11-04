@@ -112,6 +112,7 @@ public static class AppearanceRuntime
         var next = before.Clone();
         mutate(next);
         next.Normalize();
+        next = Guarded(before, next);
         if (next.SameAs(before)) return;
         if (coalesce)
         {
@@ -131,6 +132,15 @@ public static class AppearanceRuntime
         Changed?.Invoke();
     }
 
+    /// <summary>Holds back every change a lock covers (a locked value or colour role keeps what it was) and says so once.</summary>
+    private static AppearanceState Guarded(AppearanceState before, AppearanceState next)
+    {
+        if (Host == null) return next;
+        var guarded = AppearanceLocks.GuardState(Host.Settings, before, next, out var refused);
+        if (refused.Count > 0) Host.Notify.Warning(Loc.T("Locked appearance values were kept as they were:") + " " + string.Join(", ", refused.Select(id => Loc.T(AppearanceLocks.LabelFor(id) ?? id))) + ". " + Loc.T("Unlock them to change them."));
+        return guarded;
+    }
+
     /// <summary>Replaces the whole appearance (presets, paste, import, undo).</summary>
     public static void Set(AppearanceState next, string label, bool recordUndo = true)
     {
@@ -138,6 +148,7 @@ public static class AppearanceRuntime
         Flush();
         var before = Current;
         next = next.Clone(); next.Normalize();
+        next = Guarded(before, next);
         if (next.SameAs(before)) { Host.Notify.Info("The appearance already matches. Nothing changed."); return; }
         if (recordUndo) History.Push(before);
         next.WriteTo(Host.Settings);
@@ -161,6 +172,7 @@ public static class AppearanceRuntime
     {
         Flush();
         if (Host == null || History.Undo(Current) is not { } previous) { Host?.Notify.Info("There is no appearance change to undo."); return; }
+        previous = Guarded(Current, previous);
         previous.WriteTo(Host.Settings);
         Host.SaveSettings("Appearance: undo");
         Changed?.Invoke();
@@ -170,6 +182,7 @@ public static class AppearanceRuntime
     {
         Flush();
         if (Host == null || History.Redo(Current) is not { } next) { Host?.Notify.Info("There is no appearance change to redo."); return; }
+        next = Guarded(Current, next);
         next.WriteTo(Host.Settings);
         Host.SaveSettings("Appearance: redo");
         Changed?.Invoke();

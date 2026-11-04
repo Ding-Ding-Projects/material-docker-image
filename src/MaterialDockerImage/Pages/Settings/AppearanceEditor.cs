@@ -4,6 +4,7 @@ using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Media;
 using MaterialDockerImage.Services;
+using MaterialDockerImage.Shell;
 using MaterialDockerImage.UI;
 using Microsoft.Win32;
 
@@ -199,6 +200,13 @@ public sealed partial class SettingsPage
         }
         AppearancePreset? Selected() => AppearanceRuntime.AllPresets.FirstOrDefault(p => p.Id == (combo.SelectedItem as ComboBoxItem)?.Tag as string);
         FillPresets();
+        // A locked preset cannot be replaced, renamed or deleted until it is unlocked.
+        async Task<bool> PresetFree(string presetName)
+        {
+            if (AppearanceLocks.PresetBlocker(Host.Settings, presetName) is not { } block) return true;
+            await LockUi.UnlockThenAsync(block.Id, block.Label);
+            return AppearanceLocks.PresetBlocker(Host.Settings, presetName) == null;
+        }
 
         var apply = Ui.Button("Apply", Icons.Check, ButtonKind.Filled, () => { if (Selected() is { } p) AppearanceRuntime.ApplyPreset(p); });
         var save = Ui.AsyncButton("Save current as…", Icons.Save, ButtonKind.Tonal, async () =>
@@ -208,6 +216,7 @@ public sealed partial class SettingsPage
             name = name.Trim();
             var list = AppearanceRuntime.UserPresets.ToList();
             var existing = list.FindIndex(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+            if (existing >= 0 && !await PresetFree(list[existing].Name)) return;
             if (existing >= 0 && !await Host.Overlay.ConfirmAsync("Replace preset?", $"A preset named \"{list[existing].Name}\" exists. Replace it with the current appearance? The old version stays in local history.", "Replace", true)) return;
             var preset = new AppearancePreset(name, AppearanceRuntime.Current);
             if (existing >= 0) list[existing] = preset; else list.Add(preset);
@@ -217,6 +226,7 @@ public sealed partial class SettingsPage
         var rename = Ui.AsyncButton("Rename…", Icons.DriveFileRenameOutline, ButtonKind.Text, async () =>
         {
             if (Selected() is not { BuiltIn: false } preset) { Host.Notify.Info("Built-in presets cannot be renamed. Save a copy with Save current as… after applying it."); return; }
+            if (!await PresetFree(preset.Name)) return;
             var name = await Host.Overlay.PromptAsync("Rename preset", "New name", preset.Name, null, n => AppearancePresets.ValidateName(n) ?? (AppearanceRuntime.AllPresets.Any(p => p != preset && p.Name.Equals(n.Trim(), StringComparison.OrdinalIgnoreCase)) ? "Another preset already has that name." : null));
             if (name == null) return;
             var list = AppearanceRuntime.UserPresets.Select(p => p == preset ? p with { Name = name.Trim() } : p).ToList();
@@ -225,10 +235,16 @@ public sealed partial class SettingsPage
         var delete = Ui.AsyncButton("Delete…", Icons.Delete, ButtonKind.Text, async () =>
         {
             if (Selected() is not { BuiltIn: false } preset) { Host.Notify.Info("Built-in presets cannot be deleted."); return; }
+            if (!await PresetFree(preset.Name)) return;
             if (!await Host.Overlay.ConfirmAsync($"Delete preset \"{preset.Name}\"?", "The preset is removed from appearance-presets.json. The file before the deletion is kept in local history, and your current appearance does not change.", "Delete preset", true)) return;
             if (AppearanceRuntime.SaveUserPresets(AppearanceRuntime.UserPresets.Where(p => p != preset).ToList(), "deleted " + preset.Name)) { FillPresets(); Host.Notify.Success($"Preset \"{preset.Name}\" deleted."); }
         });
         delete.SetResourceReference(Control.ForegroundProperty, "Error");
+        var lockPreset = Ui.AsyncButton("Lock this preset…", Icons.Lock, ButtonKind.Text, async () =>
+        {
+            if (Selected() is not { BuiltIn: false } preset) { Host.Notify.Info("Built-in presets cannot be changed, so they need no lock."); return; }
+            await LockUi.ToggleAsync(AppearanceLocks.PresetId(preset.Name), "Preset: " + preset.Name);
+        });
         var export = Ui.Button("Export…", Icons.FileExport, ButtonKind.Text, () =>
         {
             if (Selected() is not { } preset) return;
@@ -288,7 +304,7 @@ public sealed partial class SettingsPage
         syncs.Add(UpdateHistory);
         var problem = AppearanceRuntime.PresetProblem is { } p ? Ui.Text("appearance-presets.json could not be read, so saving presets is paused: " + p, 12, null, "Error") : null;
         return Ui.VStack(10,
-            Ui.Wrap(8, combo, apply, save, rename, delete, export, import),
+            Ui.Wrap(8, combo, apply, save, rename, delete, lockPreset, export, import),
             Ui.Wrap(8, undo, redo, copy, paste, resetAll),
             history, problem);
     }
@@ -312,14 +328,21 @@ public sealed partial class SettingsPage
             swatch.SetResourceReference(Border.BorderBrushProperty, "Outline");
             var overrides = AppearanceRuntime.Current.Roles;
             var badge = overrides.TryGetValue(role.Key, out var v) ? Ui.Badge(v == AppearanceRoles.Rainbow ? "rainbow" : v, Tone.Primary) : null;
-            return Ui.Columns(10, [0, 1, 0], swatch, Ui.VStack(0, Ui.Text(role.Name, 13, null, "OnSurface", false), Ui.Mono(role.Key + " · " + role.Group, 11, "OnSurfaceVariant")), badge ?? (UIElement)new Border());
+            UIElement tail = Host.IsLocked(AppearanceLocks.RoleId(role.Key)) ? Ui.Icon(Icons.Lock, 18, false, "Primary") : badge ?? (UIElement)new Border();
+            return Ui.Columns(10, [0, 1, 0], swatch, Ui.VStack(0, Ui.Text(role.Name, 13, null, "OnSurface", false), Ui.Mono(role.Key + " · " + role.Group, 11, "OnSurfaceVariant")), tail);
         }
         void Fill()
         {
             var keep = selectedRole;
             list.Items.Clear();
             foreach (var role in AppearanceRoles.All.Where(r => filter.Matches(r.Key + " " + r.Name + " " + r.Group)))
-                list.Items.Add(new ListBoxItem { Content = RoleRow(role), Tag = role.Key, Padding = new Thickness(8, 4, 8, 4) });
+            {
+                var item = new ListBoxItem { Content = RoleRow(role), Tag = role.Key, Padding = new Thickness(8, 4, 8, 4), ContextMenu = new ContextMenu() };
+                var roleId = AppearanceLocks.RoleId(role.Key);
+                LockUi.AddLockItems(item.ContextMenu, roleId, "Colour role: " + role.Name, "Lock this colour role…", "Unlock this colour role…");
+                item.ContextMenu.Closed += (_, _) => Fill();
+                list.Items.Add(item);
+            }
             list.SelectedItem = list.Items.OfType<ListBoxItem>().FirstOrDefault(i => (string)i.Tag == keep);
             var count = AppearanceRuntime.Current.Roles.Count;
             status.Text = (filter.Status.Length > 0 ? filter.Status + " · " : list.Items.Count == 0 ? Loc.T("No roles match.") + " · " : "") + (count == 0 ? Loc.T("No roles are overridden.") : $"{count} {Loc.T("role(s) overridden")}");
@@ -334,6 +357,12 @@ public sealed partial class SettingsPage
             picker.RainbowChanged += on => { ownChange = true; Look($"{role.Key} rainbow {(on ? "on" : "off")}", m => { if (on) m.Roles[key] = AppearanceRoles.Rainbow; else m.Roles.Remove(key); }); ownChange = false; Fill(); };
             var reset = Ui.Button("Reset this role", Icons.RestartAlt, ButtonKind.Text, () => { ownChange = true; AppearanceRuntime.Change(role.Key + " reset to the theme colour", m => m.Roles.Remove(key), false, rows.Guard); ownChange = false; Fill(); ShowPicker(); });
             reset.IsEnabled = overrides.ContainsKey(key);
+            // A locked colour role (or a locked roles row) cannot be edited; clicking its picker asks for the unlock.
+            if (AppearanceLocks.RoleBlocker(Host.Settings, key) is { } roleBlock)
+            {
+                picker.IsEnabled = false; reset.IsEnabled = false;
+                LockUi.SetClickTarget(picker, roleBlock.Id, roleBlock.Label);
+            }
             pickerHost.Content = Ui.Card(Ui.VStack(10, Ui.Columns(8, [1, 0], Ui.Text(role.Name, 15, FontWeights.SemiBold), reset), picker), 14, "SurfaceContainer", 12);
         }
         list.SelectionChanged += (_, _) => { if (list.SelectedItem is ListBoxItem { Tag: string key } && key != selectedRole) { selectedRole = key; ShowPicker(); } };

@@ -21,6 +21,73 @@ public static class LockUi
 
     public static bool IsLocked(string id) => Host.IsLocked(id);
 
+    /// <summary>The lock a click on an element answers to, so a click on a locked, visibly disabled control can open that exact lock's unlock prompt.</summary>
+    public sealed record ClickTarget(string Id, string Label);
+    private static readonly DependencyProperty ClickTargetProperty = DependencyProperty.RegisterAttached("ClickTarget", typeof(ClickTarget), typeof(LockUi));
+    private static readonly UnlockPromptGate Gate = new();
+
+    /// <summary>Marks an element (and everything inside it) as answering to a lock when it is locked. A click on it then opens the unlock prompt instead of doing nothing.</summary>
+    public static void SetClickTarget(DependencyObject element, string id, string label) => element.SetValue(ClickTargetProperty, new ClickTarget(id, label));
+
+    private static DependencyObject? ParentOf(DependencyObject node) =>
+        node is System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D ? System.Windows.Media.VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node) ?? (node as FrameworkContentElement)?.Parent;
+
+    /// <summary>The nearest locked lock the clicked element answers to, or null when the click is on nothing locked.</summary>
+    public static ClickTarget? FindLockedTarget(DependencyObject? start)
+    {
+        for (var node = start; node != null; node = ParentOf(node))
+            if (node.GetValue(ClickTargetProperty) is ClickTarget target && IsLocked(target.Id)) return target;
+        return null;
+    }
+
+    /// <summary>
+    /// Installs the disabled-click prompt on a window or popup root: a left click that lands on a locked control (which is disabled, so it would otherwise ignore the click) is
+    /// swallowed, the protected action does not run, and that control's own unlock prompt opens. The pointer position is hit-tested because a disabled element does not receive the event itself.
+    /// </summary>
+    public static void InstallDisabledClickPrompt(UIElement root)
+    {
+        root.AddHandler(UIElement.PreviewMouseLeftButtonDownEvent, new MouseButtonEventHandler((_, e) =>
+        {
+            var hit = System.Windows.Media.VisualTreeHelper.HitTest(root, e.GetPosition(root))?.VisualHit;
+            var target = FindLockedTarget(hit) ?? FindLockedTarget(e.OriginalSource as DependencyObject);
+            if (target == null) return;
+            e.Handled = true;
+            if (Gate.Click(target.Id, true) == DisabledClickDecision.OpenPrompt) _ = UnlockThenAsync(target.Id, target.Label);
+        }), true);
+    }
+
+    /// <summary>
+    /// Asks for the unlock of one lock (one prompt at a time per lock), and when the person gets through runs <paramref name="after"/>, the action they were attempting.
+    /// A lock unlocked for "this action only" closes again once that action has run.
+    /// </summary>
+    public static async Task UnlockThenAsync(string id, string label, Action? after = null)
+    {
+        if (!Gate.TryBegin(id)) return;
+        try
+        {
+            if (IsLocked(id) && !await ToggleAsync(id, label)) return;
+            if (after == null) return;
+            after();
+            ActionPerformed(id);
+        }
+        finally { Gate.End(id); }
+    }
+
+    /// <summary>Adds the lock, unlock, change-policy and remove-policy items for a tab, tab group or navigation destination to an existing menu.</summary>
+    public static void AddLockItems(ContextMenu menu, string id, string label, string lockHeader, string unlockHeader)
+    {
+        var toggle = Ui.MenuItem(lockHeader, Icons.Lock, () => _ = ToggleAsync(id, label));
+        var change = Ui.MenuItem("Change lock policy…", Icons.ShieldLock, () => _ = ChangePolicyAsync(id, label));
+        menu.Items.Add(toggle); menu.Items.Add(change);
+        menu.Opened += (_, _) =>
+        {
+            var locked = IsLocked(id);
+            toggle.Header = Loc.T(locked ? unlockHeader : lockHeader);
+            toggle.Icon = Ui.Icon(locked ? Icons.LockOpen : Icons.Lock, 18, false);
+            change.IsEnabled = !locked;
+        };
+    }
+
     /// <summary>Registers an element's own apply action so <see cref="Refresh"/> reaches it when the lock with this id changes.</summary>
     public static void Subscribe(string id, FrameworkElement element, Action apply)
     {
@@ -43,20 +110,20 @@ public static class LockUi
     /// Locks the element, asking for a policy the first time and reusing the stored one afterwards, or unlocks it by climbing the ladder.
     /// An unlock lasts as long as the lock's chosen duration. <paramref name="guard"/> wraps each save so the owning page can ignore its own settings echo.
     /// </summary>
-    public static async Task ToggleAsync(string id, string label, Action<Action>? guard = null)
+    public static async Task<bool> ToggleAsync(string id, string label, Action<Action>? guard = null)
     {
         guard ??= save => save();
         if (!IsLocked(id))
         {
-            if (!Host.Locks.HasPolicy(id) && !await LockDialogs.ConfigureAsync(id, label)) return;
-            if (!LockLifecycle.Relock(Host.Settings, Host.Locks, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return; }
+            if (!Host.Locks.HasPolicy(id) && !await LockDialogs.ConfigureAsync(id, label)) return false;
+            if (!LockLifecycle.Relock(Host.Settings, Host.Locks, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return false; }
             ArmedOnce.Remove(id);
             LockManager.SetLabel(Host.Settings, id, label);
             guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, true)));
         }
         else
         {
-            if (!await LockDialogs.LadderAsync(id, label)) return;
+            if (!await LockDialogs.LadderAsync(id, label)) return false;
             LockLifecycle.Unlock(Host.Settings, Host.Locks, id, out var until);
             var duration = Host.Locks.DurationOf(id);
             if (duration == UnlockDuration.Once) ArmedOnce[id] = ElementLocks.Snapshot(Host.Settings, id);
@@ -64,6 +131,7 @@ public static class LockUi
             Host.Notify.Info(until != null ? Loc.T("Unlocked until") + " " + until.Value.ToLocalTime().ToString("HH:mm") + "." : duration == UnlockDuration.Once ? "Unlocked for this action only." : duration == UnlockDuration.UntilRestart ? "Unlocked until the app closes." : "Unlocked.");
         }
         Refresh(id);
+        return true;
     }
 
     /// <summary>Locks an unlocked control again right away. Locking needs no credential.</summary>
@@ -168,7 +236,7 @@ public static class LockUi
             applying = true;
             try
             {
-                if (locked) { if (target.GetValue(LockedBeforeProperty) is not string) enabledBefore = target.IsEnabled; target.IsEnabled = false; target.SetValue(System.Windows.Automation.AutomationProperties.HelpTextProperty, Loc.T("Locked. Right-click and choose Unlock this control.")); target.ToolTip = Loc.T("Locked. Right-click and choose Unlock this control."); }
+                if (locked) { if (target.GetValue(LockedBeforeProperty) is not string) enabledBefore = target.IsEnabled; target.IsEnabled = false; target.SetValue(System.Windows.Automation.AutomationProperties.HelpTextProperty, Loc.T("Locked. Click it to unlock.")); target.ToolTip = Loc.T("Locked. Click it to unlock."); }
                 else if (target.GetValue(LockedBeforeProperty) is string) { target.IsEnabled = enabledBefore; target.ClearValue(FrameworkElement.ToolTipProperty); target.ClearValue(System.Windows.Automation.AutomationProperties.HelpTextProperty); }
                 target.SetValue(LockedBeforeProperty, locked ? id : null);
             }
@@ -180,6 +248,7 @@ public static class LockUi
             if (IsLocked(id) && target.IsEnabled) { applying = true; try { target.IsEnabled = false; } finally { applying = false; } }
         };
         Subscribe(id, target, Apply);
+        SetClickTarget(target, id, label);
         AttachMenu(target, id, label, guard);
         HookAction(target, id);
         Apply();
