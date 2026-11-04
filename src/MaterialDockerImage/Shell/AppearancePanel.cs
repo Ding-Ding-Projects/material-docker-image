@@ -108,6 +108,7 @@ public static class AppearancePanel
         Action? close = null;
         var closeButton = Ui.IconButton(Icons.Close, "Close appearance panel", () => close!());
         var full = Ui.Button("Open full editor", Icons.OpenInNew, ButtonKind.Tonal, () => { close!(); openEditor(); });
+        var customise = Ui.Button("Customize this element…", Icons.Palette, ButtonKind.Filled, () => { var element = target.Element; close!(); ElementEditor.Show(element); });
         var current = AppearanceRuntime.Current;
         var quick = Ui.VStack(8,
             Ui.Field("Theme", Ui.Segmented(AppearanceState.Themes, current.Theme, v => Change("theme set to " + v, m => m.Theme = v)), "Dark, Light, or follow the Windows setting. Applies at once and is saved.", "System"),
@@ -118,7 +119,7 @@ public static class AppearancePanel
         header.Children.Add(Ui.VStack(0, Ui.Text("Edit appearance", 16, FontWeights.SemiBold), Ui.Caption(target.Title + " · " + Loc.T("changes apply everywhere this colour role is used"))));
         RenderRoles();
         ShowPicker();
-        var body = Ui.VStack(12, header, Ui.Overline("Colour roles used here"), roleList, pickerHost, Ui.Wrap(8, copy, paste, full), quick, Ui.Caption("Escape closes this panel and returns to the element. Everything here can be undone."));
+        var body = Ui.VStack(12, header, Ui.Overline("Colour roles used here"), roleList, pickerHost, Ui.Wrap(8, customise, copy, paste, full), quick, Ui.Caption("Escape closes this panel and returns to the element. Everything here can be undone."));
         var card = Ui.Card(new ScrollViewer { Content = body, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, MaxHeight = 640 }, 16, "SurfaceHigh", 16);
         card.Width = 440;
         card.Effect = Ui.Elevation(24, 6, .4);
