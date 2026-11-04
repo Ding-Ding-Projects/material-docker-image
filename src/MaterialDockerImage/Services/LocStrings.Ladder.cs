@@ -15,6 +15,8 @@ public static partial class Loc
         yield return new("The wait is over. You still need your PIN or code to unlock.", "等候結束喇。解鎖仍然要輸入你嘅 PIN 或驗證碼。");
         yield return new("The wait had already ended.", "等候早已結束。");
         yield return new("That round could not be used. Here is a fresh one.", "呢一輪用唔到，轉過新嘅一輪。");
+        yield return new("No game question could be made right now. The clock is the way through.", "而家整唔到遊戲題目，只可以等時間過。");
+        yield return new("The game could not be shown:", "遊戲顯示唔到：");
         yield return new("Not that one. Try another question.", "唔係呢個，換條題目再試。");
         yield return new("That was the last game. The clock is the way through now.", "已經係最後一個遊戲，而家只可以等時間過去。");
         yield return new("That round is lost. Here is the next game.", "呢一輪輸咗，下一個遊戲嚟喇。");

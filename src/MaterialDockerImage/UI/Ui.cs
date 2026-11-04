@@ -252,6 +252,8 @@ public static class Ui
     public static Border Segmented(IReadOnlyList<string> options, string selected, Action<string> changed, bool translate = true)
     {
         var group = "seg" + Guid.NewGuid().ToString("N");
+        // Labels are explicit TextBlocks: an implicit style inside the segment template does not reach the TextBlock a
+        // ContentPresenter generates for a string, so a string label could never trim.
         // Equal segments that never ask for more width than offered (see SegmentPanel); with no width limit they size
         // equally to the widest label and its check mark.
         var grid = new SegmentPanel();
@@ -259,7 +261,7 @@ public static class Ui
         {
             var option = options[i];
             var radius = options.Count == 1 ? new CornerRadius(20) : i == 0 ? new CornerRadius(20, 0, 0, 20) : i == options.Count - 1 ? new CornerRadius(0, 20, 20, 0) : new CornerRadius(0);
-            var r = new RadioButton { Style = (Style)Application.Current.FindResource("Segment"), GroupName = group, Content = translate ? Loc.T(option) : option, IsChecked = option == selected, Tag = radius, BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
+            var r = new RadioButton { Style = (Style)Application.Current.FindResource("Segment"), GroupName = group, Content = new TextBlock { Text = translate ? Loc.T(option) : option, TextTrimming = TextTrimming.CharacterEllipsis }, IsChecked = option == selected, Tag = radius, BorderThickness = new Thickness(i == 0 ? 0 : 1, 0, 0, 0) };
             AutomationProperties.SetName(r, translate ? Loc.T(option) : option);
             r.ToolTip = translate ? Loc.T(option) : option; // the full label when a narrow segment shortens it
             r.Checked += (_, _) => changed(option);

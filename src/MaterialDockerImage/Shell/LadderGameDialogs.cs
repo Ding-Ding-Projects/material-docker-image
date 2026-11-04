@@ -124,9 +124,9 @@ public static class LadderGameDialogs
 
         async Task Prepare()
         {
+            DishChallenge? q = null; string? picture = null; IReadOnlyList<DishName> pool = DimSumRules.OfflineNames;
             try
             {
-                DishChallenge? q = null; string? picture = null; IReadOnlyList<DishName> pool = DimSumRules.OfflineNames;
                 var dishes = await source.LoadAsync();
                 if (frame.Closed) return;
                 if (dishes.Count >= LadderRules.DishChoices)
@@ -138,12 +138,20 @@ public static class LadderGameDialogs
                     picture = dish == null ? null : await source.PictureAsync(dish);
                     if (picture == null) { q = null; pool = DimSumRules.OfflineNames; }
                 }
-                if (frame.Closed) return;
-                q ??= ladder.NextDish(lockId, stamp, school, pool, false);
-                if (q == null) { frame.Finish(null); return; }
-                Show(q, picture, pool);
             }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException or HttpRequestException or InvalidOperationException) { frame.Finish(null); }
+            // A failed or slow catalogue read is the offline case the rung is designed for: ask a name question instead.
+            // It used to close the game silently, so pressing Play appeared to do nothing.
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or HttpRequestException or InvalidOperationException or TaskCanceledException or System.Text.Json.JsonException)
+            {
+                q = null; picture = null; pool = DimSumRules.OfflineNames;
+            }
+            if (frame.Closed) return;
+            q ??= ladder.NextDish(lockId, stamp, school, pool, false);
+            if (q == null) { Host.Notify.Warning("No game question could be made right now. The clock is the way through."); frame.Finish(null); return; }
+            // Prepare runs fire-and-forget, so an unexpected failure here would vanish and leave the dialog on
+            // "Looking for a dish picture…" for ever. Report it and close instead.
+            try { Show(q, picture, pool); }
+            catch (Exception e) when (e is not OutOfMemoryException) { Host.Notify.Error(Loc.T("The game could not be shown:") + " " + e.Message); frame.Finish(null); }
         }
 
         void Show(DishChallenge q, string? picture, IReadOnlyList<DishName> pool)
@@ -173,6 +181,9 @@ public static class LadderGameDialogs
                 AutomationProperties.SetName(button, Loc.T("Choice") + " " + (i + 1) + ": " + Label(names, q.Choices[i]));
                 rows.Children.Add(button);
             }
+            // The Cancel button is still a child of the loading view; WPF refuses to give an element two parents, which
+            // threw here and meant the dish question never appeared.
+            (cancel.Parent as Panel)?.Children.Remove(cancel);
             rows.Children.Add(cancel);
             rows.PreviewKeyDown += (_, e) =>
             {

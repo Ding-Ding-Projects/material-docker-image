@@ -36,7 +36,7 @@ internal sealed class ImageScoutTab : ImageDetailTab
         var runQuickview = Ui.AsyncButton("Run quickview", Icons.ManageSearch, ButtonKind.Tonal, QuickviewAsync);
         quickviewExpander = new Expander
         {
-            Header = Loc.T("Quickview summary (docker scout quickview)"),
+            Header = new TextBlock { Text = Loc.T("Quickview summary (docker scout quickview)"), TextWrapping = TextWrapping.Wrap },
             Content = Ui.VStack(8, Ui.Caption("Shows the command's own summary text verbatim, including base image recommendations when Scout has them."), runQuickview, quickview),
             Margin = new Thickness(0, 0, 0, 8)
         };

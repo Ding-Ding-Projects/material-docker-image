@@ -38,7 +38,7 @@ internal sealed class SecurityImagePanel : Border
 
         quickview = new SearchableText("Docker Scout quickview", "quickview.txt", "Search quickview") { Height = 220 };
         quickview.Search.Width = 200;
-        quickviewExpander = new Expander { Header = Loc.T("Quickview summary (docker scout quickview)"), Content = quickview, Margin = new Thickness(0, 0, 0, 8) };
+        quickviewExpander = new Expander { Header = new TextBlock { Text = Loc.T("Quickview summary (docker scout quickview)"), TextWrapping = TextWrapping.Wrap }, Content = quickview, Margin = new Thickness(0, 0, 0, 8) };
 
         // Fixed table height and an outer scroll keep every part reachable when the panel is stacked below the list.
         findings.Height = 600;

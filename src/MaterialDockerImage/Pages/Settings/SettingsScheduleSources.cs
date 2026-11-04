@@ -63,7 +63,7 @@ public sealed partial class SettingsPage
         ShowFile();
         sourceStates.Add(ShowFile);
         rows.Add("schedulesource", "Schedule source file", "A local JSON file that supplies the value for rules whose source is File.",
-            Ui.VStack(6, Ui.HStack(8, file, browse, clear), fileState), s => s.ScheduleSourceFile,
+            Ui.VStack(6, Ui.Wrap(8, file, browse, clear), fileState), s => s.ScheduleSourceFile,
             "Format: {\"version\": 1, \"language\": \"Cantonese\", \"theme\": \"Light\", \"density\": \"Compact\", \"accent\": \"#AA3366\", \"fontSize\": 16, \"motion\": \"Reduced\", \"displayName\": \"Night desk\"}. Every field except version is optional, no other fields are accepted, and the file must be under 4 KiB. A bad or missing file pauses the rules that use it and leaves your own settings in effect. The file is only read from disk.", true,
             v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "not set", "{\"version\": 1, \"language\": \"Cantonese\"}");
     }
