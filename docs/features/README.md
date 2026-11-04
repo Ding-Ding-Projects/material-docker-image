@@ -17,6 +17,7 @@
 - [Diagnostics and safety](diagnostics.md)
 - [Monitoring, cleanup, registries and tools](operations-and-tools.md)
 - [Local history](local-history.md)
+- [Records, exports, shortcuts and updates](records-and-updates.md)
 - [Capability inventory](capability-inventory.md)
 - [Feature completion checklist](feature-checklist.md)
 

@@ -52,7 +52,7 @@ public sealed class BuildSecretFiles : StackPanel
             if (replacement.ShowDialog(Window.GetWindow(this)) == true) path.Text = replacement.FileName;
         });
         var remove = Ui.IconButton(Icons.Delete, "Remove secret", () => { files.Remove(row!); fileRows.Children.Remove(row!.Element); changed(); });
-        var element = Ui.Card(Ui.VStack(8, Ui.Columns(8, [1, 0, 0], Ui.Field("Secret ID", id), replace, remove), Ui.Field("Selected local file", path)), 12, "SurfaceContainer", 12);
+        var element = Ui.Card(Ui.VStack(8, Ui.Columns(8, [1, 0, 0], Ui.Field("Secret ID", id, "The name a Dockerfile RUN --mount=type=secret,id=NAME step uses to read this secret. The value never enters the image."), replace, remove), Ui.Field("Selected local file", path, "The file on this computer that holds the secret. Only its path is passed to the build; this app does not read or store its contents.")), 12, "SurfaceContainer", 12);
         element.Margin = new Thickness(0, 0, 0, 8);
         replace.VerticalAlignment = remove.VerticalAlignment = VerticalAlignment.Bottom;
         id.TextChanged += (_, _) => changed();

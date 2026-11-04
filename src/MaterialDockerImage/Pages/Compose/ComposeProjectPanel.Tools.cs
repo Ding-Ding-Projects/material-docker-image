@@ -170,7 +170,7 @@ public sealed partial class ComposeProjectPanel
         var pickFolder = Ui.IconButton(Icons.FolderOpen, "Choose a folder", () => { var d = new OpenFolderDialog(); if (d.ShowDialog() == true) localPath.Text = d.FolderName; });
         var direction = Ui.Segmented(["Service to this computer", "This computer to service"], "Service to this computer", v => toLocal = v == "Service to this computer");
         var body = Ui.VStack(14,
-            Ui.Field("Direction", direction),
+            Ui.Field("Direction", direction, "Copy a file or folder out of the service to this computer, or from this computer into the service."),
             Ui.Field("Service", service, "The first container of the service is used."),
             Ui.Field("Container path", containerPath, "An absolute path inside the container. A folder is copied with its contents.", "/app/logs"),
             Ui.Field("Path on this computer", Ui.Columns(8, [1, 0, 0], localPath, pickFile, pickFolder), "Where to write (from the service) or what to send (to the service).", "C:\\Temp\\logs"));

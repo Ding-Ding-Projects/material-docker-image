@@ -235,19 +235,27 @@
         "en": "Auto Updates",
         "zh": "自動更新"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "An installed copy checks the public RELEASES file in the background (once per launch, after a short delay), compares versions with framework-free logic, runs Update.exe to stage a newer full package and shows a non-blocking banner naming the build as unsigned. A setting turns the check off, Check now ignores it, portable and development runs are skipped, and nothing ever restarts unless the person confirms. Version comparison and feed parsing are covered by checks that were seen failing first.",
+        "zh": "安裝版會喺背景檢查公開 RELEASES 檔（每次啟動一次，稍後執行），用獨立於框架嘅邏輯比較版本，執行 Update.exe 預先安排較新嘅完整套件，並顯示不阻擋操作、註明未簽署嘅橫幅。設定可關閉檢查，「立即檢查」唔受限制，可攜版同開發版會略過，除非用戶確認否則永遠唔會重新啟動。版本比較同來源解析由先見紅燈嘅檢查覆蓋。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for auto-updates.",
-        "zh": "確認「自動更新」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Never exercised against a real published feed or an installed copy: no staged update, banner, restart or rollback has been observed; there is no feed signature check and no download progress or deferral setting.",
+        "zh": "未針對真實已發佈來源或已安裝副本操作過：未見過預先安排更新、橫幅、重新啟動或回復；冇來源簽署檢查，亦冇下載進度或延後設定。"
       },
       "evidence": [
         {
           "kind": "source",
           "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/records-and-updates.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -375,19 +383,27 @@
         "en": "Changelog",
         "zh": "更新記錄"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Tools > Changelog lists the release history bundled at build time from git log, grouped under each version tag, with the leading-verb category, date and a short commit reference that opens the real commit after confirmation. Search uses the regex builder, typed ISO or regional dates filter a range, both compose, and the filtered view is copied or exported as Markdown with its range, search and full SHAs. Model, filtering and export checks pass; the generator output is deterministic.",
+        "zh": "「工具 > 更新記錄」顯示建置時由 git log 打包嘅發佈歷史，按版本標籤分組，有分類、日期同可開啟真實提交嘅短提交參考。搜尋有正則表達式建構器，可輸入 ISO 或地區格式日期篩選範圍，兩者可以組合，篩選後嘅內容可複製或匯出做 Markdown，並附日期範圍、搜尋條件同完整 SHA。模型、篩選同匯出檢查已通過；產生器輸出係確定性嘅。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for changelog.",
-        "zh": "確認「更新記錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Calendar date picker with month/year jump, range presets and the language-mode voice for entries are not built; entries show original subject lines only, newer releases published after a build are not listed, and nothing was driven in the built window yet.",
+        "zh": "未有日曆式日期選擇器（月份／年份跳轉、範圍預設）；條目只顯示原本嘅提交標題，建置之後發佈嘅版本唔會列出，亦未喺已建置視窗操作過。"
       },
       "evidence": [
         {
           "kind": "source",
           "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/records-and-updates.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -991,19 +1007,27 @@
         "en": "Exports",
         "zh": "匯出"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Every DataTable exports the visible rows as CSV, TSV, JSON (schema version 1 with columns and count), Markdown or HTML, and each format can also be copied to the clipboard. Pipes, backslashes, quotes, commas, newlines and markup are escaped per format, equal column headers are numbered instead of dropped, and the notice says cells hold display text. Escaping is covered by focused checks that were seen failing first.",
+        "zh": "每個資料表都可將顯示嘅行匯出做 CSV、TSV、JSON（結構版本 1，附欄位同數量）、Markdown 或 HTML，各格式亦可複製到剪貼簿。管道符、反斜線、引號、逗號、換行同標記都按格式跳脫，相同欄標題會編號而唔係被丟棄，通知亦說明儲存格係顯示文字。跳脫由先見紅燈嘅專項檢查覆蓋。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for exports.",
-        "zh": "確認「匯出」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Non-table views, settings and history exports keep their own formats; no export disclosure of lossy columns beyond display text, and no export was driven in the built window yet.",
+        "zh": "非表格檢視、設定同歷史匯出仍用各自格式；除顯示文字外未有披露其他有損欄位，亦未喺已建置視窗操作過匯出。"
       },
       "evidence": [
         {
           "kind": "source",
           "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/records-and-updates.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -1411,19 +1435,27 @@
         "en": "Info Icon Guidance",
         "zh": "資訊提示"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "One shared Ui.Info component (accessible name, tooltip and a popover with a worked example) is used by every settings row, which falls back to a default-and-undo note when no hand-written guidance exists, and by the field labels that lacked it. The fallback text builder is covered by checks.",
+        "zh": "一個共用嘅 Ui.Info 元件（無障礙名稱、提示同附示範例子嘅彈出框）由所有設定列使用，冇手寫說明時會用預設值同還原說明補上；之前欠缺說明嘅欄位標籤亦已加入。後備文字建構器有檢查覆蓋。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for info-icon-guidance.",
-        "zh": "確認「資訊提示」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Roughly a dozen fields were filled by hand and the guard counts only settings rows; other forms may still have labels without an info icon, and the icon was not exercised in the built window.",
+        "zh": "大約十幾個欄位係人手補上，檢查只涵蓋設定列；其他表單可能仍有欄位標籤冇資訊圖示，亦未喺已建置視窗操作過圖示。"
       },
       "evidence": [
         {
           "kind": "source",
           "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/records-and-updates.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -1607,19 +1639,27 @@
         "en": "Menu Shortcuts",
         "zh": "選單快捷鍵"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Menu shortcut text for items that are also commands now comes from the registered command gesture through one helper (Ui.CommandMenuItem), so the shown shortcut is the working binding. A source guard fails when a menu hand-types a shortcut that is not a declared list-local key; it was seen failing first.",
+        "zh": "同時係指令嘅選單項目，其快速鍵文字而家由已登記嘅指令手勢經同一個輔助方法（Ui.CommandMenuItem）產生，所以顯示嘅就係實際有效嘅綁定。若選單手寫唔係已宣告列表本地按鍵嘅快速鍵，原始碼檢查會失敗，已見過紅燈。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for menu-shortcuts.",
-        "zh": "確認「選單快捷鍵」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "List-local keys (Delete, Enter, Alt+Up, Alt+Down, Ctrl+A, Ctrl+C) are still typed beside their handlers; the palette hint and the accessibility shortcut list are still static text; nothing was checked in the built window.",
+        "zh": "列表本地按鍵（Delete、Enter、Alt+Up、Alt+Down、Ctrl+A、Ctrl+C）仍然寫喺各自處理程式旁；指令面板提示同無障礙快速鍵清單仍係靜態文字；未喺已建置視窗核對。"
       },
       "evidence": [
         {
           "kind": "source",
           "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "label": {
+            "en": "Source reference",
+            "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/records-and-updates.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"

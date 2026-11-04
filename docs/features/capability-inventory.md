@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 17. Planned: 0. Unverified: 106.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 22. Planned: 0. Unverified: 101.
 
 ### Interface and personalization
 
@@ -32,7 +32,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `app-icon` | App Icon | Implemented, verification pending | Inspect the icon in the installed shortcut, taskbar and Settings app list from the released installer, and capture it from the built application. |
 | `appearance-editor` | Appearance Editor | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for appearance-editor. |
 | `blank-editors` | Blank Editors | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for blank-editors. |
-| `changelog` | Changelog | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for changelog. |
+| `changelog` | Changelog | Implemented, verification pending | Calendar date picker with month/year jump, range presets and the language-mode voice for entries are not built; entries show original subject lines only, newer releases published after a build are not listed, and nothing was driven in the built window yet. |
 | `layout-overflow-matrix` | Layout Overflow Matrix | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for layout-overflow-matrix. |
 | `color-picker` | Color Picker | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for color-picker. |
 | `mobile-website` | Mobile Website | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for mobile-website. |
@@ -46,7 +46,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `guided-forms` | Guided Forms | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for guided-forms. |
 | `honest-monetization` | Honest Monetization | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for honest-monetization. |
 | `human-time-estimate` | Human Time Estimate | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for human-time-estimate. |
-| `info-icon-guidance` | Info Icon Guidance | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for info-icon-guidance. |
+| `info-icon-guidance` | Info Icon Guidance | Implemented, verification pending | Roughly a dozen fields were filled by hand and the guard counts only settings rows; other forms may still have labels without an info icon, and the icon was not exercised in the built window. |
 | `language` | Language | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for language. |
 | `logo-customization` | Logo Customization | Implemented, verification pending | Verify the picker interactively in the built application at every language mode, theme and display scale; add crop, fit and background editing, scheduled settings and appearance export, and capture the real selected logo. |
 | `material-design` | Material Design | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for material-design. |
@@ -74,10 +74,10 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `collapse-filters` | Collapse Filters | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for collapse-filters. |
 | `command-palette` | Command Palette | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for command-palette. |
 | `context-menus` | Context Menus | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for context-menus. |
-| `exports` | Exports | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for exports. |
+| `exports` | Exports | Implemented, verification pending | Non-table views, settings and history exports keep their own formats; no export disclosure of lossy columns beyond display text, and no export was driven in the built window yet. |
 | `external-editor` | External Editor | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for external-editor. |
 | `local-history` | Local History | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for local-history. |
-| `menu-shortcuts` | Menu Shortcuts | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for menu-shortcuts. |
+| `menu-shortcuts` | Menu Shortcuts | Implemented, verification pending | List-local keys (Delete, Enter, Alt+Up, Alt+Down, Ctrl+A, Ctrl+C) are still typed beside their handlers; the palette hint and the accessibility shortcut list are still static text; nothing was checked in the built window. |
 | `progress-recovery` | Progress Recovery | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for progress-recovery. |
 | `regex-search` | Regex Search | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for regex-search. |
 | `tabs` | Tabs | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for tabs. |
@@ -103,7 +103,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 | Identifier | Capability | Status | Remaining actions |
 | --- | --- | --- | --- |
-| `auto-updates` | Auto Updates | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for auto-updates. |
+| `auto-updates` | Auto Updates | Implemented, verification pending | Never exercised against a real published feed or an installed copy: no staged update, banner, restart or rollback has been observed; there is no feed signature check and no download progress or deferral setting. |
 | `build-entrypoints` | Build Entrypoints | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for build-entrypoints. |
 | `bundled-dependencies` | Bundled Dependencies | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for bundled-dependencies. |
 | `ci-bootstrap` | Ci Bootstrap | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for ci-bootstrap. |

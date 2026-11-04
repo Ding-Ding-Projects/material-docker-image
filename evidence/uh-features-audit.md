@@ -75,10 +75,10 @@ Identifier note: thirteen identifiers in the maintainer list are not in `website
 | `regex-search` | Complete RegexBuddy-parity regex builder next to every search | Partial | `UI/SearchBuilderPopover.cs`, `RegexBuilderEngine.cs` (bounded replace preview), `RegexBuilderExplain.cs`, `RegexBuilderLibrary.cs`, and a guard `SearchSurfaceCatalogue.cs` registering every search surface. Roadmap: full RegexBuddy parity is still open (no flavour conversion, tracing, benchmarking or code generation found). |
 | `command-palette` | Ctrl+Shift+F palette listing every command, page, setting and appearance control | Delivered | `Shell/CommandPalette.cs` with search plus regex builder, live controls in rows, shortcut chips and a full-window mode. |
 | `context-menus` | Target-specific context menu with keyboard equivalent on every element | Partial | Menus on rail items, the title bar, page areas, tabs and `DataTable` rows. There is no menu on every element, and no "Lock this element" entry. |
-| `menu-shortcuts` | Context-menu shortcuts shown right-aligned and derived from the real binding | Partial | `Ui.MenuItem` shows shortcut text, but many strings are typed by hand (for example "Ctrl+Shift+E"), so they can drift from `AppCommand.Gesture`. |
+| `menu-shortcuts` | Context-menu shortcuts shown right-aligned and derived from the real binding | Partial | `Ui.CommandMenuItem` takes shortcut text from `AppCommand.Gesture` (`UI/Ui.cs`); a source scan in `tests/UiState/RecordsChecks.cs` fails on a hand-typed shortcut that is not a declared list-local key. List-local keys, the palette hint and the accessibility shortcut list are still typed text, and the menus were not checked in the built window. |
 | `rich-controls` | Real controls instead of printed values wherever a value is shown | Partial | Run editor, appearance editor, `DataTable` columns and settings rows use real controls. Several inspectors still print values as text. |
 | `guided-forms` | Pickers, suggested defaults, inline validation, novice-friendly forms | Partial | `UI/StructuredInputs.cs`, `Pages/Suggestions/EditorValuePickers.cs`, Creator and Run editor forms. Not audited for every form. |
-| `info-icon-guidance` | Per-control info icon buttons with contextual help | Missing | No info-icon component found. Settings rows carry inline explanations instead. |
+| `info-icon-guidance` | Per-control info icon buttons with contextual help | Partial | One `Ui.Info` component (`UI/Ui.cs`) is used by every settings row, with a default-and-undo fallback (`UI/InfoGuidance.cs`), and by the field labels that lacked it. The guard covers settings rows only; the icon was not exercised in the built window. |
 | `settings-explanations` | Every setting explains itself with a provenance line | Delivered | `Pages/Settings/SettingRows.cs` (explanation, "more" text, provenance line saying default or saved, per-row reset). |
 | `blank-editors` | Presets and real-default starting points for blank editors | Partial | Dockerfile Creator starters and project detection (`Pages/Creator`, `UI/DockerfileModelStarters.cs`). Compose and other editors have no preset picker. |
 
@@ -99,9 +99,9 @@ Identifier note: thirteen identifiers in the maintainer list are not in `website
 | Id | Requirement | Status | Evidence / gap |
 | --- | --- | --- | --- |
 | `local-history` | Local version history beside the data directory with diff, restore, export | Delivered | `Services/HistoryStore.cs` (LibGit2Sharp repository under local app data), `Pages/ActivityPage.cs`, `docs/features/local-history.md`. |
-| `exports` | Export every record in every faithful format with loss disclosure | Partial | `DataTable` exports CSV, TSV, JSON and Markdown; settings JSON export/import; history ZIP; Docker diagnostic report. Other views and formats are not exportable and losses are not disclosed. |
+| `exports` | Export every record in every faithful format with loss disclosure | Partial | `DataTable` exports or copies CSV, TSV, JSON schema 1, Markdown and HTML through `UI/TableExport.cs` with checked escaping; settings JSON export/import, history ZIP and the Docker diagnostic report remain. Non-table views and loss disclosure beyond display text are not covered. |
 | `bulk-actions` | Multi-select, select-all, invert and bulk bars on every list | Delivered | `UI/DataTable.cs` (shift/ctrl selection, select all matching, invert, clear, bulk bar) is the base of the app lists, including the notification centre and history. |
-| `changelog` | Changelog viewer with every release, categories and clickable commit references | Partial | `Pages/ToolsPage.cs` shows only version, build time and a link to the releases page. No per-version list or commit references. |
+| `changelog` | Changelog viewer with every release, categories and clickable commit references | Partial | Tools > Changelog (`Pages/Tools/ChangelogView.cs`, `UI/ChangelogModel.cs`) lists a git-log history bundled at build time by `build/make-changelog.ps1`, grouped by tag, with regex search, typed date range, commit links and Markdown copy/export. No calendar picker, no per-language voice, and nothing was driven in the built window. |
 | `offline-docs` | Bundled offline documentation browser rendered by a shared Markdown renderer | Delivered | Articles embedded by the project file; `Pages/Tools/DocsBrowser.cs`, `MarkdownView.cs`, search and internal link routing. |
 | `rendered-provider-text` | Forge release notes, issues and commit messages rendered as Markdown | Not applicable | The product does not display forge-authored text. Revisit if release notes are added to the changelog. |
 | `notifications` | Non-blocking toasts with a notification centre | Delivered | `Services/Notifier.cs` (corner toasts, auto-dismiss except errors and warnings, live-region announcements) and the centre table in `MainWindow.xaml.cs`. |
@@ -167,7 +167,7 @@ Identifier note: thirteen identifiers in the maintainer list are not in `website
 | `bundled-dependencies` | Installer bundles every dependency; works offline | Partial | Self-contained .NET publish (`build/publish.ps1`). The app still requires an installed Docker CLI, which Setup detects and reports. |
 | `squirrel-installer` | Genuine Squirrel.Windows installer | Delivered | `build/package.ps1` produces Setup.exe, RELEASES and the full package with Squirrel 2.0.1, and `App.xaml.cs` handles lifecycle hooks. No delta packages. |
 | `self-signing` | Sign only when the format requires it, with a project-owned credential | Delivered | Unsigned by design; the release notes state it. No signature is required for the produced formats. |
-| `auto-updates` | Chrome-style background updates with validated feed | Missing | The app does not check a feed or stage updates; only install hooks exist in `App.xaml.cs`. |
+| `auto-updates` | Chrome-style background updates with validated feed | Partial | `Services/UpdateService.cs` checks the published RELEASES file for an installed copy and stages it with Update.exe; `UI/UpdateFeed.cs` is checked; `Shell/UpdateBanner.cs` shows the unsigned-build banner and restarts only on confirmation. Never run against a real feed or installed copy; no signature check or deferral setting. |
 | `app-icon` | Original logo and packaged multi-resolution icon | Missing | No `ApplicationIcon` in the project file and no `.ico` or logo master source. |
 
 ## Release pipeline
@@ -226,6 +226,8 @@ Ordered by user impact inside each lane. Ids refer to the tables above.
 5. `collapse-filters`: wire the stored state to `SearchFilter` and statistics strips (`UI/SearchFilter.cs`, `UI/UserSettings.cs`).
 6. `logo-customization` and `app-icon`: logo presets, upload, packaged `.ico` (`MaterialDockerImage.csproj`, `Pages/Settings`, `build/package.ps1`).
 7. `appearance-editor`, `color-picker`, `accessibility-sizing`, `layout-overflow-matrix`: per-element coverage, named colours and CIELAB, visible-focus option, full language/theme/scale evidence.
+
+> Update 2026-11-04: priorities 9, 10 (shortcut text), 12, 13 (tables) and 17 have a first implementation on branch `ai/feature/20261104-records-tools`; the rows above state what remains.
 
 ### Navigation and search
 8. `regex-search`: RegexBuddy-parity workbench (`UI/RegexBuilder*.cs`, `UI/SearchBuilderPopover.cs`).

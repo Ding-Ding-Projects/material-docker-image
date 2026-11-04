@@ -24,7 +24,7 @@ Read-only checks for the CLI, engine, API version, Buildx, Compose, contexts, di
 
 - **Base64**: encode and decode text or files with the standard, URL-safe and MIME alphabets, with or without padding, strict or lenient decoding with the exact error offset, UTF-8, UTF-16LE, Latin-1 or ASCII text, `data:` URL building and parsing, byte counts and SHA-256 checks. Large files stream with progress and Cancel. Nothing leaves the computer.
 - **Documentation**: every feature article is bundled into the application and can be searched and read offline.
-- **Changelog**: the running version and build time, and a link to the release notes.
+- **Changelog**: the running version and build time, the release history bundled at build time with search, date range and Markdown export, and a link to the releases page (see [Records, exports, shortcuts and updates](records-and-updates.md)).
 
 ## Settings
 

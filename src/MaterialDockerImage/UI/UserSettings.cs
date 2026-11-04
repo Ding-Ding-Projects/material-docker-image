@@ -28,6 +28,8 @@ public sealed class UserSettings
     public bool AccessibilityMenuVisible { get; set; } = true;
     public double FontSize { get; set; } = 14;
     public bool Sounds { get; set; } = true;
+    /// <summary>Checks the published update feed in the background when the app was installed by the installer. Never restarts by itself.</summary>
+    public bool AutoUpdateCheck { get; set; } = true;
     public bool Narration { get; set; }
     public string NarrationVoice { get; set; } = "";
     public int NarrationRate { get; set; }

@@ -53,10 +53,12 @@
       <Grid x:Name="Workspace" Grid.Column="1" Margin="0,0,16,16">
         <Grid.RowDefinitions>
           <RowDefinition Height="Auto"/>
+          <RowDefinition Height="Auto"/>
           <RowDefinition Height="*"/>
           <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <Border x:Name="TabBar" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource SurfaceHigh}" Margin="0,0,0,12">
+        <ContentControl x:Name="UpdateSlot" Focusable="False"/>
+        <Border x:Name="TabBar" Grid.Row="1" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource SurfaceHigh}" Margin="0,0,0,12">
           <DockPanel>
             <StackPanel x:Name="TabTools" DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Bottom"/>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Focusable="False">
@@ -64,8 +66,8 @@
             </ScrollViewer>
           </DockPanel>
         </Border>
-        <ContentControl x:Name="PageHost" Grid.Row="1" Focusable="False"/>
-        <ContentControl x:Name="DockHost" Grid.Row="2" Focusable="False"/>
+        <ContentControl x:Name="PageHost" Grid.Row="2" Focusable="False"/>
+        <ContentControl x:Name="DockHost" Grid.Row="3" Focusable="False"/>
       </Grid>
     </Grid>
     <svc:MotionToastPanel x:Name="Toasts" Grid.RowSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,24,24" Panel.ZIndex="20"/>

@@ -152,7 +152,7 @@ public sealed class OverlayHost : Grid
             Ui.Text(Loc.T(action), 14, null, "OnSurfaceVariant", true, false),
             Ui.Card(Ui.VStack(6, Ui.Overline("Affected"), list), 12, "SurfaceHigh", 12),
             Ui.Columns(16, [1, 1], key1, key2),
-            Ui.Field("Slide to confirm", slider), state,
+            Ui.Field("Slide to confirm", slider, "Drag the slider all the way across to confirm. This extra step stops a destructive action from happening by accident."), state,
             Ui.Columns(8, [1, 0], Ui.Caption("Escape or Emergency exit cancels without changing anything."), exit));
         close = Show(body, 560, () => done.TrySetResult(false));
         exit.Loaded += (_, _) => exit.Focus();

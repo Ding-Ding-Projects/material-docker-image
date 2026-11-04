@@ -272,7 +272,9 @@ public sealed class DataTable<T> : Grid
     private void ExportMenu()
     {
         var menu = new ContextMenu();
-        foreach (var format in new[] { "CSV", "TSV", "JSON", "Markdown" }) menu.Items.Add(Ui.MenuItem("Export visible rows as " + format, Icons.FileExport, () => Export(format)));
+        foreach (var format in TableExport.Formats) menu.Items.Add(Ui.MenuItem("Export visible rows as " + format, Icons.FileExport, () => Export(format)));
+        menu.Items.Add(new Separator());
+        foreach (var format in TableExport.Formats) menu.Items.Add(Ui.MenuItem("Copy visible rows as " + format, Icons.ContentCopy, () => CopyAs(format)));
         menu.Items.Add(new Separator());
         menu.Items.Add(Ui.MenuItem("Select all matching", Icons.SelectAll, SelectAllMatching, "Ctrl+A"));
         menu.Items.Add(Ui.MenuItem("Invert selection", Icons.Deselect, InvertSelection));
@@ -280,38 +282,21 @@ public sealed class DataTable<T> : Grid
         menu.IsOpen = true;
     }
 
-    public string Render(string format)
-    {
-        var visible = rows.ToList();
-        var headers = columns.Select(c => c.Header).ToArray();
-        string Escape(string v, char sep) => v.IndexOfAny([sep, '"', '\n', '\r']) >= 0 ? "\"" + v.Replace("\"", "\"\"") + "\"" : v;
-        var sb = new StringBuilder();
-        switch (format)
-        {
-            case "CSV": case "TSV":
-                var sep = format == "CSV" ? ',' : '\t';
-                sb.AppendLine(string.Join(sep, headers.Select(h => Escape(h, sep))));
-                foreach (var r in visible) sb.AppendLine(string.Join(sep, r.Cells.Select(c => Escape(c, sep))));
-                break;
-            case "JSON":
-                var list = visible.Select(r => headers.Zip(r.Cells).ToDictionary(p => p.First, p => p.Second)).ToList();
-                sb.Append(JsonSerializer.Serialize(new { schema = "material-docker-image/table-export", version = 1, table = Name2, exported = DateTimeOffset.Now, rows = list }, new JsonSerializerOptions { WriteIndented = true }));
-                break;
-            default:
-                sb.AppendLine("| " + string.Join(" | ", headers) + " |");
-                sb.AppendLine("|" + string.Concat(headers.Select(_ => " --- |")));
-                foreach (var r in visible) sb.AppendLine("| " + string.Join(" | ", r.Cells.Select(c => c.Replace("|", "\\|"))) + " |");
-                break;
-        }
-        return sb.ToString();
-    }
+    public string Render(string format) =>
+        TableExport.Render(format, Name2, columns.Select(c => c.Header).ToList(), rows.Select(r => r.Cells).ToList(), DateTimeOffset.Now);
 
     private void Export(string format)
     {
-        var extension = format switch { "CSV" => "csv", "TSV" => "tsv", "JSON" => "json", _ => "md" };
+        var extension = TableExport.Extension(format);
         var dialog = new SaveFileDialog { FileName = HistoryStore.SafeName(Name2) + "." + extension, Filter = $"{format}|*.{extension}" };
         if (dialog.ShowDialog() != true) return;
         File.WriteAllText(dialog.FileName, Render(format), new UTF8Encoding(false));
-        AppHost.Current?.Notify.Success($"Exported {rows.Count} rows as {format} (UTF-8, {(format == "JSON" ? "schema version 1" : "header row included")}).");
+        AppHost.Current?.Notify.Success($"Exported {rows.Count} rows as {format} (UTF-8, {(format == "JSON" ? "schema version 1" : "header row included")}). Cells hold the text shown in the table.");
+    }
+
+    private void CopyAs(string format)
+    {
+        try { Clipboard.SetText(Render(format)); AppHost.Current?.Notify.Success($"Copied {rows.Count} rows as {format}."); }
+        catch (System.Runtime.InteropServices.ExternalException) { AppHost.Current?.Notify.Error("The clipboard is busy. Try again."); }
     }
 }

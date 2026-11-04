@@ -16,6 +16,7 @@ public sealed class AppHost
     public OverlayHost Overlay { get; }
     public OperationsDock Dock { get; }
     public CommandRegistry Commands { get; } = new();
+    public UpdateService Updates { get; }
     public bool IsCapture { get; init; }
     public string? Context { get; private set; }
     public long Generation { get; private set; }
@@ -31,7 +32,7 @@ public sealed class AppHost
 
     public AppHost(UserSettings settings, Notifier notify, OverlayHost overlay, OperationsDock dock, bool capture)
     {
-        Settings = settings; Notify = notify; Overlay = overlay; Dock = dock; IsCapture = capture;
+        Settings = settings; Updates = new UpdateService(() => settings.AutoUpdateCheck); Notify = notify; Overlay = overlay; Dock = dock; IsCapture = capture;
         Context = string.IsNullOrWhiteSpace(settings.Context) ? null : settings.Context;
         dock.CancelRequested += () => { operation?.Cancel(); Notify.Warning("Cancellation requested. Engine-side work may continue; refresh and reconcile before retrying."); };
         Current = this;

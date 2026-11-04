@@ -33,7 +33,7 @@ internal sealed class ContainerExec : StackPanel
         Children.Add(Ui.VStack(12,
             Ui.Text("Run one command", 15, FontWeights.SemiBold),
             Ui.Caption("Runs docker container exec once and shows the complete output here. No shell is involved on this computer: Simple command splits on spaces and honours quotes; pipes and redirections are passed literally. To use shell features, run sh -c \"…\" inside the container."),
-            Ui.Columns(8, [-160, 1], Ui.Field("Format", mode), Ui.Field("Command", command, "Simple: words separated by spaces, quotes group words. Argv JSON: an explicit array of strings.", "ls -la /app\n[\"sh\", \"-c\", \"ps aux | head\"]")),
+            Ui.Columns(8, [-160, 1], Ui.Field("Format", mode, "Simple splits the text into words. Argv JSON passes an exact list of strings with no splitting."), Ui.Field("Command", command, "Simple: words separated by spaces, quotes group words. Argv JSON: an explicit array of strings.", "ls -la /app\n[\"sh\", \"-c\", \"ps aux | head\"]")),
             argvPreview,
             Ui.Columns(12, [1, 1], Ui.Field("User", user, "--user runs the command as this user or UID[:GID]. Empty uses the container user.", "root"), Ui.Field("Working directory", workdir, "--workdir for this command only.", "/app")),
             run,
