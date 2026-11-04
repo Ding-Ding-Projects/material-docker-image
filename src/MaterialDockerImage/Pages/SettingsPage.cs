@@ -14,7 +14,7 @@ public sealed partial class SettingsPage : PageBase
     public override string Key => "Settings";
     private static readonly (string Name, string Icon)[] Sections =
     [
-        ("Appearance", Icons.Palette), ("Language", Icons.Translate), ("Accessibility", Icons.AccessibilityNew), ("Focus modes", Icons.CenterFocusStrong),
+        ("Appearance", Icons.Palette), ("Language", Icons.Translate), ("Schedules", Icons.Schedule), ("Accessibility", Icons.AccessibilityNew), ("Focus modes", Icons.CenterFocusStrong),
         ("Sounds and narration", Icons.VolumeUp), ("Engine", Icons.Dns), ("Data and privacy", Icons.Shield), ("About", Icons.Info)
     ];
     private readonly SearchFilter search = new("Search settings", 240);
@@ -62,7 +62,7 @@ public sealed partial class SettingsPage : PageBase
         content.Children.Clear(); sectionCards.Clear();
         var builders = new Dictionary<string, Action>
         {
-            ["Appearance"] = AppearanceSection, ["Language"] = LanguageSection, ["Accessibility"] = AccessibilitySection,
+            ["Appearance"] = AppearanceSection, ["Language"] = LanguageSection, ["Schedules"] = SchedulesSection, ["Accessibility"] = AccessibilitySection,
             ["Focus modes"] = FocusSection, ["Sounds and narration"] = SoundsSection, ["Engine"] = EngineSection,
             ["Data and privacy"] = DataSection, ["About"] = AboutSection
         };
@@ -154,7 +154,7 @@ public sealed partial class SettingsPage : PageBase
     [
         new AppCommand { Id = "settings.export", Title = "Export settings…", Group = "Settings", Icon = Icons.FileExport, Keywords = "backup settings json", Run = () => { Host.Navigate(Key); ExportSettings(); } },
         new AppCommand { Id = "settings.import", Title = "Import settings…", Group = "Settings", Icon = Icons.Upload, Keywords = "restore settings json", Run = () => { Host.Navigate(Key); _ = ImportSettingsAsync(); } },
-        new AppCommand { Id = "settings.school", Title = "School mode", Group = "Settings", Icon = Icons.School, Keywords = "english only plain", LiveControl = () => Ui.Switch("School mode", Host.Settings.SchoolMode, v => { Host.Settings.SchoolMode = v; SettingRows.SyncRuntime(); Host.SaveSettings("School mode " + (v ? "on" : "off")); }) },
+        new AppCommand { Id = "settings.school", Title = "School mode", Group = "Settings", Icon = Icons.School, Keywords = "english only plain", LiveControl = () => Host.Lockable("school", Ui.Switch("School mode", Host.Settings.SchoolMode, v => { Host.Settings.SchoolMode = v; SettingRows.SyncRuntime(); Host.SaveSettings("School mode " + (v ? "on" : "off")); })) },
         new AppCommand { Id = "settings.open", Title = "Open settings", Group = "Settings", Icon = Icons.Settings, Keywords = "preferences options", Run = () => Host.Navigate(Key) },
     ];
 }

@@ -74,7 +74,7 @@ public static class AppearancePanel
         var copy = Ui.Button("Copy style", Icons.ContentCopy, ButtonKind.Text, () =>
         {
             var lines = roles.Select(k => k + "=" + (AppearanceRuntime.Current.Roles.TryGetValue(k, out var v) ? v : Resolved(k).ToStorageHex()));
-            Clipboard.SetText("material-docker-image.element-style\n" + string.Join("\n", lines));
+            ActionSounds.Copy("material-docker-image.element-style\n" + string.Join("\n", lines));
             host.Notify.Info($"Copied the style of this {target.Title.ToLowerInvariant()} ({roles.Count} colour roles).");
         });
         var paste = Ui.Button("Paste style", Icons.ContentCopy, ButtonKind.Text, () =>

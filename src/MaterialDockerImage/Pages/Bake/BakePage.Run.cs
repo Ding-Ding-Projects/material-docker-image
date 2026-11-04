@@ -81,7 +81,7 @@ public sealed partial class BakePage
         if (output == BakeOutput.Load && firstTag != null && !overrides.Pairs().Any(p => p.Key.EndsWith(".tags", StringComparison.Ordinal)))
             actions.Children.Add(Ui.Button("Run " + firstTag, Icons.PlayArrow, ButtonKind.Filled, () => { Host.HandOff["Images.RunImage"] = firstTag; Host.Navigate("Images"); }, false).Margin(0, 0, 8, 8));
         if (timeline.Progress.ResultDigest is { } digest)
-            actions.Children.Add(Ui.Button("Copy digest", Icons.ContentCopy, ButtonKind.Outlined, () => { Clipboard.SetText(digest); Host.Notify.Info("Copied the digest."); }).Margin(0, 0, 8, 8));
+            actions.Children.Add(Ui.Button("Copy digest", Icons.ContentCopy, ButtonKind.Outlined, () => { ActionSounds.Copy(digest); Host.Notify.Info("Copied the digest."); }).Margin(0, 0, 8, 8));
         var title = Ui.HStack(10, Ui.Icon(Icons.GppGood, 22, true, "Success"), Ui.Text("Bake result", 16, FontWeights.SemiBold));
         return Ui.Card(Ui.VStack(8, title, Ui.Caption(Loc.T(destination) + " · " + targets.Count + " " + Loc.T(targets.Count == 1 ? "target" : "targets")), rows, actions.Children.Count > 0 ? actions : null), 16, "SurfaceContainer", 16);
     }

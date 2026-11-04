@@ -28,9 +28,9 @@ A native Windows WPF workspace for Docker with a complete Material 3 interface. 
 ## Known limits
 
 - Language modes cover the shell and the copy of every destination page (about 3,200 Cantonese phrases and sentence templates). Docker CLI output, engine data, log lines and some long explanations assembled from several fragments are shown as produced and stay English in every mode.
-- Density and Momentum settings are saved but have little visible effect; the external editor setting is used by Build only.
+- Density has little visible effect and the external editor setting is used by Build only. Momentum now shows a session streak chip.
 - The regex builder covers construction, snippets, flags and sample testing; full RegexBuddy parity remains open.
-- Element locks, the per-element appearance editor, authenticator, school-mode PIN, dim sum pictures and scheduled settings from the shared feature catalogue are not implemented.
+- Settings rows can be locked (read-only until a confirmed unlock), language and theme can be scheduled (with an optional local JSON source file), and filter bars and statistic strips collapse and persist; see docs/features/settings-safety.md. Not implemented: PIN, password and TOTP lock policies, locks on arbitrary elements, scheduling of other settings, API and Home Assistant schedule sources, the per-element appearance editor, authenticator, school-mode PIN and dim sum pictures. None of the new controls has been driven in the built window.
 - Health checks, device mappings and GPU access are complete in the run editor (including --health-start-interval, --device-cgroup-rule and GPU capabilities) and the Containers inspector (live health status, failing streak, probe output, devices, rules and DeviceRequests). Their inventory rows are now implemented with verification pending: focused checks and a real-engine argument receipt (evidence/container-controls-2026-11.json) exist, but nothing was driven in the built application and no physical GPU was tried. Interactive terminals still need status review.
 - Full theme, language and 100 to 200 percent scale matrix acceptance remains open.
 

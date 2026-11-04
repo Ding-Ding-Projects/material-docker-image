@@ -8,6 +8,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/SourceSafety.cs" Link="SourceSafety.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/UserSettings.cs" Link="UserSettings.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/AppIdentity.cs" Link="AppIdentity.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/SettingsSafety*.cs" LinkBase="SettingsSafety"/>
     <Compile Include="../../src/MaterialDockerImage/UI/Icons.g.cs" Link="Icons.g.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/StructuredInputs*.cs" LinkBase="Inputs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/ContainerInspectFacts.cs" Link="ContainerInspectFacts.cs"/>

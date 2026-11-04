@@ -125,12 +125,15 @@ public sealed partial class SettingsPage
             if (info.Length > 262144) { Host.Notify.Error("The file is larger than 256 KiB, so it is not a settings file."); return; }
             imported = JsonSerializer.Deserialize<UserSettings>(await File.ReadAllTextAsync(dialog.FileName)) ?? throw new JsonException("The file is empty.");
             imported.Normalize();
+            // Locked rows keep their current values, so an import cannot change what the person locked.
+            ElementLocks.Preserve(S, imported);
         }
         catch (Exception e) when (e is JsonException or IOException or UnauthorizedAccessException or NotSupportedException)
         {
             Host.Notify.Error(Loc.T("The file is not a valid settings file:") + " " + e.Message);
             return;
         }
+        S.ClearScheduledOverride();
         var changes = Differences(S, imported);
         if (changes.Count == 0) { Host.Notify.Info("The file matches your current settings. Nothing changed."); return; }
         var preview = string.Join("\n", changes.Take(30)) + (changes.Count > 30 ? $"\n…and {changes.Count - 30} more" : "");
@@ -139,6 +142,7 @@ public sealed partial class SettingsPage
         PageParts.CopySettings(imported, S);
         if (S.PersonalVocabularyPath.Length > 0 && File.Exists(S.PersonalVocabularyPath)) Loc.LoadVocabulary(S.PersonalVocabularyPath); else Loc.ClearVocabulary();
         SettingRows.SyncRuntime();
+        Host.Schedules.ReloadFile();
         Host.SaveSettings("Imported settings from " + Path.GetFileName(dialog.FileName));
         Rebuild();
         Host.Notify.Success("Settings imported. Some labels update when pages are reopened.");
@@ -169,14 +173,17 @@ public sealed partial class SettingsPage
         // The engine context, open tabs and setup progress are window state, not preferences; keep them.
         defaults.Context = S.Context; defaults.OpenTabs = S.OpenTabs; defaults.PinnedTabs = S.PinnedTabs; defaults.LastDestination = S.LastDestination;
         defaults.SetupComplete = S.SetupComplete; defaults.SetupStep = S.SetupStep; defaults.BuildFolder = S.BuildFolder;
+        S.ClearScheduledOverride();
+        var lockedKept = ElementLocks.Preserve(S, defaults);
         var changes = Differences(S, defaults);
-        if (changes.Count == 0) { Host.Notify.Info("All settings already have their built-in defaults."); return; }
+        if (changes.Count == 0) { Host.Notify.Info(lockedKept.Count > 0 ? "All unlocked settings already have their built-in defaults. Locked settings were left alone." : "All settings already have their built-in defaults."); return; }
         if (!await Host.Overlay.SuperConfirmAsync("Reset all settings", "Every listed setting returns to its built-in default. The current values are recorded in local history first, so they can be restored from Activity. The engine context, tabs, setup progress and build folder are kept.", changes)) return;
         RecordCurrent("Settings before reset");
         PageParts.CopySettings(defaults, S);
         AppIdentity.ClearStoredImages(UserSettings.DataDirectory);
         Loc.ClearVocabulary();
         SettingRows.SyncRuntime();
+        Host.Schedules.ReloadFile();
         Host.SaveSettings("Reset all settings to built-in defaults");
         Rebuild();
         Host.Notify.Success("All settings were reset to their built-in defaults.");

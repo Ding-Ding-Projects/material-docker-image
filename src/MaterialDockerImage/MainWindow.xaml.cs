@@ -36,6 +36,9 @@ public partial class MainWindow : Window
     private readonly Border contextState = new() { Width = 8, Height = 8, CornerRadius = new CornerRadius(4), Margin = new Thickness(0, 0, 8, 0) };
     private readonly TextBlock badge = Ui.Text("", 9, FontWeights.SemiBold, "OnError", false, false);
     private readonly TextBlock clockText = Ui.Caption("");
+    private readonly TextBlock momentumText = Ui.Text("", 12, FontWeights.SemiBold, "OnSecondaryContainer", false, false);
+    private Border momentumChip = null!;
+    private Button exitFocus = null!;
     private readonly DispatcherTimer clock = new() { Interval = TimeSpan.FromSeconds(1) };
     private bool suppressContext;
     private CommandPalette? palette;
@@ -85,10 +88,20 @@ public partial class MainWindow : Window
             Adapt();
             AppearanceRuntime.Refresh(); // motion-dependent appearance (rainbow accent) needs the host, which exists now
             await RefreshContexts();
-            if (!CaptureMode) MaybeDimSum();
+            if (!CaptureMode) { host.Schedules.Start(); MaybeDimSum(); }
         };
         clock.Tick += (_, _) => clockText.Text = DateTime.Now.ToString("HH:mm:ss");
         clock.Start();
+    }
+
+    private void UpdateMomentum()
+    {
+        if (momentumChip == null) return;
+        var chrome = AdhdRules.Resolve(settings);
+        var text = host.Momentum.ChipText;
+        momentumChip.Visibility = chrome.ShowMomentumChip && text.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        momentumText.Text = Loc.T(text);
+        AutomationProperties.SetName(momentumChip, Loc.T(text) + (host.Momentum.Encouragement.Length > 0 ? ". " + Loc.T(host.Momentum.Encouragement) : ""));
     }
 
     private void Adapt()
@@ -97,7 +110,7 @@ public partial class MainWindow : Window
         PaletteSlot.Width = narrow ? 220 : 460;
         // The narrow slot cannot hold the full hint, so it shows a complete short label instead of a truncated one.
         if (paletteLabel != null) paletteLabel.Text = Loc.T(narrow ? "Search" : "Search commands, resources and settings");
-        Provenance.Visibility = ActualWidth > 0 && ActualWidth < 1040 ? Visibility.Collapsed : Visibility.Visible;
+        Provenance.Visibility = AdhdRules.Resolve(settings, !(ActualWidth > 0 && ActualWidth < 1040)).ShowProvenance ? Visibility.Visible : Visibility.Collapsed;
         var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
         foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
         dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
@@ -128,8 +141,11 @@ public partial class MainWindow : Window
         var version = assembly.GetName().Version?.ToString(3) ?? "unavailable";
         var stamp = assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(x => x.Key == "BuildTimestamp")?.Value;
         Provenance.Text = $"{Loc.T("Version")} {version} · {Loc.T("Updated")} " + (DateTimeOffset.TryParse(stamp, out var t) ? t.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") + " UTC" + t.ToLocalTime().ToString("zzz") : "provenance unavailable");
-        RailColumn.Width = new GridLength(settings.FocusMode ? 72 : 96);
-        clockText.Visibility = settings.TimeAwareness ? Visibility.Visible : Visibility.Collapsed;
+        var chrome = AdhdRules.Resolve(settings);
+        RailColumn.Width = new GridLength(chrome.RailWidth);
+        clockText.Visibility = chrome.ShowClock ? Visibility.Visible : Visibility.Collapsed;
+        if (exitFocus != null) exitFocus.Visibility = chrome.ShowExitFocus ? Visibility.Visible : Visibility.Collapsed;
+        UpdateMomentum();
         Adapt();
     }
 
@@ -174,8 +190,8 @@ public partial class MainWindow : Window
         badge.HorizontalAlignment = HorizontalAlignment.Center;
         var bellGrid = new Grid(); bellGrid.Children.Add(bell); bellGrid.Children.Add(badgeBorder);
         var access = Ui.IconButton(Icons.AccessibilityNew, "Accessibility tools", ShowAccessibility);
-        access.Visibility = settings.AccessibilityMenuVisible ? Visibility.Visible : Visibility.Collapsed;
-        host.SettingsChanged += () => access.Visibility = settings.AccessibilityMenuVisible ? Visibility.Visible : Visibility.Collapsed;
+        access.Visibility = AdhdRules.Resolve(settings).ShowAccessibilityButton ? Visibility.Visible : Visibility.Collapsed;
+        host.SettingsChanged += () => access.Visibility = AdhdRules.Resolve(settings).ShowAccessibilityButton ? Visibility.Visible : Visibility.Collapsed;
         foreach (var e in new FrameworkElement[] { bell, access }) WindowChrome.SetIsHitTestVisibleInChrome(e, true);
         clockText.Margin = new Thickness(0, 0, 12, 0);
         // Right-clicking the app name opens the appearance panel for the title bar (the rest of the caption keeps the system menu).
@@ -183,6 +199,14 @@ public partial class MainWindow : Window
         WindowChrome.SetIsHitTestVisibleInChrome(Identity, true);
         Identity.ContextMenu = new ContextMenu();
         Identity.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(TitleBar, new[] { "Surface", "SurfaceHigh", "OnSurface", "Primary", "OnSurfaceVariant" }, "Title bar")));
+        momentumChip = new Border { Child = momentumText, CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 3, 10, 3), Margin = new Thickness(0, 0, 12, 0), VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
+        momentumChip.SetResourceReference(Border.BackgroundProperty, "SecondaryContainer");
+        host.Momentum.Changed += UpdateMomentum;
+        exitFocus = Ui.Button("Exit focus", Icons.CenterFocusStrong, ButtonKind.Tonal, () => { settings.FocusMode = false; host.SaveSettings("Focus off"); });
+        exitFocus.Margin = new Thickness(0, 0, 12, 0); exitFocus.Visibility = settings.FocusMode ? Visibility.Visible : Visibility.Collapsed;
+        WindowChrome.SetIsHitTestVisibleInChrome(exitFocus, true);
+        TitleActions.Children.Add(exitFocus);
+        TitleActions.Children.Add(momentumChip);
         TitleActions.Children.Add(clockText);
         TitleActions.Children.Add(contextChip);
         TitleActions.Children.Add(bellGrid.Margin(8, 0, 0, 0));
@@ -529,11 +553,17 @@ public partial class MainWindow : Window
             c.Register(new AppCommand { Id = "go." + key, Title = "Go to " + key, Group = "Destinations", Icon = d.Icon, Keywords = d.Description, Gesture = number <= 9 && d.OnRail ? new KeyGesture(Key.D0 + number, ModifierKeys.Control) : null, Run = () => Navigate(key) });
             if (d.OnRail) number++;
         }
-        c.Register(new AppCommand { Id = "set.theme", Title = "Theme", Group = "Settings", Icon = Icons.Palette, Keywords = "dark light appearance", LiveControl = () => Ui.Segmented(["System", "Light", "Dark"], settings.Theme, v => { settings.Theme = v; host.SaveSettings("Theme set to " + v); }) });
-        c.Register(new AppCommand { Id = "set.motion", Title = "Reduced motion", Group = "Settings", Icon = Icons.Speed, Keywords = "animation accessibility", LiveControl = () => Ui.Switch("Reduced motion", settings.ReducedMotion, v => { settings.ReducedMotion = v; host.SaveSettings("Reduced motion " + (v ? "on" : "off")); }) });
-        c.Register(new AppCommand { Id = "set.contrast", Title = "High contrast", Group = "Settings", Icon = Icons.Contrast, Keywords = "accessibility", LiveControl = () => Ui.Switch("High contrast", settings.HighContrast, v => { settings.HighContrast = v; host.SaveSettings("High contrast " + (v ? "on" : "off")); }) });
-        c.Register(new AppCommand { Id = "set.language", Title = "Language", Group = "Settings", Icon = Icons.Translate, Keywords = "cantonese bilingual english", LiveControl = () => Ui.Segmented(["English", "Cantonese", "Bilingual"], settings.Language, v => { settings.Language = v; Loc.Language = v; host.SaveSettings("Language set to " + v); host.Notify.Info("Language saved. Open pages refresh their labels when reopened."); }) });
-        c.Register(new AppCommand { Id = "set.sounds", Title = "Action sounds", Group = "Settings", Icon = Icons.VolumeUp, LiveControl = () => Ui.Switch("Action sounds", settings.Sounds, v => { settings.Sounds = v; host.SaveSettings("Action sounds " + (v ? "on" : "off")); }) });
+        c.Register(new AppCommand { Id = "set.theme", Title = "Theme", Group = "Settings", Icon = Icons.Palette, Keywords = "dark light appearance", LiveControl = () => host.Lockable("theme", Ui.Segmented(["System", "Light", "Dark"], settings.Theme, v => { settings.Theme = v; host.SaveSettings("Theme set to " + v); })) });
+        c.Register(new AppCommand { Id = "set.motion", Title = "Reduced motion", Group = "Settings", Icon = Icons.Speed, Keywords = "animation accessibility", LiveControl = () => host.Lockable("motion", Ui.Switch("Reduced motion", settings.ReducedMotion, v => { settings.ReducedMotion = v; host.SaveSettings("Reduced motion " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "set.contrast", Title = "High contrast", Group = "Settings", Icon = Icons.Contrast, Keywords = "accessibility", LiveControl = () => host.Lockable("contrast", Ui.Switch("High contrast", settings.HighContrast, v => { settings.HighContrast = v; host.SaveSettings("High contrast " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "set.language", Title = "Language", Group = "Settings", Icon = Icons.Translate, Keywords = "cantonese bilingual english", LiveControl = () => host.Lockable("language", Ui.Segmented(["English", "Cantonese", "Bilingual"], settings.Language, v => { settings.Language = v; Loc.Language = v; host.SaveSettings("Language set to " + v); host.Notify.Info("Language saved. Open pages refresh their labels when reopened."); })) });
+        c.Register(new AppCommand { Id = "set.sounds", Title = "Action sounds", Group = "Settings", Icon = Icons.VolumeUp, LiveControl = () => host.Lockable("sounds", Ui.Switch("Action sounds", settings.Sounds, v => { settings.Sounds = v; host.SaveSettings("Action sounds " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "adhd.focus", Title = "Focus mode", Group = "Settings", Icon = Icons.CenterFocusStrong, Keywords = "adhd attention hide chrome", LiveControl = () => host.Lockable("focusmode", Ui.Switch("Focus mode", settings.FocusMode, v => { settings.FocusMode = v; host.SaveSettings("Focus " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "adhd.lowstim", Title = "Low stimulation", Group = "Settings", Icon = Icons.VolumeUp, Keywords = "adhd quiet sounds animation", LiveControl = () => host.Lockable("lowstim", Ui.Switch("Low stimulation", settings.LowStimulation, v => { settings.LowStimulation = v; host.SaveSettings("Low stimulation " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "adhd.momentum", Title = "Momentum streak", Group = "Settings", Icon = Icons.Bolt, Keywords = "adhd streak encouragement", LiveControl = () => host.Lockable("momentum", Ui.Switch("Momentum streak", settings.Momentum, v => { settings.Momentum = v; host.SaveSettings("Momentum " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "adhd.time", Title = "Time awareness clock", Group = "Settings", Icon = Icons.Schedule, Keywords = "adhd clock time", LiveControl = () => host.Lockable("time", Ui.Switch("Time awareness clock", settings.TimeAwareness, v => { settings.TimeAwareness = v; host.SaveSettings("Time awareness " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "adhd.onething", Title = "One thing at a time", Group = "Settings", Icon = Icons.Tab, Keywords = "adhd single tab", LiveControl = () => host.Lockable("onething", Ui.Switch("One thing at a time", settings.OneThingAtATime, v => { settings.OneThingAtATime = v; host.SaveSettings("One thing at a time " + (v ? "on" : "off")); })) });
+        c.Register(new AppCommand { Id = "set.schedules", Title = "Scheduled language and theme", Group = "Settings", Icon = Icons.Schedule, Keywords = "schedule timer automatic night day", Run = () => host.Navigate("Settings") });
         c.Register(new AppCommand { Id = "set.output", Title = "Output panel open", Group = "Settings", Icon = Icons.Terminal, LiveControl = () => Ui.Switch("Output panel open", dock.Expanded, v => { dock.SetExpanded(v); settings.OutputDockOpen = v; host.SaveSettings(null); }) });
     }
 
@@ -552,7 +582,7 @@ public partial class MainWindow : Window
         table.Column("Time", n => n.WhenText, 90).ChipColumn("Kind", n => n.KindText, n => n.Kind switch { NoticeKind.Error => Tone.Error, NoticeKind.Warning => Tone.Warning, NoticeKind.Success => Tone.Success, _ => Tone.Neutral }, 100).Column("Message", n => n.Message, 520);
         table.Filter("Errors and warnings", n => n.Kind is NoticeKind.Error or NoticeKind.Warning);
         table.BulkAction("Dismiss", Icons.Delete, items => { foreach (var n in items) host.Notify.Centre.Remove(n); table.SetItems(host.Notify.Centre); return Task.CompletedTask; });
-        table.RowAction("Copy message", Icons.ContentCopy, n => { Clipboard.SetText(n.Message); return Task.CompletedTask; }, "Ctrl+C");
+        table.RowAction("Copy message", Icons.ContentCopy, n => { ActionSounds.Copy(n.Message); return Task.CompletedTask; }, "Ctrl+C");
         table.RowAction("Dismiss", Icons.Delete, n => { host.Notify.Centre.Remove(n); table.SetItems(host.Notify.Centre); return Task.CompletedTask; }, "Del");
         table.SetItems(host.Notify.Centre);
         table.Height = 460;
@@ -573,11 +603,11 @@ public partial class MainWindow : Window
         });
         var body = Ui.VStack(12,
             Ui.Title("Accessibility tools"),
-            Ui.Field("Text size", size),
-            Ui.Switch("High contrast", settings.HighContrast, v => { settings.HighContrast = v; host.SaveSettings("High contrast " + (v ? "on" : "off")); }),
-            Ui.Switch("Reduced motion", settings.ReducedMotion, v => { settings.ReducedMotion = v; host.SaveSettings("Reduced motion " + (v ? "on" : "off")); }),
-            Ui.Switch("Larger targets", settings.LargerTargets, v => { settings.LargerTargets = v; host.SaveSettings("Larger targets " + (v ? "on" : "off")); }),
-            Ui.Switch("Read notifications aloud", settings.Narration, v => { settings.Narration = v; host.SaveSettings("Narration " + (v ? "on" : "off")); }),
+            host.Lockable("fontsize", Ui.Field("Text size", size)),
+            host.Lockable("contrast", Ui.Switch("High contrast", settings.HighContrast, v => { settings.HighContrast = v; host.SaveSettings("High contrast " + (v ? "on" : "off")); })),
+            host.Lockable("motion", Ui.Switch("Reduced motion", settings.ReducedMotion, v => { settings.ReducedMotion = v; host.SaveSettings("Reduced motion " + (v ? "on" : "off")); })),
+            host.Lockable("targets", Ui.Switch("Larger targets", settings.LargerTargets, v => { settings.LargerTargets = v; host.SaveSettings("Larger targets " + (v ? "on" : "off")); })),
+            host.Lockable("narration", Ui.Switch("Read notifications aloud", settings.Narration, v => { settings.Narration = v; host.SaveSettings("Narration " + (v ? "on" : "off")); })),
             Ui.Card(Ui.VStack(4, Ui.Overline("Keyboard"), Ui.Caption("Ctrl+Shift+F command palette · Ctrl+1…9 destinations · Ctrl+T new tab · Ctrl+W close tab · Ctrl+Tab next tab · Ctrl+J output panel · Alt+R regex builder in a search · Escape closes dialogs")), 12, "SurfaceHigh", 12),
             Ui.Columns(8, [1, 0], hide, Ui.Button("Done", null, ButtonKind.Filled, () => close!())));
         close = overlay.Show(body, 480);

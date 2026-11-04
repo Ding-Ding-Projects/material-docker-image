@@ -45,7 +45,7 @@ public sealed class NetworksView : Grid
             .RowAction("Inspect", Icons.DataObject, InspectAsync, "Enter")
             .RowAction("Connect container…", Icons.Link, ConnectAsync)
             .RowAction("Disconnect container…", Icons.Cable, DisconnectAsync)
-            .RowAction("Copy name", Icons.ContentCopy, n => { Clipboard.SetText(n.Name); return Task.CompletedTask; })
+            .RowAction("Copy name", Icons.ContentCopy, n => { ActionSounds.Copy(n.Name); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
         table.Activated += n => _ = Guarded(() => InspectAsync(n));

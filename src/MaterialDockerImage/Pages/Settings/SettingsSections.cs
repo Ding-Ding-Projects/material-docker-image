@@ -110,23 +110,29 @@ public sealed partial class SettingsPage
 
     private void FocusSection()
     {
-        rows.Add("focusmode", "Focus", "Narrows the navigation rail and hides its labels, leaving more room for the page.",
-            SettingRows.Toggle(S.FocusMode, v => { S.FocusMode = v; Commit("Focus " + (v ? "on" : "off")); }), s => s.FocusMode);
-        rows.Add("lowstim", "Low stimulation", "Turns off action sounds and every animation (the interface snaps to each final state).",
-            SettingRows.Toggle(S.LowStimulation, v => { S.LowStimulation = v; Commit("Low stimulation " + (v ? "on" : "off")); }), s => s.LowStimulation);
+        rows.Add("focusmode", "Focus", "Hides nonessential chrome (the version line and the accessibility button) and narrows the navigation rail, leaving more room for the page. One Exit focus button in the title bar brings everything back.",
+            SettingRows.Toggle(S.FocusMode, v => { S.FocusMode = v; Commit("Focus " + (v ? "on" : "off")); }), s => s.FocusMode,
+            "Nothing is removed that you cannot bring back in one step. The command palette (Ctrl+Shift+F) also has Focus.");
+        rows.Add("lowstim", "Low stimulation", "Turns off action sounds and every animation (the interface snaps to each final state) and hides the Momentum streak chip.",
+            SettingRows.Toggle(S.LowStimulation, v => { S.LowStimulation = v; Commit("Low stimulation " + (v ? "on" : "off")); }), s => s.LowStimulation,
+            "It adds to Reduced motion and the Windows animation setting and never overrides them.");
         rows.Add("time", "Time awareness", "Shows a clock in the title bar.",
             SettingRows.Toggle(S.TimeAwareness, v => { S.TimeAwareness = v; Commit("Time awareness " + (v ? "on" : "off")); }), s => s.TimeAwareness);
         rows.Add("onething", "One thing at a time", "Opening another destination reuses the current tab instead of adding a new one.",
             SettingRows.Toggle(S.OneThingAtATime, v => { S.OneThingAtATime = v; Commit("One thing at a time " + (v ? "on" : "off")); }), s => s.OneThingAtATime);
-        rows.Add("momentum", "Momentum", "Saved preference for next-step suggestions after an action. This version does not show them yet.",
-            SettingRows.Toggle(S.Momentum, v => { S.Momentum = v; Commit("Momentum " + (v ? "on" : "off")); }), s => s.Momentum);
+        rows.Add("momentum", "Momentum", "Shows a small streak chip in the title bar that counts operations you finished in a row this session. A failure or a cancel resets it.",
+            SettingRows.Toggle(S.Momentum, v => { S.Momentum = v; Commit("Momentum " + (v ? "on" : "off")); }), s => s.Momentum,
+            "The streak lives only in this session and is never saved, so it cannot nag you across days. Low stimulation hides the chip.");
     }
 
     private void SoundsSection()
     {
-        rows.Add("sounds", "Action sounds", "Plays the Windows system sound for success, warning and error notifications.",
+        rows.Add("sounds", "Action sounds", "Plays a short Windows system sound when a build or operation finishes, fails or removes something, when text is copied and when a file is dropped. See the table below.",
             SettingRows.Toggle(S.Sounds, v => { S.Sounds = v; Commit("Action sounds " + (v ? "on" : "off")); }), s => s.Sounds,
-            "Low stimulation turns sounds off even when this is on.");
+            "Low stimulation turns sounds off even when this is on. Sounds never block an action and are never the only sign of a result.");
+        var mapping = Ui.VStack(4, Ui.Text("What each sound means", 14, FontWeights.SemiBold));
+        foreach (var m in SoundCueRules.Mapping) mapping.Children.Add(Ui.Columns(12, [-120, 1, -170], Ui.Mono(m.Cue.ToString(), 13), Ui.Text(m.Trigger, 13), Ui.Caption(m.System)).Margin(0, 2, 0, 2));
+        Extra(Ui.Card(mapping, 14, "SurfaceContainer", 12).Margin(0, 12, 0, 0));
         rows.Add("narration", "Narration", "Reads notifications aloud with a Windows speech voice.",
             SettingRows.Toggle(S.Narration, v => { S.Narration = v; Commit("Narration " + (v ? "on" : "off")); }), s => s.Narration,
             "One message is spoken at a time, and the same message is not repeated within three seconds. Screen readers announce notifications independently of this setting.");

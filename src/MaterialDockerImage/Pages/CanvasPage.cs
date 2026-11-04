@@ -188,7 +188,7 @@ public sealed partial class CanvasPage : PageBase
         view.Text = json;
         var find = new TextFindBar(view.Box, "Search");
         Action? close = null;
-        var copy = Ui.Button("Copy", Icons.ContentCopy, ButtonKind.Text, () => { try { Clipboard.SetText(json); Host.Notify.Info("Copied."); } catch (System.Runtime.InteropServices.ExternalException) { Host.Notify.Warning("The clipboard is busy. Try again."); } });
+        var copy = Ui.Button("Copy", Icons.ContentCopy, ButtonKind.Text, () => { try { ActionSounds.Copy(json); Host.Notify.Info("Copied."); } catch (System.Runtime.InteropServices.ExternalException) { Host.Notify.Warning("The clipboard is busy. Try again."); } });
         var done = Ui.Button("Close", null, ButtonKind.Filled, () => close!());
         var actions = Ui.HStack(8, copy, done); actions.HorizontalAlignment = HorizontalAlignment.Right;
         view.Height = 420;

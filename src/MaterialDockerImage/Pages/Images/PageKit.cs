@@ -122,7 +122,7 @@ internal static class PageKit
 
     public static void Copy(string text, string what)
     {
-        try { Clipboard.SetText(text); Host.Notify.Info($"Copied {what}."); }
+        try { ActionSounds.Copy(text); Host.Notify.Info($"Copied {what}."); }
         catch (System.Runtime.InteropServices.ExternalException e) { Host.Notify.Error(Loc.T("The clipboard is busy:") + " " + e.Message); }
     }
 

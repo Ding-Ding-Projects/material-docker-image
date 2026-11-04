@@ -60,7 +60,7 @@ internal sealed class ActivityInspector
             if (IsProjectFile(p)) bar.Children.Add(Ui.Button("Save restored content as…", Icons.Save, ButtonKind.Text, () => SaveAs(value, p)).Margin(0, 0, 8, 8));
         }
         bar.Children.Add(Ui.AsyncButton("Label…", Icons.Label, ButtonKind.Text, () => LabelAsync(value)).Margin(0, 0, 8, 8));
-        bar.Children.Add(Ui.Button("Copy revision ID", Icons.ContentCopy, ButtonKind.Text, () => Clipboard.SetText(value.Sha)).Margin(0, 0, 8, 8));
+        bar.Children.Add(Ui.Button("Copy revision ID", Icons.ContentCopy, ButtonKind.Text, () => ActionSounds.Copy(value.Sha)).Margin(0, 0, 8, 8));
         actions.Children.Add(bar);
     }
 

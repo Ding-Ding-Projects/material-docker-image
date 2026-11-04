@@ -1,3 +1,4 @@
+using MaterialDockerImage.Services;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -24,7 +25,7 @@ public sealed class ReadOnlySearchText : DockPanel
         var copy = Ui.IconButton(Icons.ContentCopy, "Copy shown text", () =>
         {
             if (box!.Text.Length == 0) return;
-            Clipboard.SetText(box.Text);
+            ActionSounds.Copy(box.Text);
             Services.AppHost.Current.Notify.Info("Copied the shown text.");
         });
         var bar = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };

@@ -260,7 +260,7 @@ public sealed partial class SettingsPage
         });
         var copy = Ui.Button("Copy style", Icons.ContentCopy, ButtonKind.Text, () =>
         {
-            Clipboard.SetText(AppearancePresets.Export(new AppearancePreset("Copied style", AppearanceRuntime.Current)));
+            ActionSounds.Copy(AppearancePresets.Export(new AppearancePreset("Copied style", AppearanceRuntime.Current)));
             Host.Notify.Info("The current appearance was copied as preset JSON. Paste style applies it, here or on another computer.");
         });
         var paste = Ui.Button("Paste style", Icons.ContentCopy, ButtonKind.Text, () =>

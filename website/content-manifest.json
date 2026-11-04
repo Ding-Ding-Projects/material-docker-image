@@ -6,17 +6,17 @@
     "workflows": 10,
     "milestones": 4,
     "counts": {
-      "unverified": 106,
+      "unverified": 104,
       "planned": 0,
-      "implemented": 17,
+      "implemented": 19,
       "verified": 0
     },
-    "sha256": "70c1fd800f6ceb8446d90d2012e06331f589bb8b16e32647d99dc25ac7a8d32e"
+    "sha256": "c2b6f9abc95ad62c9a2df2715e8ac43b9eacd7ead67748b19e577959c8e50dd0"
   },
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "cc38cd67b7af88868eb5abff61254fa282f2b6d821cd65a09e1c82dd6ef49393"
+      "sha256": "eefa10aaa192756dbc727015880162f6ec8d7928d5ac4a235b7d8c5800ad2661"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "ba735288aabcefe9ab74d74c28a2ebc1a6400f000ccbfa8fe436e5ced1a91b98"
+      "sha256": "865d0aa94349c5b2eebb6fc804300c9d98c7842dd7e68373da8380a305552727"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -91,6 +91,10 @@
       "sha256": "23ab101baaed4407d89e1ea0e7122fab3e1bb155a8f8f6f55360364469328c0d"
     },
     {
+      "path": "docs/features/settings-safety.md",
+      "sha256": "7e1377c0621af5706e77f1ea8cfef3a2e9bb992a966f95ae39eeb55e2824622e"
+    },
+    {
       "path": "docs/features/workspace.md",
       "sha256": "3e5877030f8f5abf6f416c0e06238ef6c62655867acbbcc913e26e4a8d9b45cc"
     },
@@ -100,11 +104,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "4798c81f13ccfcd354bfae474211c56c9d4b78f7b5f069cc10b0617dbc05b220"
+      "sha256": "5563fcfcc71399820214c8295bf6f8a33d9c8755c02da1ad4844d8dcf1596ae3"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "790fc4bbb67db3f41769076ab64a398757fe2a5193ec4103502cb9d7cdf62f60"
+      "sha256": "21af649de187d273e37ea41ff42990231e1245e4a2f145a06c808631261e5df5"
     },
     {
       "path": "wiki/Home.md",

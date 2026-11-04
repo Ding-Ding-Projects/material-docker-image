@@ -81,7 +81,7 @@ public sealed class DiagnosticsPage : PageBase
                 Ui.Mono("> " + last.Command, 12, "OnSurfaceVariant", true),
                 Ui.Caption($"Exit code {(last.ExitCode?.ToString() ?? "n/a")} · {label} · ran {check.RanAt?.ToLocalTime():HH:mm:ss}"),
                 PageParts.OutputBox(last.Output.Length > 0 ? last.Output : "(no output)", 220),
-                Ui.Button("Copy output", Icons.ContentCopy, ButtonKind.Text, () => Clipboard.SetText(last.Output)));
+                Ui.Button("Copy output", Icons.ContentCopy, ButtonKind.Text, () => ActionSounds.Copy(last.Output)));
             var expander = new Expander { Header = Loc.T("Output and exit code"), Content = detail, IsExpanded = expanders.TryGetValue(check.Id, out var old) && old.IsExpanded };
             expanders[check.Id] = expander;
             stack.Children.Add(expander.Margin(34, 0, 0, 0));

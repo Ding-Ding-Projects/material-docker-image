@@ -21,14 +21,14 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 17. Planned: 0. Unverified: 106.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 19. Planned: 0. Unverified: 104.
 
 ### Interface and personalization
 
 | Identifier | Capability | Status | Remaining actions |
 | --- | --- | --- | --- |
 | `accessibility-sizing` | Accessibility Sizing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for accessibility-sizing. |
-| `adhd-modes` | Adhd Modes | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for adhd-modes. |
+| `adhd-modes` | Adhd Modes | Implemented, verification pending | Drive each mode in the built window, capture the Focus and Momentum states and check them in all language modes, themes and display scales. |
 | `app-icon` | App Icon | Implemented, verification pending | Inspect the icon in the installed shortcut, taskbar and Settings app list from the released installer, and capture it from the built application. |
 | `appearance-editor` | Appearance Editor | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for appearance-editor. |
 | `blank-editors` | Blank Editors | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for blank-editors. |
@@ -59,7 +59,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `rendered-provider-text` | Rendered Provider Text | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rendered-provider-text. |
 | `rich-controls` | Rich Controls | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rich-controls. |
 | `sanitized-instruction-copy` | Sanitized Instruction Copy | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for sanitized-instruction-copy. |
-| `scheduled-settings` | Scheduled Settings | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for scheduled-settings. |
+| `scheduled-settings` | Scheduled Settings | Unverified | Add the remaining schedulable settings and the API and Home Assistant sources, then drive the editor in the built window. |
 | `screen-recording` | Screen Recording | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for screen-recording. |
 | `settings-explanations` | Settings Explanations | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for settings-explanations. |
 | `shared-link-embed` | Shared Link Embed | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for shared-link-embed. |
@@ -71,7 +71,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | Identifier | Capability | Status | Remaining actions |
 | --- | --- | --- | --- |
 | `bulk-actions` | Bulk Actions | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for bulk-actions. |
-| `collapse-filters` | Collapse Filters | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for collapse-filters. |
+| `collapse-filters` | Collapse Filters | Implemented, verification pending | Check every collapsible surface in the built window at narrow widths and in all language modes; panels other than chip bars and statistic strips are not collapsible yet. |
 | `command-palette` | Command Palette | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for command-palette. |
 | `context-menus` | Context Menus | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for context-menus. |
 | `exports` | Exports | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for exports. |
@@ -89,7 +89,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | --- | --- | --- | --- |
 | `private-conversation-discipline` | Private Conversation Discipline | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for private-conversation-discipline. |
 | `authenticator` | Authenticator | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for authenticator. |
-| `element-locks` | Element Locks | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for element-locks. |
+| `element-locks` | Element Locks | Unverified | Add credential policies, the element context-menu lock command and the recovery desk, then drive them in the built window. |
 | `personal-vocabulary` | Personal Vocabulary | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for personal-vocabulary. |
 | `school-mode` | School Mode | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for school-mode. |
 | `self-signing` | Self Signing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for self-signing. |

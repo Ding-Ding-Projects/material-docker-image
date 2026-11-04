@@ -648,7 +648,7 @@ internal sealed class SearchBuilderPopover
     private void Copy(string text, string message)
     {
         if (text.Length == 0) { testStatus.Text = Loc.T("There is no pattern to copy."); return; }
-        try { Clipboard.SetText(text); testStatus.Text = Loc.T(message); }
+        try { ActionSounds.Copy(text); testStatus.Text = Loc.T(message); }
         catch (ExternalException) { testStatus.Text = Loc.T("The clipboard is busy. Try again."); }
     }
 

@@ -28,7 +28,7 @@ public sealed class BuildCommandPreview : StackPanel
         var copy = Ui.IconButton(Icons.ContentCopy, "Copy command", () =>
         {
             if (box.Text.Length == 0) return;
-            Clipboard.SetText(box.Text);
+            ActionSounds.Copy(box.Text);
             AppHost.Current.Notify.Info("Copied the build command.");
         });
         var head = new DockPanel();

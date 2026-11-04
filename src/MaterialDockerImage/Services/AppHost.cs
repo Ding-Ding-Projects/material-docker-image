@@ -16,6 +16,10 @@ public sealed class AppHost
     public OverlayHost Overlay { get; }
     public OperationsDock Dock { get; }
     public CommandRegistry Commands { get; } = new();
+    /// <summary>Session streak of completed operations; shown as a chip when the Momentum mode is on.</summary>
+    public MomentumTracker Momentum { get; } = new();
+    /// <summary>Evaluates scheduled language and theme rules and the optional local source file.</summary>
+    public ScheduleRuntime Schedules { get; private set; } = null!;
     public bool IsCapture { get; init; }
     public string? Context { get; private set; }
     public long Generation { get; private set; }
@@ -35,6 +39,19 @@ public sealed class AppHost
         Context = string.IsNullOrWhiteSpace(settings.Context) ? null : settings.Context;
         dock.CancelRequested += () => { operation?.Cancel(); Notify.Warning("Cancellation requested. Engine-side work may continue; refresh and reconcile before retrying."); };
         Current = this;
+        Schedules = new ScheduleRuntime(this);
+    }
+
+    /// <summary>Tells the window to re-read settings that changed in memory only (a scheduled override), without saving them.</summary>
+    public void NotifySettingsChanged() => SettingsChanged?.Invoke();
+
+    public bool IsLocked(string id) => ElementLocks.IsLocked(Settings, id);
+
+    /// <summary>Disables a live control (palette row, accessibility menu) while its settings row is locked, so a lock cannot be walked around.</summary>
+    public T Lockable<T>(string id, T control) where T : UIElement
+    {
+        if (IsLocked(id)) { control.IsEnabled = false; control.SetValue(System.Windows.Automation.AutomationProperties.HelpTextProperty, Loc.T("Locked in Settings. Unlock it there to change it.")); }
+        return control;
     }
 
     public void SetContext(string? context)
@@ -79,6 +96,8 @@ public sealed class AppHost
                 : await Docker.ExecuteWithInputAsync(args, standardInput, context, progress, operation.Token);
             Dock.End(result.Success, result.Cancelled, result.ExitCode);
             if (!displayOutput && !result.Success && result.StandardError.Length > 0) Dock.Append(result.StandardError.Trim());
+            Momentum.Record(result.Success);
+            Notify.NextCue = SoundCueRules.ForOperation(args, result.Success, result.Cancelled);
             if (record && !IsCapture) History.Record("operation", $"{label} · {(result.Cancelled ? "canceled" : result.Success ? "completed" : "failed, exit " + result.ExitCode)} · context {context ?? "current"}");
             if (result.Cancelled) Notify.Warning(Loc.Voice($"{label} was canceled. Refresh before retrying.", "Stopped.", "停咗。"));
             else if (result.Success) Notify.Success(Loc.Voice($"{label} completed.", "Done!", "搞掂！"));

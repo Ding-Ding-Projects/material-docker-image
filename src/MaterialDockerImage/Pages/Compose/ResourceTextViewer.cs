@@ -43,7 +43,7 @@ public sealed class ResourceTextViewer : Grid
             if (e.Key == Key.F && Keyboard.Modifiers == ModifierKeys.Control) { search.Box.Focus(); search.Box.SelectAll(); e.Handled = true; }
             else if (e.Key == Key.F3) { FindNext(Keyboard.Modifiers == ModifierKeys.Shift); e.Handled = true; }
         };
-        var copy = Ui.IconButton(Icons.ContentCopy, "Copy shown text", () => { Clipboard.SetText(box.Text); AppHost.Current.Notify.Info("Copied the text shown in the viewer."); });
+        var copy = Ui.IconButton(Icons.ContentCopy, "Copy shown text", () => { ActionSounds.Copy(box.Text); AppHost.Current.Notify.Info("Copied the text shown in the viewer."); });
         var next = Ui.IconButton(Icons.ExpandMore, "Next match (Enter or F3)", () => FindNext(false));
         var previous = Ui.IconButton(Icons.ExpandLess, "Previous match (Shift+Enter)", () => FindNext(true));
         var bar = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };

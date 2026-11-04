@@ -95,14 +95,14 @@
         "en": "Adhd Modes",
         "zh": "專注模式"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Focus, Low stimulation, Time awareness, One thing at a time and Momentum are independent persisted switches in Settings and the command palette. One rule class decides what each mode changes: Focus hides the version line and accessibility button and shows an Exit focus button, Low stimulation silences cues and motion, Momentum shows a session-only streak chip. Checked by focused rule checks; not driven in the built window.",
+        "zh": "已實作五個獨立而會儲存嘅模式（專注、低刺激、時間意識、一次一件事、動力），可喺設定同指令面板切換。專注會隱藏版本行同無障礙按鈕並顯示離開按鈕，低刺激會關閉聲音同動畫，動力會顯示只限本次使用嘅連勝標籤。已有規則檢查，但未喺已建置視窗操作過。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for adhd-modes.",
-        "zh": "確認「專注模式」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Drive each mode in the built window, capture the Focus and Momentum states and check them in all language modes, themes and display scales.",
+        "zh": "喺已建置視窗逐個模式操作，擷取專注同動力狀態，並檢查所有語言、主題同顯示比例。"
       },
       "evidence": [
         {
@@ -487,14 +487,14 @@
         "en": "Collapse Filters",
         "zh": "可收合篩選"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Filter chip bars of every data table, the Storage statistic strip and the Activity action filters collapse with a keyboard-accessible chevron, show an \"N on\" hint while collapsed and persist per surface in settings.json. Search boxes stay visible.",
+        "zh": "所有資料表嘅篩選標籤列、儲存空間統計列同活動操作篩選都可用鍵盤操作嘅箭咀收合，收合時顯示「N 項已開」，並按介面儲存於 settings.json。搜尋框保持可見。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for collapse-filters.",
-        "zh": "確認「可收合篩選」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Check every collapsible surface in the built window at narrow widths and in all language modes; panels other than chip bars and statistic strips are not collapsible yet.",
+        "zh": "喺已建置視窗以窄寬度同所有語言檢查每個可收合介面；除篩選標籤列同統計列外，其他面板暫未可收合。"
       },
       "evidence": [
         {
@@ -937,12 +937,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: every settings row that holds a value has a lock button; a locked row is read-only with an explanation, unlocking asks for a confirmation, locks persist and are recorded in history, and import, reset, palette controls and the accessibility menu respect them. PIN, password and TOTP policies, locks on arbitrary elements and the Support Tickets recovery desk are not implemented.",
+        "zh": "部分完成：每個有數值嘅設定列都有鎖按鈕；鎖住嘅列唯讀並附說明，解鎖需確認，鎖會儲存並記入歷史，匯入、重設、指令面板同無障礙選單都會遵守。PIN、密碼同 TOTP 政策、任意元素鎖定同客服單復原流程尚未實作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for element-locks.",
-        "zh": "確認「元素鎖定」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Add credential policies, the element context-menu lock command and the recovery desk, then drive them in the built window.",
+        "zh": "加入憑證政策、元素右鍵鎖定指令同復原流程，然後喺已建置視窗操作。"
       },
       "evidence": [
         {
@@ -2533,12 +2533,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: language and theme rules with every-day or selected-weekday windows, cross-midnight and whole-day semantics, deterministic priority, an optional watched local JSON source file and history records for every edit. Density, colours, fonts, motion, display name, the HTTPS API and Home Assistant sources are not implemented.",
+        "zh": "部分完成：語言同主題規則，支援每日或指定星期、跨午夜同全日時段、確定性優先次序、可選嘅受監察本機 JSON 來源檔案，每次編輯都記入歷史。密度、顏色、字型、動態、顯示名稱、HTTPS API 同 Home Assistant 來源尚未實作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for scheduled-settings.",
-        "zh": "確認「排程設定」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Add the remaining schedulable settings and the API and Home Assistant sources, then drive the editor in the built window.",
+        "zh": "加入其餘可排程設定同 API、Home Assistant 來源，然後喺已建置視窗操作編輯器。"
       },
       "evidence": [
         {

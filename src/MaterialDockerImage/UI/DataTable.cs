@@ -73,6 +73,25 @@ public sealed class DataTable<T> : Grid
     public T? Focused => List.SelectedItem is TableRow<T> r ? r.Item : default;
     public Func<T, string>? Key { get; set; }
     private readonly DockPanel toolbar;
+    private readonly System.Windows.Controls.Button filterToggle;
+    private readonly TextBlock filterSummary = Ui.Caption("");
+    private string FilterKey => "table." + HistoryStore.SafeName(Name2) + ".filters";
+    private bool FiltersCollapsed => AppHost.Current != null && CollapseFilterState.IsCollapsed(AppHost.Current.Settings.CollapsedFilters, FilterKey);
+
+    /// <summary>Shows or hides the chip bar and keeps the toggle, its accessible name and the "N on" hint current.</summary>
+    private void ApplyFilterVisibility()
+    {
+        var collapsed = FiltersCollapsed;
+        FilterBar.Visibility = collapsed ? Visibility.Collapsed : Visibility.Visible;
+        filterToggle.Visibility = filters.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+        filterToggle.Content = collapsed ? Icons.ExpandMore : Icons.ExpandLess;
+        var name = Loc.T(collapsed ? "Show filters" : "Hide filters");
+        filterToggle.ToolTip = name;
+        AutomationProperties.SetName(filterToggle, name);
+        var on = filters.Count(f => f.Chip.IsChecked == true);
+        filterSummary.Text = collapsed ? Loc.T(CollapseFilterState.Summary(filters.Count, on)) : "";
+        filterSummary.Visibility = collapsed && filters.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     /// <summary>Places a page-level action at the right of the search and filter row, beside Export.</summary>
     public DataTable<T> ToolbarAction(FrameworkElement action)
@@ -99,7 +118,18 @@ public sealed class DataTable<T> : Grid
         Search.Margin = new Thickness(0, 0, 12, 4);
         searchAndFilters.Children.Add(Search);
         FilterBar.Margin = new Thickness(0, 4, 0, 4);
+        filterToggle = Ui.IconButton(Icons.ExpandLess, "Hide filters", () =>
+        {
+            var host = AppHost.Current;
+            if (host != null && CollapseFilterState.Set(host.Settings.CollapsedFilters, FilterKey, !FiltersCollapsed)) host.SaveSettings(null);
+            ApplyFilterVisibility();
+        });
+        filterToggle.Width = filterToggle.Height = filterToggle.MinHeight = 28; filterToggle.FontSize = 18;
+        filterToggle.Margin = new Thickness(0, 0, 4, 4); filterSummary.Margin = new Thickness(0, 0, 8, 4); filterSummary.VerticalAlignment = VerticalAlignment.Center;
+        searchAndFilters.Children.Add(filterToggle);
+        searchAndFilters.Children.Add(filterSummary);
         searchAndFilters.Children.Add(FilterBar);
+        ApplyFilterVisibility();
         toolbar.Children.Add(searchAndFilters);
         Children.Add(toolbar);
         var bulkContent = new DockPanel();
@@ -177,6 +207,8 @@ public sealed class DataTable<T> : Grid
         chip.Margin = new Thickness(0, 0, 8, 0);
         filters.Add((label, predicate, chip));
         FilterBar.Children.Add(chip);
+        chip.Click += (_, _) => ApplyFilterVisibility();
+        ApplyFilterVisibility();
         return this;
     }
 

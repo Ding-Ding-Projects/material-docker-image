@@ -1,5 +1,4 @@
 using System.IO;
-using System.Media;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -78,17 +77,7 @@ public sealed class VocabularyDrop
         host.Notify.Error(message);
     }
 
-    private void PlaySound(bool tada)
-    {
-        if (!host.Settings.Sounds || host.Settings.LowStimulation) return;
-        try
-        {
-            if (!tada) { SystemSounds.Beep.Play(); return; }
-            var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Windows), "Media", "tada.wav");
-            if (File.Exists(file)) new SoundPlayer(file).Play(); else SystemSounds.Asterisk.Play();
-        }
-        catch (Exception e) when (e is InvalidOperationException or IOException or UnauthorizedAccessException or System.ComponentModel.Win32Exception) { }
-    }
+    private static void PlaySound(bool tada) => ActionSounds.Play(tada ? SoundCue.Drop : SoundCue.DropRefused);
 
     /// <summary>A full-window, non-blocking headline: animates in, holds about three seconds, animates out.</summary>
     private void Celebrate(string headline)
