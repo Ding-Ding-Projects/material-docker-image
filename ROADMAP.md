@@ -18,7 +18,10 @@
 - [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
 - [x] Add settings row locks, scheduled language and theme, attention-mode consumers (Focus, Low stimulation, Momentum), a documented action sound mapping and persisted collapsible filters (rule checks pass; hands-on verification pending)
 - [ ] Drive the new lock, schedule, attention-mode, sound and collapse controls in the built window and record receipts
-- [ ] Add lock credential policies, other schedulable settings and the API and Home Assistant schedule sources
+- [x] Add lock policies (confirm only, PIN, authenticator app), a lock command on settings rows and major page buttons, the unlock ladder with persistent backoff and single-use recovery codes, and an Authenticator section in Tools with an in-process QR code (rule checks pass, including the RFC 6238 vectors; hands-on verification pending)
+- [ ] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window, and scan the QR code with a real authenticator app
+- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks, the dim sum, sums and whack-a-mole ladder rungs, the Support Tickets desk and a general authenticator for arbitrary accounts
+- [ ] Add other schedulable settings and the API and Home Assistant schedule sources
 
 ## Delivered and bounded verification
 

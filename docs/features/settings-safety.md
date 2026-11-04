@@ -4,17 +4,49 @@ This guide covers five related controls in Settings and the shell. Every rule be
 
 ## Element locks
 
-Every settings row that holds a value has a lock button beside its title.
+Every settings row that holds a value has a lock button beside its title, and every row and every major page action button (the filled and danger buttons) has **Lock this control...** on its right-click menu. Locking an element shares one helper (`Shell/LockUi.cs`) between settings rows and page buttons. Button lock ids are `btn.<page>.<label>` in lower case, at most 40 characters, so two buttons with the same label on the same page share a lock.
 
-- A locked row is read-only: its control is disabled and a note says "Locked. Unlock this setting to change it."
-- Locking needs no confirmation. Unlocking asks for one, and the confirmation repeats the disclosure below.
-- Locks are stored in `settings.json` as `LockedSettings` (row identifiers, at most 200) and every lock or unlock is recorded in local history ("Locked setting: ...").
-- Import and Reset all keep locked rows at their current values (`ElementLocks.Preserve`). Reset leaves the locks themselves in place.
+- A locked row or button is disabled, and a page that re-enables it (for example after an async action) is overruled. The right-click menu stays available on a locked element and offers **Unlock this control...**. The settings lock button also stays enabled as the unlock target. A disabled button cannot be clicked or focused, so unlocking a page button needs its context menu.
+- Locks are stored in `settings.json` as `LockedSettings` (identifiers, at most 200) and every lock or unlock is recorded in local history ("Locked setting: ..."). The history never holds a credential.
+- Import and Reset all keep locked rows at their current values (`ElementLocks.Preserve`). Reset leaves the locks themselves in place. A lock on a button has no settings value to preserve.
 - The command palette controls (theme, language, sounds, motion, contrast, the attention modes and School mode) and the accessibility menu are disabled while their row is locked, so a lock cannot be walked around.
 
-Disclosure shown every time: a lock is a speed bump you set for yourself, not security. It does not protect anything from another person who has this computer. To clear every lock, remove `LockedSettings` from `settings.json` (the Data and privacy section shows the folder) or use Reset all after unlocking.
+### Lock policies
 
-Not implemented: PIN, password and TOTP policies, locks on arbitrary elements through a context menu, and the Support Tickets recovery desk.
+The first time a control is locked, a wizard asks what unlocking should require. The choice is kept per lock and reused on the next lock; **Change lock policy...** reopens the wizard on an unlocked control and **Remove lock policy...** deletes the credential.
+
+| Policy | Unlock asks for | Stored as |
+| --- | --- | --- |
+| None | A confirmation that repeats the disclosure below. | Nothing. |
+| PIN | 4 to 12 digits. | A PBKDF2-SHA256 hash (150,000 iterations) with a random per-hash salt, mixed with a random per-install salt kept in the lock file. The PIN is never stored, logged or exported. |
+| Authenticator app | A 6-digit RFC 6238 code (SHA-1, 30 seconds, one step of clock skew either side). A code that was accepted cannot be used again. | The 20-byte secret, generated with `RandomNumberGenerator`, protected with Windows DPAPI for the current user (entropy: the install salt). |
+
+Credentials live in `locks.json` in the data folder, apart from `settings.json`, exports and history. An authenticator lock needs DPAPI; where it is unavailable the wizard says so and refuses the policy. In capture mode the store is held in memory only.
+
+Pairing an authenticator shows the secret only after **Show secret and QR code**: a QR code of the `otpauth://totp/` link, the grouped Base32 secret, copy buttons and the algorithm, digits and period. The lock arms only after one current code is typed back.
+
+### Unlock ladder
+
+Unlocking climbs these rungs (`LockStore.Stage`, `LockStore.Attempt`, `LockStore.UseRecoveryCode`):
+
+1. **Confirm.** A lock with no policy only asks for a confirmation.
+2. **Credential.** The PIN or authenticator code. The first two wrong answers cost nothing and the dialog says how many free tries remain.
+3. **Wait.** From the third consecutive wrong answer the wait is 30 seconds, then 60, 120 and so on, doubling to a cap of one hour. The dialog shows a live countdown and the clock time the wait ends. The failure count and the wait are saved, so a restart does not clear them. While waiting, an answer is refused without being checked and without counting. Waiting alone never unlocks anything: the credential is still needed afterwards.
+4. **Recovery code.** Eight single-use codes (`XXXXX-XXXXX`) are made when a PIN or authenticator policy is saved, shown once with Copy all and Save to file, and stored only as hashes. A code works at any time, including during a wait, clears the failure count and the wait, and is spent. Typing ignores case, spaces, hyphens and the look-alike letters I, L and O.
+
+Beside every prompt the dialog names the data folder and says that deleting `locks.json` (or the whole folder) clears every lock. That is the last resort when the PIN, the authenticator and every recovery code are gone.
+
+Not built: the dim sum, ten sums and whack-a-mole rungs that can shorten a wait, with their hourly budget and server-side style grading; School mode starting the ladder at the sums; password and combined policies; unlock durations; locks on tabs, groups and appearance values; locks on every rendered element; the Support Tickets recovery desk.
+
+Disclosure shown every time: a lock is a speed bump you set for yourself, not security. It does not protect anything from another person who has this computer. Anyone who can delete the data folder can remove every lock.
+
+## Authenticator tool
+
+Tools has an **Authenticator** section for the app's own locks. It pairs an authenticator app with a lock, checks a code for a lock without using it up or counting it as an unlock attempt, lists the locks that have a policy (with their recovery codes left and **Remove policy**) and runs **Run RFC 6238 self-test**, which computes the 18 published RFC 6238 vectors (SHA-1, SHA-256, SHA-512, 8 digits) with the build's own code. The command palette has **Authenticator for locks**. A lock registered in an authenticator on the same computer is mostly for fun, since the key sits beside the lock it opens.
+
+Not built: a general authenticator for arbitrary accounts (live codes with countdown and next-code peek, import from an image, the clipboard or a camera, grouping and search, a secrets export behind super confirmation).
+
+The QR encoder (`UI/SettingsSafety.Qr.cs`) is dependency free and draws nothing itself: byte mode, level L, versions 1 to 10 (271 bytes). Text beyond that is refused rather than truncated, and an otpauth link for a lock fits easily.
 
 ## Scheduled language and theme
 
@@ -100,6 +132,6 @@ All new copy has Hong Kong Cantonese wording in `Services/LocStrings.Settings.cs
 
 ## Verification
 
-Run `build.bat -Tests`. The UI-state project covers locks, schedule boundaries (start, last minute, end, cross-midnight, weekday ownership, whole day, priority, file values), the base-versus-live behaviour of the language and theme, the attention rules, the sound mapping and the collapsed state. During development one boundary check was watched failing on a deliberately wrong weekday rule before it was fixed, and a gap it did not cover (a same-day window using the wrong weekday) led to an extra check.
+Run `build.bat -Tests`. The UI-state project covers locks (including `tests/UiState/LockChecks.cs`: Base32 and the RFC 4648 vectors, the RFC 4226 and RFC 6238 vectors, skew and replay, PBKDF2 hashing, recovery codes, the backoff table, the ladder stages with a fake clock across a restart, the credential file never holding a PIN, code or secret, real DPAPI, and the QR encoder checked against a published Reed-Solomon vector and against matrices an independent scanner decoded), schedule boundaries (start, last minute, end, cross-midnight, weekday ownership, whole day, priority, file values), the base-versus-live behaviour of the language and theme, the attention rules, the sound mapping and the collapsed state. During development one boundary check was watched failing on a deliberately wrong weekday rule before it was fixed, and a gap it did not cover (a same-day window using the wrong weekday) led to an extra check.
 
-Not verified: any interaction in the built window, real sound playback, the file watcher, the 20-second timer across a real boundary, screen reader names and narrow layouts. These stay open on the capability inventory.
+Not verified: the lock wizard, the ladder dialog, the disabled behaviour of page buttons, the Authenticator section and a real phone scanning the QR code; any interaction in the built window, real sound playback, the file watcher, the 20-second timer across a real boundary, screen reader names and narrow layouts. These stay open on the capability inventory.

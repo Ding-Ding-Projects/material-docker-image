@@ -21,10 +21,11 @@ public sealed class ToolsPage : PageBase
         {
             ["Base64"] = () => new Base64Panel().Root,
             ["Documentation"] = () => new DocsBrowser().Root,
+            ["Authenticator"] = () => new AuthenticatorPanel().Root,
             ["Changelog"] = Changelog,
         };
-        tabs = Ui.Segmented(["Base64", "Documentation", "Changelog"], "Base64", Show);
-        tabs.HorizontalAlignment = HorizontalAlignment.Left; tabs.MinWidth = 420;
+        tabs = Ui.Segmented(["Base64", "Documentation", "Authenticator", "Changelog"], "Base64", Show);
+        tabs.HorizontalAlignment = HorizontalAlignment.Left; tabs.MinWidth = 560;
         var header = Ui.Header("Tools", "Everything here works offline", out _, tabs);
         Layout(header, host);
         Show("Base64");
@@ -38,7 +39,7 @@ public sealed class ToolsPage : PageBase
 
     private void Select(string tab)
     {
-        var index = Array.IndexOf(["Base64", "Documentation", "Changelog"], tab);
+        var index = Array.IndexOf(["Base64", "Documentation", "Authenticator", "Changelog"], tab);
         if (tabs.Child is Grid grid && index >= 0 && grid.Children[index] is RadioButton r) r.IsChecked = true;
         Show(tab);
     }
@@ -71,6 +72,7 @@ public sealed class ToolsPage : PageBase
     [
         new AppCommand { Id = "tools.base64", Title = "Base64 encode or decode", Group = "Tools", Icon = Icons.DataObject, Keywords = "base64 encode decode data url mime", Run = () => { Host.Navigate(Key); Select("Base64"); } },
         new AppCommand { Id = "tools.docs", Title = "Open offline documentation", Group = "Tools", Icon = Icons.MenuBook, Keywords = "help docs guide manual", Run = () => { Host.Navigate(Key); Select("Documentation"); } },
+        new AppCommand { Id = "tools.authenticator", Title = "Authenticator for locks", Group = "Tools", Icon = Icons.ShieldLock, Keywords = "authenticator totp otp qr pin lock recovery code", Run = () => { Host.Navigate(Key); Select("Authenticator"); } },
         new AppCommand { Id = "tools.changelog", Title = "Version and changelog", Group = "Tools", Icon = Icons.Info, Keywords = "version release notes build", Run = () => { Host.Navigate(Key); Select("Changelog"); } },
     ];
 }

@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using MaterialDockerImage.Services;
+using MaterialDockerImage.Shell;
 using MaterialDockerImage.UI;
 
 namespace MaterialDockerImage.Pages;
@@ -136,6 +137,7 @@ internal sealed class SettingRows
         }
         var border = new Border { Child = layout, Padding = new Thickness(0, 12, 0, 12), BorderThickness = new Thickness(0, 0, 0, 1) };
         border.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
+        if (value != null) LockUi.AttachMenu(border, id, label, Guard);
         var row = new SettingRow { Id = id, Section = Section, Label = label, Explanation = explanation, Info = info, Element = border, Provenance = provenance, Value = value, Format = format };
         All.Add(row);
         return row;
@@ -161,22 +163,8 @@ internal sealed class SettingRows
                 button.ToolTip = Loc.T(locked ? "Locked. Select to unlock." : "Lock this setting against changes");
             }
         }
-        async Task Toggle()
-        {
-            if (!ElementLocks.IsLocked(Host.Settings, id))
-            {
-                if (!ElementLocks.Lock(Host.Settings, id)) { Host.Notify.Warning("This setting could not be locked because the lock list is full."); return; }
-                Guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, true)));
-            }
-            else
-            {
-                if (!await Host.Overlay.ConfirmAsync(Loc.T("Unlock this setting?"), Loc.T(label) + "\n\n" + Loc.T(ElementLocks.Disclosure), "Unlock")) return;
-                ElementLocks.Unlock(Host.Settings, id);
-                Guard(() => Host.SaveSettings(ElementLocks.HistorySummary(label, false)));
-            }
-            Apply();
-        }
-        button = Ui.IconButton(Icons.LockOpen, label, () => { _ = Toggle(); });
+        button = Ui.IconButton(Icons.LockOpen, label, () => { _ = LockUi.ToggleAsync(id, label, Guard); });
+        LockUi.Subscribe(id, button, Apply);
         button.Margin = new Thickness(4, -6, 0, -6);
         button.Width = button.Height = button.MinHeight = 28; button.FontSize = 16;
         title.Children.Add(button);

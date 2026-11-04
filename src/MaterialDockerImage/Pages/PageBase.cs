@@ -36,6 +36,7 @@ public abstract class PageBase : Grid
     public async Task ShowAsync()
     {
         OnShown();
+        Shell.LockUi.AttachPage(this, Key);
         if (loadedOnce) return;
         loadedOnce = true;
         await SafeRefresh();
