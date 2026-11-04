@@ -354,7 +354,7 @@ internal sealed partial class SearchBuilderPopover
         var preview = new Dictionary<string, string> { [RegexCodeTemplates.Key(language, kind)] = templateBox.Text };
         var result = RegexCodeTemplates.Render(language, text, flags, kind, field.State.Replacement, preview);
         templatePreview.Text = result.Text;
-        if (!result.Converted) templateStatus.Text = string.Join(" ", result.Notes.Select(n => RegexText.Sentences(n, Loc.T)));
+        if (!result.Converted) templateStatus.Text = string.Join(" ", result.Notes.Select(n => RegexConverter.TranslateNote(n, Loc.T)));
     }
 
     private void SaveTemplate()

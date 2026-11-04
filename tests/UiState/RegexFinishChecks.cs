@@ -31,6 +31,7 @@ public static class RegexFinishChecks
         Keyboard();
         RegexFinishMoreChecks.Run(Check);
         RegexFinishLocalizationChecks.Run(Check);
+        RegexRestLocalizationChecks.Run(Check);
         return count;
     }
 

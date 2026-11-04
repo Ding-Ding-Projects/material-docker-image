@@ -5,7 +5,7 @@ namespace MaterialDockerImage.UI;
 /// <summary>Helpers for showing the builder's generated English wording in the chosen language.</summary>
 public static class RegexText
 {
-    private static readonly Regex sentenceBreak = new(@"(?<=\.) (?=[A-Z])", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
+    private static readonly Regex sentenceBreak = new(@"(?<=\.) (?=[A-Z\\])", RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(100));
 
     /// <summary>
     /// Translates a message that may be one sentence or several. When every sentence has its own translation they are joined with a space; otherwise the whole

@@ -194,9 +194,7 @@ internal sealed partial class SearchBuilderPopover
             if (cts.IsCancellationRequested || !popup.IsOpen) return;
             if (!result.Valid) { compareStatus.Text = Loc.T(result.Error ?? ""); return; }
             compareStatus.Text = result.Verdict;
-            compareOutput.Text = string.Join("\n", result.Rows.Select(r => !r.Valid
-                ? $"✗ {r.Pattern}   invalid: {r.Error}"
-                : $"{(r.AllCorrect ? "✓" : "✗")} {r.Pattern}   must match {r.MatchingPassed}/{r.MatchingTotal}, must not match {r.NonMatchingPassed}/{r.NonMatchingTotal}   {r.MatchingMs:0.000} ms / {r.NonMatchingMs:0.000} ms   {(r.TimedOut ? "timed out" : r.Engine)}"));
+            compareOutput.Text = string.Join("\n", result.Rows.Select(r => r.Format(Loc.T)));
         }
         catch (OperationCanceledException) { }
     }

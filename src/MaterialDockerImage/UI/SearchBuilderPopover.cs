@@ -592,7 +592,7 @@ internal sealed partial class SearchBuilderPopover
             ? RegexCodeTemplates.Render(target, text, flags, kind, field.State.Replacement, Templates())
             : RegexConverter.Convert(target, text, flags, kind, field.State.Replacement, field.State.GrepFolder.Length > 0 ? field.State.GrepFolder : null, field.State.GrepFolder.Length > 0 ? field.State.GrepGlobs : null);
         convertOutput.Text = result.Text;
-        convertNotes.Text = string.Join(" ", result.Notes.Select(Loc.T)) + (result.Converted && result.Lossy ? " " + Loc.T("The converted pattern is not identical in meaning.") : "");
+        convertNotes.Text = string.Join(" ", result.Notes.Select(n => RegexConverter.TranslateNote(n, Loc.T))) + (result.Converted && result.Lossy ? " " + Loc.T("The converted pattern is not identical in meaning.") : "");
     }
 
     private async void RunBenchmark()
@@ -605,10 +605,10 @@ internal sealed partial class SearchBuilderPopover
         benchStatus.Text = Loc.T("Probing…"); benchOutput.Text = "";
         try
         {
-            var result = await Task.Run(() => RegexDiagnostics.Benchmark(text, flags, sampleText, cts.Token), cts.Token);
+            var result = await Task.Run(() => RegexDiagnostics.Benchmark(text, flags, sampleText, cts.Token, Loc.T), cts.Token);
             if (cts.IsCancellationRequested || !popup.IsOpen) return;
-            benchStatus.Text = result.Valid ? Loc.T(result.Verdict) : result.Error ?? "";
-            benchOutput.Text = string.Join("\n", result.Rows.Select(r => $"{r.Subject,-12} {r.Size,6} chars  {(r.TimedOut ? ">" + RegexDiagnostics.ProbeTimeout.TotalMilliseconds.ToString("0") : r.Milliseconds.ToString("0.00"))} ms  {(r.TimedOut ? "timed out" : r.Matched ? "match" : "no match")}"));
+            benchStatus.Text = result.Valid ? result.Verdict : result.Error ?? "";
+            benchOutput.Text = string.Join("\n", result.Rows.Select(r => r.Format(Loc.T)));
             if (result.Valid && result.Rows.Count > 0) benchOutput.Text += "\n" + RegexGrowth.Describe(result.Rows, "sample", Loc.T) + "\n" + RegexGrowth.Describe(result.Rows, "a-run", Loc.T);
         }
         catch (OperationCanceledException) { }
