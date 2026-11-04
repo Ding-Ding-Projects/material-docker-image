@@ -21,6 +21,8 @@ public sealed class AppHost
     /// <summary>Evaluates scheduled language and theme rules and the optional local source file.</summary>
     public ScheduleRuntime Schedules { get; private set; } = null!;
     public UpdateService Updates { get; }
+    /// <summary>PIN and authenticator credentials for the locks, kept apart from settings.json. Capture mode keeps them in memory only.</summary>
+    public LockStore Locks { get; }
     public bool IsCapture { get; init; }
     public string? Context { get; private set; }
     public long Generation { get; private set; }
@@ -39,6 +41,7 @@ public sealed class AppHost
         Settings = settings; Updates = new UpdateService(() => settings.AutoUpdateCheck); Notify = notify; Overlay = overlay; Dock = dock; IsCapture = capture;
         Context = string.IsNullOrWhiteSpace(settings.Context) ? null : settings.Context;
         dock.CancelRequested += () => { operation?.Cancel(); Notify.Warning("Cancellation requested. Engine-side work may continue; refresh and reconcile before retrying."); };
+        Locks = new LockStore(capture ? null : LockStore.DefaultPath, DpapiProtector.IsAvailable ? new DpapiProtector() : null);
         Current = this;
         Schedules = new ScheduleRuntime(this);
     }

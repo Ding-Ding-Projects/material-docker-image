@@ -209,12 +209,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: the Tools page has an Authenticator section for the app's own locks. It pairs an authenticator app with a lock (generated secret, otpauth link, QR code and grouped Base32 text shown only on request, armed only after one current code is typed back), checks a code without using it up, lists the locks that have a policy, and runs the RFC 6238 vectors for SHA-1, SHA-256 and SHA-512 with the build's own code. A general authenticator for arbitrary accounts (live codes, countdown, next-code peek, import by image or clipboard, grouping, search, secrets export) is not built, and nothing has been driven in the built window.",
+        "zh": "部分完成：工具頁有為本應用程式自己嘅鎖而設嘅驗證器區。可為鎖配對驗證器應用程式（生成密鑰、otpauth 連結、QR 碼同分組 Base32 文字，只會按要求顯示，輸入一次現時驗證碼後先生效）、檢查驗證碼而唔會用咗佢、列出已設定鎖定方式嘅鎖，並用本版本自己嘅程式碼計算 SHA-1、SHA-256 同 SHA-512 嘅 RFC 6238 測試向量。任意帳戶嘅通用驗證器（即時驗證碼、倒數、下一組預覽、由圖片或剪貼簿匯入、分組、搜尋、密鑰匯出）尚未建立，亦未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for authenticator.",
-        "zh": "確認「驗證工具」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Build the general authenticator for arbitrary accounts with live codes, import routes and super-confirmed secrets export, then drive both sections in the built window.",
+        "zh": "建立任意帳戶用嘅通用驗證器，包括即時驗證碼、匯入途徑同需超級確認嘅密鑰匯出，然後喺已建置視窗操作兩個區。"
       },
       "evidence": [
         {
@@ -953,12 +953,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: every settings row that holds a value has a lock button; a locked row is read-only with an explanation, unlocking asks for a confirmation, locks persist and are recorded in history, and import, reset, palette controls and the accessibility menu respect them. PIN, password and TOTP policies, locks on arbitrary elements and the Support Tickets recovery desk are not implemented.",
-        "zh": "部分完成：每個有數值嘅設定列都有鎖按鈕；鎖住嘅列唯讀並附說明，解鎖需確認，鎖會儲存並記入歷史，匯入、重設、指令面板同無障礙選單都會遵守。PIN、密碼同 TOTP 政策、任意元素鎖定同客服單復原流程尚未實作。"
+        "en": "Partly delivered: every settings row that holds a value, and every filled or danger action button on a page, has a Lock this control command on its right-click menu. Each lock chooses confirm-only, a PIN (4 to 12 digits, stored as a salted PBKDF2-SHA256 hash) or an authenticator app (RFC 6238 TOTP, secret protected with Windows DPAPI), with backoff-limited attempts that persist across restarts and single-use recovery codes made at setup. A locked control is disabled, locks persist and are recorded in history without credentials, and import, reset, palette controls and the accessibility menu respect them. Password, PIN-plus-password and TOTP combinations, unlock durations, locks on tabs, groups and appearance values, locks on every rendered element and the Support Tickets recovery desk are not implemented. Nothing has been driven in the built window.",
+        "zh": "部分完成：每個有數值嘅設定列，同每頁嘅主要（實心同危險）操作按鈕，右鍵選單都有「鎖住呢個控制項」。每個鎖可揀只需確認、PIN 碼（4 至 12 位，以加鹽 PBKDF2-SHA256 雜湊儲存）或驗證器應用程式（RFC 6238 TOTP，密鑰以 Windows DPAPI 保護），嘗試次數設有跨重新啟動仍保留嘅遞增等候，設定時亦會產生單次使用還原碼。鎖住嘅控制項會停用，鎖會儲存並記入歷史（不含憑證），匯入、重設、指令面板同無障礙選單都會遵守。密碼、PIN 加密碼、TOTP 組合、解鎖時限、分頁、群組同外觀數值鎖、所有畫面元素鎖同客服單復原流程尚未實作。未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Add credential policies, the element context-menu lock command and the recovery desk, then drive them in the built window.",
-        "zh": "加入憑證政策、元素右鍵鎖定指令同復原流程，然後喺已建置視窗操作。"
+        "en": "Drive the lock wizard, the disabled behaviour and the ladder in the built window; add the password policies, unlock durations, tab, group and appearance locks, locks on every element and the recovery desk.",
+        "zh": "喺已建置視窗操作鎖定精靈、停用行為同解鎖流程；加入密碼政策、解鎖時限、分頁、群組同外觀鎖、所有元素鎖同復原流程。"
       },
       "evidence": [
         {
@@ -2181,12 +2181,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: pairing a lock with an authenticator draws a QR code of a standard otpauth link in-process (a dependency-free encoder, versions 1 to 10, checked against a published Reed-Solomon vector and against matrices an independent scanner decoded), with the copyable Base32 secret, algorithm, digits and period beside it, revealed only on request and never written to disk, logs, exports or history. The factor arms only after a current code is typed back. A scan by a real phone authenticator, the built-window rendering in both themes and other pairing surfaces have not been verified.",
+        "zh": "部分完成：為鎖配對驗證器時，會喺程式內繪畫標準 otpauth 連結嘅 QR 碼（無外部依賴嘅編碼器，支援版本 1 至 10，已對照公佈嘅 Reed-Solomon 向量，同由獨立掃描器解碼過嘅矩陣），旁邊有可複製嘅 Base32 密鑰、演算法、位數同週期，只按要求顯示，亦唔會寫入磁碟、記錄、匯出或歷史。輸入現時驗證碼後因子先生效。未驗證真實手機驗證器掃描、已建置視窗喺兩種主題下嘅顯示同其他配對介面。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for qr-pairing.",
-        "zh": "確認「QR 配對」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Scan the QR code with a real authenticator app, check it in both themes in the built window, and add the image, clipboard and camera registration routes.",
+        "zh": "用真實驗證器應用程式掃描 QR 碼，喺已建置視窗以兩種主題檢查，並加入圖片、剪貼簿同相機登記途徑。"
       },
       "evidence": [
         {
@@ -2973,12 +2973,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: unlocking climbs confirm, then the PIN or authenticator code, then a persistent exponential wait (free tries, then 30 seconds doubling to one hour) with an honest live countdown, with a single-use recovery code reachable at any time and the data-folder recovery route shown beside the prompt. Waiting alone never unlocks anything, and winning back time with the dim sum, sums and whack-a-mole rungs, their budget and server-side grading are not implemented. Nothing has been driven in the built window.",
+        "zh": "部分完成：解鎖會由確認，到 PIN 碼或驗證碼，再到會跨重新啟動保留嘅遞增等候（免費嘗試後由 30 秒起倍增至一個鐘），附真實倒數；單次使用還原碼隨時可用，提示旁亦顯示清除資料夾嘅復原方法。單靠等候唔會解鎖任何嘢；點心、數學題同打地鼠階梯、佢哋嘅每小時上限同伺服器端評分尚未實作。未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for unlock-ladder.",
-        "zh": "確認「解鎖流程」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Build the dim sum, ten sums and whack-a-mole rungs with their hourly budget and nonce grading, School mode starting at the sums, then drive the ladder in the built window.",
+        "zh": "加入點心、十條數學題同打地鼠階梯、佢哋嘅每小時上限同一次性評分、學校模式由數學題開始，然後喺已建置視窗操作。"
       },
       "evidence": [
         {
