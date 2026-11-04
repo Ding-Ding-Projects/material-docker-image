@@ -63,7 +63,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `screen-recording` | Screen Recording | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for screen-recording. |
 | `settings-explanations` | Settings Explanations | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for settings-explanations. |
 | `shared-link-embed` | Shared Link Embed | Implemented, verification pending | Confirm how real platforms render a shared link to the deployed site (platform crawlers were not exercised) and refresh the preview image when the application is redesigned. |
-| `support-tickets` | Support Tickets | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for support-tickets. |
+| `support-tickets` | Support Tickets | Unverified | Drive the desk in the built window: file, advance and resolve a ticket, confirm the folder that opens matches the path shown, and check narrow widths, high display scales and all three language modes. |
 | `vendored-fonts` | Vendored Fonts | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vendored-fonts. |
 
 ### Navigation and workflow
@@ -89,7 +89,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | --- | --- | --- | --- |
 | `private-conversation-discipline` | Private Conversation Discipline | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for private-conversation-discipline. |
 | `authenticator` | Authenticator | Unverified | Build the general authenticator for arbitrary accounts with live codes, import routes and super-confirmed secrets export, then drive both sections in the built window. |
-| `element-locks` | Element Locks | Unverified | Drive the lock wizard, the disabled behaviour and the ladder in the built window; add the password policies, unlock durations, tab, group and appearance locks, locks on every element and the recovery desk. |
+| `element-locks` | Element Locks | Unverified | Drive the wizard, the disabled behaviour, the timed relock and the Locks manager in the built window; add tab, group and appearance locks, the disabled-click authentication prompt, locked labels in the palette and tab searches, and the keypad PIN entry. |
 | `personal-vocabulary` | Personal Vocabulary | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for personal-vocabulary. |
 | `school-mode` | School Mode | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for school-mode. |
 | `self-signing` | Self Signing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for self-signing. |

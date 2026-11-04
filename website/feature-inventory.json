@@ -953,12 +953,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: every settings row that holds a value, and every filled or danger action button on a page, has a Lock this control command on its right-click menu. Each lock chooses confirm-only, a PIN (4 to 12 digits, stored as a salted PBKDF2-SHA256 hash) or an authenticator app (RFC 6238 TOTP, secret protected with Windows DPAPI), with backoff-limited attempts that persist across restarts and single-use recovery codes made at setup. A locked control is disabled, locks persist and are recorded in history without credentials, and import, reset, palette controls and the accessibility menu respect them. Password, PIN-plus-password and TOTP combinations, unlock durations, locks on tabs, groups and appearance values, locks on every rendered element and the Support Tickets recovery desk are not implemented. Nothing has been driven in the built window.",
-        "zh": "部分完成：每個有數值嘅設定列，同每頁嘅主要（實心同危險）操作按鈕，右鍵選單都有「鎖住呢個控制項」。每個鎖可揀只需確認、PIN 碼（4 至 12 位，以加鹽 PBKDF2-SHA256 雜湊儲存）或驗證器應用程式（RFC 6238 TOTP，密鑰以 Windows DPAPI 保護），嘗試次數設有跨重新啟動仍保留嘅遞增等候，設定時亦會產生單次使用還原碼。鎖住嘅控制項會停用，鎖會儲存並記入歷史（不含憑證），匯入、重設、指令面板同無障礙選單都會遵守。密碼、PIN 加密碼、TOTP 組合、解鎖時限、分頁、群組同外觀數值鎖、所有畫面元素鎖同客服單復原流程尚未實作。未曾喺已建置視窗操作。"
+        "en": "Partly delivered: every settings row that holds a value has a lock button, and every button, switch, option, drop-down, text field and slider on every page has Lock this control on its right-click menu, with a stable id (its automation id, otherwise its page, kind, English name and position among identical elements). Each lock chooses one of eight policies: confirm only, PIN, password, authenticator app, PIN plus password, password plus authenticator, PIN plus authenticator, or password plus PIN plus authenticator. PINs and passwords are stored as salted PBKDF2-SHA256 hashes, the authenticator secret is protected with Windows DPAPI, attempts are backoff-limited and persist, and single-use recovery codes are made at setup. Each lock also chooses how long an unlock lasts (this action only, 5 minutes, 1 hour, or until the app closes) and closes again by itself, including at the next launch. Settings has a Locks manager listing every lock with search, filters, export, unlock, lock again, change policy and single or bulk removal. A locked control is disabled, locks persist and are recorded in history without credentials, and import, reset, palette controls and the accessibility menu respect them. The logic is covered by focused checks that were seen failing first. Not built: locks on tabs, tab groups and individual appearance values, an authentication prompt opened by clicking a disabled control, locked items labelled in the palette and tab searches, and the keypad PIN entry. Nothing has been driven in the built window.",
+        "zh": "部分完成：每個有數值嘅設定列都有鎖按鈕；每一頁嘅按鈕、開關、選項、下拉選單、輸入欄同滑桿，右鍵選單都有「鎖住呢個控制項」，並有穩定識別碼（有自動化識別碼就用佢，否則用頁面、種類、英文名稱同相同元素中嘅次序）。每個鎖可揀八種方式：只需確認、PIN 碼、密碼、驗證器應用程式、PIN 碼加密碼、密碼加驗證器、PIN 碼加驗證器，或者密碼加 PIN 碼加驗證器。PIN 碼同密碼以加鹽 PBKDF2-SHA256 雜湊儲存，驗證器密鑰以 Windows DPAPI 保護，嘗試次數設有遞增等候並跨重新啟動保留，設定時亦會產生單次使用還原碼。每個鎖亦可揀解鎖維持幾耐（只限今次操作、5 分鐘、1 個鐘，或者直到關閉應用程式），並會自動重新鎖住，包括下次啟動時。設定有「鎖管理」，列出每個鎖，可搜尋、篩選、匯出、解鎖、再鎖住、更改方式，同單個或批量移除。鎖住嘅控制項會停用，鎖會儲存並記入歷史（不含憑證），匯入、重設、指令面板同無障礙選單都會遵守。邏輯部分有先見到失敗再通過嘅針對性檢查。尚未實作：分頁、分頁群組同個別外觀數值嘅鎖、撳停用控制項時彈出驗證提示、喺指令面板同分頁搜尋標示已鎖項目，以及數字鍵盤輸入 PIN 碼。未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Drive the lock wizard, the disabled behaviour and the ladder in the built window; add the password policies, unlock durations, tab, group and appearance locks, locks on every element and the recovery desk.",
-        "zh": "喺已建置視窗操作鎖定精靈、停用行為同解鎖流程；加入密碼政策、解鎖時限、分頁、群組同外觀鎖、所有元素鎖同復原流程。"
+        "en": "Drive the wizard, the disabled behaviour, the timed relock and the Locks manager in the built window; add tab, group and appearance locks, the disabled-click authentication prompt, locked labels in the palette and tab searches, and the keypad PIN entry.",
+        "zh": "喺已建置視窗操作鎖定精靈、停用行為、限時重新鎖住同鎖管理；加入分頁、群組同外觀鎖、撳停用控制項彈出驗證提示、指令面板同分頁搜尋嘅已鎖標示，以及數字鍵盤輸入 PIN 碼。"
       },
       "evidence": [
         {
@@ -2833,12 +2833,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: a Support Tickets desk reachable from the unlock prompt (Forgotten your password?), the lock wizard and the Locks manager, the Tools page and the command palette. A ticket has a category, a severity that is recorded and then treated like every other, a description, a locally generated number such as TKT-20261104-0001 and a status that advances by itself or on request (new, acknowledged, investigating, resolved) with canned replies. The resolution only opens the application-data folder in the file manager and shows its exact path with a copy button; the app never deletes it. One plain line, unaffected by the funny level, says nothing is sent anywhere and nobody is reading. Tickets are stored locally, searchable with the regex-wired search, exportable and removable in bulk. The logic and the absence of network or delete code are covered by checks that were seen failing first. Nothing has been driven in the built window, so the folder opening and the layout at narrow widths are unverified.",
+        "zh": "部分完成：「支援服務單」可以由解鎖提示（唔記得密碼？）、鎖定精靈同鎖管理、工具頁同指令面板去到。服務單有類別、會被記低但同其他一樣處理嘅嚴重程度、描述、本機產生嘅編號（例如 TKT-20261104-0001），以及會自動或按要求推進嘅狀態（新、已收到、調查中、已解決）同預設回覆。處理方法只係喺檔案總管開啟應用程式資料夾，並顯示確實路徑同複製掣；應用程式從不刪除。有一行唔受搞笑程度影響嘅清楚說明，講明完全冇嘢傳去任何地方，亦冇人會睇。服務單儲存喺本機，可用接駁正規表示式嘅搜尋、匯出同批量移除。邏輯，以及冇網絡同刪除程式碼，都有先見到失敗再通過嘅檢查。未曾喺已建置視窗操作，所以開啟資料夾同窄闊度版面尚未驗證。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for support-tickets.",
-        "zh": "確認「支援單」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Drive the desk in the built window: file, advance and resolve a ticket, confirm the folder that opens matches the path shown, and check narrow widths, high display scales and all three language modes.",
+        "zh": "喺已建置視窗操作服務台：提交、推進同處理服務單，確認開啟嘅資料夾同顯示嘅路徑一致，並檢查窄闊度、高顯示比例同三種語言模式。"
       },
       "evidence": [
         {
@@ -2973,8 +2973,8 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: unlocking climbs confirm, then the PIN or authenticator code, then a persistent exponential wait (free tries, then 30 seconds doubling to one hour) with an honest live countdown, with a single-use recovery code reachable at any time and the data-folder recovery route shown beside the prompt. Waiting alone never unlocks anything, and winning back time with the dim sum, sums and whack-a-mole rungs, their budget and server-side grading are not implemented. Nothing has been driven in the built window.",
-        "zh": "部分完成：解鎖會由確認，到 PIN 碼或驗證碼，再到會跨重新啟動保留嘅遞增等候（免費嘗試後由 30 秒起倍增至一個鐘），附真實倒數；單次使用還原碼隨時可用，提示旁亦顯示清除資料夾嘅復原方法。單靠等候唔會解鎖任何嘢；點心、數學題同打地鼠階梯、佢哋嘅每小時上限同伺服器端評分尚未實作。未曾喺已建置視窗操作。"
+        "en": "Partly delivered: unlocking climbs confirm, then each credential of the lock's policy in a fixed order (PIN, password, authenticator code) shown as Step n of m, then a persistent exponential wait (free tries, then 30 seconds doubling to one hour) with an honest live countdown. A wrong answer at any step counts once against one shared budget and restarts the attempt at the first factor. A single-use recovery code is reachable at any time, the data-folder recovery route and a Forgotten your password link to the local Support Tickets desk sit beside the prompt, and waiting alone never unlocks anything. Winning back time with the dim sum, sums and whack-a-mole rungs, their budget and server-side grading are not implemented. Nothing has been driven in the built window.",
+        "zh": "部分完成：解鎖會由確認開始，再按固定次序（PIN 碼、密碼、驗證碼）逐道驗證，並顯示「第 n 步，共 m 步」，然後係會跨重新啟動保留嘅遞增等候（免費嘗試後由 30 秒起倍增至一個鐘），附真實倒數。任何一步答錯，都會喺同一個共用上限記一次，並由第一道重新開始。單次使用還原碼隨時可用，提示旁亦顯示清除資料夾嘅復原方法同通往本機「支援服務單」嘅「唔記得密碼？」連結；單靠等候唔會解鎖任何嘢。點心、數學題同打地鼠階梯、佢哋嘅每小時上限同伺服器端評分尚未實作。未曾喺已建置視窗操作。"
       },
       "remaining": {
         "en": "Build the dim sum, ten sums and whack-a-mole rungs with their hourly budget and nonce grading, School mode starting at the sums, then drive the ladder in the built window.",
