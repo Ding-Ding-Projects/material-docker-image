@@ -23,10 +23,22 @@ public sealed record RegexGrepOptions
     public long MaxTotalBytes { get; init; } = 128L * 1024 * 1024;
     public TimeSpan Budget { get; init; } = TimeSpan.FromSeconds(15);
     public IReadOnlyList<string> ExcludedDirectories { get; init; } = [".git", "node_modules", ".vs"];
+    /// <summary>Only files last written at or after this time (UTC) are searched. Null means no lower bound.</summary>
+    public DateTime? ModifiedAfterUtc { get; init; }
+    /// <summary>Only files last written at or before this time (UTC) are searched. Null means no upper bound.</summary>
+    public DateTime? ModifiedBeforeUtc { get; init; }
+    /// <summary>Lines of context listed before and after each match in a search (0 to <see cref="RegexGrep.MaxContextLines"/>).</summary>
+    public int ContextLines { get; init; }
 }
 
 /// <summary>One match in one file. <see cref="Column"/> counts UTF-16 units from 1.</summary>
-public sealed record RegexGrepMatch(string File, int Line, int Column, int Length, string Text, string LineText);
+public sealed record RegexGrepMatch(string File, int Line, int Column, int Length, string Text, string LineText)
+{
+    /// <summary>The lines just before the match line, oldest first. Empty unless context lines were requested.</summary>
+    public IReadOnlyList<string> ContextBefore { get; init; } = [];
+    /// <summary>The lines just after the match line.</summary>
+    public IReadOnlyList<string> ContextAfter { get; init; } = [];
+}
 
 /// <summary>A file that was left out, with the reason.</summary>
 public sealed record RegexGrepSkip(string File, string Reason);
@@ -88,6 +100,7 @@ public static class RegexGrep
     public const int MaxSnapshots = 10;
     public const int MaxLineChars = 240;
     public const int MaxSkipsListed = 200;
+    public const int MaxContextLines = 5;
     private const string SnapshotFormat = "material-docker-image.regex-grep-undo";
 
     // ----- file text -----
@@ -221,6 +234,18 @@ public static class RegexGrep
         }
     }
 
+    /// <summary>True when the file's last write time is inside the optional date window.</summary>
+    private static bool InDateWindow(RegexGrepOptions o, string path)
+    {
+        if (o.ModifiedAfterUtc == null && o.ModifiedBeforeUtc == null) return true;
+        try
+        {
+            var written = File.GetLastWriteTimeUtc(path);
+            return (o.ModifiedAfterUtc == null || written >= o.ModifiedAfterUtc) && (o.ModifiedBeforeUtc == null || written <= o.ModifiedBeforeUtc);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { return false; }
+    }
+
     private static void Skip(List<RegexGrepSkip> skipped, string file, string reason)
     {
         if (skipped.Count < MaxSkipsListed) skipped.Add(new(file, reason));
@@ -244,7 +269,8 @@ public static class RegexGrep
             MaxResults = Math.Clamp(o.MaxResults, 1, RegexGrepOptions.HardMaxResults),
             MaxMatchesPerFile = Math.Clamp(o.MaxMatchesPerFile, 1, 10000),
             MaxTotalBytes = Math.Clamp(o.MaxTotalBytes, 1, 1024L * 1024 * 1024),
-        }, null);
+            ContextLines = Math.Clamp(o.ContextLines, 0, MaxContextLines),
+        }, o.ModifiedAfterUtc is { } a && o.ModifiedBeforeUtc is { } b && a > b ? "The earliest modified time is later than the latest one, so no file can match." : null);
     }
 
     // ----- search -----
@@ -290,6 +316,7 @@ public static class RegexGrep
             if (cancellation.IsCancellationRequested) { cancelled = true; break; }
             if (clock.Elapsed > o.Budget) { timedOut = true; break; }
             if (!globs.IsMatch(Path.GetFileName(full), relative)) continue;
+            if (!InDateWindow(o, full)) continue;
             if (searched >= o.MaxFiles) { fileLimit = true; break; }
             var bytes = ReadFile(full, o.MaxFileBytes, skipped);
             if (bytes == null) continue;
@@ -312,7 +339,14 @@ public static class RegexGrep
                     starts ??= LineStarts(file.Text);
                     var line = Array.BinarySearch(starts, m.Index);
                     if (line < 0) line = ~line - 1;
-                    matches.Add(new(full, line + 1, m.Index - starts[line] + 1, m.Length, Bound(m.Value), LineAt(file.Text, starts, line)));
+                    var hit = new RegexGrepMatch(full, line + 1, m.Index - starts[line] + 1, m.Length, Bound(m.Value), LineAt(file.Text, starts, line));
+                    if (o.ContextLines > 0)
+                        hit = hit with
+                        {
+                            ContextBefore = Enumerable.Range(Math.Max(0, line - o.ContextLines), line - Math.Max(0, line - o.ContextLines)).Select(i => LineAt(file.Text, starts, i)).ToList(),
+                            ContextAfter = Enumerable.Range(line + 1, Math.Max(0, Math.Min(starts.Length - 1, line + o.ContextLines) - line)).Select(i => LineAt(file.Text, starts, i)).ToList(),
+                        };
+                    matches.Add(hit);
                     hits++;
                     m = m.NextMatch();
                 }
@@ -368,6 +402,7 @@ public static class RegexGrep
             if (cancellation.IsCancellationRequested) { cancelled = true; break; }
             if (clock.Elapsed > o.Budget) { timedOut = true; break; }
             if (!globs.IsMatch(Path.GetFileName(full), relative)) continue;
+            if (!InDateWindow(o, full)) continue;
             if (searched >= o.MaxFiles) { truncated = true; Skip(skipped, full, "the file limit was reached"); break; }
             var bytes = ReadFile(full, o.MaxFileBytes, skipped);
             if (bytes == null) continue;

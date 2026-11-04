@@ -32,6 +32,10 @@ public static class RegexUnicodeBlocks
     public const string ScriptNotice = @".NET supports Unicode blocks only. It has no script properties such as \p{Greek}, and its blocks stop at the Basic Multilingual Plane.";
 
     /// <summary>The blocks whose name, display title or range contains the query (ignoring case); an empty query lists all.</summary>
+    /// <summary>The blocks that match a filter field's query on their name, display title or range (plain text or regular expression, with that field's flags).</summary>
+    public static IReadOnlyList<RegexUnicodeBlock> Search(RegexSearchQuery query) =>
+        query.IsEmpty ? All : All.Where(b => query.MatchesFields([b.Name, b.Title, b.Range])).ToList();
+
     public static IReadOnlyList<RegexUnicodeBlock> Search(string? query)
     {
         var q = (query ?? "").Trim();

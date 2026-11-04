@@ -141,7 +141,10 @@ public static class RegexBuilderEngine
     public const int MaxPatternLength = 4096;
     public const int MaxReplaceOutputChars = 256 * 1024;
     public const int MaxGroupValueChars = 512;
-    public static readonly TimeSpan MatchTimeout = TimeSpan.FromMilliseconds(250);
+    public const int MinTimeoutMs = 50, MaxTimeoutMs = 1000, DefaultTimeoutMs = 250;
+    public static TimeSpan MatchTimeout { get; private set; } = TimeSpan.FromMilliseconds(DefaultTimeoutMs);
+    /// <summary>Changes the per-match limit used for regular expressions compiled from now on. The value is kept between 50 and 1000 ms.</summary>
+    public static void SetMatchTimeout(int milliseconds) => MatchTimeout = TimeSpan.FromMilliseconds(Math.Clamp(milliseconds, MinTimeoutMs, MaxTimeoutMs));
     /// <summary>Wall-clock budget for a whole sample evaluation, on top of the per-match timeout.</summary>
     public static readonly TimeSpan EvaluationBudget = TimeSpan.FromSeconds(2);
 
@@ -393,7 +396,7 @@ public sealed class RegexSearchQuery
 /// <summary>Per-field, in-memory builder state. Nothing here is persisted.</summary>
 public sealed class RegexFieldState
 {
-    public RegexBuilderFlags Flags { get; set; } = new();
+    public RegexBuilderFlags Flags { get; set; } = RegexBuilderPreferences.Current.DefaultFlags;
     public string Sample { get; set; } = "";
     public string Replacement { get; set; } = "";
     /// <summary>Expected-outcome lines ("+ must match", "- must not match") for this field's test suite. In memory only.</summary>
@@ -405,6 +408,12 @@ public sealed class RegexFieldState
     public string GrepGlobs { get; set; } = "*";
     /// <summary>Patterns typed into the comparison box, one per line. In memory only.</summary>
     public string ComparePatterns { get; set; } = "";
+    /// <summary>Whether the folder search includes subfolders. In memory only.</summary>
+    public bool GrepRecursive { get; set; } = true;
+    /// <summary>Context lines chosen for the folder search (0 to 5). In memory only.</summary>
+    public int GrepContext { get; set; }
+    /// <summary>A result list loaded from a file, shown by the next builder opened on this field. In memory only.</summary>
+    public RegexGrepSavedList? LoadedResults { get; set; }
     public RegexRecentPatterns Recent { get; } = new();
 }
 

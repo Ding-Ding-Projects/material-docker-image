@@ -79,14 +79,16 @@ public static class RegexTokenHelp
     }
 
     /// <summary>The full help text for a token: title, how it is written, what it does, an example and the .NET note.</summary>
-    public static string Describe(RegexExplainNode node)
+    /// <param name="t">Optional translation of each line (the view passes the language lookup); English is produced when it is null.</param>
+    public static string Describe(RegexExplainNode node, Func<string, string>? t = null)
     {
+        t ??= s => s;
         var page = For(node);
-        var lines = new List<string> { page.Title };
-        if (page.Syntax.Length > 0) lines.Add("Written as: " + page.Syntax);
-        lines.Add(page.Explanation);
-        lines.Add($"Example: {page.ExamplePattern} finds {page.ExampleMatch} in {page.ExampleText.Replace("\n", "\\n")}");
-        if (page.NetNote.Length > 0) lines.Add(page.NetNote);
+        var lines = new List<string> { t(page.Title) };
+        if (page.Syntax.Length > 0) lines.Add(t("Written as: " + page.Syntax));
+        lines.Add(t(page.Explanation));
+        lines.Add(t($"Example: {page.ExamplePattern} finds {page.ExampleMatch} in {page.ExampleText.Replace("\n", "\\n")}"));
+        if (page.NetNote.Length > 0) lines.Add(t(page.NetNote));
         return string.Join("\n", lines);
     }
 

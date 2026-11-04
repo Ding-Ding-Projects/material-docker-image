@@ -35,6 +35,17 @@ public static partial class RegexPatternStore
         string.IsNullOrWhiteSpace(query) ? library.ToList()
         : library.Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || p.Pattern.Contains(query, StringComparison.OrdinalIgnoreCase) || p.Description.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
 
+    /// <summary>
+    /// Saved patterns whose name, pattern or description match a filter field's query (plain text or regular expression, with that field's own flags).
+    /// An empty query returns everything; an invalid or timed-out one returns nothing, and the query reports why.
+    /// </summary>
+    public static List<RegexSavedPattern> Search(IReadOnlyList<RegexSavedPattern> library, RegexSearchQuery query) =>
+        query.IsEmpty ? library.ToList() : library.Where(p => query.MatchesFields([p.Name, p.Pattern, p.Description])).ToList();
+
+    /// <summary>Built-in snippets that match a filter field's query on their name, description or pattern. Same rules as the saved-pattern overload.</summary>
+    public static List<RegexSnippet> SearchSnippets(RegexSearchQuery query) =>
+        query.IsEmpty ? RegexBuilderLibrary.Snippets.ToList() : RegexBuilderLibrary.Snippets.Where(s => query.MatchesFields([s.Name, s.Description, s.Pattern])).ToList();
+
     /// <summary>Built-in snippets whose name, description or pattern contains the text (ignoring case).</summary>
     public static List<RegexSnippet> SearchSnippets(string? query) =>
         string.IsNullOrWhiteSpace(query) ? RegexBuilderLibrary.Snippets.ToList()

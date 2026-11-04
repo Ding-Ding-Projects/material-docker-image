@@ -170,6 +170,12 @@ public static class SearchSurfaceCatalogue
         T("tools.support-tickets", "Tools", "Shell/SupportDeskUi.cs", "Support tickets"),
         F("tools.docs", "Tools", "Pages/Tools/DocsBrowser.cs", "Search documentation"),
         F("tools.changelog", "Tools", "Pages/Tools/ChangelogView.cs", "Search the changelog"),
+        // The regex builder's own lists: each filter carries its own builder, which opens as a second popup beside the first.
+        F("builder.library-filter", "Regex builder", "UI/SearchBuilderPopover.cs", "Filter the library"),
+        F("builder.my-patterns-filter", "Regex builder", "UI/SearchBuilderPopover.cs", "Filter my patterns"),
+        F("builder.unicode-blocks-filter", "Regex builder", "UI/SearchBuilderPopover.Subject.cs", "Filter the blocks"),
+        new("builder.grep-folder", "Regex builder", "UI/SearchBuilderPopover.Tools.cs", SearchSurfaceKind.Exempt, "Ui.Input", "",
+            "A folder path for the folder search, not a filter over a list; the results of the search are listed in a grid beside it."),
     ];
 
     /// <summary>Constructions that create a search field. Each yields the construct name and the argument list start.</summary>
@@ -192,7 +198,7 @@ public static class SearchSurfaceCatalogue
 
     /// <summary>Files that never construct a user-facing field (the field and builder implementation themselves).</summary>
     private static bool Skipped(string relative) =>
-        relative == "UI/SearchFilter.cs" || relative.StartsWith("UI/SearchBuilderPopover", StringComparison.Ordinal) || relative.StartsWith("UI/RegexBuilder", StringComparison.Ordinal) || relative == "UI/SearchSurfaceCatalogue.cs" ||
+        relative == "UI/SearchFilter.cs" || relative.StartsWith("UI/RegexBuilder", StringComparison.Ordinal) || relative == "UI/SearchSurfaceCatalogue.cs" ||
         relative.StartsWith("obj/", StringComparison.Ordinal) || relative.StartsWith("bin/", StringComparison.Ordinal);
 
     /// <summary>Scans every .cs file under the app source folder for search-field constructions.</summary>
