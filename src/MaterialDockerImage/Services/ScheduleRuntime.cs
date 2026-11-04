@@ -6,9 +6,10 @@ using MaterialDockerImage.UI;
 namespace MaterialDockerImage.Services;
 
 /// <summary>
-/// Applies scheduled language and theme rules. It evaluates on a timer, when the rules change and when the optional local source file
-/// changes. The scheduled value is only lent to the live settings; the saved settings keep the person's own choice (see UserSettings.ApplyScheduled).
-/// The source file is read from disk only: no network request is ever made.
+/// Applies scheduled setting rules (language, theme, density, accent colour, font size, motion, display name). It evaluates on a timer, when the rules change,
+/// when the optional local source file changes and when the optional https or Home Assistant source answers. The scheduled value is only lent to the live
+/// settings; the saved settings keep the person's own choice (see UserSettings.ApplyScheduled). The local file is read from disk only; the network sources
+/// are polled by ScheduleNetwork only when an enabled rule uses them, and a failed poll never changes a setting.
 /// </summary>
 public sealed class ScheduleRuntime
 {
@@ -18,16 +19,18 @@ public sealed class ScheduleRuntime
     private FileSystemWatcher? watcher;
     private string watchedPath = "";
     private string lastNotice = "";
-    public ScheduleFileValues? File { get; private set; }
+    public ScheduleNetwork Network { get; } = new();
+    public ScheduleSourceValues? File { get; private set; }
     /// <summary>Empty when the file is fine or no file is chosen, otherwise the reason it is not used.</summary>
     public string FileProblem { get; private set; } = "";
-    public ScheduleOutcome Last { get; private set; } = new(null, null, Array.Empty<string>());
+    public ScheduleOutcome Last { get; private set; } = ScheduleOutcome.Empty;
     public event Action? Evaluated;
 
     public ScheduleRuntime(AppHost host)
     {
         this.host = host;
-        timer.Tick += (_, _) => Evaluate();
+        timer.Tick += (_, _) => { PollNetwork(false); Evaluate(); };
+        Network.Changed += () => Evaluate();
         fileDebounce.Tick += (_, _) => { fileDebounce.Stop(); ReloadFile(); };
     }
 
@@ -35,7 +38,29 @@ public sealed class ScheduleRuntime
     {
         if (host.IsCapture) return;
         ReloadFile();
+        PollNetwork(true);
         timer.Start();
+    }
+
+    /// <summary>Polls the network sources now (forced) or when due. Never blocks the window: the request runs asynchronously and evaluation follows its answer.</summary>
+    public void PollNetwork(bool force)
+    {
+        if (host.IsCapture) return;
+        _ = PollSafeAsync(force);
+    }
+
+    private async Task PollSafeAsync(bool force)
+    {
+        try { await Network.PollAsync(host.Settings, force); }
+        catch (Exception e) when (e is InvalidOperationException or ObjectDisposedException or System.Net.Http.HttpRequestException) { }
+    }
+
+    /// <summary>Called after the address, entity, token or rules of a network source changed: forgets old answers and asks again.</summary>
+    public void SourcesChanged()
+    {
+        Network.Forget();
+        PollNetwork(true);
+        Evaluate();
     }
 
     /// <summary>Re-reads the source file (if one is chosen), re-points the watcher and evaluates the rules.</summary>
@@ -87,16 +112,15 @@ public sealed class ScheduleRuntime
     public void Evaluate()
     {
         if (host.IsCapture) return;
-        var outcome = ScheduleEvaluator.Evaluate(host.Settings.ScheduleRules, DateTime.Now, File);
+        var external = new ScheduleExternal(Network.Https.Values, Network.HomeAssistant.State);
+        var outcome = ScheduleEvaluator.Evaluate(host.Settings.ScheduleRules, DateTime.Now, File, external);
         Last = outcome;
-        if (host.Settings.ApplyScheduled(outcome.Language, outcome.Theme))
+        if (host.Settings.ApplyScheduled(outcome.Values))
         {
             SettingRows.SyncRuntime();
             host.NotifySettingsChanged();
-            var parts = new List<string>();
-            if (outcome.Language != null) parts.Add("language " + outcome.Language);
-            if (outcome.Theme != null) parts.Add("theme " + outcome.Theme);
-            host.Notify.Info(parts.Count > 0 ? "A schedule is now applying " + string.Join(" and ", parts) + ". Your saved choices are unchanged." : "The schedule ended, so your own language and theme are back.");
+            var parts = ScheduleSettings.All.Where(outcome.Values.ContainsKey).Select(s => s.ToLowerInvariant() + " " + outcome.Values[s]).ToList();
+            host.Notify.Info(parts.Count > 0 ? "A schedule is now applying " + string.Join(" and ", parts) + ". Your saved choices are unchanged." : "The schedule ended, so your own settings are back.");
         }
         Evaluated?.Invoke();
     }

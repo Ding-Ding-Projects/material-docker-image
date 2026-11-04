@@ -22,6 +22,9 @@
 - [ ] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window, and scan the QR code with a real authenticator app
 - [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks, the dim sum, sums and whack-a-mole ladder rungs, the Support Tickets desk and a general authenticator for arbitrary accounts
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
+- [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
+- [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts
+- [ ] Add lock credential policies
 
 ## Delivered and bounded verification
 

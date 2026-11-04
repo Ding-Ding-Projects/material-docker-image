@@ -1,44 +1,67 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
-using Microsoft.Win32;
 
 namespace MaterialDockerImage.Pages;
 
-/// <summary>The Schedules section: rules that lend a language or theme for a time window, and the optional local source file.</summary>
+/// <summary>The Schedules section: rules that lend a setting for a time window and date range, and the optional local file, https and Home Assistant sources.</summary>
 public sealed partial class SettingsPage
 {
     private Action? schedulesListener;
     private static readonly string[] DayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    private static readonly string[] SourceNames = ["Local", "File", "HTTPS", "Home Assistant"];
+
+    private static string SettingLabel(string setting) => setting switch
+    {
+        ScheduleSettings.Accent => "Accent colour",
+        ScheduleSettings.FontSize => "Font size",
+        ScheduleSettings.DisplayName => "Display name",
+        _ => setting
+    };
+
+    private static string SourceLabel(string source) => source switch { ScheduleSources.Https => "HTTPS", ScheduleSources.HomeAssistant => "Home Assistant", _ => source };
+    private static string SourceFromLabel(string label) => label switch { "HTTPS" => ScheduleSources.Https, "Home Assistant" => ScheduleSources.HomeAssistant, _ => label };
+
+    private static string DefaultValue(string setting) => setting switch
+    {
+        ScheduleSettings.Language => "Cantonese",
+        ScheduleSettings.Theme => "Light",
+        ScheduleSettings.Density => "Compact",
+        ScheduleSettings.Accent => "#AA3366",
+        ScheduleSettings.FontSize => "16",
+        ScheduleSettings.Motion => "Reduced",
+        _ => "Night desk"
+    };
 
     private void SchedulesSection()
     {
         var list = new StackPanel();
         var editorHost = new StackPanel { Visibility = Visibility.Collapsed };
         var activeNow = Ui.Caption("");
+        var sourceStates = new List<Action>();
         void ShowActive()
         {
             var last = Host.Schedules.Last;
-            var parts = new List<string>();
-            if (last.Language != null) parts.Add(Loc.T("Language") + " " + Loc.T(last.Language));
-            if (last.Theme != null) parts.Add(Loc.T("Theme") + " " + Loc.T(last.Theme));
-            activeNow.Text = parts.Count == 0 ? Loc.T("No schedule is applying right now. Your own language and theme are in effect.") : Loc.T("Applying now: ") + string.Join(" · ", parts) + " " + Loc.T("(your saved choices are unchanged).");
+            var parts = ScheduleSettings.All.Where(last.Values.ContainsKey).Select(x => Loc.T(SettingLabel(x)) + " " + (x is ScheduleSettings.Accent or ScheduleSettings.DisplayName or ScheduleSettings.FontSize ? last.Values[x] : Loc.T(last.Values[x]))).ToList();
+            activeNow.Text = parts.Count == 0 ? Loc.T("No schedule is applying right now. Your own settings are in effect.") : Loc.T("Applying now: ") + string.Join(" · ", parts) + " " + Loc.T("(your saved choices are unchanged).");
         }
 
         void Save(string summary)
         {
             S.ScheduleRules = ScheduleEvaluator.Normalize(S.ScheduleRules);
             Commit(summary);
-            Host.Schedules.Evaluate();
+            Host.Schedules.SourcesChanged();
             Render();
             ShowActive();
+            foreach (var refresh in sourceStates) refresh();
         }
 
         void Render()
         {
             list.Children.Clear();
-            if (S.ScheduleRules.Count == 0) list.Children.Add(Ui.Caption("No schedules yet. Add a rule to switch the language or theme at set times."));
+            if (S.ScheduleRules.Count == 0) list.Children.Add(Ui.Caption("No schedules yet. Add a rule to change the language, theme, density, accent colour, font size, motion or display name at set times."));
             foreach (var rule in S.ScheduleRules.ToList())
             {
                 var problem = ScheduleEvaluator.Validate(rule);
@@ -58,24 +81,92 @@ public sealed partial class SettingsPage
 
         string RuleName(ScheduleRule rule) => rule.Label.Length > 0 ? rule.Label : rule.Id;
 
+        /// <summary>The control that edits one scheduled value for the rule's setting. get and set read and write the rule's Value or OffValue.</summary>
+        FrameworkElement ValueEditor(ScheduleRule rule, Func<string> get, Action<string> set, string name)
+        {
+            switch (rule.Setting)
+            {
+                case ScheduleSettings.Accent:
+                    {
+                        var box = Ui.Input(get(), name, true); box.MinWidth = 120; box.MaxLength = 7;
+                        var swatch = new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(14), BorderThickness = new Thickness(1) };
+                        swatch.SetResourceReference(Border.BorderBrushProperty, "Outline");
+                        void Paint() { if (ScheduleEvaluator.TryNormalizeValue(ScheduleSettings.Accent, box.Text.Trim(), out var hex)) swatch.Background = new SolidColorBrush((Color)ColorConverter.ConvertFromString(hex)); else swatch.Background = Brushes.Transparent; }
+                        box.TextChanged += (_, _) => { set(box.Text.Trim()); Paint(); };
+                        Paint();
+                        return Ui.HStack(8, box, swatch, Ui.Caption("#RRGGBB"));
+                    }
+                case ScheduleSettings.FontSize:
+                    {
+                        var current = int.TryParse(get(), out var size) ? Math.Clamp(size, ScheduleEvaluator.MinFontSize, ScheduleEvaluator.MaxFontSize) : 16;
+                        set(current.ToString());
+                        var label = Ui.Text(current + " px", 13, null, "OnSurfaceVariant", false, false);
+                        var slider = SettingRows.Slider(ScheduleEvaluator.MinFontSize, ScheduleEvaluator.MaxFontSize, current, v => { set(((int)v).ToString()); label.Text = (int)v + " px"; }, 180);
+                        System.Windows.Automation.AutomationProperties.SetName(slider, Loc.T(name));
+                        return Ui.HStack(10, slider, label);
+                    }
+                case ScheduleSettings.DisplayName:
+                    {
+                        var box = Ui.Input(get(), name); box.MinWidth = 220; box.MaxLength = 80;
+                        box.TextChanged += (_, _) => set(box.Text);
+                        return box;
+                    }
+                default:
+                    {
+                        var items = rule.Setting switch { ScheduleSettings.Language => ScheduleEvaluator.Languages, ScheduleSettings.Theme => ScheduleEvaluator.Themes, ScheduleSettings.Density => ScheduleEvaluator.Densities, _ => ScheduleEvaluator.MotionLevels };
+                        var combo = Ui.Combo(items, get());
+                        System.Windows.Automation.AutomationProperties.SetName(combo, Loc.T(name));
+                        combo.SelectionChanged += (_, _) => { if (combo.SelectedItem is string v) set(v); };
+                        if (combo.SelectedItem is string chosen) set(chosen);
+                        return combo;
+                    }
+            }
+        }
+
         void OpenEditor(ScheduleRule? existing)
         {
             var rule = existing == null
-                ? new ScheduleRule { Id = "", Label = "", Setting = "Language", Value = "Cantonese", Start = "20:00", End = "07:00" }
-                : new ScheduleRule { Id = existing.Id, Label = existing.Label, Enabled = existing.Enabled, Setting = existing.Setting, Value = existing.Value, Source = existing.Source, EveryDay = existing.EveryDay, Days = existing.Days.ToList(), Start = existing.Start, End = existing.End, Priority = existing.Priority };
+                ? new ScheduleRule { Id = "", Label = "", Setting = ScheduleSettings.Language, Value = "Cantonese", Start = "20:00", End = "07:00" }
+                : new ScheduleRule { Id = existing.Id, Label = existing.Label, Enabled = existing.Enabled, Setting = existing.Setting, Value = existing.Value, OffValue = existing.OffValue, Source = existing.Source, EveryDay = existing.EveryDay, Days = existing.Days.ToList(), Start = existing.Start, End = existing.End, FromDate = existing.FromDate, ToDate = existing.ToDate, Priority = existing.Priority };
             editorHost.Children.Clear();
             var label = Ui.Input(rule.Label, "Rule label");
             label.MaxLength = 60; label.MinWidth = 220;
-            var value = Ui.Combo(ScheduleEvaluator.Languages, rule.Value);
+            var valueHost = new ContentControl();
+            var offHost = new ContentControl();
+            var valueRow = Ui.HStack(10, Ui.Caption("Value"), valueHost);
+            var offSwitchHost = new ContentControl();
+            var offRow = Ui.HStack(10, offSwitchHost, offHost);
             void RefreshValue()
             {
-                value.ItemsSource = rule.Setting == "Language" ? ScheduleEvaluator.Languages : ScheduleEvaluator.Themes;
-                value.SelectedItem = rule.Value;
+                var fromSource = rule.Source is ScheduleSources.File or ScheduleSources.Https;
+                valueRow.Visibility = fromSource ? Visibility.Collapsed : Visibility.Visible;
+                offRow.Visibility = rule.Source == ScheduleSources.HomeAssistant ? Visibility.Visible : Visibility.Collapsed;
+                if (!fromSource)
+                {
+                    if (!ScheduleEvaluator.ValueAllowed(rule.Setting, rule.Value)) rule.Value = DefaultValue(rule.Setting);
+                    valueHost.Content = ValueEditor(rule, () => rule.Value, v => rule.Value = v, "Scheduled value");
+                }
+                offSwitchHost.Content = Ui.Switch(Loc.T("Also apply a value while the entity is off"), rule.OffValue.Length > 0, on =>
+                {
+                    rule.OffValue = on ? DefaultValue(rule.Setting) : "";
+                    offHost.Content = on ? ValueEditor(rule, () => rule.OffValue, v => rule.OffValue = v, "Scheduled value while off") : null;
+                });
+                if (!ScheduleEvaluator.ValueAllowed(rule.Setting, rule.OffValue)) rule.OffValue = "";
+                offHost.Content = rule.OffValue.Length > 0 ? ValueEditor(rule, () => rule.OffValue, v => rule.OffValue = v, "Scheduled value while off") : null;
             }
-            var setting = Ui.Segmented(["Language", "Theme"], rule.Setting, v => { rule.Setting = v; rule.Value = v == "Language" ? "Cantonese" : "Light"; RefreshValue(); });
-            var source = Ui.Segmented([ScheduleSources.Local, ScheduleSources.File], rule.Source, v => { rule.Source = v; value.IsEnabled = v == ScheduleSources.Local; });
-            value.SelectionChanged += (_, _) => { if (value.SelectedItem is string v) rule.Value = v; };
-            RefreshValue(); value.IsEnabled = rule.Source == ScheduleSources.Local;
+            var settingCombo = Ui.Combo(ScheduleSettings.All.Select(x => Loc.T(SettingLabel(x))), Loc.T(SettingLabel(rule.Setting)));
+            System.Windows.Automation.AutomationProperties.SetName(settingCombo, Loc.T("Setting"));
+            settingCombo.SelectionChanged += (_, _) =>
+            {
+                if (settingCombo.SelectedIndex < 0 || settingCombo.SelectedIndex >= ScheduleSettings.All.Length) return;
+                var next = ScheduleSettings.All[settingCombo.SelectedIndex];
+                if (next == rule.Setting) return;
+                rule.Setting = next; rule.Value = DefaultValue(next); rule.OffValue = "";
+                RefreshValue();
+            };
+            var source = Ui.Segmented(SourceNames, SourceLabel(rule.Source), v => { rule.Source = SourceFromLabel(v); RefreshValue(); }, true);
+            var sourceHint = Ui.Caption("Local uses the value below. File and HTTPS read the setting from that source. Home Assistant applies the value while its entity is on.");
+            RefreshValue();
             var days = DayNames.Select((name, index) => Ui.Chip(name, rule.Days.Contains(index), on => { if (on) { if (!rule.Days.Contains(index)) rule.Days.Add(index); } else rule.Days.Remove(index); })).ToList();
             var dayRow = new WrapPanel();
             foreach (var chip in days) { chip.Margin = new Thickness(0, 0, 6, 6); chip.IsEnabled = !rule.EveryDay; dayRow.Children.Add(chip); }
@@ -88,7 +179,8 @@ public sealed partial class SettingsPage
             foreach (var c in new[] { startHour, startMinute, endHour, endMinute }) c.MinWidth = 72;
             System.Windows.Automation.AutomationProperties.SetName(startHour, Loc.T("Start hour")); System.Windows.Automation.AutomationProperties.SetName(startMinute, Loc.T("Start minute"));
             System.Windows.Automation.AutomationProperties.SetName(endHour, Loc.T("End hour")); System.Windows.Automation.AutomationProperties.SetName(endMinute, Loc.T("End minute"));
-            System.Windows.Automation.AutomationProperties.SetName(value, Loc.T("Scheduled value"));
+            var fromDate = Ui.Input(rule.FromDate, "First date", true); fromDate.MinWidth = 120; fromDate.MaxLength = 10;
+            var toDate = Ui.Input(rule.ToDate, "Last date", true); toDate.MinWidth = 120; toDate.MaxLength = 10;
             var priorityText = Ui.Text(rule.Priority.ToString("+0;-0;0"), 13, null, "OnSurfaceVariant", false, false);
             var priority = SettingRows.Slider(-5, 5, Math.Clamp(rule.Priority, -5, 5), v => { rule.Priority = (int)v; priorityText.Text = ((int)v).ToString("+0;-0;0"); }, 160);
             System.Windows.Automation.AutomationProperties.SetName(priority, Loc.T("Rule priority"));
@@ -99,6 +191,7 @@ public sealed partial class SettingsPage
                 rule.Label = label.Text.Trim();
                 rule.Start = startHour.SelectedItem + ":" + startMinute.SelectedItem;
                 rule.End = endHour.SelectedItem + ":" + endMinute.SelectedItem;
+                rule.FromDate = fromDate.Text.Trim(); rule.ToDate = toDate.Text.Trim();
                 var problem = ScheduleEvaluator.Validate(rule);
                 if (problem != null) { error.Text = Loc.T(problem); return; }
                 if (existing == null)
@@ -120,12 +213,15 @@ public sealed partial class SettingsPage
             var body = Ui.VStack(10,
                 Ui.Text(existing == null ? "New rule" : "Edit rule", 14, FontWeights.SemiBold),
                 Ui.HStack(10, Ui.Caption("Label"), label),
-                Ui.HStack(10, Ui.Caption("Setting"), setting),
+                Ui.HStack(10, Ui.Caption("Setting"), settingCombo),
                 Ui.HStack(10, Ui.Caption("Source"), source),
-                Ui.HStack(10, Ui.Caption("Value"), value),
+                sourceHint,
+                valueRow, offRow,
                 every, dayRow,
                 Ui.HStack(8, Ui.Caption("From"), startHour, Ui.Text(":", 14, null, "OnSurface", false, false), startMinute, Ui.Caption("until"), endHour, Ui.Text(":", 14, null, "OnSurface", false, false), endMinute),
                 Ui.Caption($"{Loc.T("Times use this computer's time zone")}: {zone.DisplayName}. {Loc.T("They follow daylight saving changes. The end time is not included. Equal times mean the whole day. A window that ends earlier than it starts continues past midnight and belongs to the day it starts.")}"),
+                Ui.HStack(10, Ui.Caption("First date (optional)"), fromDate, Ui.Caption("Last date (optional)"), toDate),
+                Ui.Caption("Dates look like 2026-12-24. Both days are included. Leave both empty for every date. A window that crosses midnight belongs to the date it starts."),
                 Ui.HStack(10, Ui.Caption("Priority"), priority, priorityText),
                 error,
                 Ui.HStack(8, save, cancel));
@@ -137,49 +233,17 @@ public sealed partial class SettingsPage
         var add = Ui.Button("Add rule", Icons.Add, ButtonKind.Tonal, () => OpenEditor(null));
         add.HorizontalAlignment = HorizontalAlignment.Left;
         if (schedulesListener != null) Host.Schedules.Evaluated -= schedulesListener;
-        schedulesListener = ShowActive;
+        schedulesListener = () => { ShowActive(); foreach (var refresh in sourceStates) refresh(); };
         Host.Schedules.Evaluated += schedulesListener;
         Render(); ShowActive();
         var control = Ui.VStack(10,
             Ui.Caption($"{Loc.T("Times use this computer's time zone")}: {TimeZoneInfo.Local.DisplayName}. {Loc.T("Rules follow daylight saving changes. A later rule wins over an earlier one unless an earlier rule has a higher priority.")}"),
             activeNow, list, editorHost, add);
-        rows.Add("schedules", "Scheduled language and theme", "Switch the language or the theme automatically for set times of day, every day or on chosen weekdays.",
+        rows.Add("schedules", "Scheduled settings", "Change the language, theme, density, accent colour, font size, motion or display name automatically for set times of day, on chosen weekdays and within an optional date range.",
             control, s => s.ScheduleRules.Count,
-            "A schedule only lends its value while its window is open. Your own saved language and theme are never overwritten, and they come back when the window ends. Every rule add, change and delete is recorded in local history.",
+            "A schedule only lends its value while its window is open. Your own saved settings are never overwritten, and they come back when the window ends. Each setting is decided on its own: the highest priority rule wins, and the later rule wins a tie. Every rule add, change and delete is recorded in local history.",
             true, v => v is int n ? $"{n} rule(s)" : "");
 
-        var file = Ui.Input(S.ScheduleSourceFile, "Schedule source file", true);
-        file.MinWidth = 260;
-        var fileState = Ui.Caption("");
-        void ShowFile()
-        {
-            fileState.SetResourceReference(TextBlock.ForegroundProperty, Host.Schedules.FileProblem.Length > 0 ? "Error" : "OnSurfaceVariant");
-            fileState.Text = S.ScheduleSourceFile.Length == 0 ? Loc.T("No file chosen. Rules whose source is File stay paused.")
-                : Host.Schedules.FileProblem.Length > 0 ? Loc.T("Not used: ") + Loc.T(Host.Schedules.FileProblem)
-                : Loc.T("In use. The file is watched, so edits apply within a moment.");
-        }
-        void SaveFile(string value)
-        {
-            value = value.Trim().Trim('"');
-            if (value == S.ScheduleSourceFile) return;
-            S.ScheduleSourceFile = value;
-            Commit(value.Length == 0 ? "Schedule source file cleared" : "Schedule source file set to " + Path.GetFileName(value));
-            Host.Schedules.ReloadFile();
-            ShowFile(); Render(); ShowActive();
-        }
-        file.LostFocus += (_, _) => SaveFile(file.Text);
-        file.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) SaveFile(file.Text); };
-        var browse = Ui.Button("Browse…", Icons.FolderOpen, ButtonKind.Text, () =>
-        {
-            var dialog = new OpenFileDialog { Filter = "JSON|*.json|All files|*.*", Title = Loc.T("Choose a schedule source file") };
-            if (dialog.ShowDialog() != true) return;
-            file.Text = dialog.FileName; SaveFile(dialog.FileName);
-        });
-        var clear = Ui.Button("Clear", Icons.Close, ButtonKind.Text, () => { file.Text = ""; SaveFile(""); });
-        ShowFile();
-        rows.Add("schedulesource", "Schedule source file", "A local JSON file that supplies the value for rules whose source is File.",
-            Ui.VStack(6, Ui.HStack(8, file, browse, clear), fileState), s => s.ScheduleSourceFile,
-            "Format: {\"version\": 1, \"language\": \"Cantonese\", \"theme\": \"Light\"}. Both fields are optional, no other fields are accepted, and the file must be under 4 KiB. A bad or missing file pauses the rules that use it and leaves your own settings in effect. Nothing is fetched from a network.", true,
-            v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "not set", "{\"version\": 1, \"language\": \"Cantonese\"}");
+        ScheduleSourceRows(sourceStates, Render, ShowActive);
     }
 }

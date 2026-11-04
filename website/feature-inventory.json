@@ -2579,14 +2579,14 @@
         "en": "Scheduled Settings",
         "zh": "排程設定"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Partly delivered: language and theme rules with every-day or selected-weekday windows, cross-midnight and whole-day semantics, deterministic priority, an optional watched local JSON source file and history records for every edit. Density, colours, fonts, motion, display name, the HTTPS API and Home Assistant sources are not implemented.",
-        "zh": "部分完成：語言同主題規則，支援每日或指定星期、跨午夜同全日時段、確定性優先次序、可選嘅受監察本機 JSON 來源檔案，每次編輯都記入歷史。密度、顏色、字型、動態、顯示名稱、HTTPS API 同 Home Assistant 來源尚未實作。"
+        "en": "Implemented, verification pending: seven schedulable settings (language, theme, density, accent colour, font size, motion, display name) with every-day or selected-weekday windows, cross-midnight and whole-day semantics, optional first and last dates, deterministic per-setting priority, lend-not-save semantics, and a local JSON file, an https address (GET only, 10 seconds, 64 KiB, schema validated, no secret in the address, checks no more than every 5 minutes, honest offline state that keeps the last good answer) or a Home Assistant entity (token encrypted with DPAPI for the current user, on and off mapped to chosen values) as value source, with history records and Cantonese strings. Rule checks pass; the editor and the network sources have not been driven in the built window or against real servers.",
+        "zh": "已實作，驗證待完成：七項可排程設定（語言、主題、密度、強調色、字體大小、動態、顯示名稱），支援每日或指定星期、跨午夜同全日時段、可選開始同結束日期、按設定獨立嘅確定性優先次序、暫借而不儲存，以及本機 JSON 檔案、https 位址（只用 GET、10 秒、64 KiB、結構驗證、位址唔含機密、最密每 5 分鐘檢查、離線時如實顯示並保留最後一次正常回應）或 Home Assistant 實體（令牌用 DPAPI 為目前使用者加密，on 同 off 對應所揀數值）作數值來源，並有歷史記錄同粵語字串。規則檢查已通過；編輯器同網絡來源尚未喺已建置視窗或真實伺服器操作過。"
       },
       "remaining": {
-        "en": "Add the remaining schedulable settings and the API and Home Assistant sources, then drive the editor in the built window.",
-        "zh": "加入其餘可排程設定同 API、Home Assistant 來源，然後喺已建置視窗操作編輯器。"
+        "en": "Drive the schedule editor, the three sources (with a real https endpoint and a real Home Assistant) and the lend and restore behaviour in the built window at every language, theme and scale; verify DPAPI token storage on a real profile; capture the real editor.",
+        "zh": "喺已建置視窗，按各語言、主題同縮放操作排程編輯器、三種來源（連接真實 https 端點同真實 Home Assistant）以及暫借同還原行為；喺真實設定檔驗證 DPAPI 令牌儲存；擷取真實編輯器畫面。"
       },
       "evidence": [
         {

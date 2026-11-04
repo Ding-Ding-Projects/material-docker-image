@@ -130,6 +130,39 @@ public sealed partial class SettingsPage
         rows.Add("sounds", "Action sounds", "Plays a short Windows system sound when a build or operation finishes, fails or removes something, when text is copied and when a file is dropped. See the table below.",
             SettingRows.Toggle(S.Sounds, v => { S.Sounds = v; Commit("Action sounds " + (v ? "on" : "off")); }), s => s.Sounds,
             "Low stimulation turns sounds off even when this is on. Sounds never block an action and are never the only sign of a result.");
+        var volumeText = Ui.Text(S.SoundVolume + "%", 13, null, "OnSurfaceVariant", false, false);
+        var volume = SettingRows.Slider(0, 100, S.SoundVolume, v => { S.SoundVolume = (int)v; volumeText.Text = (int)v + "%"; Commit("Action sound volume set to " + (int)v + "%", true); }, 200);
+        var testSound = Ui.Button("Play a test sound", Icons.RecordVoiceOver, ButtonKind.Text, () =>
+        {
+            if (SoundCueRules.MayPlay(S, Host.IsCapture)) ActionSounds.Play(SoundCue.Success);
+            else Host.Notify.Info("No sound will play right now: sounds are off, Low stimulation is on, the volume is 0 or it is inside the quiet hours.");
+        });
+        rows.Add("soundvolume", "Action sound volume", "How loud action sounds are, from 0 (silent) to 100 percent of the Windows sound's own level. It applies to the next sound at once.",
+            Ui.VStack(6, Ui.HStack(12, volume, volumeText), testSound), s => s.SoundVolume,
+            "Below 100 percent the sound's own WAV file is scaled in memory and played through the app; nothing is written to disk and the Windows volume is never changed. If the file cannot be read or is not plain PCM audio, the cue stays silent instead of playing at full volume. Sounds never block an action and are never the only sign of a result.",
+            false, v => v is int n ? n + "%" : "");
+        ScheduleEvaluator.TryParseTime(S.QuietHoursStart, out var quietFrom); ScheduleEvaluator.TryParseTime(S.QuietHoursEnd, out var quietTo);
+        var quietHours = Enumerable.Range(0, 24).Select(h => h.ToString("00")).ToList();
+        var quietMinutes = Enumerable.Range(0, 60).Select(m => m.ToString("00")).ToList();
+        var quietStartHour = Ui.Combo(quietHours, (quietFrom / 60).ToString("00")); var quietStartMinute = Ui.Combo(quietMinutes, (quietFrom % 60).ToString("00"));
+        var quietEndHour = Ui.Combo(quietHours, (quietTo / 60).ToString("00")); var quietEndMinute = Ui.Combo(quietMinutes, (quietTo % 60).ToString("00"));
+        foreach (var c in new[] { quietStartHour, quietStartMinute, quietEndHour, quietEndMinute }) c.MinWidth = 72;
+        System.Windows.Automation.AutomationProperties.SetName(quietStartHour, Loc.T("Quiet hours start hour")); System.Windows.Automation.AutomationProperties.SetName(quietStartMinute, Loc.T("Quiet hours start minute"));
+        System.Windows.Automation.AutomationProperties.SetName(quietEndHour, Loc.T("Quiet hours end hour")); System.Windows.Automation.AutomationProperties.SetName(quietEndMinute, Loc.T("Quiet hours end minute"));
+        var quietNote = Ui.Caption("");
+        void SaveQuiet()
+        {
+            S.QuietHoursStart = quietStartHour.SelectedItem + ":" + quietStartMinute.SelectedItem;
+            S.QuietHoursEnd = quietEndHour.SelectedItem + ":" + quietEndMinute.SelectedItem;
+            quietNote.Text = S.QuietHoursStart == S.QuietHoursEnd ? Loc.T("The start and end are the same, so there is no quiet window.") : QuietHours.IsQuiet(true, S.QuietHoursStart, S.QuietHoursEnd, DateTime.Now) && S.QuietHoursEnabled ? Loc.T("It is quiet hours right now, so no sound plays.") : "";
+            Commit("Sound quiet hours set to " + S.QuietHoursStart + " to " + S.QuietHoursEnd);
+        }
+        foreach (var c in new[] { quietStartHour, quietStartMinute, quietEndHour, quietEndMinute }) c.SelectionChanged += (_, _) => { if (c.IsDropDownOpen || c.IsKeyboardFocusWithin) SaveQuiet(); };
+        rows.Add("quiethours", "Quiet hours", "Silences every action sound between two times of day, even when sounds are on. The window may cross midnight, for example 22:00 to 07:00.",
+            Ui.VStack(8, Ui.Switch(Loc.T("Silence sounds during quiet hours"), S.QuietHoursEnabled, v => { S.QuietHoursEnabled = v; SaveQuiet(); }),
+                Ui.HStack(8, Ui.Caption("From"), quietStartHour, Ui.Text(":", 14, null, "OnSurface", false, false), quietStartMinute, Ui.Caption("until"), quietEndHour, Ui.Text(":", 14, null, "OnSurface", false, false), quietEndMinute), quietNote), s => s.QuietHoursEnabled,
+            "Times use this computer's clock and time zone and follow daylight saving changes. The end time is not included. A start later than the end crosses midnight; equal times mean no quiet window. Quiet hours only silence sounds: notifications, narration and visible results are unchanged.", true,
+            v => v is bool on ? (on ? $"{S.QuietHoursStart} to {S.QuietHoursEnd}" : "off") : "");
         var mapping = Ui.VStack(4, Ui.Text("What each sound means", 14, FontWeights.SemiBold));
         foreach (var m in SoundCueRules.Mapping) mapping.Children.Add(Ui.Columns(12, [-120, 1, -170], Ui.Mono(m.Cue.ToString(), 13), Ui.Text(m.Trigger, 13), Ui.Caption(m.System)).Margin(0, 2, 0, 2));
         Extra(Ui.Card(mapping, 14, "SurfaceContainer", 12).Margin(0, 12, 0, 0));

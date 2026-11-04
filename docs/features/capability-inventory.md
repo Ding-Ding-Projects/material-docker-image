@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 28. Planned: 0. Unverified: 95.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 29. Planned: 0. Unverified: 94.
 
 ### Interface and personalization
 
@@ -59,7 +59,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `rendered-provider-text` | Rendered Provider Text | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rendered-provider-text. |
 | `rich-controls` | Rich Controls | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for rich-controls. |
 | `sanitized-instruction-copy` | Sanitized Instruction Copy | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for sanitized-instruction-copy. |
-| `scheduled-settings` | Scheduled Settings | Unverified | Add the remaining schedulable settings and the API and Home Assistant sources, then drive the editor in the built window. |
+| `scheduled-settings` | Scheduled Settings | Implemented, verification pending | Drive the schedule editor, the three sources (with a real https endpoint and a real Home Assistant) and the lend and restore behaviour in the built window at every language, theme and scale; verify DPAPI token storage on a real profile; capture the real editor. |
 | `screen-recording` | Screen Recording | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for screen-recording. |
 | `settings-explanations` | Settings Explanations | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for settings-explanations. |
 | `shared-link-embed` | Shared Link Embed | Implemented, verification pending | Confirm how real platforms render a shared link to the deployed site (platform crawlers were not exercised) and refresh the preview image when the application is redesigned. |

@@ -6,12 +6,12 @@
     "workflows": 10,
     "milestones": 4,
     "counts": {
-      "unverified": 95,
+      "unverified": 94,
       "planned": 0,
-      "implemented": 28,
+      "implemented": 29,
       "verified": 0
     },
-    "sha256": "5f7be7257ff6e2836a009b2a4ce95bd1edc0e236c8c0d7535e661fe12e10575e"
+    "sha256": "d9e299fbd7e1b7b4768646a72c0d9845365b1ae09a95ea32aa02771946380486"
   },
   "sources": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "8f6fcfbb7243efe496bff241e1c77e63a41b02124e466081a7c3e6a98b4869d0"
+      "sha256": "fec6fbd50ddb72f56afa1607197d44d9fef86e460e9aa7348c4983f66bba1555"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/settings-safety.md",
-      "sha256": "d15c21209aef072cf6d3d8de0ffcb11290deca339b780e195040dec4a0cecf6c"
+      "sha256": "ed15b18fefd21f8cb5d330f27888565ccd133151dc4e8a8722bf8ca1b5fb7c53"
     },
     {
       "path": "docs/features/workspace.md",
@@ -116,11 +116,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "eabec556feb668f66b3e20576a37614b2a46fc247fce4b95b189afdaec93d1c1"
+      "sha256": "d68f5f4ee7b5691b6380219b4da77f7d19092f022b083631b799771c656120a7"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "e293d29ba505da695dd2db3ffc1ac7ec7c16b38235702e94ddc071c0671e631c"
+      "sha256": "364c2d4eb71d119f7f269082b17f6abb769a679a168e3ee608108e4dd2158602"
     },
     {
       "path": "wiki/Home.md",
