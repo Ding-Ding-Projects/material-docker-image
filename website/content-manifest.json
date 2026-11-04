@@ -11,7 +11,7 @@
       "implemented": 29,
       "verified": 0
     },
-    "sha256": "8ed30a701a0b17b35925c5b0c6f7cc98564e9ee197d293950b0886dc5603d03c"
+    "sha256": "9f46bac1ba62f0d91df269db7aa93fe177434b4396e9d947d8e1f68531910c05"
   },
   "sources": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "1ac663584a950ffce6c4ede68c4c3954975647071f6c8b67865b77efa9199440"
+      "sha256": "274d13a7ecc9ca25249402b2bf9bbe0f7fd598a7ca9bff8b26592976a1eaa310"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/settings-safety.md",
-      "sha256": "12e94213260977ae53307f8b812fd4e312c1fa2a83bf853eff18d1be975acf6b"
+      "sha256": "3d2cc9c5d493a7a2079f4f00a87d257201c1d8481fc5bc5de5f4b8585465840e"
     },
     {
       "path": "docs/features/workspace.md",
@@ -116,7 +116,7 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "916e227cad1df75a897c9b892c711f1f5c70b9ca51759308374203c849924ff2"
+      "sha256": "8c30df3560bd266c9daf016bd88fe82d9e5b8331f26c2fcd313a4d3faf683dde"
     },
     {
       "path": "HANDOFF.md",

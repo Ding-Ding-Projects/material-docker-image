@@ -86,7 +86,7 @@ public enum LadderStage { Confirm, Credential, Wait, Recovery }
 /// with a persisted exponential backoff, and can be cleared by one of the single-use recovery codes made at setup.
 /// A lock is still a speed bump for oneself, not security: anyone who can delete the data folder can remove it.
 /// </summary>
-public sealed class LockStore
+public sealed partial class LockStore
 {
     public const int MaxRecords = 200;
     private readonly string? path;

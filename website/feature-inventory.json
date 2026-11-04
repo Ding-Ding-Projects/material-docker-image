@@ -757,12 +757,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: the startup surprise draws once per launch at 10 percent and stays out of first-run setup, errors, updates, running operations, quiet hours and School mode. It shows the dish name in the active language mode with the public catalogue's picture when it can be fetched, as a non-blocking toast that dismisses itself, and it has no off switch. The rules are checked in code; the toast has not been driven in the built window.",
+        "zh": "部分完成：啟動驚喜每次啟動只抽一次，機會係百分之十，而且唔會喺初次設定、錯誤、更新、運作中、安靜時段同學校模式出現。佢以非阻擋、會自動消失嘅提示顯示點心名稱（跟隨語言模式），有得攞到公開目錄相片就一齊顯示，亦冇關閉開關。規則已用程式碼檢查；未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum.",
-        "zh": "確認「點心目錄」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Drive the toast in the built window (picture and offline name-only paths, three language modes, reduced motion, screen reader) and run the live catalogue fetch inside the app.",
+        "zh": "喺已建置視窗操作提示（有相片同離線淨係名稱兩種情況、三種語言模式、減少動畫、螢幕閱讀器），並喺程式內實際讀取公開目錄。"
       },
       "evidence": [
         {
@@ -813,12 +813,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: dish names and pictures come only from the public catalogue and its published release assets. No photo is stored in this project, a small cache records the source URL and revision, downloads must start with the PNG signature, and any failure shows the name only instead of a made-up picture. Address building and catalogue parsing are checked offline; the live fetch has not been run inside the app.",
+        "zh": "部分完成：點心名稱同相片只來自公開目錄同佢已發佈嘅發行檔案。呢個項目冇儲存任何相片；細小快取會記錄來源網址同版本，下載嘅檔案必須以 PNG 簽名開頭，失敗時只顯示名稱，絕不編造相片。網址組合同目錄解析已離線檢查；未曾喺程式內實際讀取。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-photo-source.",
-        "zh": "確認「點心相片來源」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Run the live catalogue and picture fetch inside the app, and record the revision it cached.",
+        "zh": "喺程式內實際讀取公開目錄同相片，並記錄快取嘅版本。"
       },
       "evidence": [
         {
@@ -2609,12 +2609,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Partly delivered: one shared, renamable School mode record in the shared application-data folder, a PIN or password stored as a salted hash that is asked for when turning the mode off, a persisted wait that lengthens on wrong answers, a running app that follows the record live, the chosen name used on this app's mode controls, and the ladder and surprise rules that stay out of it. Not delivered: a passkey choice, hiding every Cantonese, bilingual, funny-level, personal-vocabulary and dim sum control and reference everywhere, and a test between two real running apps. The rules are checked in code; nothing has been driven in the built window.",
+        "zh": "部分完成：喺共用應用程式資料夾有一份共用、可改名嘅學校模式記錄；PIN 或密碼以加鹽雜湊儲存，關閉模式時會詢問；答錯會有跨重新啟動保留、愈來愈長嘅等候；運行中嘅程式會即時跟隨記錄；本程式嘅模式控制項用你揀嘅名稱；解鎖階梯同點心驚喜亦會避開呢個模式。未完成：通行密鑰選項、喺所有地方隱藏廣東話、雙語、搞笑程度、個人詞彙同點心嘅控制項同提及，以及兩個真正運行中程式之間嘅測試。規則已用程式碼檢查；未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for school-mode.",
-        "zh": "確認「學校模式」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Finish hiding every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under the mode, add the passkey choice, and drive the mode between two running apps and in the built window.",
+        "zh": "完成喺模式下隱藏所有廣東話、雙語、搞笑程度、詞彙同點心嘅畫面，加入通行密鑰選項，並喺兩個運行中嘅程式同已建置視窗之間操作。"
       },
       "evidence": [
         {
@@ -2973,12 +2973,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Partly delivered: unlocking climbs confirm, then the PIN or authenticator code, then a persistent exponential wait (free tries, then 30 seconds doubling to one hour) with an honest live countdown, with a single-use recovery code reachable at any time and the data-folder recovery route shown beside the prompt. Waiting alone never unlocks anything, and winning back time with the dim sum, sums and whack-a-mole rungs, their budget and server-side grading are not implemented. Nothing has been driven in the built window.",
-        "zh": "部分完成：解鎖會由確認，到 PIN 碼或驗證碼，再到會跨重新啟動保留嘅遞增等候（免費嘗試後由 30 秒起倍增至一個鐘），附真實倒數；單次使用還原碼隨時可用，提示旁亦顯示清除資料夾嘅復原方法。單靠等候唔會解鎖任何嘢；點心、數學題同打地鼠階梯、佢哋嘅每小時上限同伺服器端評分尚未實作。未曾喺已建置視窗操作。"
+        "en": "Partly delivered: unlocking climbs confirm, then the PIN or authenticator code, then a persistent exponential wait with an honest live countdown and single-use recovery codes. While waiting, a person can now play a dish question (a picture from the public catalogue, or a name question when offline), ten sums and whack-a-mole to end the wait early. Questions are made and graded in framework-free code against single-use nonces, a rolling budget of three wins an hour caps it, an early or replayed answer is refused, and a win clears only the wait: it signs nobody in, refunds no attempt and does not slow the escalation. School mode starts at the sums. These rules are checked in code; nothing has been driven in the built window.",
+        "zh": "部分完成：解鎖會由確認，到 PIN 碼或驗證碼，再到會跨重新啟動保留嘅遞增等候，附真實倒數同單次使用還原碼。等候期間而家可以玩點心題（公開目錄嘅相片，離線就改問名稱）、十條數學題同打地鼠嚟提早結束等候。題目由唔依賴介面嘅程式碼出題同評分，用一次性憑證，每個鐘頭最多贏三次，太早或重播嘅答案會被拒絕，而且贏咗只係結束等候：唔會登入、唔會退返嘗試次數、亦唔會減慢遞增。學校模式由數學題開始。呢啲規則已用程式碼檢查；未曾喺已建置視窗操作。"
       },
       "remaining": {
-        "en": "Build the dim sum, ten sums and whack-a-mole rungs with their hourly budget and nonce grading, School mode starting at the sums, then drive the ladder in the built window.",
-        "zh": "加入點心、十條數學題同打地鼠階梯、佢哋嘅每小時上限同一次性評分、學校模式由數學題開始，然後喺已建置視窗操作。"
+        "en": "Drive the ladder in the built window (all three games, keyboard operation, narrow layouts, every language mode and display scale), then finish password and combined policies and unlock durations.",
+        "zh": "喺已建置視窗操作階梯（三個遊戲、鍵盤操作、窄版面、所有語言模式同顯示比例），然後完成密碼同組合鎖定方式同解鎖時限。"
       },
       "evidence": [
         {

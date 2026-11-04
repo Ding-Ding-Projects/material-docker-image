@@ -24,7 +24,10 @@
 - [ ] Add QR image, clipboard and camera registration, grouping and a super-confirmed secrets export to the authenticator
 - [x] Add a per-element appearance editor: pick any element, edit colours, corner radius, font size and weight, padding and visibility with live preview, stable element identity, persistence, reset per element and all, an overrides list and lock awareness (rule checks pass; not driven in the built window)
 - [ ] Bring per-element overrides into appearance presets, export and Undo, and cover the remaining property types (italic, underline, shadow, spacing, alignment)
-- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks, the dim sum, sums and whack-a-mole ladder rungs and the Support Tickets desk
+- [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)
+- [ ] Drive the three games, the School mode PIN and the surprise toast in the built window, and run the live catalogue fetch in the app
+- [ ] Add a passkey choice for School mode and hide every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under it
+- [ ] Add password and combined lock policies, unlock durations, tab, group and appearance locks and the Support Tickets desk
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts

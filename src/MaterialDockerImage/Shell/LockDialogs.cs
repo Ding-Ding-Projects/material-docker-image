@@ -290,7 +290,11 @@ public static class LockDialogs
                     rows.Children.Add(countdown);
                     rows.Children.Add(detail);
                     rows.Children.Add(Ui.Caption("Waiting does not unlock anything: when the time is up you still need your PIN or code. A recovery code works at any time."));
-                    rows.Children.Add(Ui.HStack(8, cancel, Ui.Button("Use a recovery code", Icons.ShieldLock, ButtonKind.Tonal, () => { recovery = true; message = null; Render(); })));
+                    var offer = LadderGameDialogs.Offer(id);
+                    rows.Children.Add(Ui.Caption(LadderGameDialogs.Describe(offer)));
+                    var play = Ui.AsyncButton("Play to shorten the wait", Icons.Extension, ButtonKind.Tonal, async () => { await LadderGameDialogs.PlayAsync(id); Render(); });
+                    play.IsEnabled = offer.Available;
+                    rows.Children.Add(Ui.HStack(8, cancel, play, Ui.Button("Use a recovery code", Icons.ShieldLock, ButtonKind.Tonal, () => { recovery = true; message = null; Render(); })));
                     if (until != null) timer.Start();
                     break;
                 }

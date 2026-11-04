@@ -71,9 +71,7 @@ public sealed partial class SettingsPage
         var updateNow = Ui.AsyncButton("Check now", Icons.Refresh, ButtonKind.Tonal, () => Host.Updates.CheckAsync(true));
         rows.Add("updatecheck", "Update status", "Checks the release feed once, even when background checks are off.", Ui.VStack(6, updateNow, updateStatus), null,
             "A check compares this build's version with the newest full package in the feed. If a newer one exists and this copy is installed, it is downloaded and staged; the running app is never restarted for you.", true);
-        rows.Add("school", "School mode", "Uses English only and hides Cantonese wording, funny lead-ins and the dim sum surprise.",
-            SettingRows.Toggle(S.SchoolMode, v => { S.SchoolMode = v; Commit("School mode " + (v ? "on" : "off")); }), s => s.SchoolMode,
-            "Your language and funny-level choices are kept and come back when School mode is turned off.");
+        SchoolRows();
         var buttons = new WrapPanel();
         buttons.Children.Add(Ui.Button("Export settings…", Icons.FileExport, ButtonKind.Tonal, ExportSettings).Margin(0, 0, 8, 8));
         buttons.Children.Add(Ui.AsyncButton("Import settings…", Icons.Upload, ButtonKind.Tonal, ImportSettingsAsync).Margin(0, 0, 8, 8));

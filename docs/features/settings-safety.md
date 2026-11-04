@@ -36,7 +36,54 @@ Unlocking climbs these rungs (`LockStore.Stage`, `LockStore.Attempt`, `LockStore
 
 Beside every prompt the dialog names the data folder and says that deleting `locks.json` (or the whole folder) clears every lock. That is the last resort when the PIN, the authenticator and every recovery code are gone.
 
-Not built: the dim sum, ten sums and whack-a-mole rungs that can shorten a wait, with their hourly budget and server-side style grading; School mode starting the ladder at the sums; password and combined policies; unlock durations; locks on tabs, groups and appearance values; locks on every rendered element; the Support Tickets recovery desk.
+### Games that shorten a wait
+
+While a wait is running, the Wait rung offers **Play to shorten the wait**. The games run in this order, and a win ends the wait early. (`UI/UnlockLadderGames.cs` makes and grades every question; `Shell/LadderGameDialogs.cs` only shows them and collects answers.)
+
+| Rung | What it asks | Clears the wait | Otherwise |
+| --- | --- | --- | --- |
+| Dish | One dim sum dish, four choices. With a picture from the public catalogue it asks which dish it is; with no picture (offline, or the picture could not be fetched) it shows the Cantonese name and asks for the English one. The picture alt text never names the dish. | The right choice | Up to five wrong choices, then the sums. Wrong choices are counted per lockout, so closing the dialog does not reset them |
+| Sums | Ten sums (a + b, a - b with a non-negative answer, a x b with single digits). Every one must be right | Ten right | One wrong, missing or wrong-kind answer drops to whack-a-mole |
+| Whack-a-mole | A 3 by 3 board, 14 moles one at a time for one second each, 20 second round. Click a mole or press keys 1 to 9. At least 8 hits | 8 or more counted hits | A lost round ends the ladder |
+| Clock | The plain wait | | The ladder is not offered again for that lockout |
+
+What keeps it from becoming a second, weaker password:
+
+- A win clears the wait only. It signs nobody in, mints no session and sets no cookie; the prompt returns to the credential rung and the PIN or code is still required. `LockStore.ClearWaitByLadder` changes nothing except the running wait.
+- It never refunds the attempt budget and never slows the escalation: the failure count is untouched, so the next wrong answer still earns the longer wait.
+- A rolling budget of **three wins per hour** (`LadderLedger`, kept in `ladder.json` beside `locks.json`) caps it. After that the Wait rung says the clock is the way through until an hour has passed. Deleting `ladder.json` only refills the budget; it does not touch any lock.
+- Every question carries a random single-use nonce that is taken out of the table before anything is graded, so a wrong answer cannot be retried against the same question, a right one cannot be replayed, an answer for another lock or of the wrong kind is refused, and challenges expire (5 minutes for a dish, 10 for sums, the round plus a minute for moles). The correct answers are not on the challenge objects the views receive. This app grades in the same process as the views, so this is separation of duties inside one program, not a security boundary, and the disclosure above still applies.
+- A mole round answered before its 20 seconds could have elapsed is refused. A hit counts only for a mole that was in that cell at that moment, inside the round, and each mole counts once.
+- Under School mode the ladder starts at the sums: the dish rung is absent, and no copy names it.
+
+The dialogs use the real keyboard path (number keys for choices and cells, Enter on the last sum), a numeric seconds-left readout beside the round (never colour-only), a live region for the score, no animation, and large cells.
+
+Not built: password and combined policies; unlock durations; locks on tabs, groups and appearance values; locks on every rendered element; the Support Tickets recovery desk. The three games have been checked as rules only; none has been driven in the built window.
+
+## School mode
+
+School mode keeps one shared record, `school-mode.json`, in `DingDingProjects\shared` under local application data, so every app on this computer shares it. It stores whether the mode is on, the name the user gave it and, optionally, a PIN (4 to 12 digits) or password (6 to 64 characters) as a salted PBKDF2-SHA256 hash. The secret is never stored or logged in plain text.
+
+- Turning it on needs nothing. Turning it off asks for the PIN or password when one is set; a wrong answer is counted, and from the third in a row it starts a persisted wait that doubles up to an hour (the same limiter as the lock ladder).
+- The mode can be renamed. This app then uses the chosen name on its mode controls, its settings row and its palette entry in place of the shipped one. Other copy that mentions the mode by name is rewritten to the chosen name when the mode has been renamed, in English only.
+- A running app checks the record every two seconds and switches live when another app changes it. An older build's per-app setting is adopted into the record the first time.
+- Deleting `school-mode.json` resets the mode, its name and its PIN. The settings row says so; the mode is a lock you set for yourself, not security.
+- The ladder starts at the sums and the dim sum surprise never appears while it is on. English is forced (`Loc.SchoolMode`).
+
+Not built: a passkey choice for turning the mode off; removing every Cantonese, bilingual, funny-level, personal-vocabulary and dim sum control and reference from every surface (the language and funny-level controls are still present and only disabled in effect); proving the live switch between two real running apps.
+
+## Dim sum surprise
+
+At startup there is a 10 percent chance, from one fresh random draw per launch, of a small toast with a dim sum dish: its name in the active language mode and, when it can be fetched, its picture. It cannot be switched off. It stays polite by staying out of the way: it never appears during first-run setup, with a dialog open, while an update is ready, while an operation runs, in quiet hours, under School mode or in a capture run, and never twice in a launch. It does not take focus, announces itself through a polite live region, fades in only when motion is on, and removes itself after nine seconds (longer while hovered or focused).
+
+Names and pictures come only from the public dim sum catalogue at `Ding-Ding-Projects/dim-sum-photos`:
+
+- The catalogue index is read from its raw URL and trimmed into a small cache (`dimsum\catalog-cache.json` in the data folder) that records the source URL and revision (ETag); it is refreshed after seven days with a conditional request.
+- A picture is downloaded once from the published `catalog-v1*` release assets (tried in order), must start with the PNG signature and be under 12 MB, and is kept in a cache of at most 24 pictures. No photo is stored in this project, and no photo is attached to its releases.
+- If the catalogue or picture cannot be had, the toast shows a dish name from a short built-in list of names with the line "No picture is available right now." and the dish rung asks a name question instead. Nothing is drawn or generated locally.
+- The only requests are two public reads of that catalogue. No personal data is sent and nothing is tracked.
+
+The rules, parsing and address building are checked in code (`DimSumRules`); the live fetch has not been run inside the app.
 
 Disclosure shown every time: a lock is a speed bump you set for yourself, not security. It does not protect anything from another person who has this computer. Anyone who can delete the data folder can remove every lock.
 

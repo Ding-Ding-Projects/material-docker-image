@@ -963,6 +963,7 @@ count += BuildCompanionChecks.Run();
 count += RecordsChecks.Run();
 count += LockChecks.Run();
 count += AppearanceAuthChecks.Run();
+count += LadderChecks.Run();
 count += SchedulesChecks.Run();
 count += RegexRemainingChecks.Run();
 
