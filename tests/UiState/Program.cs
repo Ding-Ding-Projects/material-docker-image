@@ -1177,4 +1177,13 @@ count += RegexRemainingChecks.Run();
     var mfBad = new MaterialDockerImage.UI.RegexSearchQuery("(", true, new MaterialDockerImage.UI.RegexBuilderFlags());
     Check(!mfBad.MatchesFields(mfRow) && new MaterialDockerImage.UI.RegexSearchQuery("", true, new MaterialDockerImage.UI.RegexBuilderFlags()).MatchesFields(mfRow), "an invalid pattern matches nothing and an empty one matches everything");
 }
+{
+    var swEqual = MaterialDockerImage.UI.SegmentWidths.Allocate(new double[] { 60, 80, 70 }, 300);
+    Check(swEqual.All(w => w == 100), "segments are equal when the widest fits every slot");
+    var swOwn = MaterialDockerImage.UI.SegmentWidths.Allocate(new double[] { 120, 70, 90, 95 }, 410);
+    Check(Math.Abs(swOwn.Sum() - 410) < 0.001 && swOwn[0] >= 120 && swOwn[1] >= 70 && swOwn[3] >= 95, "when only the total fits, no segment gets less than its own width");
+    var swShrink = MaterialDockerImage.UI.SegmentWidths.Allocate(new double[] { 200, 100 }, 150);
+    Check(Math.Abs(swShrink.Sum() - 150) < 0.001 && Math.Abs(swShrink[0] - 100) < 0.001, "when nothing fits, segments shrink in proportion and never exceed the space");
+    Check(MaterialDockerImage.UI.SegmentWidths.Allocate(new double[] { 50, 80 }, double.PositiveInfinity).All(w => w == 80), "with unlimited width every segment takes the widest width");
+}
 Console.WriteLine($"UI state checks: {count} passed.");
