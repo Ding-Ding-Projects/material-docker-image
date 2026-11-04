@@ -69,6 +69,16 @@
       "action": "Compose: Down without volumes",
       "observed": "No project, container or network left for mdi-receipt-compose",
       "result": "pass"
+    },
+    {
+      "action": "Containers › Files on capture-web",
+      "observed": "'15 changed paths compared with the image', matching the 15 lines of docker diff",
+      "result": "pass"
+    },
+    {
+      "action": "Registry › Sign in to a local test registry on 127.0.0.1 with a generated throwaway user",
+      "observed": "The application passed the password on standard input and reported docker's exact error (401 Unauthorized), 'Sign-in failed', a toast and a cleared password field. The test registry also refused the same credentials from the Docker CLI and from curl, so the positive path could not be shown with it.",
+      "result": "failure path pass; success path not shown (test registry rejected every client)"
     }
   ],
   "findings": [
@@ -77,8 +87,7 @@
     "Capture route artifact, not a product defect: window captures of a live window on the hidden desktop show a black band at the bottom while a dialog is open; the application's own render of the same dialog is complete."
   ],
   "notExercised": [
-    "registry sign-in (needs real credentials)",
-    "files tab",
+    "successful registry sign-in (needs a working registry account)",
     "interactive terminal window"
   ]
 }
