@@ -19,6 +19,7 @@ public sealed partial class SecurityPage : PageBase
     private readonly SecurityImagePanel panel;
     private readonly TextBlock subtitle;
     private readonly ContentControl banner = new();
+    private FrameworkElement? severityStrip;
     private readonly ImageStatTile criticalTile = new("Critical", Icons.GppBad, Tone.Error);
     private readonly ImageStatTile highTile = new("High", Icons.Warning, Tone.Warning);
     private readonly ImageStatTile mediumTile = new("Medium", Icons.Report, Tone.Tertiary);
@@ -67,7 +68,8 @@ public sealed partial class SecurityPage : PageBase
         // page so the list below always keeps its rows.
         var bannerScroll = new ScrollViewer { Content = banner, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
         SizeChanged += (_, _) => bannerScroll.MaxHeight = Math.Max(120, ActualHeight * 0.25);
-        var top = Ui.VStack(0, bannerScroll, ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile), progressCard);
+        severityStrip = ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile);
+        var top = Ui.VStack(0, bannerScroll, severityStrip, progressCard);
         var split = Ui.SplitInspector(table, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
         table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
         var body = new Grid();
@@ -120,6 +122,8 @@ public sealed partial class SecurityPage : PageBase
 
     private void ShowAvailability(ScoutAvailability availability)
     {
+        // Without Docker Scout no severity can ever be known, so the tiles step aside for the explanation and the list.
+        if (severityStrip != null) severityStrip.Visibility = availability.Available ? Visibility.Visible : Visibility.Collapsed;
         if (availability.Available) { banner.Content = null; return; }
         banner.Content = ScoutSeverityUi.StateCard(ScoutState.PluginMissing, availability.Output.Length > 0 ? availability.Output : $"(exit code {availability.ExitCode}, no output)", availability.Command,
             ScoutSeverityUi.InstallGuideButton(),
