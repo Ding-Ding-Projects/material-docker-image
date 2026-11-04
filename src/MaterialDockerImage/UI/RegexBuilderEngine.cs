@@ -387,6 +387,9 @@ public sealed class RegexFieldState
     public string TestCases { get; set; } = "";
     /// <summary>Plain-language building blocks typed in this field's builder. In memory only.</summary>
     public string Blocks { get; set; } = "";
+    /// <summary>Folder and file patterns of this field's folder search. In memory only.</summary>
+    public string GrepFolder { get; set; } = "";
+    public string GrepGlobs { get; set; } = "*";
     public RegexRecentPatterns Recent { get; } = new();
 }
 

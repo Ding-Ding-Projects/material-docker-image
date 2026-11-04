@@ -157,7 +157,18 @@ public static class RegexBuilderLibrary
 }
 
 /// <summary>A pattern the user explicitly saved with "Save to my patterns".</summary>
-public sealed record RegexSavedPattern(string Name, string Pattern, RegexBuilderFlags Flags, DateTimeOffset Saved);
+public sealed record RegexSavedPattern(string Name, string Pattern, RegexBuilderFlags Flags, DateTimeOffset Saved)
+{
+    public const int MaxDescriptionLength = 300;
+    public const int MaxReplacementLength = 1000;
+    public const int MaxTestCasesLength = 8000;
+    /// <summary>What the pattern is for. Optional.</summary>
+    public string Description { get; init; } = "";
+    /// <summary>Replacement text saved with the pattern. Optional.</summary>
+    public string Replacement { get; init; } = "";
+    /// <summary>Expected outcomes ("+ must match", "- must not match") saved with the pattern. Optional. The sample text is never saved.</summary>
+    public string TestCases { get; init; } = "";
+}
 
 /// <summary>
 /// The only persisted builder data: the user's saved patterns, stored as JSON in the app data folder, bounded to
@@ -202,7 +213,19 @@ public static partial class RegexPatternStore
                     foreach (var (flag, _, _) in RegexBuilderFlags.All)
                         if (fl.TryGetProperty(flag, out var b)) flags = flags.With(flag, b.GetBoolean());
                 var saved = e.TryGetProperty("saved", out var s) && s.TryGetDateTimeOffset(out var d) ? d : DateTimeOffset.MinValue;
-                list.Add(new(name, pattern, flags, saved));
+                string Optional(string property, int limit)
+                {
+                    if (!e.TryGetProperty(property, out var el) || el.ValueKind != JsonValueKind.String) return "";
+                    var value = el.GetString() ?? "";
+                    if (value.Length > limit) throw new InvalidDataException($"A saved pattern has a {property} longer than {limit} characters.");
+                    return value;
+                }
+                list.Add(new RegexSavedPattern(name, pattern, flags, saved)
+                {
+                    Description = Optional("description", RegexSavedPattern.MaxDescriptionLength),
+                    Replacement = Optional("replacement", RegexSavedPattern.MaxReplacementLength),
+                    TestCases = Optional("testCases", RegexSavedPattern.MaxTestCasesLength),
+                });
                 if (list.Count > MaxEntries) throw new InvalidDataException($"The saved patterns file has more than {MaxEntries} entries.");
             }
             return list;
@@ -245,6 +268,9 @@ public static partial class RegexPatternStore
                 foreach (var (flag, _, _) in RegexBuilderFlags.All) w.WriteBoolean(flag, p.Flags.Get(flag));
                 w.WriteEndObject();
                 w.WriteString("saved", p.Saved);
+                if (p.Description.Length > 0) w.WriteString("description", p.Description);
+                if (p.Replacement.Length > 0) w.WriteString("replacement", p.Replacement);
+                if (p.TestCases.Length > 0) w.WriteString("testCases", p.TestCases);
                 w.WriteEndObject();
             }
             w.WriteEndArray();
@@ -260,6 +286,8 @@ public static partial class RegexPatternStore
         if (name.Length is 0 or > MaxNameLength) throw new ArgumentException($"Give the pattern a name of 1 to {MaxNameLength} characters.");
         var check = RegexBuilderEngine.Validate(entry.Pattern, entry.Flags);
         if (!check.Valid) throw new ArgumentException(check.Error);
+        if (entry.Description.Length > RegexSavedPattern.MaxDescriptionLength || entry.Replacement.Length > RegexSavedPattern.MaxReplacementLength || entry.TestCases.Length > RegexSavedPattern.MaxTestCasesLength)
+            throw new ArgumentException($"The description, replacement or test cases are longer than the saved limits ({RegexSavedPattern.MaxDescriptionLength}, {RegexSavedPattern.MaxReplacementLength} and {RegexSavedPattern.MaxTestCasesLength} characters).");
         var list = existing.Where(p => !string.Equals(p.Name, name, StringComparison.OrdinalIgnoreCase)).ToList();
         if (list.Count >= MaxEntries) throw new InvalidOperationException($"My patterns already holds {MaxEntries} entries. Remove one first.");
         list.Insert(0, entry with { Name = name });

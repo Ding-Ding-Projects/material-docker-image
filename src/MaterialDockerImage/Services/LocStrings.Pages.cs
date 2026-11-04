@@ -13,6 +13,7 @@ public static partial class Loc
         foreach (var pair in PageCantoneseContainers()) yield return pair;
         foreach (var pair in SettingsSafetyCantonese()) yield return pair;
         foreach (var pair in PageCantoneseRegex()) yield return pair;
+        foreach (var pair in PageCantoneseRegexTools()) yield return pair;
         foreach (var pair in PageCantoneseRecords()) yield return pair;
     }
 }

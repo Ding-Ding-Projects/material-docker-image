@@ -113,6 +113,8 @@ public static class RegexDiagnostics
         var found = new List<RegexDiagnostic>();
         if (string.IsNullOrEmpty(pattern)) return found;
         Walk(RegexExplainer.Explain(pattern, flags), found);
+        foreach (var use in RegexFlavors.Detect(pattern, flags).Where(u => u.ConstructId == "posix-class"))
+            found.Add(new("posix-class", "[:name:] is a POSIX class in other engines, but .NET reads [[:alpha:]] as a set of ordinary characters followed by a stray bracket. Use Convert POSIX classes (More tab) to rewrite it.", use.Position, 2));
         return found;
     }
 

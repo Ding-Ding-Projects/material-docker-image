@@ -144,7 +144,7 @@ public static partial class Loc
         yield return new("Recursion and subroutine calls ((?R), (?1))", "遞迴同子程序呼叫 ((?R), (?1))");
         yield return new(".NET does not support them; balancing groups can match nested pairs.", ".NET 唔支援；平衡群組可以比對巢狀配對。");
         yield return new("POSIX classes ([[:alpha:]])", "POSIX 類別 ([[:alpha:]])");
-        yield return new(".NET has no POSIX classes; use \\p{L}, \\d or explicit ranges.", ".NET 冇 POSIX 類別；用 \\p{L}、\\d 或明確範圍。");
+        yield return new(".NET has no POSIX classes. Convert POSIX classes (More tab) rewrites them as \\p{L}, \\d or explicit ranges.", ".NET 冇 POSIX 類別。用「轉換 POSIX 類別」（更多分頁）可以改寫成 \\p{L}、\\d 或明確範圍。");
         yield return new("Branch reset groups ((?|...))", "分支重設群組 ((?|...))");
         yield return new(".NET does not support them.", ".NET 唔支援。");
         yield return new("\\K (keep out), \\R, \\X", "\\K（保留）、\\R、\\X");

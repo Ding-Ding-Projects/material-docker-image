@@ -70,7 +70,7 @@
   - [ ] Verify the hosted release carries `MaterialDockerImageDocs.zip` and that it opens from a file location.
 - [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
   - [ ] Portable documentation package.
-- [ ] Establish complete RegexBuddy functional parity and independent workflow evidence. Matrix in `docs/features/regex-parity.md`: 39 implemented, 14 partial, 30 unavailable or not built (debugger trace, GREP, flavor comparison, integration and others). Logic checks pass; interactive verification of the popover and HuiShots are pending.
+- [ ] Establish complete RegexBuddy functional parity and independent workflow evidence. Matrix in `docs/features/regex-parity.md`: 50 implemented, 18 partial, 15 unavailable (debugger trace, step counts, possessive, recursion and other engine-impossible topics, plus editable tree, line and page scopes, hex view and panel layout, which are not built). Folder search and replace with undo, match navigation, replacement analysis, tree export, parameters, flavor comparison, remembered experiments and more conversion targets are built and covered by logic checks; interactive verification of the popover and HuiShots are pending.
 - [ ] Complete localization, accessibility, appearance and onboarding acceptance across supported surfaces.
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.
 - [ ] Verify remote engines, alternative architectures and supported workflow combinations.

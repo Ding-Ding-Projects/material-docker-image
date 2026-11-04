@@ -17,7 +17,7 @@ namespace MaterialDockerImage.UI;
 /// mode and flags directly (two-way) and keeps sample and replacement text in the field's in-memory state.
 /// Pure logic lives in RegexBuilder*.cs; this class is only the view.
 /// </summary>
-internal sealed class SearchBuilderPopover
+internal sealed partial class SearchBuilderPopover
 {
     private readonly SearchFilter field;
     private readonly Popup popup;
@@ -113,13 +113,15 @@ internal sealed class SearchBuilderPopover
             PatternSection(),
             FlagsSection(),
             InsertSection(),
-            Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern.", explanation),
+            Section("Explanation", "Each token of the pattern in plain English. Select a row to highlight that token in the pattern, or move the caret in the pattern to select its row.", ExplanationControls(), explanation),
             TesterSection(),
             ReplaceSection(),
             SplitSection(),
             SuiteSection(),
             DiagnosticsSection(),
             ConvertSection(),
+            FlavorSection(),
+            FilesSection(),
             ActionsRow(),
             DialectNote());
         scroll = new ScrollViewer { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 4, 0) };
@@ -156,7 +158,12 @@ internal sealed class SearchBuilderPopover
         mineSearch.TextChanged += (_, _) => RenderMine();
         explanation.SelectedItemChanged += (_, e) =>
         {
-            if (e.NewValue is TreeViewItem { Tag: RegexExplainNode n } && n.Start + n.Length <= pattern.Text.Length) pattern.Select(n.Start, n.Length);
+            if (treeSyncing) return;
+            if (e.NewValue is TreeViewItem { Tag: RegexExplainNode n } && n.Start + n.Length <= pattern.Text.Length)
+            {
+                treeSyncing = true;
+                try { pattern.Select(n.Start, n.Length); } finally { treeSyncing = false; }
+            }
         };
         debounce.Tick += (_, _) => { debounce.Stop(); _ = EvaluateAsync(); };
         fieldTextChanged = (_, _) =>
@@ -171,6 +178,7 @@ internal sealed class SearchBuilderPopover
         };
         field.Box.TextChanged += fieldTextChanged;
         field.Changed += fieldChanged;
+        InitTools();
     }
 
     public void Open()
@@ -267,6 +275,8 @@ internal sealed class SearchBuilderPopover
         tabs.Items.Add(Tab("More", MoreTab()));
         tabs.Items.Add(Tab("Library", LibraryTab()));
         tabs.Items.Add(Tab("My patterns", MineTab()));
+        tabs.Items.Add(Tab("Parameters", ParametersTab()));
+        tabs.Items.Add(Tab("History", HistoryTab()));
         return Section("Insert", "Guided insertion at the caret. Group buttons wrap the selected part of the pattern. Inserting turns regular expression mode on.", tabs);
     }
 
@@ -490,16 +500,25 @@ internal sealed class SearchBuilderPopover
             Small("Insert options", null, () => Try(() => RegexBuilderConstructs.InlineOptions(on.Text.Trim(), off.Text.Trim(), scoped.Text.Length == 0 ? null : scoped.Text))),
             Ui.Field("Possessive stand-in", Ui.HStack(8, atom, quantifier), ".NET has no possessive quantifiers. (?>item+) behaves the same: once matched it never gives characters back.", "\\d  +"),
             Small("Insert atomic repeat", null, () => Try(() => RegexBuilderConstructs.Possessive(atom.Text, quantifier.Text))),
+            Small("Convert POSIX classes in the pattern", "Rewrites [[:alpha:]] and the other POSIX classes in the whole pattern as .NET sets. Letters, digits and case follow Unicode; punctuation, graph, print and control follow ASCII.", () =>
+            {
+                var t = RegexPosixTranslator.Translate(pattern.Text);
+                if (!t.Success) { moreError.Text = Loc.T(t.Error ?? "The pattern could not be converted."); return; }
+                if (t.Replaced == 0) { moreError.Text = Loc.T("The pattern has no POSIX classes."); return; }
+                Use(t.Pattern, null); moreError.Text = Loc.T("POSIX classes converted:") + " " + t.Replaced;
+            }),
             moreError,
             Ui.Overline("Not available in .NET"), missing);
     }
 
     private FrameworkElement MineTab()
     {
-        var save = Small("Save to my patterns", "Stores the pattern and flags in regex-patterns.json in the app data folder (at most 200).", SaveCurrent);
+        var save = Small("Save to my patterns", "Stores the pattern and flags in regex-patterns.json in the app data folder (at most 200). With the box below ticked it also stores the replacement and the test cases.", SaveCurrent);
+        includeExtras = Ui.Check("Also save the replacement and the test cases", true);
         AutomationProperties.SetName(mineSearch, Loc.T("Filter my patterns"));
         return Ui.VStack(8,
-            Ui.Field("Name", saveName, "Saving is the only way the builder stores anything. Sample and replacement text are never saved.", "Short image IDs"),
+            Ui.Field("Name", saveName, "Saving is the only way the builder stores anything here. The sample text is never saved with a pattern; the replacement and test cases are saved only when the box below is ticked.", "Short image IDs"),
+            includeExtras,
             Ui.Wrap(8, save,
                 Small("Import…", "Add patterns from a library file. Existing names are kept and invalid patterns are skipped.", ImportLibrary),
                 Small("Export…", "Save all of my patterns to a file you choose.", ExportLibrary)),
@@ -514,12 +533,12 @@ internal sealed class SearchBuilderPopover
         view.SetResourceReference(Border.BackgroundProperty, "SurfaceLowest");
         return Section("Test", $"Paste up to {RegexBuilderEngine.MaxSampleBytes / 1024} KiB of sample text. It stays in memory for this field only.",
             Ui.Field("Sample text", sample, "Matches are highlighted below. Zero-width matches (such as \\b) show as a thin marker.", "nginx:1.27 alpine:3.20"),
-            testStatus, view, groups);
+            testStatus, NavigationRow(), view, groups);
     }
 
     private FrameworkElement ReplaceSection() => Section("Replace preview", "Shows the sample after replacement. Nothing in the app is changed.",
-        Ui.Field("Replacement", replacement, "Use $1 or ${name} for a group, $0 or $& for the whole match and $$ for a dollar sign.", "${name}:latest"),
-        replaceStatus, replaceOutput);
+        Ui.Field("Replacement", replacement, "Use $1 or ${name} for a group, $0 or $& for the whole match, $` and $' for the text before and after, $+ for the last group, $_ for the whole text and $$ for a dollar sign.", "${name}:latest"),
+        ReplacementExtras(), replaceStatus, replaceOutput);
 
     private FrameworkElement SplitSection() => Section("Split preview", "Shows how the sample would be cut at each match. Nothing in the app is changed.", splitStatus, splitOutput);
 
@@ -542,8 +561,8 @@ internal sealed class SearchBuilderPopover
         kindCombo.SelectionChanged += (_, _) => RenderConversion();
         convertNotes.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
         convertNotes.SetValue(AutomationProperties.LiveSettingProperty, AutomationLiveSetting.Polite);
-        return Section("Convert and copy as", "The same pattern for C#, PowerShell, a JSON string or grep -E. Anything the target cannot express is reported, never guessed.",
-            Ui.Field("Convert to", targetCombo, "Quoting is exact for the target. grep -E is converted construct by construct.", "C# code"),
+        return Section("Convert and copy as", "The same pattern as C# or PowerShell code, a JSON string, a command line for grep, ripgrep or Select-String (using the folder and file patterns of Search in files), or code for JavaScript, Python, Java, Go or PHP. Anything the target cannot express is reported, never guessed.",
+            Ui.Field("Convert to", targetCombo, "Quoting is exact for the target. The command lines and the other languages are checked against the flavor table: unsupported constructs stop the conversion and different readings are listed.", "C# code"),
             Ui.Field("Code to generate", kindCombo, "Used by the C# code and PowerShell targets.", "Find all matches"),
             convertOutput, convertNotes,
             Small("Copy converted", null, () => { if (convertOutput.Text.Length > 0) Copy(convertOutput.Text, "Converted pattern copied."); else testStatus.Text = Loc.T("Nothing to copy: the pattern cannot be converted for this target."); }));
@@ -560,7 +579,7 @@ internal sealed class SearchBuilderPopover
         if (field.Query.Length == 0) { convertOutput.Text = ""; convertNotes.Text = Loc.T("Enter a pattern to convert."); return; }
         var (text, flags) = Effective();
         var kind = (kindCombo.SelectedItem as string) switch { "Test for a match" => RegexCodeKind.IsMatch, "Replace" => RegexCodeKind.Replace, "Split" => RegexCodeKind.Split, _ => RegexCodeKind.Matches };
-        var result = RegexConverter.Convert(target, text, flags, kind, field.State.Replacement);
+        var result = RegexConverter.Convert(target, text, flags, kind, field.State.Replacement, field.State.GrepFolder.Length > 0 ? field.State.GrepFolder : null, field.State.GrepFolder.Length > 0 ? field.State.GrepGlobs : null);
         convertOutput.Text = result.Text;
         convertNotes.Text = string.Join(" ", result.Notes.Select(Loc.T)) + (result.Converted && result.Lossy ? " " + Loc.T("The converted pattern is not identical in meaning.") : "");
     }
@@ -643,6 +662,16 @@ internal sealed class SearchBuilderPopover
         Refresh();
     }
 
+    /// <summary>Loads a saved pattern and, when it carries them, its replacement and test cases.</summary>
+    private void UseSaved(RegexSavedPattern entry)
+    {
+        if (entry.Replacement.Length > 0) replacement.Text = entry.Replacement;
+        if (entry.TestCases.Length > 0) suiteBox.Text = entry.TestCases;
+        Use(entry.Pattern, entry.Flags);
+        var count = RegexParameters.Find(entry.Pattern).Count;
+        if (count > 0) mineStatus.Text = $"{count} " + Loc.T("parameters to fill in the Parameters tab.");
+    }
+
     private void Use(string text, RegexBuilderFlags? flags)
     {
         pattern.Text = text;
@@ -690,6 +719,9 @@ internal sealed class SearchBuilderPopover
         RenderExplanation(text, flags);
         RenderDiagnostics(text, flags);
         RenderConversion();
+        RenderFlavors();
+        RenderReplacementExplain();
+        UpdateParameters();
         Schedule();
     }
 
@@ -705,13 +737,16 @@ internal sealed class SearchBuilderPopover
     private void RenderExplanation(string text, RegexBuilderFlags flags)
     {
         explanation.Items.Clear();
+        treeItems.Clear();
+        explainNodes = [];
         if (text.Length == 0) { explanation.Items.Add(new TreeViewItem { Header = Loc.T("Type or insert a pattern to see its explanation."), Focusable = false }); return; }
         var budget = 300;
-        foreach (var node in RegexExplainer.Explain(text, flags)) { if (budget <= 0) break; explanation.Items.Add(Item(node, ref budget)); }
+        explainNodes = RegexExplainer.Explain(text, flags);
+        foreach (var node in explainNodes) { if (budget <= 0) break; explanation.Items.Add(Item(node, ref budget, 1)); }
         if (budget <= 0) explanation.Items.Add(new TreeViewItem { Header = Loc.T("Explanation shortened after 300 tokens."), Focusable = false });
     }
 
-    private static TreeViewItem Item(RegexExplainNode node, ref int budget)
+    private TreeViewItem Item(RegexExplainNode node, ref int budget, int depth)
     {
         budget--;
         var header = new TextBlock { TextWrapping = TextWrapping.Wrap, MaxWidth = 480 };
@@ -727,8 +762,9 @@ internal sealed class SearchBuilderPopover
         description.SetResourceReference(TextElement.ForegroundProperty, node.Family == RegexTokenFamily.Error ? "Error" : "OnSurface");
         header.Inlines.Add(description);
         var item = new TreeViewItem { Header = header, Tag = node, IsExpanded = true };
+        treeItems[node] = item;
         AutomationProperties.SetName(item, node.Text + ": " + node.Description);
-        foreach (var child in node.Children) { if (budget <= 0) break; item.Items.Add(Item(child, ref budget)); }
+        if (depth < (int)explainPrecision) foreach (var child in node.Children) { if (budget <= 0) break; item.Items.Add(Item(child, ref budget, depth + 1)); }
         return item;
     }
 
@@ -748,6 +784,7 @@ internal sealed class SearchBuilderPopover
         if (field.Query.Length == 0 || sampleText.Length == 0)
         {
             highlighted.Inlines.Clear(); highlighted.Text = sampleText.Length == 0 ? "" : RegexBuilderEngine.BoundSample(sampleText, out _);
+            lastResult = null; currentMatch = -1; RenderNavigationStatus();
             testStatus.Text = field.Query.Length == 0 ? Loc.T("Enter a pattern to test.") : Loc.T("Paste sample text to test the pattern.");
             groups.ItemsSource = null; groups.Visibility = Visibility.Collapsed;
             replaceOutput.Text = ""; replaceStatus.Text = "";
@@ -780,11 +817,14 @@ internal sealed class SearchBuilderPopover
     {
         testStatus.Text = result.Summary() + (result.Valid && !result.Cancelled ? $" {result.ElapsedMilliseconds:0} ms." : "");
         highlighted.Inlines.Clear();
-        if (!result.Valid) { highlighted.Text = result.Sample; groups.Visibility = Visibility.Collapsed; return; }
+        if (!result.Valid) { highlighted.Text = result.Sample; groups.Visibility = Visibility.Collapsed; lastResult = null; currentMatch = -1; RenderNavigationStatus(); return; }
         var text = result.Sample;
         var at = 0;
-        foreach (var m in result.Matches)
+        lastResult = result;
+        if (currentMatch >= result.Matches.Count) currentMatch = -1;
+        for (var matchNumber = 0; matchNumber < result.Matches.Count; matchNumber++)
         {
+            var m = result.Matches[matchNumber];
             if (m.Index < at) continue;
             if (m.Index > at) highlighted.Inlines.Add(new Run(text[at..m.Index]));
             if (m.ZeroWidth)
@@ -797,8 +837,10 @@ internal sealed class SearchBuilderPopover
             {
                 var end = Math.Min(text.Length, m.Index + m.Length);
                 var run = new Run(text[m.Index..end]);
-                run.SetResourceReference(TextElement.BackgroundProperty, "PrimaryContainer");
-                run.SetResourceReference(TextElement.ForegroundProperty, "OnPrimaryContainer");
+                var current = matchNumber == currentMatch;
+                run.SetResourceReference(TextElement.BackgroundProperty, current ? "TertiaryContainer" : "PrimaryContainer");
+                run.SetResourceReference(TextElement.ForegroundProperty, current ? "OnTertiaryContainer" : "OnPrimaryContainer");
+                if (current) run.TextDecorations = TextDecorations.Underline;
                 highlighted.Inlines.Add(run);
                 at = end;
             }
@@ -813,6 +855,7 @@ internal sealed class SearchBuilderPopover
         }
         groups.ItemsSource = rows;
         groups.Visibility = rows.Count > 0 && result.Matches.Any(m => m.Groups.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+        RenderNavigationStatus();
     }
 
     private void RenderSplit(RegexSplitPreview? split)
@@ -862,7 +905,7 @@ internal sealed class SearchBuilderPopover
         foreach (var s in shown)
         {
             var entry = s;
-            savedList.Children.Add(Row(entry.Pattern, entry.Name, () => Use(entry.Pattern, entry.Flags), () => Persist(RegexPatternStore.Remove(saved, entry.Name), "Removed " + entry.Name + ".")));
+            savedList.Children.Add(Row(entry.Pattern, entry.Name, () => UseSaved(entry), () => Persist(RegexPatternStore.Remove(saved, entry.Name), "Removed " + entry.Name + ".")));
         }
     }
 
@@ -880,7 +923,12 @@ internal sealed class SearchBuilderPopover
         var nameBox = saveName;
         try
         {
-            var entry = new RegexSavedPattern(nameBox.Text, field.Query, field.Flags, DateTimeOffset.Now);
+            var extras = includeExtras?.IsChecked == true;
+            var entry = new RegexSavedPattern(nameBox.Text, field.Query, field.Flags, DateTimeOffset.Now)
+            {
+                Replacement = extras ? field.State.Replacement : "",
+                TestCases = extras ? field.State.TestCases : "",
+            };
             Persist(RegexPatternStore.Add(saved ?? new(), entry), "Saved " + nameBox.Text.Trim() + " to my patterns.");
             nameBox.Clear();
         }

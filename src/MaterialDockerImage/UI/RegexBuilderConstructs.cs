@@ -47,7 +47,7 @@ public static class RegexBuilderConstructs
     [
         ("Possessive quantifiers (a*+)", ".NET has none; use an atomic group (?>a*) which behaves the same."),
         ("Recursion and subroutine calls ((?R), (?1))", ".NET does not support them; balancing groups can match nested pairs."),
-        ("POSIX classes ([[:alpha:]])", ".NET has no POSIX classes; use \\p{L}, \\d or explicit ranges."),
+        ("POSIX classes ([[:alpha:]])", ".NET has no POSIX classes. Convert POSIX classes (More tab) rewrites them as \\p{L}, \\d or explicit ranges."),
         ("Branch reset groups ((?|...))", ".NET does not support them."),
         ("\\K (keep out), \\R, \\X", ".NET does not support them."),
         ("Character class intersection", ".NET only offers subtraction, [a-z-[aeiou]]."),

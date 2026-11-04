@@ -2237,12 +2237,12 @@
       },
       "status": "unverified",
       "summary": {
-        "en": "Every search field has a builder with blocks, rare .NET constructs, split preview, test cases, diagnostics, conversions and library import/export. Logic checks pass; RegexBuddy parity is incomplete (see the parity matrix) and the interface has not been exercised in a running window.",
-        "zh": "每個搜尋欄位都有建構器，包括積木、少見嘅 .NET 語法、分割預覽、測試個案、診斷、轉換同樣式庫匯入匯出。邏輯檢查通過；RegexBuddy 對等仲未完成（見對等矩陣），而介面未喺實際視窗操作過。"
+        "en": "Every search field has a builder with blocks, rare .NET constructs, split preview, test cases, diagnostics, conversions and library import/export, plus folder search with a dry-run replacement and undo snapshots, match navigation, replacement analysis, tree export, parameters, a flavor comparison and remembered experiments. Logic checks pass (50 of 83 parity topics implemented, 18 partial, 15 unavailable); RegexBuddy parity is incomplete (see the parity matrix) and the interface has not been exercised in a running window.",
+        "zh": "每個搜尋欄位都有建構器，包括積木、少見嘅 .NET 語法、分割預覽、測試個案、診斷、轉換同樣式庫匯入匯出，另外有資料夾搜尋（先試行取代、可復原快照）、比對導覽、取代文字說明、樹狀匯出、參數、引擎比較同記住實驗。邏輯檢查通過（83 個對等項目入面 50 個已實作、18 個部分、15 個未提供）；RegexBuddy 對等仲未完成（見對等矩陣），而介面未喺實際視窗操作過。"
       },
       "remaining": {
-        "en": "Close the partial and unavailable rows of the RegexBuddy parity matrix that .NET allows (replacement analysis, match navigation, tree export, more conversion targets, parameters), keep the engine-impossible rows documented, verify the popover and its dialogs interactively, localize engine messages, and capture source-bound HuiShots.",
-        "zh": "完成 RegexBuddy 對等矩陣入面 .NET 容許嘅部分及未提供項目（取代分析、比對導覽、樹狀匯出、更多轉換目標、參數），保留引擎做唔到嘅項目說明，喺實際視窗驗證彈出建構器同對話方塊，翻譯引擎訊息，並擷取對應來源嘅畫面。"
+        "en": "Close the partial rows of the RegexBuddy parity matrix that .NET allows (saving search results, a description field for saved patterns, line and page scopes, a hex view, an editable tree, more target languages), keep the engine-impossible rows documented, verify the popover, the folder search and its dialogs interactively, localize engine messages and the numeric status lines, and capture source-bound HuiShots.",
+        "zh": "完成 RegexBuddy 對等矩陣入面 .NET 容許嘅部分項目（儲存搜尋結果、已儲存樣式嘅說明欄、行同頁範圍、十六進位檢視、可編輯樹狀、更多目標語言），保留引擎做唔到嘅項目說明，喺實際視窗驗證彈出建構器、資料夾搜尋同對話方塊，翻譯引擎訊息同帶數字嘅狀態行，並擷取對應來源嘅畫面。"
       },
       "evidence": [
         {

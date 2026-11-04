@@ -6,7 +6,7 @@ Continue the Material Docker Image project (Ding-Ding-Projects/material-docker-i
 State on main (4 November 2026, after the polish and feature pass):
 - Small-window layouts, Cantonese and bilingual copy on every page, window-wide personal wording drop, capture options for language and display scale (capture never writes settings).
 - Build companion (single-file exe, published with releases), container health-check, device and GPU controls, application icon, logo choice and display-name rules.
-- Regular expression builder parity work (docs/features/regex-parity.md: 39 implemented, 14 partial, 30 unavailable).
+- Regular expression builder parity work (docs/features/regex-parity.md: 50 implemented, 18 partial, 15 unavailable; folder search with undo, navigation, replacement analysis, tree export, parameters, flavor comparison and experiments added, popover not yet exercised in a window).
 - Setting locks, language and theme schedules, Focus, Low stimulation and Momentum modes, one action-sound path, collapsible filters.
 - In-app changelog, five export formats, command-derived menu shortcuts, info icons, background update check.
 - Documentation site: live download panel, link previews, provenance, site search with a bounded regex builder, offline documentation zip.
