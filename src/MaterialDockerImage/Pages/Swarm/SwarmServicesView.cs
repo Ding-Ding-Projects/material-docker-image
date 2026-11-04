@@ -44,7 +44,9 @@ public sealed class SwarmServicesView : SwarmTabView
         table.Activated += s => _ = Guard(() => InspectAsync("service", s.Id, "Service " + s.Name));
         table.FocusedChanged += s => _ = Guard(() => inspector.ShowAsync(s));
         var create = Ui.Button("Create service", Icons.Add, ButtonKind.Filled, () => SwarmServiceForm.Show(Context, IsCurrent, AfterChange));
-        LayoutWith(Ui.Wrap(8, create), Ui.SplitInspector(table, inspector, 1150, 420));
+        var split = Ui.SplitInspector(table, inspector, 1150, 420, summary: () => table.Focused is { } f ? $"{f.Name} · {f.Replicas} · {f.Image}" : null);
+        table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
+        LayoutWith(Ui.Wrap(8, create), split);
     }
 
     public override async Task LoadAsync()

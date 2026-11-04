@@ -67,23 +67,23 @@ public sealed partial class ImagesPage : PageBase
         table.FocusedChanged += i => { if (!reloading) inspector.Show(i); };
         table.Activated += OpenRun;
 
-        var prune = Ui.AsyncButton("Prune dangling", Icons.CleaningServices, ButtonKind.Text, PruneAsync);
-        prune.HorizontalAlignment = HorizontalAlignment.Right;
+        // Prune sits in the filter row so it never costs the list a row of its own.
+        table.ToolbarAction(Ui.AsyncButton("Prune dangling", Icons.CleaningServices, ButtonKind.Text, PruneAsync));
         var left = new Grid();
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-        left.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         left.Children.Add(errorHost);
         var strip = ImageStatTile.Strip(totalTile, sizeTile, danglingTile, unusedTile);
         left.Children.Add(strip.At(1));
-        // On short windows the tiles would leave the list no rows; the subtitle already carries the same counts.
-        left.SizeChanged += (_, _) => strip.Visibility = left.ActualHeight > 0 && left.ActualHeight < 460 ? Visibility.Collapsed : Visibility.Visible;
+        // On short windows the tiles take one line each so the list keeps its rows.
+        ImageStatTile.CompactBelow(left, 460, totalTile, sizeTile, danglingTile, unusedTile);
         left.Children.Add(table.At(2));
-        left.Children.Add(prune.At(3));
 
         // The detail needs room for its tabs: beside the list from 1300 px, otherwise stacked below it.
-        var body = Ui.SplitInspector(left, inspector, 1300, 520);
+        // On short windows it folds into a one-line summary with Show details (design/polish-2026-11/ImagesCompact.dc.html).
+        var body = Ui.SplitInspector(left, inspector, 1300, 520, summary: () => table.Focused is { } f ? $"{f.Name} · {f.ShortId} · {f.Size}" : null);
+        table.FocusedChanged += _ => (body.Tag as Action)?.Invoke();
         Layout(header, body);
     }
 

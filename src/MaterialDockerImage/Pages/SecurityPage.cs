@@ -64,8 +64,10 @@ public sealed partial class SecurityPage : PageBase
         table.Activated += r => _ = Guarded(() => ScanAsync([r]));
 
         var top = Ui.VStack(0, banner, ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile), progressCard);
-        var split = Ui.SplitInspector(table, panel, 1250, 480);
+        var split = Ui.SplitInspector(table, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
+        table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
         var body = new Grid();
+        ImageStatTile.CompactBelow(body, 600, criticalTile, highTile, mediumTile, lowTile);
         body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         body.Children.Add(top);

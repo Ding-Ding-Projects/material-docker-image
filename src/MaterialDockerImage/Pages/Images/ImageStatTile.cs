@@ -11,6 +11,8 @@ internal sealed class ImageStatTile : Border
     private readonly TextBlock value;
     private readonly TextBlock caption;
     private readonly string label;
+    private readonly FrameworkElement head;
+    private bool compact;
 
     public ImageStatTile(string label, string icon, Tone tone = Tone.Neutral)
     {
@@ -19,13 +21,33 @@ internal sealed class ImageStatTile : Border
         CornerRadius = new CornerRadius(16);
         Padding = new Thickness(14, 10, 14, 12);
         SetResourceReference(BackgroundProperty, bg);
-        var head = Ui.HStack(6, Ui.Icon(icon, 18, true, tone == Tone.Neutral ? "Primary" : fg), Ui.Text(label, 12.5, FontWeights.SemiBold, fg, false));
+        head = Ui.HStack(6, Ui.Icon(icon, 18, true, tone == Tone.Neutral ? "Primary" : fg), Ui.Text(label, 12.5, FontWeights.SemiBold, fg, false));
         value = Ui.Text("—", 28, FontWeights.SemiBold, fg, false, false);
         caption = Ui.Text("", 12, null, tone == Tone.Neutral ? "OnSurfaceVariant" : fg, false, false);
         caption.TextTrimming = TextTrimming.CharacterEllipsis;
         Child = Ui.VStack(2, head, value, caption);
         System.Windows.Automation.AutomationProperties.SetName(this, Services.Loc.T(label));
     }
+
+    /// <summary>One line (label and number, detail in the tooltip) so short windows keep list rows.</summary>
+    public bool Compact
+    {
+        get => compact;
+        set
+        {
+            if (compact == value) return;
+            compact = value;
+            if (this.value.Parent is Panel old) old.Children.Clear();
+            this.value.FontSize = compact ? 18 : 28;
+            Padding = compact ? new Thickness(12, 6, 12, 6) : new Thickness(14, 10, 14, 12);
+            Child = compact ? Ui.Columns(8, [1, 0], head, this.value) : Ui.VStack(2, head, this.value, caption);
+            ToolTip = compact && caption.Text.Length > 0 ? caption.Text : null;
+        }
+    }
+
+    /// <summary>Switches the tiles to their one-line form while the host is shorter than the threshold.</summary>
+    public static void CompactBelow(FrameworkElement host, double height, params ImageStatTile[] tiles) =>
+        host.SizeChanged += (_, _) => { var on = host.ActualHeight > 0 && host.ActualHeight < height; foreach (var t in tiles) t.Compact = on; };
 
     public void Set(string number, string detail = "")
     {

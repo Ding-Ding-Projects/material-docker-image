@@ -311,34 +311,61 @@ public static class Ui
     /// A list beside an inspector on wide layouts; below the breakpoint the inspector moves under the list so
     /// neither is squeezed.
     /// </summary>
-    public static Grid SplitInspector(FrameworkElement list, FrameworkElement inspector, double breakpoint = 1100, double wideInspectorWidth = 400, double gap = 12)
+    /// <summary>
+    /// List beside its inspector from the breakpoint, otherwise stacked. When stacked on a short window and a summary is
+    /// supplied, the inspector folds into a one-line strip with Show details, so the list keeps its rows.
+    /// </summary>
+    public static Grid SplitInspector(FrameworkElement list, FrameworkElement inspector, double breakpoint = 1100, double wideInspectorWidth = 400, double gap = 12, Func<string?>? summary = null, double compactBelowHeight = 560)
     {
         var grid = new Grid();
         grid.Children.Add(list); grid.Children.Add(inspector);
-        bool? wide = null;
+        var summaryText = Text("", 14, FontWeights.SemiBold, "OnSurface", false, false);
+        var expanded = false;
+        string? mode = null;
+        var strip = new Border { CornerRadius = new CornerRadius(16), Padding = new Thickness(16, 6, 8, 6), Visibility = Visibility.Collapsed };
+        Button toggle = null!;
+        toggle = Button("Show details", Icons.ExpandLess, ButtonKind.Text, () => { expanded = !expanded; mode = null; Arrange(); });
+        strip.Child = Columns(12, [1, 0], summaryText, toggle);
+        strip.SetResourceReference(Border.BackgroundProperty, "SurfaceHigh");
+        AutomationProperties.SetName(strip, Loc.T("Selected item summary"));
+        grid.Children.Add(strip);
         void Arrange()
         {
-            var now = grid.ActualWidth <= 0 || grid.ActualWidth >= breakpoint;
-            if (wide == now) return;
-            wide = now;
+            var wide = grid.ActualWidth <= 0 || grid.ActualWidth >= breakpoint;
+            var compact = !wide && summary != null && grid.ActualHeight > 0 && grid.ActualHeight < compactBelowHeight;
+            var now = wide ? "wide" : compact && !expanded ? "compact" : "stacked";
+            if (compact) summaryText.Text = summary!() ?? Loc.T("Nothing selected");
+            if (mode == now) return;
+            mode = now;
             grid.ColumnDefinitions.Clear(); grid.RowDefinitions.Clear();
-            if (now)
+            strip.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+            inspector.Visibility = now == "compact" ? Visibility.Collapsed : Visibility.Visible;
+            toggle.Content = Loc.T(expanded ? "Hide details" : "Show details"); AutomationProperties.SetName(toggle, Loc.T(expanded ? "Hide details" : "Show details"));
+            if (now == "wide")
             {
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(wideInspectorWidth + gap) });
                 list.At(0, 0); inspector.At(0, 1);
                 inspector.Width = wideInspectorWidth; inspector.Margin = new Thickness(gap, 0, 0, 0);
             }
+            else if (now == "compact")
+            {
+                grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                list.At(0, 0); strip.At(1, 0); strip.Margin = new Thickness(0, gap, 0, 0);
+            }
             else
             {
                 // Stacked: the list keeps enough height for its header, filters and several full rows above any scroll bar.
                 grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star), MinHeight = 240 });
                 grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 150 });
-                list.At(0, 0); inspector.At(1, 0);
-                inspector.Width = double.NaN; inspector.Margin = new Thickness(0, gap, 0, 0);
+                grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                list.At(0, 0); inspector.At(1, 0); strip.At(2, 0);
+                inspector.Width = double.NaN; inspector.Margin = new Thickness(0, gap, 0, 0); strip.Margin = new Thickness(0, gap, 0, 0);
             }
         }
         grid.SizeChanged += (_, _) => Arrange();
+        grid.Tag = (Action)(() => { if (mode == "compact" || expanded) summaryText.Text = summary?.Invoke() ?? Loc.T("Nothing selected"); });
         Arrange();
         return grid;
     }

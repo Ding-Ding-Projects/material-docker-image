@@ -82,7 +82,8 @@ public sealed partial class ContainersPage : PageBase
         left.Children.Add(errorHost);
         left.Children.Add(table.At(1));
 
-        var body = Ui.SplitInspector(left, inspector, 1100, 420);
+        var body = Ui.SplitInspector(left, inspector, 1100, 420, summary: () => table.Focused is { } f ? $"{f.Name} · {f.Image} · {f.Status}" : null);
+        table.FocusedChanged += _ => (body.Tag as Action)?.Invoke();
         Layout(header, body);
     }
 

@@ -72,6 +72,17 @@ public sealed class DataTable<T> : Grid
     public IReadOnlyList<T> Selected => List.SelectedItems.Cast<TableRow<T>>().Select(r => r.Item).ToList();
     public T? Focused => List.SelectedItem is TableRow<T> r ? r.Item : default;
     public Func<T, string>? Key { get; set; }
+    private readonly DockPanel toolbar;
+
+    /// <summary>Places a page-level action at the right of the search and filter row, beside Export.</summary>
+    public DataTable<T> ToolbarAction(FrameworkElement action)
+    {
+        action.VerticalAlignment = VerticalAlignment.Center;
+        action.Margin = new Thickness(8, 0, 4, 0);
+        DockPanel.SetDock(action, System.Windows.Controls.Dock.Right);
+        toolbar.Children.Insert(1, action);
+        return this;
+    }
 
     public DataTable(string name, string searchPlaceholder = "Search")
     {
@@ -81,7 +92,7 @@ public sealed class DataTable<T> : Grid
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        var toolbar = new DockPanel { Margin = new Thickness(0, 0, 0, 8), LastChildFill = true };
+        toolbar = new DockPanel { Margin = new Thickness(0, 0, 0, 8), LastChildFill = true };
         var export = Ui.IconButton(Icons.FileExport, "Export visible rows", () => ExportMenu());
         toolbar.Children.Add(export.Dock(System.Windows.Controls.Dock.Right));
         var searchAndFilters = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
