@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import os from 'node:os';
+import crypto from 'node:crypto';
 import {fileURLToPath} from 'node:url';
 import {execFileSync} from 'node:child_process';
 import {loadInventory, validateInventory, renderChecklist, renderInventoryMarkdown, inventorySummary} from '../website/checklist.mjs';
@@ -123,4 +124,146 @@ test('Actual renderer rejects stale HTML, summaries, manifests and evidence byte
     fs.rmSync(fixture,{recursive:true});
   }
 });
+// ---- Site delivery: download panel, link previews, provenance, site-wide search, offline package ----
+const pageHtml=fs.readFileSync(path.join(site,'index.html'),'utf8');
+const loadClient=(file,context={})=>{vm.runInNewContext(fs.readFileSync(path.join(site,file),'utf8'),context);return context;};
+const J=value=>JSON.parse(JSON.stringify(value));
+const pending=[];
+const testAsync=(name,body)=>pending.push(body().then(()=>{passed++;console.log('PASS '+name);}));
+const RELEASE_URL='https://github.com/Ding-Ding-Projects/material-docker-image/releases/download/v0.9.1/';
+const sampleRelease=()=>({tag_name:'v0.9.1',published_at:'2026-11-03T12:30:00Z',assets:[
+  {name:'Setup.exe',size:75*1024*1024,browser_download_url:RELEASE_URL+'Setup.exe'},
+  {name:'MaterialDockerImageBuild.exe',size:12345678,browser_download_url:RELEASE_URL+'MaterialDockerImageBuild.exe'},
+  {name:'evil.exe',size:10,browser_download_url:'https://example.com/evil.exe'},
+  {name:'RELEASES',size:512,browser_download_url:RELEASE_URL+'RELEASES'}]});
+const fakeResponse=(status,body,headers={})=>({ok:status>=200&&status<300,status,headers:{get:name=>headers[name.toLowerCase()]??null},json:async()=>{if(body instanceof Error)throw body;return body;}});
+
+test('Download panel parses a real release shape and drops assets that are not this repository\'s downloads',()=>{
+  const {MDIDownload}=loadClient('download-client.js');
+  const parsed=MDIDownload.parseRelease(sampleRelease());
+  assert.equal(parsed.version,'0.9.1');assert.equal(parsed.publishedAt,'2026-11-03T12:30:00.000Z');
+  assert.deepEqual(J(parsed.assets.map(a=>a.name)),['Setup.exe','MaterialDockerImageBuild.exe','RELEASES']);
+  assert.equal(MDIDownload.formatSize(75*1024*1024),'75.0 MB');assert.equal(MDIDownload.formatSize(512),'512 B');assert.equal(MDIDownload.formatSize(-1),'unknown size');
+  for(const bad of [null,[],{},{tag_name:'v1'},{tag_name:'<b>',published_at:'2026-01-01T00:00:00Z',assets:[]},{tag_name:'v1',published_at:'not a date',assets:[]},{tag_name:'v1',published_at:'2026-01-01T00:00:00Z',assets:'x'}])assert.throws(()=>MDIDownload.parseRelease(bad),/malformed/);
+});
+testAsync('Download panel reports every failure honestly and never invents a version',async()=>{
+  const {MDIDownload}=loadClient('download-client.js');
+  const run=fetchFn=>MDIDownload.loadRelease(fetchFn);
+  const ready=await run(async()=>fakeResponse(200,sampleRelease()));assert.equal(ready.kind,'ready');assert.equal(ready.release.version,'0.9.1');
+  assert.deepEqual(J(await run(async()=>fakeResponse(403,{},{'x-ratelimit-remaining':'0'}))),{kind:'rate-limited'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(429,{}))),{kind:'rate-limited'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(403,{}))),{kind:'unavailable'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(404,{}))),{kind:'none'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(500,{}))),{kind:'unavailable'});
+  assert.deepEqual(J(await run(async()=>{throw new TypeError('Failed to fetch');})),{kind:'offline'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(200,new SyntaxError('bad json')))),{kind:'unavailable'});
+  assert.deepEqual(J(await run(async()=>fakeResponse(200,{tag_name:'v1'}))),{kind:'unavailable'});
+  for(const kind of ['loading','offline','rate-limited','none','unavailable','offlinePackage']){assert.ok(MDIDownload.MESSAGES[kind].every(s=>s.length>10),kind);assert.doesNotMatch(MDIDownload.MESSAGES[kind].join(' '),/\d+\.\d+\.\d+/);}
+});
+test('Home page carries the download panel with a releases-page fallback and no baked-in release version',()=>{
+  for(const id of ['download-panel','download-status','download-setup','download-companion','download-docs','download-assets','download-fallback'])assert.match(pageHtml,new RegExp('id="'+id+'"'));
+  assert.match(pageHtml,/id="download-status" role="status" aria-live="polite"/);
+  assert.ok(pageHtml.includes('id="download-fallback" href="https://github.com/Ding-Ding-Projects/material-docker-image/releases"'));
+  assert.ok(pageHtml.includes("https://api.github.com/repos/' + REPOSITORY + '/releases/latest")&&pageHtml.includes("REPOSITORY = 'Ding-Ding-Projects/material-docker-image'"));
+  assert.doesNotMatch(pageHtml,/releases\/download\/v?\d/);
+  assert.match(pageHtml,/data-offline="false"/);
+});
+test('Link previews: Open Graph and Twitter metadata point at a real 1200x630 PNG listed in the manifest',()=>{
+  const pagesUrl='https://ding-ding-projects.github.io/material-docker-image/';
+  for(const meta of ['property="og:title"','property="og:description"','property="og:type" content="website"','property="og:url" content="'+pagesUrl+'"','property="og:image" content="'+pagesUrl+'social-preview.png"','property="og:image:width" content="1200"','property="og:image:height" content="630"','property="og:image:alt"','name="twitter:card" content="summary_large_image"','name="twitter:image" content="'+pagesUrl+'social-preview.png"'])assert.ok(pageHtml.includes(meta),meta);
+  const png=fs.readFileSync(path.join(site,'social-preview.png'));
+  assert.ok(png.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])));
+  assert.equal(png.readUInt32BE(16),1200);assert.equal(png.readUInt32BE(20),630);assert.ok(png.length>20000&&png.length<5*1024*1024);
+  const manifest=JSON.parse(fs.readFileSync(path.join(site,'content-manifest.json'),'utf8'));
+  const entry=manifest.staticAssets.find(a=>a.path==='social-preview.png');
+  assert.ok(entry);assert.equal(entry.sha256,crypto.createHash('sha256').update(png).digest('hex'));
+  assert.ok(fs.existsSync(path.join(root,'scripts/make-social-preview.mjs')));
+});
+test('Front provenance shows the source version and commit-derived update time, both bound by the manifest',()=>{
+  const provenance=JSON.parse(fs.readFileSync(path.join(site,'provenance.json'),'utf8'));
+  assert.match(provenance.version,/^\d+\.\d+\.\d+$/);assert.match(provenance.updatedAt,/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);assert.ok(!Number.isNaN(Date.parse(provenance.updatedAt)));
+  assert.match(fs.readFileSync(path.join(root,'src/MaterialDockerImage/MaterialDockerImage.csproj'),'utf8'),new RegExp('<Version>'+provenance.version.replace(/\./g,'\\.')+'</Version>'));
+  assert.ok(pageHtml.includes('Documentation source version '+provenance.version+' · updated '+provenance.updatedAt));
+  assert.ok(pageHtml.includes('文件來源版本 '+provenance.version+' · 更新時間 '+provenance.updatedAt));
+  assert.doesNotMatch(pageHtml,/\{\{[A-Z_]+\}\}/);
+  const manifest=JSON.parse(fs.readFileSync(path.join(site,'content-manifest.json'),'utf8'));
+  assert.ok(manifest.staticAssets.some(a=>a.path==='provenance.json'));
+});
+test('Search core is plain-text by default, escapes literals and validates regular expressions',()=>{
+  const {MDISearch}=loadClient('search-client.js');
+  const plain=MDISearch.buildMatcher('a.b(c)',{flags:'i'});
+  assert.ok(plain.ok&&plain.expression.test('xx A.B(C) yy')&&!plain.expression.test('axb(c)'));
+  assert.ok(MDISearch.buildMatcher('',{}).empty);
+  const regex=MDISearch.buildMatcher('v\\d+\\.\\d+',{regex:true,flags:'i'});assert.ok(regex.ok&&regex.expression.test('V1.20'));
+  assert.equal(MDISearch.buildMatcher('(',{regex:true}).error,'invalid');assert.match(MDISearch.buildMatcher('(',{regex:true}).detail,/\S/);
+  assert.equal(MDISearch.buildMatcher('(',{regex:false}).ok,true);
+  assert.equal(MDISearch.buildMatcher('x'.repeat(201),{}).error,'too-long');
+  for(const hostile of ['(a+)+$','(a*)*b','(\\w+\\s?)+x','(.*a){2}*'])assert.equal(MDISearch.buildMatcher(hostile,{regex:true}).error,'nested-quantifier',hostile);
+  assert.equal(MDISearch.buildMatcher('x',{regex:true,flags:'gzi'}).flags,'i');
+  assert.equal(MDISearch.buildMatcher('(a+)+$',{regex:false}).ok,true);
+});
+test('Search execution is bounded by result cap, time budget and per-section text limit',()=>{
+  const {MDISearch}=loadClient('search-client.js');
+  const sections=Array.from({length:500},(_,i)=>({id:'s'+i,article:'Article',heading:'Heading '+i,text:'needle '+i}));
+  const matcher=MDISearch.buildMatcher('needle',{});
+  const capped=MDISearch.runSearch(sections,matcher);assert.equal(capped.results.length,200);assert.equal(capped.capped,true);assert.equal(capped.results[0].id,'s0');
+  assert.equal(MDISearch.runSearch(sections,matcher,{maxResults:3}).results.length,3);
+  const late=MDISearch.runSearch(sections,matcher,{budgetMs:-1});assert.equal(late.timedOut,true);assert.equal(late.results.length,0);
+  const long=[{id:'long',article:'A',heading:'H',text:'x'.repeat(25000)+' needle'}];
+  const truncated=MDISearch.runSearch(long,matcher);assert.equal(truncated.results.length,0);assert.equal(truncated.truncatedSections,1);
+  const hit=MDISearch.runSearch([{id:'h',article:'A',heading:'H',text:'before '.repeat(30)+'NEEDLE'+' after'.repeat(30)}],MDISearch.buildMatcher('needle',{flags:'i'}));
+  assert.equal(hit.results[0].snippet.match,'NEEDLE');assert.ok(hit.results[0].snippet.before.startsWith('…'));
+  assert.deepEqual(J(MDISearch.runSearch(sections,{ok:false,error:'invalid'}).results),[]);
+});
+test('Search sections follow article headings so results link to anchors that exist',()=>{
+  const {MDISearch}=loadClient('search-client.js');
+  const child=(tagName,textContent,id='')=>({tagName,textContent,id});
+  const root={querySelectorAll:()=>[{id:'doc-a',querySelector:()=>child('H3','Article A'),children:[child('H3','Article A'),child('P','intro'),child('H4','Part one','doc-a-part-one'),child('P','one body'),child('H4','Part two','doc-a-part-two'),child('P','two body')]}]};
+  const sections=MDISearch.collectSections(root);
+  assert.deepEqual(J(sections.map(s=>s.id)),['doc-a','doc-a-part-one','doc-a-part-two']);
+  assert.ok(sections[0].text.includes('intro')&&!sections[0].text.includes('one body'));
+  assert.ok(sections[2].text.includes('two body'));
+  const ids=[...pageHtml.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]);
+  assert.equal(new Set(ids).size,ids.length,'every id on the page is unique');
+  const headings=[...pageHtml.matchAll(/<h[3-8] id="(doc-[^"]+)">/g)].length;
+  assert.ok(headings>100,'embedded article headings carry anchors ('+headings+')');
+});
+test('Search markup has a plain-text field, regex toggle, flags, adjacent builder, validation message and both languages',()=>{
+  for(const id of ['search','regex-toggle','regex-panel','regex-mode','flag-i','flag-m','flag-s','flag-u','regex-pattern','regex-error','regex-tokens','regex-library','search-status','search-results','clear-search'])assert.match(pageHtml,new RegExp('id="'+id+'"'));
+  assert.match(pageHtml,/<input id="regex-mode" type="checkbox">/);assert.doesNotMatch(pageHtml,/<input id="regex-mode" type="checkbox" checked/);
+  assert.match(pageHtml,/id="regex-error" role="alert"/);assert.match(pageHtml,/id="search-status" role="status" aria-live="polite"/);
+  assert.match(pageHtml,/not RegexBuddy parity/);assert.match(pageHtml,/data-zh="搜尋全部文件"/);
+  assert.doesNotMatch(pageHtml,/data-search=/,'the duplicated lowercase article copy is gone');
+});
+test('Offline documentation package renders without remote assets or release lookup and keeps every internal link working from file://',()=>{
+  const offlineDir=path.join(root,'out','docs','offline-check');
+  try {
+    execFileSync(process.execPath,['website/render.mjs','--offline','out/docs/offline-check'],{cwd:root,stdio:'pipe'});
+    const html=fs.readFileSync(path.join(offlineDir,'index.html'),'utf8');
+    assert.match(html,/data-offline="true"/);assert.doesNotMatch(html,/property="og:|name="twitter:/);
+    assert.doesNotMatch(html,/(?:src|srcset|poster)\s*=\s*["']https?:/i);assert.doesNotMatch(html,/<link[^>]+href\s*=\s*["']https?:/i);assert.doesNotMatch(html,/url\(\s*["']?https?:/i);assert.doesNotMatch(html,/@import\s+(?:url\(|["'])/i);assert.doesNotMatch(html,/<script[^>]+src=/i);
+    const ids=new Set([...html.matchAll(/ id="([^"]+)"/g)].map(m=>m[1]));
+    const anchors=[...html.matchAll(/href="#([^"]+)"/g)].map(m=>m[1]);assert.ok(anchors.length>50);
+    for(const anchor of anchors)assert.ok(ids.has(anchor),'internal link target exists: '+anchor);
+    const relative=[...html.matchAll(/(?:src|href)="((?!https?:|#|data:|mailto:)[^"]+)"/g)].map(m=>m[1]);
+    assert.ok(relative.includes('favicon.svg')&&relative.some(r=>r.startsWith('assets/')));
+    for(const file of relative)assert.ok(fs.existsSync(path.join(offlineDir,file)),'offline file exists: '+file);
+    assert.ok(fs.existsSync(path.join(offlineDir,'content-manifest.json')));
+    const online=[...pageHtml.matchAll(/(?:src|href)="((?!https?:|#|data:|mailto:)[^"]+)"/g)].map(m=>m[1]);
+    for(const file of online)assert.ok(fs.existsSync(path.join(site,file)),'deployed file exists: '+file);
+    assert.equal(html.includes('doc-readme-md'),true);
+    assert.throws(()=>execFileSync(process.execPath,['website/render.mjs','--offline','website/escape'],{cwd:root,stdio:'pipe'}),/out\/docs/);
+    assert.throws(()=>execFileSync(process.execPath,['website/render.mjs','--offline'],{cwd:root,stdio:'pipe'}),/needs an output directory/);
+  } finally {
+    if(path.basename(offlineDir)==='offline-check'&&fs.existsSync(offlineDir))fs.rmSync(offlineDir,{recursive:true});
+  }
+});
+test('Release workflow and entrypoints ship and read back the offline documentation asset',()=>{
+  const workflow=fs.readFileSync(path.join(root,'.github/workflows/release.yml'),'utf8');
+  assert.match(workflow,/MaterialDockerImageDocs\.zip','docs\.json'/);assert.match(workflow,/docsReceipt\.source -ne \$env:GITHUB_SHA/);
+  assert.match(fs.readFileSync(path.join(root,'build-installer.bat'),'utf8'),/package-docs\.ps1/);
+  const script=fs.readFileSync(path.join(root,'build/package-docs.ps1'),'utf8');
+  for(const needle of ['out/docs/MaterialDockerImageDocs.zip','--offline out/docs/site','remote asset','Assert-SourceBinding','out/receipts/docs.json'])assert.ok(script.includes(needle),needle);
+});
+await Promise.all(pending);
 console.log(`Feature checklist: ${passed} checks passed, including 123 independent missing-entry regressions. Browser interaction and pixels require separate verification.`);

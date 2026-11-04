@@ -13,6 +13,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | Images, resources and Compose | Image/container/volume/network operations and loaded Compose save-path/context protection implemented. Complete workflow acceptance remains open. |
 | Restart restoration | Source 3ce1ed7 local 0.5.0 build/installer production and actual restart restoration passed, preserving the absolute example folder and exact source after line-ending normalization. Included in verified normal v0.5.1 at ad5d3ac. Original capture provenance remains 3ce1ed7/0.5.0. |
 | Package and release | Normal v0.5.1 at ad5d3ac5c02588e8efcc926715119b87a9c7c6d5 was verified through successful run 39112649034, exact tag source and five asset sizes/digests. |
+| Documentation site delivery | Download panel with live release lookup, link-preview metadata with a real 1200 x 630 capture, front provenance, site-wide search with a bounded regex builder and an offline documentation archive implemented. Checked by focused checks and one headless browser run; deployed-site and first-release evidence pending. See `documentation-site.md`. |
 | Installed update and setup | Existing installation updated through Update.exe to 0.5.1.0; executable matched the published package and settings were preserved. Installed hidden launch detected Docker, exercised Setup Back/Next/Finish, persisted completion at step 2 and displayed productive Build. Fresh install, update-ready banner, cancellation and uninstall acceptance remain open. |
 | Current native captures | English, dark, 100% scaling at normal/minimum sizes only. README captures are retained and inspected for 3ce1ed7 local 0.5.0: Build 1440x960, populated Canvas 1440x960 and 960x720. Minimum graph panning and inspector scrolling are intentional. Full matrix is incomplete. |
 | Documentation and companions | Deployment 39112649029 for ad5d3ac delivered 12 articles, 109 neutral identifiers and three byte-identical PNGs. 1440/320 widths had no horizontal overflow; guide/checklist/theme/bilingual persistence and exact About homepage passed. Complete documentation/wiki acceptance and portable documentation/build companions remain incomplete. |
@@ -21,7 +22,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 17. Planned: 0. Unverified: 106.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 21. Planned: 0. Unverified: 102.
 
 ### Interface and personalization
 
@@ -40,7 +41,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `dim-sum-code-names` | Dim Sum Code Names | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-code-names. |
 | `dim-sum-photo-source` | Dim Sum Photo Source | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for dim-sum-photo-source. |
 | `display-name` | Display Name | Implemented, verification pending | Verify rename, reset, restart persistence and the history revision count interactively in the built application in every language mode and theme. |
-| `front-provenance` | Front Provenance | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for front-provenance. |
+| `front-provenance` | Front Provenance | Implemented, verification pending | Verify the stamp on the deployed page after the next documentation change, and decide whether the in-application front screen needs its own provenance verification record. |
 | `functional-ui` | Functional Ui | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for functional-ui. |
 | `funny-emoji` | Funny Emoji | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for funny-emoji. |
 | `guided-forms` | Guided Forms | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for guided-forms. |
@@ -62,7 +63,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `scheduled-settings` | Scheduled Settings | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for scheduled-settings. |
 | `screen-recording` | Screen Recording | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for screen-recording. |
 | `settings-explanations` | Settings Explanations | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for settings-explanations. |
-| `shared-link-embed` | Shared Link Embed | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for shared-link-embed. |
+| `shared-link-embed` | Shared Link Embed | Implemented, verification pending | Confirm how real platforms render a shared link to the deployed site (platform crawlers were not exercised) and refresh the preview image when the application is redesigned. |
 | `support-tickets` | Support Tickets | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for support-tickets. |
 | `vendored-fonts` | Vendored Fonts | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for vendored-fonts. |
 
@@ -112,7 +113,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `encrypted-public-builder` | Encrypted Public Builder | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for encrypted-public-builder. |
 | `forge-publishing` | Forge Publishing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for forge-publishing. |
 | `fresh-build-run-command` | Fresh Build Run Command | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for fresh-build-run-command. |
-| `installer-download-button` | Installer Download Button | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for installer-download-button. |
+| `installer-download-button` | Installer Download Button | Implemented, verification pending | Verify the deployed home page on the live site, on a phone-width screen, in each language mode and with a release that carries every named asset; confirm keyboard use and the rate-limited path against the real service. |
 | `release-dim-sum-photo` | Release Dim Sum Photo | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-dim-sum-photo. |
 | `release-line-counts` | Release Line Counts | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-line-counts. |
 | `release-timing` | Release Timing | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for release-timing. |
@@ -135,7 +136,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `homepage-link` | Homepage Link | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for homepage-link. |
 | `landing-site` | Landing Site | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for landing-site. |
 | `offline-docs` | Offline Docs | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for offline-docs. |
-| `offline-documentation-companion` | Offline Documentation Companion | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for offline-documentation-companion. |
+| `offline-documentation-companion` | Offline Documentation Companion | Implemented, verification pending | Run the packaging in the hosted release workflow, download the attached archive from a real release and open it from a file location in a browser; the interactive offline experience and the other portable documentation duties (the full wiki) remain unverified. |
 | `product-evidence` | Product Evidence | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for product-evidence. |
 | `project-board` | Project Board | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for project-board. |
 | `project-profile` | Project Profile | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for project-profile. |

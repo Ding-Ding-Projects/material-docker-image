@@ -56,9 +56,11 @@
 - [ ] Deliver portable documentation and dedicated build companions.
   - [x] Build companion window (`src/BuildCompanion`), single-file packaging script, release asset and logic checks (see `docs/features/build-companion.md`).
   - [ ] Interactive verification of the companion window on a desktop, and a real build driven from it.
-  - [ ] Portable documentation package.
+  - [x] Portable documentation package script, offline renderer, release asset and readback wiring (`build/package-docs.ps1`); hosted-run and opened-archive verification pending.
+  - [ ] Verify the hosted release carries `MaterialDockerImageDocs.zip` and that it opens from a file location.
 - [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
 - [ ] Complete localization, accessibility, appearance and onboarding acceptance across supported surfaces.
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.
 - [ ] Verify remote engines, alternative architectures and supported workflow combinations.
-- [ ] Complete interactive documentation/wiki content, route acceptance and deployed-homepage evidence.
+- [x] Add the home page download panel, link-preview metadata and preview image, front provenance and site-wide search with a bounded regex builder (`docs/features/documentation-site.md`).
+- [ ] Complete interactive documentation/wiki content, route acceptance and deployed-homepage evidence (deployed verification of the download panel, previews and search is part of this).

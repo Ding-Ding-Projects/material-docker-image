@@ -42,7 +42,8 @@ jobs:
           $buildReceipt = Get-Content out/receipts/build.json -Raw | ConvertFrom-Json
           $packageReceipt = Get-Content out/receipts/package.json -Raw | ConvertFrom-Json
           $companionReceipt = Get-Content out/receipts/companion.json -Raw | ConvertFrom-Json
-          if ($buildReceipt.source -ne $env:GITHUB_SHA -or $packageReceipt.source -ne $env:GITHUB_SHA -or $companionReceipt.source -ne $env:GITHUB_SHA) { throw 'Delivery receipts do not bind to the workflow source.' }
+          $docsReceipt = Get-Content out/receipts/docs.json -Raw | ConvertFrom-Json
+          if ($buildReceipt.source -ne $env:GITHUB_SHA -or $packageReceipt.source -ne $env:GITHUB_SHA -or $companionReceipt.source -ne $env:GITHUB_SHA -or $docsReceipt.source -ne $env:GITHUB_SHA) { throw 'Delivery receipts do not bind to the workflow source.' }
           $completed = [DateTime]::UtcNow
           $run = gh api "repos/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID" | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0 -or -not $run.run_started_at) { throw 'Workflow start timestamp unavailable.' }
@@ -53,6 +54,7 @@ jobs:
           Version: $env:BUILD_VERSION
           Target: Windows x64, self-contained .NET 10.
           Also attached: MaterialDockerImageBuild.exe, the single-file build companion (runs the repository's build.bat and build-installer.bat).
+          Also attached: MaterialDockerImageDocs.zip, the complete documentation as an offline site (extract it and open index.html; it needs no network).
           
           The genuine Squirrel.Windows installer is unsigned and may trigger an unknown-publisher or SmartScreen warning.
           This workflow builds and packages only. It runs no tests or lint; a published release does not imply those checks passed.
@@ -90,7 +92,7 @@ jobs:
             $object = $annotated.object
           }
           if ($object.type -ne 'commit' -or $object.sha -ne $env:GITHUB_SHA) { throw 'Published tag does not resolve to the exact workflow source SHA.' }
-          foreach ($name in @('Setup.exe','RELEASES',"MaterialDockerImage-$env:BUILD_VERSION-full.nupkg",'build.json','package.json','MaterialDockerImageBuild.exe','companion.json')) {
+          foreach ($name in @('Setup.exe','RELEASES',"MaterialDockerImage-$env:BUILD_VERSION-full.nupkg",'build.json','package.json','MaterialDockerImageBuild.exe','companion.json','MaterialDockerImageDocs.zip','docs.json')) {
             if ($name -notin $release.assets.name) { throw "Release asset missing: $name" }
           }
           $release | ConvertTo-Json -Depth 8 | Set-Content out/receipts/release.json
