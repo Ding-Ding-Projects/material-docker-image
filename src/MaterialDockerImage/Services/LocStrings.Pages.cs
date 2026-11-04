@@ -15,6 +15,7 @@ public static partial class Loc
         foreach (var pair in LocksCantonese()) yield return pair;
         foreach (var pair in SchedulesExtendedCantonese()) yield return pair;
         foreach (var pair in PageCantoneseRegex()) yield return pair;
+        foreach (var pair in PageCantoneseRegexTools()) yield return pair;
         foreach (var pair in PageCantoneseRecords()) yield return pair;
     }
 }

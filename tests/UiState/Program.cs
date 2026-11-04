@@ -963,6 +963,7 @@ count += BuildCompanionChecks.Run();
 count += RecordsChecks.Run();
 count += LockChecks.Run();
 count += SchedulesChecks.Run();
+count += RegexRemainingChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

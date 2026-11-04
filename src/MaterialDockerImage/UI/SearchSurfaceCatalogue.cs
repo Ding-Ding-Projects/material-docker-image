@@ -188,7 +188,7 @@ public static class SearchSurfaceCatalogue
 
     /// <summary>Files that never construct a user-facing field (the field and builder implementation themselves).</summary>
     private static bool Skipped(string relative) =>
-        relative == "UI/SearchFilter.cs" || relative == "UI/SearchBuilderPopover.cs" || relative.StartsWith("UI/RegexBuilder", StringComparison.Ordinal) || relative == "UI/SearchSurfaceCatalogue.cs" ||
+        relative == "UI/SearchFilter.cs" || relative.StartsWith("UI/SearchBuilderPopover", StringComparison.Ordinal) || relative.StartsWith("UI/RegexBuilder", StringComparison.Ordinal) || relative == "UI/SearchSurfaceCatalogue.cs" ||
         relative.StartsWith("obj/", StringComparison.Ordinal) || relative.StartsWith("bin/", StringComparison.Ordinal);
 
     /// <summary>Scans every .cs file under the app source folder for search-field constructions.</summary>

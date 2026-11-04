@@ -14,12 +14,22 @@ public sealed record RegexConversion(string Target, string Text, bool Converted,
 /// .NET and the target are listed in <see cref="RegexConversion.Notes"/> and anything that cannot be expressed is
 /// reported as not convertible instead of being guessed.
 /// </summary>
-public static class RegexConverter
+public static partial class RegexConverter
 {
-    public static readonly IReadOnlyList<string> Targets = ["C# verbatim string", "C# regular string", "C# code", "PowerShell", "JSON string", "grep -E"];
+    public static readonly IReadOnlyList<string> Targets = ["C# verbatim string", "C# regular string", "C# code", "PowerShell", "JSON string", "grep -E", "grep -P", "ripgrep", "Select-String", "JavaScript", "Python", "Java", "Go", "PHP"];
 
-    public static RegexConversion Convert(string target, string pattern, RegexBuilderFlags flags, RegexCodeKind kind = RegexCodeKind.Matches, string replacement = "") => target switch
+    /// <param name="folder">Optional folder for the command-line targets (grep, ripgrep, Select-String); a placeholder is used when empty.</param>
+    /// <param name="globs">Optional file patterns for the command-line targets, in the same ; or , list the folder search uses.</param>
+    public static RegexConversion Convert(string target, string pattern, RegexBuilderFlags flags, RegexCodeKind kind = RegexCodeKind.Matches, string replacement = "", string? folder = null, string? globs = null) => target switch
     {
+        "grep -P" => GrepPcre(pattern, flags, folder, globs),
+        "ripgrep" => Ripgrep(pattern, flags, folder, globs),
+        "Select-String" => SelectString(pattern, flags, folder, globs),
+        "JavaScript" => JavaScript(pattern, flags, kind, replacement),
+        "Python" => Python(pattern, flags, kind, replacement),
+        "Java" => Java(pattern, flags, kind, replacement),
+        "Go" => GoLang(pattern, flags, kind, replacement),
+        "PHP" => Php(pattern, flags, kind, replacement),
         "C# verbatim string" => new(target, RegexBuilderEngine.ToCSharpVerbatim(pattern), true, false, []),
         "C# regular string" => new(target, CSharpString(pattern), true, false, []),
         "C# code" => CSharpCode(pattern, flags, kind, replacement),
