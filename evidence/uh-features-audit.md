@@ -296,3 +296,10 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 - Fixed because of that drive: the element editor could not open from the palette in an inactive window, row actions were only in a context menu that automation cannot keep open, and the Locks manager did not refresh when a lock was added elsewhere.
 - Not driven, because each would appear on the visible desktop or use the host clipboard: the Windows Hello prompt, pointer clicks on locked controls, the clipboard QR route and the default Windows Terminal path. A winning whack-a-mole round was not reached (automation is too slow to hit 8 moles).
 - Checks: `build.bat -Tests` passes 23 core, 2,243 UI-state and 24 checklist checks.
+
+## Update after the regex and camera lanes (4 November 2026, night)
+
+- Regular expression parity: 70 of 83 topics implemented, 5 partial, 8 impossible on .NET. New: editing the pattern through the explanation tree, code templates, panel layout and preferences, a keyboard map, nested builders in library filters, engine version pickers, folder-search extras, command-line and action-file entry.
+- Authenticator registration from a camera is built with logic checks; it was not driven because opening a camera raises the Windows permission prompt on the host.
+- Found while driving and fixed: the builder could not open at all after the regex merge (a combo box used before creation); a source check now rejects layouts that receive a control through the null-forgiving operator.
+- Checks: `build.bat -Tests` passes 23 core, 2,457 UI-state and 24 checklist checks. Receipt: 35 steps.

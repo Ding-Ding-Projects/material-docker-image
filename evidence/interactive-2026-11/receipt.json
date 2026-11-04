@@ -272,6 +272,15 @@
       },
       "observed": "The hex view, matches by scope, pattern comparison and per-token help are present in the running popover; their contents were not exercised further.",
       "result": "present"
+    },
+    {
+      "action": "Start with --regex-pattern \"^job-2027\" --regex-flags i",
+      "artifact": {
+        "version": "0.99.42-0.99.43",
+        "source": "c7b1f1b and d51300b"
+      },
+      "observed": "Found and fixed: after the last regex merge every builder failed with 'Value cannot be null (Parameter element)' because a combo box was used before it was created. After the fix the app started with the palette's builder open, the pattern ^job-2027 filled in, regular expressions on and 'Valid pattern.'",
+      "result": "pass after fix"
     }
   ],
   "findings": [
@@ -283,7 +292,8 @@
     "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host)",
     "the School mode Windows Hello passkey (its prompt appears on the visible secure desktop)",
     "clicking a locked control with a pointer, and the clipboard QR route (both would need the visible desktop or the host's clipboard)",
-    "a winning whack-a-mole round (UI Automation polling is too slow to hit 8 moles)"
+    "a winning whack-a-mole round (UI Automation polling is too slow to hit 8 moles)",
+    "camera QR registration (opening a camera raises the Windows permission prompt and the camera light on the host)"
   ],
   "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged)."
 }
