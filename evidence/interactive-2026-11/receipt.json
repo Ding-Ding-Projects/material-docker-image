@@ -88,6 +88,6 @@
   ],
   "notExercised": [
     "successful registry sign-in (needs a working registry account)",
-    "interactive terminal window"
+    "interactive terminal window (opens through the default terminal handoff, which can appear on the visible desktop; deliberately not launched while the host user was active)"
   ]
 }
