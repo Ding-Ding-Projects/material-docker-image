@@ -30,6 +30,7 @@ public static class RegexFinishChecks
         Preferences();
         Keyboard();
         RegexFinishMoreChecks.Run(Check);
+        RegexFinishLocalizationChecks.Run(Check);
         return count;
     }
 

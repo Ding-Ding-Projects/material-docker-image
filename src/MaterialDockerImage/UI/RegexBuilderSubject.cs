@@ -117,7 +117,7 @@ public static class RegexSubject
         var label = result.Scope switch { RegexScope.Line => "line", RegexScope.Page => "page", _ => "text" };
         var sb = new StringBuilder();
         foreach (var s in result.Segments.Where(s => s.Matches.Count > 0))
-            sb.AppendLine(t($"{(result.Scope == RegexScope.Whole ? "Text" : char.ToUpperInvariant(label[0]) + label[1..] + " " + s.Number)}: {s.Matches.Count} match{(s.Matches.Count == 1 ? "" : "es")}:") + " " + string.Join(", ", s.Matches.Take(8).Select(m => $"{Visible(m.Value)} {t("at")} {m.Index}")) + (s.Matches.Count > 8 ? ", …" : ""));
+            sb.AppendLine(t($"{(result.Scope == RegexScope.Whole ? "Text" : char.ToUpperInvariant(label[0]) + label[1..] + " " + s.Number)}: {s.Matches.Count} match{(s.Matches.Count == 1 ? "" : "es")}:") + " " + string.Join(", ", s.Matches.Take(8).Select(m => $"{Visible(m.Value)} {t($"at {m.Index}")}")) + (s.Matches.Count > 8 ? ", …" : ""));
         sb.Append(t($"{result.TotalMatches} match{(result.TotalMatches == 1 ? "" : "es")} in {result.ScopesWithMatches} of {result.ScopeCount} {label}{(result.ScopeCount == 1 ? "" : "s")}."));
         if (result.TimedOut) sb.Append(" " + t($"Stopped on a {label} that exceeded the {RegexBuilderEngine.MatchTimeout.TotalMilliseconds:0} ms limit."));
         if (result.Truncated) sb.Append(" " + t("The result was cut at the bounds."));

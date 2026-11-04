@@ -48,6 +48,21 @@ The builder opens as a panel attached to the field. It opens below the field, or
 
 The full list of RegexBuddy topics, with what is implemented, partial or unavailable on .NET, is the [parity matrix](regex-parity.md).
 
+## Editing, templates, layout and preferences
+
+- **Edit through the tree.** Select a row of the Explanation and set, change or remove its quantifier, wrap it in a group or lookaround, unwrap a group, or delete it. The pattern text is regenerated and checked; an edit that would make it invalid, or silently change what it means, is refused with the reason.
+- **Code templates.** The Convert section's code for C#, PowerShell, JavaScript, Python, Java, Go and PHP comes from templates you can edit, one per language and kind of code. Placeholders such as `{{pattern}}` are filled with text already quoted for the language, so a template cannot change the quoting. Templates are saved in `regex-templates.json` in the application data folder.
+- **Preferences and layout.** Choose which of the 16 panels are shown and their order, the default flags for new search fields, the match time limit (50 to 1000 ms), the font size of the pattern box and the default explanation detail. They are remembered in `regex-preferences.json` and loaded at start-up. The pattern and the preferences panel cannot be hidden.
+- **Keyboard.** `F6` and `Shift+F6` move through the panels that are shown, `Ctrl+1` to `Ctrl+0` jump to the first ten, `Alt+Home` returns to the pattern. The list is shown in the Preferences and layout panel.
+- **Filters inside the builder.** The Library, My patterns and Unicode block filters are search fields with their own builder, which opens beside the first one.
+
+## Folder search extras, action files and the command line
+
+- **Search in files** accepts a modified-after and modified-before time (honoured by the replacement preview too) and up to 5 context lines. Results can be saved as JSON (loadable again), text with context or CSV, and a result opens in the external editor from Settings, at its line for Visual Studio Code, Notepad++ and Sublime Text.
+- **Action files.** A search (pattern, flags, replacement, folder, file patterns, subfolders, context lines) can be saved and opened as a small JSON file. Opening one fills in the builder and runs nothing.
+- **Start-up arguments.** `--regex-pattern TEXT [--regex-flags imsxncrb] [--regex-replacement TEXT] [--regex-folder PATH] [--regex-globs LIST]` or `--regex-action FILE` opens the command palette with its builder filled in. The flag letters are i IgnoreCase, m Multiline, s Singleline, x IgnorePatternWhitespace, n ExplicitCapture, c CultureInvariant, r RightToLeft and b NonBacktracking; without `--regex-flags` no flag is on. **Copy command line** in the builder writes the matching arguments.
+- **Engine versions.** The flavor comparison offers a version for Python and JavaScript. The newest version is the table itself; older versions change the constructs whose support arrived later.
+
 ## Engine and limits
 
 Matching uses .NET regular expressions (`System.Text.RegularExpressions`). The builder states which engine runs the pattern:

@@ -213,7 +213,7 @@ internal sealed partial class SearchBuilderPopover
             var shown = Ui.Check(panel.Title, !prefs.Layout.IsHidden(id), v =>
             {
                 var (layout, problem) = prefs.Layout.SetHidden(panelId, !v);
-                if (problem != null) { prefsStatus.Text = Loc.T(problem); RenderLayoutList(); return; }
+                if (problem != null) { prefsStatus.Text = RegexText.Sentences(problem, Loc.T); RenderLayoutList(); return; }
                 ChangeLayout(layout);
             });
             shown.IsEnabled = !panel.Required;
@@ -272,7 +272,7 @@ internal sealed partial class SearchBuilderPopover
         if (!field.RegexMode) { treeEditStatus.Text = Loc.T("Turn on regular expression mode to edit the pattern through the tree."); return; }
         if (explanation.SelectedItem is not TreeViewItem { Tag: RegexExplainNode node }) { treeEditStatus.Text = Loc.T("Select a row of the explanation first."); return; }
         var result = edit(field.Query, field.Flags, node);
-        treeEditStatus.Text = Loc.T(result.Message);
+        treeEditStatus.Text = RegexText.Sentences(result.Message, Loc.T);
         if (!result.Success) return;
         pattern.Text = result.Pattern;
         pattern.Focus();
@@ -339,14 +339,14 @@ internal sealed partial class SearchBuilderPopover
     {
         var (language, kind) = TemplateTarget();
         var problem = RegexCodeTemplates.Validate(templateBox.Text);
-        if (field.Query.Length == 0) { templatePreview.Text = ""; if (problem != null) templateStatus.Text = Loc.T(problem); return; }
-        templateStatus.Text = problem == null ? "" : Loc.T(problem);
+        if (field.Query.Length == 0) { templatePreview.Text = ""; if (problem != null) templateStatus.Text = RegexText.Sentences(problem, Loc.T); return; }
+        templateStatus.Text = problem == null ? "" : RegexText.Sentences(problem, Loc.T);
         if (problem != null) { templatePreview.Text = ""; return; }
         var (text, flags) = Effective();
         var preview = new Dictionary<string, string> { [RegexCodeTemplates.Key(language, kind)] = templateBox.Text };
         var result = RegexCodeTemplates.Render(language, text, flags, kind, field.State.Replacement, preview);
         templatePreview.Text = result.Text;
-        if (!result.Converted) templateStatus.Text = string.Join(" ", result.Notes.Select(Loc.T));
+        if (!result.Converted) templateStatus.Text = string.Join(" ", result.Notes.Select(n => RegexText.Sentences(n, Loc.T)));
     }
 
     private void SaveTemplate()
@@ -360,7 +360,7 @@ internal sealed partial class SearchBuilderPopover
             templateStatus.Text = Loc.T("Template saved.");
             RenderConversion();
         }
-        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or InvalidOperationException) { templateStatus.Text = Loc.T(e.Message); }
+        catch (Exception e) when (e is ArgumentException or IOException or UnauthorizedAccessException or InvalidOperationException) { templateStatus.Text = RegexText.Sentences(e.Message, Loc.T); }
     }
 
     private void ResetTemplate()
@@ -411,8 +411,8 @@ internal sealed partial class SearchBuilderPopover
     {
         var (after, p1) = RegexGrepResults.ParseDate(grepAfter.Text, false);
         var (before, p2) = RegexGrepResults.ParseDate(grepBefore.Text, true);
-        if (p1 != null) return (null, Loc.T("Modified after:") + " " + Loc.T(p1));
-        if (p2 != null) return (null, Loc.T("Modified before:") + " " + Loc.T(p2));
+        if (p1 != null) return (null, Loc.T("Modified after:") + " " + RegexText.Sentences(p1, Loc.T));
+        if (p2 != null) return (null, Loc.T("Modified before:") + " " + RegexText.Sentences(p2, Loc.T));
         var context = int.TryParse(grepContextCombo?.SelectedItem as string, out var c) ? c : 0;
         return (new RegexGrepOptions { ModifiedAfterUtc = after, ModifiedBeforeUtc = before, ContextLines = context }, null);
     }
@@ -490,7 +490,7 @@ internal sealed partial class SearchBuilderPopover
             {
                 var action = CurrentAction();
                 var problem = action.Problem();
-                if (problem != null) { actionStatus.Text = Loc.T(problem); return; }
+                if (problem != null) { actionStatus.Text = RegexText.Sentences(problem, Loc.T); return; }
                 Copy("MaterialDockerImage.exe " + RegexCommandLine.ToArguments(action), "Command line copied.");
             })),
         actionStatus);
@@ -499,7 +499,7 @@ internal sealed partial class SearchBuilderPopover
     {
         var action = CurrentAction();
         var problem = action.Problem();
-        if (problem != null) { actionStatus.Text = Loc.T(problem); return; }
+        if (problem != null) { actionStatus.Text = RegexText.Sentences(problem, Loc.T); return; }
         var dialog = new Microsoft.Win32.SaveFileDialog { Filter = "JSON|*.json", FileName = "regex-search.json", Title = Loc.T("Save action file") };
         Close();
         if (dialog.ShowDialog() != true) return;

@@ -11,7 +11,7 @@
       "implemented": 30,
       "verified": 0
     },
-    "sha256": "d2287298337dcb71adc624b001272da68178683ddd24ce3fbe859ca30e5e846a"
+    "sha256": "9136dbfa179e9f27b462a89d8be77461685205fd2ee3600c5d91bd4cdf605784"
   },
   "sources": [
     {
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "80019e936f28eb47a4e2e7f55b54ddc78ecb4d1fd5050e16d40e1db2f306f528"
+      "sha256": "b002ef9d8973bfdbd3782785bb12939d72116099586b407762c109033143bfdf"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -92,7 +92,7 @@
     },
     {
       "path": "docs/features/regex-parity.md",
-      "sha256": "911e121a5930d5a736793a9afeaf3f660ddcb53c33362a363c02912493ad3dca"
+      "sha256": "6107cb94a4eed96bd76b8f3b2698f1e7989e39cf12abf87848930384c8537f6d"
     },
     {
       "path": "docs/features/resources.md",
@@ -100,7 +100,7 @@
     },
     {
       "path": "docs/features/search-and-regex.md",
-      "sha256": "2f6a4e257ed42dcfe5f1b01b9eaecd91b5a850b7a157f64b18b1197f4fe526ca"
+      "sha256": "3f6f4a54748daf3d0039a09cbe7e32784009daea9352e9eab69855972ec1185a"
     },
     {
       "path": "docs/features/settings-safety.md",
@@ -116,11 +116,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "b8668146a8d7e1710264c25ce48cd51040f492dd9976cac3d5ef4fc5a2348591"
+      "sha256": "b9e3b77c825804be68039c7b3ad421c264f139fb3385ed7e713c18a910159822"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "f2c6adf53f2ffeb98505da8860c21bdf36bdef29103fbbe33023a56dc8f8dc0f"
+      "sha256": "d0523eb7da898ebfad87353b094e29e7fd0173d4e41268435c8c8f94868baa1c"
     },
     {
       "path": "wiki/Home.md",
