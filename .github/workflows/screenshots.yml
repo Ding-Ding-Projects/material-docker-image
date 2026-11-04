@@ -21,6 +21,17 @@ jobs:
       - name: Publish the application
         shell: cmd
         run: build.bat -Version 0.0.${{ github.run_number }}
+      - name: Make sure the Docker engine is running
+        shell: pwsh
+        run: |
+          # The capture needs a real engine; without one every engine page shows its error state, which must never be
+          # published as product evidence. Start the service when it is stopped and fail clearly when it never answers.
+          $service = Get-Service docker -ErrorAction SilentlyContinue
+          if ($null -eq $service) { throw 'The Docker service is not installed on this runner, so the populated screens cannot be captured.' }
+          if ($service.Status -ne 'Running') { Write-Host "Docker service is $($service.Status); starting it."; Start-Service docker }
+          $deadline = (Get-Date).AddMinutes(2)
+          do { docker info --format '{{.OSType}} {{.ServerVersion}}' 2>$null; if ($LASTEXITCODE -eq 0) { exit 0 }; Start-Sleep 5 } while ((Get-Date) -lt $deadline)
+          throw 'The Docker engine did not answer within two minutes, so the populated screens cannot be captured.'
       - name: Create labelled engine resources for populated screens
         shell: pwsh
         continue-on-error: true
