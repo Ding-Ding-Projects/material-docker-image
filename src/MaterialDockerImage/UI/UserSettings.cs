@@ -72,6 +72,8 @@ public sealed class UserSettings
     public string ScheduleHaEntity { get; set; } = "";
     public int ScheduleHaPollMinutes { get; set; } = ScheduleSourceRules.DefaultHomeAssistantPollMinutes;
     public string ExternalEditor { get; set; } = "";
+    /// <summary>Opens interactive container terminals in a classic console window instead of the Windows default terminal application.</summary>
+    public bool ClassicConsoleWindow { get; set; }
     /// <summary>Opens Suggestions automatically while typing in the Dockerfile and Compose editors. Ctrl+Space always works.</summary>
     public bool SuggestionsWhileTyping { get; set; } = true;
     public int MonitorIntervalSeconds { get; set; } = 2;

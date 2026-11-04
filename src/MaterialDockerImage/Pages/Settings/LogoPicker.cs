@@ -77,6 +77,6 @@ public sealed partial class SettingsPage
         return Ui.VStack(8,
             Ui.HStack(12, previewSlot, status, reset),
             Ui.HStack(8, symbolBox, useSymbol), symbolError, suggestions,
-            Ui.HStack(8, choose, Ui.Caption("PNG, ICO or JPG up to 1 MiB. The file is copied into the app data folder and never uploaded.")));
+            new DockPanel { Children = { choose.Margin(0, 0, 8, 0).Dock(Dock.Left), Ui.Caption("PNG, ICO or JPG up to 1 MiB. The file is copied into the app data folder and never uploaded.") } });
     }
 }

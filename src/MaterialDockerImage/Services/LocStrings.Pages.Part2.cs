@@ -226,6 +226,9 @@ public static partial class Loc
         yield return new("External editor", "外部編輯器");
         yield return new("External editor reset to the system default", "外部編輯器已重設為系統預設");
         yield return new("External editor set to", "外部編輯器已設為");
+        yield return new("Open terminals in a classic console window", "用傳統主控台視窗開終端機");
+        yield return new("Interactive container terminals normally open in the Windows default terminal application. Turn this on to use a separate classic console window instead.", "互動式容器終端機平時會喺 Windows 預設終端機程式度開。開咗呢個就改用一個獨立嘅傳統主控台視窗。");
+        yield return new("Windows Terminal may add the session as a tab to a window that is already open. A classic console window always opens as its own window, next to this app.", "Windows Terminal 可能會將工作階段加落一個已經開咗嘅視窗做分頁。傳統主控台視窗一定會自己開一個新視窗，喺呢個 app 旁邊。");
         yield return new("Extra hosts", "額外主機");
         yield return new("Extracts an archive into a volume through a helper container.", "透過輔助容器將封存檔解壓入磁碟區。");
         yield return new("Fabric-compatible mod loader.", "相容 Fabric 嘅模組載入器。");

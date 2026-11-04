@@ -44,6 +44,9 @@ public sealed partial class SettingsPage
         var reset = Ui.Button("Use system default", null, ButtonKind.Text, () => { editor.Text = ""; SaveEditor(""); });
         rows.Add("editor", "External editor", "The program used when you choose Open in editor. Leave empty to use the Windows default for the file type.",
             Ui.VStack(6, Ui.HStack(8, editor, browse, reset), editorError), s => s.ExternalEditor, null, true, v => v is string { Length: > 0 } t ? Path.GetFileName(t) : "system default", @"C:\Program Files\Microsoft VS Code\Code.exe");
+        rows.Add("terminal", "Open terminals in a classic console window", "Interactive container terminals normally open in the Windows default terminal application. Turn this on to use a separate classic console window instead.",
+            SettingRows.Toggle(S.ClassicConsoleWindow, v => { S.ClassicConsoleWindow = v; Commit("Classic console window for terminals " + (v ? "on" : "off")); }), s => s.ClassicConsoleWindow,
+            "Windows Terminal may add the session as a tab to a window that is already open. A classic console window always opens as its own window, next to this app.");
         rows.Add("suggestions", "Show suggestions while typing", "Opens Suggestions automatically in the Dockerfile and Compose editors as you type. Ctrl+Space always opens them and Ctrl+Shift+Space opens the value picker at the caret.",
             SettingRows.Toggle(S.SuggestionsWhileTyping, v => { S.SuggestionsWhileTyping = v; Commit("Suggestions while typing " + (v ? "on" : "off")); }), s => s.SuggestionsWhileTyping,
             "Suggestions come from the Dockerfile reference built into the app, the stages and variables in the file, local images on the selected engine context and file names in the build context folder. Secret-looking files are never listed and nothing is sent anywhere.");

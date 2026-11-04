@@ -1152,4 +1152,15 @@ count += RegexRemainingChecks.Run();
     var ssReloaded = System.Text.Json.JsonSerializer.Deserialize<UserSettings>(ssPersisted.ToJson())!; ssReloaded.Normalize();
     Check(CollapseFilterState.IsCollapsed(ssReloaded.CollapsedFilters, "storage.stats"), "collapsed state survives a save and load");
 }
+{
+    var clTokens = new[] { "exec", "-it", "abc123", "sh" };
+    var clDefault = MaterialDockerImage.UI.ConsoleLaunch.Build(clTokens, false, @"C:\Windows\System32");
+    Check(clDefault.FileName == "docker" && clDefault.Arguments == "exec -it abc123 sh" && clDefault.UseShellExecute, "default terminal launch goes through the shell");
+    var clClassic = MaterialDockerImage.UI.ConsoleLaunch.Build(clTokens, true, @"C:\Windows\System32");
+    Check(clClassic.FileName == @"C:\Windows\System32\conhost.exe" && clClassic.Arguments == "docker exec -it abc123 sh" && !clClassic.UseShellExecute, "classic console launch starts conhost directly with the docker command");
+    var clRejected = 0;
+    foreach (var bad in new[] { new[] { "exec", "a b" }, new[] { "exec", "\"x" }, new[] { "exec", "" }, System.Array.Empty<string>() })
+        try { MaterialDockerImage.UI.ConsoleLaunch.Build(bad, true, @"C:\Windows\System32"); } catch (System.ArgumentException) { clRejected++; }
+    Check(clRejected == 4, "console launch rejects empty, spaced or quoted arguments");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

@@ -96,7 +96,8 @@ internal sealed class ContainerExec : StackPanel
         if (page.Context is { Length: > 0 } ctx) { DockerService.ValidateOperand(ctx, "context"); tokens.AddRange(["--context", ctx]); }
         tokens.AddRange(["exec", "-it", container.Id, program]);
         if (tokens.Any(t => t.Any(c => char.IsWhiteSpace(c) || c == '"'))) { Host.Notify.Error("The engine context name contains characters that cannot be passed to a console window."); return; }
-        var start = new ProcessStartInfo("docker", string.Join(" ", tokens)) { UseShellExecute = true };
+        var plan = ConsoleLaunch.Build(tokens, Host.Settings.ClassicConsoleWindow, Environment.SystemDirectory);
+        var start = new ProcessStartInfo(plan.FileName, plan.Arguments) { UseShellExecute = plan.UseShellExecute };
         try
         {
             Process.Start(start)?.Dispose();

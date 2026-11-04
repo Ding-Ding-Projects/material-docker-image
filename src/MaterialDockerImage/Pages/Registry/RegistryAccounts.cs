@@ -1,3 +1,4 @@
+using System.Windows.Automation;
 using System.Windows;
 using System.Windows.Controls;
 using MaterialDockerImage.Core;
@@ -40,7 +41,8 @@ internal sealed class RegistryAccounts
             Ui.Field("Registry", registry, "The registry host to sign in to. Use docker.io for Docker Hub, or a host such as ghcr.io or registry.example.com:5000.", "ghcr.io"),
             Ui.Field("User name", user, "Your account name on that registry. For tokens, some registries accept any user name; check the registry's documentation."),
             Ui.Field("Password or access token", password, "Prefer a personal access token with the narrowest scope. It is sent to docker login on standard input (--password-stdin), never placed on the command line, never written to history or logs, and the field is cleared afterwards."),
-            Ui.HStack(8, Ui.Icon(Icons.Lock, 16), Ui.Caption("Sent to the engine on standard input, never stored or logged by this app. Docker itself stores the credential in its configured credential store.")),
+            // A horizontal stack gives the caption unlimited width, so it never wrapped and was cut off at the card edge.
+            new DockPanel { Children = { Ui.Icon(Icons.Lock, 16).Margin(0, 0, 8, 0).Dock(Dock.Left), Ui.Caption("Sent to the engine on standard input, never stored or logged by this app. Docker itself stores the credential in its configured credential store.") } },
             formError,
             signIn);
         SignInCard = PageParts.Section("Sign in", null, form);
@@ -76,7 +78,10 @@ internal sealed class RegistryAccounts
             var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
             row.Children.Add(Ui.Icon(Icons.Cloud, 20, false, "Primary").Margin(0, 0, 12, 0).Dock(Dock.Left));
             var e = entry;
-            row.Children.Add(Ui.AsyncButton("Sign out", Icons.Logout, ButtonKind.Text, () => SignOutAsync(e.Registry)).Dock(Dock.Right));
+            var signOut = Ui.AsyncButton("Sign out", Icons.Logout, ButtonKind.Text, () => SignOutAsync(e.Registry));
+            // Every row has the same visible label, so the accessible name carries the registry.
+            AutomationProperties.SetName(signOut, Loc.T("Sign out of") + " " + e.Registry);
+            row.Children.Add(signOut.Dock(Dock.Right));
             row.Children.Add(Ui.VStack(2, Ui.Text(entry.Registry, 14, FontWeights.SemiBold, "OnSurface", false, false), Ui.Caption(Loc.T("Listed under") + " " + entry.Source)));
             signedIn.Children.Add(row);
         }

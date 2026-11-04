@@ -89,6 +89,36 @@
       },
       "observed": "The popover opened as its own window with the scope line for the Containers search, the 'Use as a regular expression' toggle, the pattern field, all eight flags (IgnoreCase, Multiline, Singleline, IgnorePatternWhitespace, ExplicitCapture, CultureInvariant, RightToLeft, NonBacktracking), the More, Library, My patterns, Parameters and History tabs and the Text, Classes, Anchors, Groups, Repeat and Blocks palettes.",
       "result": "pass (opened and rendered; individual tool sections not driven)"
+    },
+    {
+      "action": "Registry › Sign in to a local test registry (registry:2 with a bcrypt htpasswd user, 127.0.0.1:5077)",
+      "artifact": {
+        "version": "0.99.27",
+        "dll_sha256": "1d5df9e85c0a7c6778ec6d81b9c15a06b5cb740d9becef0fcddac309877688fd",
+        "source": "main 2b6493f plus the registry and terminal changes committed with this receipt"
+      },
+      "observed": "The operations dock showed 'Login Succeeded' and 'Sign in to 127.0.0.1:5077: completed' (exit 0), and 127.0.0.1:5077 appeared at the top of the signed-in list and in the Docker CLI configuration. The earlier failure came from the test registry: its password file was never mounted (Git Bash rewrote the container path), so it had provisioned its own user.",
+      "result": "pass"
+    },
+    {
+      "action": "Registry › Sign out of 127.0.0.1:5077 and confirm",
+      "artifact": {
+        "version": "0.99.27",
+        "dll_sha256": "1d5df9e85c0a7c6778ec6d81b9c15a06b5cb740d9becef0fcddac309877688fd",
+        "source": "main 2b6493f plus the registry and terminal changes committed with this receipt"
+      },
+      "observed": "Each row's button now has an accessible name naming its registry, so the right one could be chosen; the confirmation dialog ran docker logout ('Removing login credentials for 127.0.0.1:5077', exit 0). The four pre-existing registry entries were unchanged before and after.",
+      "result": "pass"
+    },
+    {
+      "action": "Containers › Exec › Open terminal with 'Open terminals in a classic console window' on, against a labelled alpine:3.20 container",
+      "artifact": {
+        "version": "0.99.27",
+        "dll_sha256": "1d5df9e85c0a7c6778ec6d81b9c15a06b5cb740d9becef0fcddac309877688fd",
+        "source": "main 2b6493f plus the registry and terminal changes committed with this receipt"
+      },
+      "observed": "conhost.exe started 'docker --context desktop-linux exec -it <id> sh' as a separate window on the same hidden desktop; an sh process appeared in the container; typing 'cat /etc/alpine-release; echo mdi-terminal-ok' printed 3.20.10 and the marker; 'exit' closed the console. settings.json was restored byte for byte afterwards.",
+      "result": "pass"
     }
   ],
   "findings": [
@@ -97,7 +127,6 @@
     "Capture route artifact, not a product defect: window captures of a live window on the hidden desktop show a black band at the bottom while a dialog is open; the application's own render of the same dialog is complete."
   ],
   "notExercised": [
-    "successful registry sign-in (needs a working registry account)",
-    "interactive terminal window (opens through the default terminal handoff, which can appear on the visible desktop; deliberately not launched while the host user was active)"
+    "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host, so it was not launched there)"
   ]
 }

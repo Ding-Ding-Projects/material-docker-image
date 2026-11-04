@@ -18,7 +18,7 @@ Environment entries use `NAME=value`, one per line. Everything after the first e
 
 CPU and memory limits, restart policy, read-only root filesystem and prevention of new privileges are exposed as real controls. The engine validates their final compatibility with the chosen image and host. Preventing new privileges is enabled in this editor by default and may affect images that rely on set-user-ID behavior.
 
-No privileged mode or host networking is enabled by this dialog. Interactive terminals remain a documented gap; health checks, device mappings and GPU access are described below. Compose remains available for project configuration, but does not constitute acceptance evidence for absent graphical controls.
+No privileged mode or host networking is enabled by this dialog. Interactive terminals open from Containers › Exec › Open terminal as `docker exec -it <container> <shell>` in a separate console window. By default Windows chooses the console through the default terminal application; Settings › Engine › Open terminals in a classic console window starts `conhost.exe` directly instead, which always opens its own window next to the app (verified on a desktop host with an alpine container, see evidence/interactive-2026-11/receipt.json). Health checks, device mappings and GPU access are described below. Compose remains available for project configuration, but does not constitute acceptance evidence for absent graphical controls.
 
 ## Health checks, devices and GPUs
 

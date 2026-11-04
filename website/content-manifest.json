@@ -40,11 +40,11 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "ab551e04b903014cd3c438cc6e44f583185885da76752ec8b8fb20f508a85968"
+      "sha256": "9caf20e75bb8b32e2f1071dbfecc471b921843b45c930926190343e1d2f7c621"
     },
     {
       "path": "docs/features/container-configuration.md",
-      "sha256": "68865de09ae6d7f571972c67b7a916d7824ef9f7ba503d691fd10b13199507d2"
+      "sha256": "97761c40f3d9326f8a4e54a8ae71deaaec661fd6b1abdcf0e3ee3d8b1c0a52fa"
     },
     {
       "path": "docs/features/contexts-and-swarm.md",
@@ -112,7 +112,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "2f37dda2a32ad50b1f198408b0ca00f8d3763988dbb8d61eda25c19828d3e3f8"
+      "sha256": "7930eec143a411f64ae9c1c528b9bd9b057410fd8743ee65cf80d9830080ed92"
     },
     {
       "path": "ROADMAP.md",
@@ -120,7 +120,7 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "f56d9b205f84ba0aeb83aa223c17420a5f9d8b93ff3eee48884df8c35d16ae37"
+      "sha256": "e449bde07cfcd7402586ee8d68860142917526d8949d03479e9cb05a376783c3"
     },
     {
       "path": "wiki/Home.md",

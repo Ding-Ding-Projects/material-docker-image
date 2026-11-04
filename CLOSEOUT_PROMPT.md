@@ -11,11 +11,11 @@ State on main (4 November 2026, end of the polish and feature pass):
 - In-app changelog, five export formats, command-derived menu shortcuts, info icons, background update check.
 - Documentation site: live download panel, link previews, provenance, site search with a bounded regex builder, offline documentation zip.
 - Release workflow: only main's tip takes Latest; superseded runs stop cleanly.
-- Checks: build.bat -Tests passes 23 core, 1,618 UI-state and 24 checklist checks.
-- Interactive receipt: evidence/interactive-2026-11/receipt.json, 14 steps driven through UI Automation on a hidden desktop.
+- Checks: build.bat -Tests passes 23 core, 1,621 UI-state and 24 checklist checks.
+- Interactive receipt: evidence/interactive-2026-11/receipt.json, 17 steps driven through UI Automation on a hidden desktop.
 
 Next:
-1. Exercise a successful registry sign-in (with a working registry account) and the terminal window (without disturbing the visible desktop).
+1. Registry sign-in and the interactive terminal are now exercised; only the terminal's default Windows Terminal path remains unlaunched.
 2. Drive the regex builder tool sections, schedules, locks, authenticator and update banner in the built window and capture them across language, theme and 100-200 % scale.
 3. Remaining catalogue gaps: password and combined lock policies, unlock durations, the dim sum, sums and whack-a-mole ladder rungs, Support Tickets, locks on arbitrary elements, the per-element appearance editor, a general authenticator, school-mode PIN, dim sum pictures.
 4. Keep HANDOFF.md, ROADMAP.md, docs/features and evidence/uh-features-audit.md current and regenerate the site with node website/render.mjs.

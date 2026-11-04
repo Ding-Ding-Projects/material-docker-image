@@ -14,6 +14,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/ContainerInspectFacts.cs" Link="ContainerInspectFacts.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/Loc.cs" Link="Loc.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/VocabularyDropRules.cs" Link="VocabularyDropRules.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/ConsoleLaunch.cs" Link="ConsoleLaunch.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/LocStrings*.cs" LinkBase="Loc"/>
     <Compile Include="../../src/MaterialDockerImage/Services/HistoryStore.cs" Link="HistoryStore.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/Base64Tools.cs" Link="Base64Tools.cs"/>
