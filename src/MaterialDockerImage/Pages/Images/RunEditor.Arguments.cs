@@ -17,13 +17,6 @@ internal sealed partial class RunEditor
 
     private static readonly Regex SecretName = new(@"(?i)(pass(word|wd)?|secret|token|api[_-]?key|private[_-]?key|credential|auth|pwd)", RegexOptions.None, TimeSpan.FromMilliseconds(100));
 
-    private static string Duration(string label, string? value)
-    {
-        if (value == null) return "";
-        if (!Matches(value, @"^([0-9]+(\.[0-9]+)?(ns|us|ms|s|m|h))+$")) throw new ArgumentException($"{label} must be a duration such as 30s, 1m30s or 500ms.");
-        return value;
-    }
-
     private static IEnumerable<string> SplitList(string text) => text.Split([' ', ',', ';', '\t'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
     /// <summary>Builds the complete docker argument list (without the global --context, which the host adds).</summary>
@@ -126,37 +119,13 @@ internal sealed partial class RunEditor
             if (!int.TryParse(pidText, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var limit) || (limit < 1 && limit != -1)) throw new ArgumentException("Process limit must be a positive whole number, or -1 for unlimited.");
             args.Add("--pids-limit"); args.Add(limit.ToString(CultureInfo.InvariantCulture));
         }
-        if (Optional(gpus) is { } gpu)
-        {
-            if (!Matches(gpu, @"^(all|[0-9]+|""?[A-Za-z0-9=,._:-]+""?)$")) throw new ArgumentException("GPUs must be all, a count, or a request such as device=0,1.");
-            Flag("--gpus", gpu);
-        }
-        foreach (var row in devices)
-        {
-            var source = row.Host.Text.Trim();
-            if (source.Length == 0) continue;
-            var target = row.Container.Text.Trim();
-            foreach (var p in new[] { source, target }) if (p.Length > 0 && (!p.StartsWith('/') || p.Contains(':') || p.Contains(','))) throw new ArgumentException("Device paths must be absolute (for example /dev/ttyUSB0) and cannot contain colons.");
-            Flag("--device", source + ":" + (target.Length > 0 ? target : source) + ":" + (row.Permissions.SelectedItem as string ?? "rwm"));
-        }
+        if (Optional(gpus) is { } gpu) Flag("--gpus", StructuredInputs.Gpus(gpu, gpuCapabilities.Text));
+        else if (Optional(gpuCapabilities) != null) throw new ArgumentException("GPU capabilities need a GPU request: enter all, a count or device IDs.");
+        foreach (var device in StructuredInputs.Devices(devices.Select(row => (row.Host.Text, row.Container.Text, row.Permissions.Text)))) Flag("--device", device);
+        foreach (var rule in StructuredInputs.Lines(cgroupRules.Text)) Flag("--device-cgroup-rule", StructuredInputs.DeviceCgroupRule(rule));
 
-        if (noHealthcheck.IsChecked == true)
-        {
-            if (Optional(healthCmd) != null) throw new ArgumentException("Choose either a health command or Disable the image health check, not both.");
-            args.Add("--no-healthcheck");
-        }
-        else
-        {
-            if (Optional(healthCmd) is { } hc) { StructuredInputs.Token(hc); Flag("--health-cmd", hc); }
-            if (Duration("Interval", Optional(healthInterval)) is { Length: > 0 } interval) Flag("--health-interval", interval);
-            if (Optional(healthRetries) is { } hr)
-            {
-                if (!int.TryParse(hr, NumberStyles.None, CultureInfo.InvariantCulture, out var r) || r < 1) throw new ArgumentException("Health retries must be a positive whole number.");
-                args.Add("--health-retries"); args.Add(r.ToString(CultureInfo.InvariantCulture));
-            }
-            if (Duration("Timeout", Optional(healthTimeout)) is { Length: > 0 } timeout) Flag("--health-timeout", timeout);
-            if (Duration("Start period", Optional(healthStart)) is { Length: > 0 } start) Flag("--health-start-period", start);
-        }
+        foreach (var item in StructuredInputs.HealthArguments(new HealthSettings(Optional(healthCmd), Optional(healthInterval), Optional(healthTimeout), Optional(healthRetries), Optional(healthStart), Optional(healthStartInterval), noHealthcheck.IsChecked == true)))
+            args.Add(item);
 
         if (noNewPrivileges.IsChecked == true) { args.Add("--security-opt"); args.Add("no-new-privileges:true"); }
         if (capDropAll.IsChecked == true) { args.Add("--cap-drop"); args.Add("ALL"); }
@@ -191,7 +160,7 @@ internal sealed partial class RunEditor
         if (close == null) return;
         portWarning.Visibility = ports.Any(p => IPAddress.TryParse(p.Address.Text.Trim(), out var ip) && (ip.Equals(IPAddress.Any) || ip.Equals(IPAddress.IPv6Any))) ? Visibility.Visible : Visibility.Collapsed;
         envWarning.Visibility = env.Any(e => e.Name.Text.Length > 0 && SecretName.IsMatch(e.Name.Text)) ? Visibility.Visible : Visibility.Collapsed;
-        hardwareWarning.Visibility = Optional(gpus) != null || devices.Any(d => d.Host.Text.Trim().Length > 0) ? Visibility.Visible : Visibility.Collapsed;
+        hardwareWarning.Visibility = Optional(gpus) != null || devices.Any(d => d.Host.Text.Trim().Length > 0) || Optional(cgroupRules) != null ? Visibility.Visible : Visibility.Collapsed;
         SetCount("Ports", ports.Count);
         SetCount("Environment", env.Count + (Optional(envFile) != null ? 1 : 0));
         SetCount("Mounts", mounts.Count + tmpfs.Count);
@@ -233,7 +202,7 @@ internal sealed partial class RunEditor
         }
         else
         {
-            resultText.Text = Loc.T("The container was not created.") + " " + PageKit.Failure(result) + " The output panel has the full transcript.";
+            resultText.Text = Loc.T("The container was not created.") + " " + PageKit.Failure(result) + " The output panel has the full transcript." + (ContainerInspectFacts.HardwareFailureNote(result?.StandardError) is { Length: > 0 } hardwareNote ? " " + Loc.T(hardwareNote) : "");
         }
     }
 }

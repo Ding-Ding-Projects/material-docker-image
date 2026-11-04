@@ -63,6 +63,8 @@ internal sealed partial class RunEditor
     private readonly TextBox memoryReservation = Ui.Input("", "Memory reservation");
     private readonly TextBox pids = Ui.Input("", "Process limit");
     private readonly TextBox gpus = Ui.Input("", "GPUs", true);
+    private readonly TextBox gpuCapabilities = Ui.Input("", "GPU capabilities", true);
+    private readonly TextBox cgroupRules = Ui.CodeBox("", 60);
     private readonly StackPanel deviceList = new();
     private readonly List<DeviceRow> devices = new();
     private readonly Border hardwareWarning;
@@ -74,6 +76,7 @@ internal sealed partial class RunEditor
     private readonly TextBox healthRetries = Ui.Input("", "Retries");
     private readonly TextBox healthTimeout = Ui.Input("", "Timeout");
     private readonly TextBox healthStart = Ui.Input("", "Start period");
+    private readonly TextBox healthStartInterval = Ui.Input("", "Start interval");
     private readonly CheckBox noHealthcheck = Ui.Switch("Disable the image health check", false, _ => { }, "--no-healthcheck turns off any HEALTHCHECK defined in the image.");
     // Security
     private readonly CheckBox readOnlyRoot = Ui.Switch("Read-only root filesystem", false, _ => { }, "--read-only. Writes go only to mounts and tmpfs.");
@@ -337,15 +340,18 @@ internal sealed partial class RunEditor
                 Ui.Field("Memory limit", memory, "--memory is a hard limit. Use bytes or b/k/m/g units. The kernel stops the process if it exceeds the limit.", "512m")),
             Two(Ui.Field("Memory reservation", memoryReservation, "--memory-reservation is a soft limit applied when the host is short of memory. It must be below the memory limit.", "256m"),
                 Ui.Field("Process limit", pids, "--pids-limit caps how many processes and threads the container can create.", "200")),
-            Ui.Field("GPUs", gpus, "--gpus requests GPU access, for example all, a count, or device IDs. Requires GPU support on the engine host.", "all   or   device=0,1"),
-            Ui.Columns(4, [1, 0], Ui.Overline("Devices"), Ui.InfoButton("Devices", "--device maps a host device into the container with read (r), write (w) and mknod (m) permissions.", "/dev/ttyUSB0:/dev/ttyUSB0:rw")),
-            deviceList, addDevice, hardwareWarning);
+            Two(Ui.Field("GPUs", gpus, "--gpus requests GPU access: all, a count, or device IDs. Requires GPU support on the engine host; an engine without it refuses to start the container.", "all   or   2   or   device=0,1"),
+                Ui.Field("GPU capabilities", gpuCapabilities, "Optional capabilities for the GPU request, separated by spaces or commas. Leave empty for the driver default.", "compute utility")),
+            Ui.Columns(4, [1, 0], Ui.Overline("Devices"), Ui.InfoButton("Devices", "--device maps a host device into the container with read (r), write (w) and mknod (m) permissions. Device paths belong to the engine host.", "/dev/ttyUSB0:/dev/ttyUSB0:rw")),
+            deviceList, addDevice,
+            Ui.Field("Device cgroup rules", cgroupRules, "--device-cgroup-rule allows access to devices by type and major:minor numbers, one rule per line, for example c 189:* rwm. Rules apply to devices that appear later, such as hot-plugged USB.", "c 189:* rwm"),
+            hardwareWarning);
     }
 
     private void AddDevice()
     {
         var host = Ui.Input("", "Host device path", true); var container = Ui.Input("", "Container device path", true);
-        var perms = Ui.Combo(["rwm", "rw", "r"], "rwm"); System.Windows.Automation.AutomationProperties.SetName(perms, Loc.T("Device permissions"));
+        var perms = Ui.Combo(["rwm", "rw", "rm", "wm", "r", "w", "m"], "rwm", true);System.Windows.Automation.AutomationProperties.SetName(perms, Loc.T("Device permissions"));
         DeviceRow? row = null;
         var remove = Ui.IconButton(Icons.Delete, "Remove device", () => { devices.Remove(row!); deviceList.Children.Remove(row!.View); Update(); });
         var grid = Ui.Columns(8, [1, 1, -90, -40], host, container, perms, remove);
@@ -358,11 +364,13 @@ internal sealed partial class RunEditor
         Two(Ui.Field("Restart policy", restart, "--restart decides whether the engine restarts the container after it exits or after the engine restarts.", "unless-stopped"),
             Ui.Field("Maximum retries", restartRetries, "Only for on-failure: stop retrying after this many restarts. Leave empty for no limit.", "5")),
         Ui.Field("Health command", healthCmd, "--health-cmd runs inside the container through its shell (CMD-SHELL). Exit code 0 means healthy.", "curl -fsS http://localhost:8080/health || exit 1"),
-        Ui.Columns(12, [1, 1, 1, 1],
-            Ui.Field("Interval", healthInterval, "Time between checks, as a Go duration.", "30s"),
-            Ui.Field("Retries", healthRetries, "Consecutive failures before the container is unhealthy.", "3"),
-            Ui.Field("Timeout", healthTimeout, "Maximum time one check may take.", "5s"),
-            Ui.Field("Start period", healthStart, "Initial grace period during which failures do not count.", "1m")),
+        Ui.Columns(12, [1, 1, 1],
+            Ui.Field("Interval", healthInterval, "--health-interval: time between checks, as a Go duration such as 30s or 1m30s.", "30s"),
+            Ui.Field("Retries", healthRetries, "--health-retries: consecutive failures before the container is unhealthy. A positive whole number.", "3"),
+            Ui.Field("Timeout", healthTimeout, "--health-timeout: maximum time one check may take.", "5s")),
+        Ui.Columns(12, [1, 1],
+            Ui.Field("Start period", healthStart, "--health-start-period: initial grace period during which failures do not count.", "1m"),
+            Ui.Field("Start interval", healthStartInterval, "--health-start-interval: time between checks during the start period. Needs Docker Engine 25 or later.", "2s")),
         noHealthcheck);
 
     private UIElement BuildSecurity() => Ui.VStack(10,

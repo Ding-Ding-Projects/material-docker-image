@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace MaterialDockerImage.UI;
 
-public static class StructuredInputs
+public static partial class StructuredInputs
 {
     private static readonly TimeSpan Timeout = TimeSpan.FromMilliseconds(100);
     public static string[] Lines(string text) => text.Split(['\r','\n'],StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

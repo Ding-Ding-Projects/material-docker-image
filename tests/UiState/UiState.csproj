@@ -9,7 +9,8 @@
     <Compile Include="../../src/MaterialDockerImage/UI/UserSettings.cs" Link="UserSettings.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/AppIdentity.cs" Link="AppIdentity.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/Icons.g.cs" Link="Icons.g.cs"/>
-    <Compile Include="../../src/MaterialDockerImage/UI/StructuredInputs.cs" Link="StructuredInputs.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/StructuredInputs*.cs" LinkBase="Inputs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/ContainerInspectFacts.cs" Link="ContainerInspectFacts.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/Loc.cs" Link="Loc.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/VocabularyDropRules.cs" Link="VocabularyDropRules.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/LocStrings*.cs" LinkBase="Loc"/>

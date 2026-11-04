@@ -52,6 +52,67 @@ Check(StructuredInputs.Port("::1","8080","80","udp")=="[::1]:8080:80/udp","IPv6 
 Reject(()=>StructuredInputs.Port("127.0.0.1","65536","80","tcp"),"out-of-range port rejected");
 Reject(()=>StructuredInputs.Port("example.com","8080","80","tcp"),"ambiguous bind hostname rejected");
 Check(StructuredInputs.Mount("bind","/remote/not-present-locally","/data",true)=="type=bind,source=/remote/not-present-locally,target=/data,readonly","remote bind path does not require local existence");
+// Container controls: health checks, device mappings and GPU requests.
+Check(StructuredInputs.Duration("Interval","1m30s")=="1m30s"&&StructuredInputs.Duration("Interval","500ms")=="500ms"&&StructuredInputs.Duration("Interval","  ")=="","health durations accept Go formats and blank");
+Reject(()=>StructuredInputs.Duration("Interval","30"),"health duration without unit rejected");
+Reject(()=>StructuredInputs.Duration("Interval","-5s"),"negative health duration rejected");
+Reject(()=>StructuredInputs.Duration("Interval","0s"),"zero health duration rejected");
+Reject(()=>StructuredInputs.Duration("Timeout","500us"),"sub-millisecond health duration rejected");
+Check(StructuredInputs.PositiveInt("Retries","3")==3&&StructuredInputs.PositiveInt("Retries","")==null,"health retries parse and blank is unset");
+Reject(()=>StructuredInputs.PositiveInt("Retries","0"),"zero health retries rejected");
+Reject(()=>StructuredInputs.PositiveInt("Retries","-1"),"negative health retries rejected");
+Reject(()=>StructuredInputs.PositiveInt("Retries","2.5"),"fractional health retries rejected");
+var healthFull=StructuredInputs.HealthArguments(new HealthSettings("curl -fsS http://localhost/ || exit 1","30s","5s","3","1m","2s",false));
+Check(string.Join("|",healthFull)=="--health-cmd|curl -fsS http://localhost/ || exit 1|--health-interval|30s|--health-timeout|5s|--health-retries|3|--health-start-period|1m|--health-start-interval|2s","every health flag is built in a stable order with one token per value");
+Check(StructuredInputs.HealthArguments(new HealthSettings(null,null,null,null,null,null,false)).Count==0,"empty health settings add no flags");
+Check(string.Join("|",StructuredInputs.HealthArguments(new HealthSettings(null,null,null,null,null,null,true)))=="--no-healthcheck","disable health check adds only --no-healthcheck");
+Reject(()=>StructuredInputs.HealthArguments(new HealthSettings("true",null,null,null,null,null,true)),"no-healthcheck cannot combine with a health command");
+Reject(()=>StructuredInputs.HealthArguments(new HealthSettings(null,"5s",null,null,null,null,true)),"no-healthcheck cannot combine with timing options");
+Reject(()=>StructuredInputs.HealthArguments(new HealthSettings("true",null,null,null,null,"later",false)),"invalid start interval rejected");
+Reject(()=>StructuredInputs.HealthArguments(new HealthSettings("true\nrm",null,null,null,null,null,false)),"control characters in health command rejected");
+Check(StructuredInputs.Device("/dev/ttyUSB0","","")=="/dev/ttyUSB0:/dev/ttyUSB0:rwm","device defaults container path and permissions");
+Check(StructuredInputs.Device("/dev/sda","/dev/xvda","rw")=="/dev/sda:/dev/xvda:rw"&&StructuredInputs.Device("/dev/fuse",null,"mr")=="/dev/fuse:/dev/fuse:mr","device keeps explicit target and permission subsets");
+Reject(()=>StructuredInputs.Device("/dev/sda","","rx"),"device permission outside rwm rejected");
+Reject(()=>StructuredInputs.Device("/dev/sda","","rr"),"repeated device permission rejected");
+Reject(()=>StructuredInputs.Device("/dev/sda","","rwmx"),"over-long device permissions rejected");
+Reject(()=>StructuredInputs.Device("dev/sda","",""),"relative device host path rejected");
+Reject(()=>StructuredInputs.Device("/dev/sda:/x","",""),"device path with colon rejected");
+Reject(()=>StructuredInputs.Device("","/dev/x","rw"),"device without host path rejected");
+Check(StructuredInputs.Devices([("/dev/a","","rw"),("","",""),("/dev/b","/dev/c","")]).Count==2,"blank device rows are skipped");
+Reject(()=>StructuredInputs.Devices([("/dev/a","/dev/x","rw"),("/dev/b","/dev/x","rw")]),"two devices cannot share a container path");
+Check(StructuredInputs.DeviceCgroupRule("c 189:* rwm")=="c 189:* rwm"&&StructuredInputs.DeviceCgroupRule("b *:* r")=="b *:* r","cgroup device rules accepted");
+Reject(()=>StructuredInputs.DeviceCgroupRule("x 1:3 rwm"),"cgroup rule with unknown type rejected");
+Reject(()=>StructuredInputs.DeviceCgroupRule("c 1:3 rwx"),"cgroup rule with bad permission rejected");
+Reject(()=>StructuredInputs.DeviceCgroupRule("c 1-3 rw"),"cgroup rule with bad major:minor rejected");
+Reject(()=>StructuredInputs.DeviceCgroupRule("c 1:3 rr"),"cgroup rule with repeated permission rejected");
+Check(StructuredInputs.Gpus("all","")=="all"&&StructuredInputs.Gpus("2","")=="2","GPU all and count accepted");
+Check(StructuredInputs.Gpus("device=0,1","")=="\"device=0,1\"","GPU device IDs are quoted for the engine list parser");
+Check(StructuredInputs.Gpus("all","compute utility")=="all,\"capabilities=compute,utility\""&&StructuredInputs.Gpus("device=GPU-3a23c669","video")=="\"device=GPU-3a23c669\",\"capabilities=video\"","GPU capabilities append to the request");
+Reject(()=>StructuredInputs.Gpus("0",""),"zero GPU count rejected");
+Reject(()=>StructuredInputs.Gpus("everything",""),"unknown GPU request rejected");
+Reject(()=>StructuredInputs.Gpus("all","Compute!"),"malformed GPU capability rejected");
+Reject(()=>StructuredInputs.Gpus("all","compute compute"),"duplicate GPU capability rejected");
+Reject(()=>StructuredInputs.Gpus("device=0,",""),"trailing comma in GPU device list rejected");
+var inspectSample=System.Text.Json.JsonDocument.Parse("""
+{"Config":{"Healthcheck":{"Test":["CMD-SHELL","true"],"Interval":2000000000,"Timeout":90000000000,"Retries":3,"StartPeriod":60000000000,"StartInterval":500000000}},
+ "State":{"Status":"running","Error":"","Health":{"Status":"unhealthy","FailingStreak":4,"Log":[{"Start":"2026-11-04T10:00:00Z","End":"2026-11-04T10:00:01Z","ExitCode":1,"Output":"old failure\n"},{"Start":"2026-11-04T10:00:02Z","End":"2026-11-04T10:00:03Z","ExitCode":0,"Output":"newest\n"}]}},
+ "HostConfig":{"Devices":[{"PathOnHost":"/dev/fuse","PathInContainer":"/dev/fuse","CgroupPermissions":"rwm"}],"DeviceCgroupRules":["c 189:* rwm"],
+  "DeviceRequests":[{"Driver":"nvidia","Count":-1,"DeviceIDs":null,"Capabilities":[["gpu","utility"]],"Options":{}},{"Driver":"","Count":0,"DeviceIDs":["0","1"],"Capabilities":[["gpu"]]}]}}
+""").RootElement;
+var healthSample=ContainerInspectFacts.Health(inspectSample);
+Check(healthSample is {HasHealthcheck:true,Status:"unhealthy",FailingStreak:4,Test:"true",Interval:"2s",Timeout:"1m30s",StartPeriod:"1m",StartInterval:"500ms",Retries:3},"inspector reads configured health check and live status");
+Check(healthSample.Probes.Count==2&&healthSample.Probes[0].Output=="newest"&&healthSample.Probes[1].ExitCode==1,"inspector lists probe outputs newest first");
+Check(ContainerInspectFacts.Devices(inspectSample).Single()=="/dev/fuse → /dev/fuse (rwm)"&&ContainerInspectFacts.CgroupRules(inspectSample).Single()=="c 189:* rwm","inspector lists devices and cgroup rules");
+var gpuSample=ContainerInspectFacts.GpuRequests(inspectSample);
+Check(gpuSample.Count==2&&gpuSample[0].Contains("nvidia")&&gpuSample[0].Contains("all devices")&&gpuSample[0].Contains("gpu, utility")&&gpuSample[1].Contains("device IDs 0, 1"),"inspector summarizes GPU device requests");
+Check(!ContainerInspectFacts.Health(System.Text.Json.JsonDocument.Parse("{\"Config\":{},\"State\":{}}").RootElement).HasHealthcheck,"container without health check reports none");
+Check(ContainerInspectFacts.Health(System.Text.Json.JsonDocument.Parse("{\"Config\":{\"Healthcheck\":{\"Test\":[\"NONE\"]}}}").RootElement).Disabled,"disabled health check is recognized");
+Check(ContainerInspectFacts.HardwareFailureNote("docker: Error response from daemon: could not select device driver \"\" with capabilities: [[gpu]].").Contains("no GPU support"),"missing GPU driver explained honestly");
+Check(ContainerInspectFacts.HardwareFailureNote("some other error")=="","unrelated errors get no hardware note");
+var engineSample=System.Text.Json.JsonDocument.Parse("""
+{"Config":{"Healthcheck":{"Test":["CMD-SHELL","echo probe-output; exit 1"],"Interval":1000000000,"Retries":2}},"State":{"Status":"running","Health":{"Status":"unhealthy","FailingStreak":3,"Log":[{"Start":"2026-11-04T12:02:45.440576177Z","End":"2026-11-04T12:02:45.522503142Z","ExitCode":1,"Output":"probe-output\n"},{"Start":"2026-11-04T12:02:46.523621556Z","End":"2026-11-04T12:02:46.604286031Z","ExitCode":1,"Output":"probe-output\n"}]}},"HostConfig":{"Devices":[{"PathOnHost":"/dev/null","PathInContainer":"/dev/mdi-null","CgroupPermissions":"rw"}],"DeviceCgroupRules":["c 189:* rwm"],"DeviceRequests":[{"Driver":"","Count":0,"DeviceIDs":["0","1"],"Capabilities":[["compute","utility","gpu"]],"Options":{}}]}}
+""").RootElement;
+Check(ContainerInspectFacts.Health(engineSample) is {Status:"unhealthy",FailingStreak:3,Test:"echo probe-output; exit 1",Interval:"1s",Retries:2}&&ContainerInspectFacts.Health(engineSample).Probes[0].Output=="probe-output"&&ContainerInspectFacts.Devices(engineSample).Single()=="/dev/null → /dev/mdi-null (rw)"&&ContainerInspectFacts.GpuRequests(engineSample).Single().Contains("device IDs 0, 1"),"inspector parses output captured from a real engine");
 Check(StructuredInputs.Mount("volume","project_data","/data",false)=="type=volume,source=project_data,target=/data","named volume mapping remains explicit");
 Reject(()=>StructuredInputs.Mount("bind","/data,readonly","/target",true),"mount CSV option injection rejected");
 Reject(()=>StructuredInputs.Mount("bind","relative","/target",true),"relative bind source rejected");

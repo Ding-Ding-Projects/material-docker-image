@@ -7,11 +7,11 @@
     "milestones": 4,
     "counts": {
       "unverified": 106,
-      "planned": 3,
-      "implemented": 14,
+      "planned": 0,
+      "implemented": 17,
       "verified": 0
     },
-    "sha256": "b64276ffd40ac27aad89bcdcc22d8503833adbd7640d1d575c7b98312dd0a84f"
+    "sha256": "70c1fd800f6ceb8446d90d2012e06331f589bb8b16e32647d99dc25ac7a8d32e"
   },
   "sources": [
     {
@@ -40,11 +40,11 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "9c8b745de5ed0b93bad0e2cb8c0451bb05e3a215e2dd5f398cb6ed3c55d0dd10"
+      "sha256": "ba735288aabcefe9ab74d74c28a2ebc1a6400f000ccbfa8fe436e5ced1a91b98"
     },
     {
       "path": "docs/features/container-configuration.md",
-      "sha256": "76350cdee9f44c74661a27c213fd55c85bd6d51d6a58958b8bd958d4db41cd9a"
+      "sha256": "68865de09ae6d7f571972c67b7a916d7824ef9f7ba503d691fd10b13199507d2"
     },
     {
       "path": "docs/features/contexts-and-swarm.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "docs/features/feature-checklist.md",
-      "sha256": "8defafd166e8de5bb9c63b53717f69e4f3f5d62c693544d86ad39c673135f092"
+      "sha256": "459b93897a7e32176933b18063a53839252194f760890cf74ea54c4803981d26"
     },
     {
       "path": "docs/features/images-and-security.md",
@@ -100,11 +100,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "4b43b65286a7e24fc9479f924773dd5be201eec9e461567924935612036c21df"
+      "sha256": "4798c81f13ccfcd354bfae474211c56c9d4b78f7b5f069cc10b0617dbc05b220"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "ea665b883564203553400c70ccce551a4fd39ca904c3dab7a5cdacc3f1187e3f"
+      "sha256": "790fc4bbb67db3f41769076ab64a398757fe2a5193ec4103502cb9d7cdf62f60"
     },
     {
       "path": "wiki/Home.md",

@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 14. Planned: 3. Unverified: 106.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 17. Planned: 0. Unverified: 106.
 
 ### Interface and personalization
 
@@ -182,9 +182,9 @@ Implemented controls, focused checks, real native execution and complete accepta
 | Identifier | Capability | Status | Remaining actions |
 | --- | --- | --- | --- |
 | `feature-checklist` | Feature completion checklist | Implemented, verification pending | Complete the capture-promotion and cleanup receipt. Isolated profile removal was rejected, so captures remain retained privately. Verify each later deployment separately; full accessibility and higher physical scales remain outside the bounded evidence. |
-| `container-health-checks` | Container health checks | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |
-| `container-device-mappings` | Container device mappings | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |
-| `container-gpu-access` | Container GPU access | Planned | Implement tailored controls, validation, documentation and focused checks, then verify with a supported real engine. |
+| `container-health-checks` | Container health checks | Implemented, verification pending | Exercise the editor fields and the live inspector refresh in the built WPF application, bound to the exact source commit and artifact hash, with captures; no GUI interaction was performed yet. |
+| `container-device-mappings` | Container device mappings | Implemented, verification pending | Exercise the device rows and cgroup rule field in the built WPF application with captures, and test a real host device on a supported engine host; no GUI interaction was performed yet. |
+| `container-gpu-access` | Container GPU access | Implemented, verification pending | Verify with a GPU-capable engine host that a container really sees the GPU, and exercise the controls in the built WPF application with captures; neither was performed. |
 
 
 ## Known limits

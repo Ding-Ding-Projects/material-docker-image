@@ -1,0 +1,57 @@
+{
+  "schema": "container-controls-engine-receipt/1",
+  "recordedOn": "2026-11-04",
+  "scope": "Argument behaviour and docker inspect shapes for health checks, device mappings and GPU requests, checked with the docker command line against the local Docker Desktop Linux engine. No application window was opened or driven; this is not interaction or visual verification.",
+  "engine": { "serverVersion": "29.6.1", "apiVersion": "1.55", "os": "linux", "image": "alpine:3.20" },
+  "containers": "Only containers named mdi-cc-test-* with the label material-docker-image.test=true were created. All were removed afterwards; zero remained.",
+  "runs": [
+    {
+      "id": "health-healthy",
+      "args": ["run", "-d", "--health-cmd", "true", "--health-interval", "2s", "--health-timeout", "3s", "--health-retries", "2", "--health-start-period", "1s", "--health-start-interval", "500ms", "alpine:3.20", "sleep", "120"],
+      "outcome": "exit 0. State.Health.Status reached healthy with FailingStreak 0 within the polling window (up to 15 s); the engine accepted every flag including --health-start-interval.",
+      "inspect": { "Config.Healthcheck": { "Test": ["CMD-SHELL", "true"], "Interval": 2000000000, "Timeout": 3000000000, "StartPeriod": 1000000000, "StartInterval": 500000000, "Retries": 2 } }
+    },
+    {
+      "id": "health-unhealthy",
+      "args": ["run", "-d", "--health-cmd", "echo probe-output; exit 1", "--health-interval", "1s", "--health-retries", "2", "alpine:3.20", "sleep", "120"],
+      "outcome": "exit 0. State.Health.Status became unhealthy with FailingStreak above the retry count; each Log entry had ExitCode 1 and Output \"probe-output\\n\". The same JSON shape is parsed by the inspector reader in a UI-state check."
+    },
+    {
+      "id": "no-healthcheck",
+      "args": ["run", "-d", "--no-healthcheck", "alpine:3.20", "sleep", "30"],
+      "outcome": "exit 0. Config.Healthcheck was {\"Test\":[\"NONE\"]}, which the inspector reports as a disabled health check."
+    },
+    {
+      "id": "device-and-cgroup-rule",
+      "args": ["run", "-d", "--device", "/dev/null:/dev/mdi-null:rw", "--device-cgroup-rule", "c 189:* rwm", "alpine:3.20", "sleep", "30"],
+      "outcome": "exit 0. HostConfig.Devices was [{PathOnHost:/dev/null, PathInContainer:/dev/mdi-null, CgroupPermissions:rw}] and HostConfig.DeviceCgroupRules was [\"c 189:* rwm\"]."
+    },
+    {
+      "id": "device-bad-permission",
+      "args": ["run", "--rm", "--device", "/dev/null:/dev/x:rx", "alpine:3.20", "true"],
+      "outcome": "exit 125, engine message: bad mode specified: rx. The editor refuses this value before it reaches the engine."
+    },
+    {
+      "id": "gpus-all-with-capability",
+      "args": ["run", "--rm", "--gpus", "all,\"capabilities=utility\"", "alpine:3.20", "true"],
+      "outcome": "exit 0. This engine accepted the request. Whether a physical GPU is usable inside a container was not exercised."
+    },
+    {
+      "id": "gpus-device-ids-with-capabilities",
+      "args": ["create", "--gpus", "\"device=0,1\",\"capabilities=compute,utility\"", "alpine:3.20", "true"],
+      "outcome": "exit 0. HostConfig.DeviceRequests was [{Driver:\"\", Count:0, DeviceIDs:[\"0\",\"1\"], Capabilities:[[\"compute\",\"utility\",\"gpu\"]]}].",
+      "note": "An unquoted list such as capabilities=compute,utility was rejected by the engine (invalid count (utility)). The editor therefore always emits the capabilities as one quoted field."
+    },
+    {
+      "id": "gpus-count",
+      "args": ["create", "--gpus", "2", "alpine:3.20", "true"],
+      "outcome": "exit 0. HostConfig.DeviceRequests was [{Count:2, Capabilities:[[\"gpu\"]]}]."
+    }
+  ],
+  "notUnderTest": [
+    "Interaction with the built WPF application (editor fields, inspector refresh timer, captures).",
+    "A container that actually uses a GPU or a real host device; the engine host's GPU driver and hardware were not inspected.",
+    "Engines older than Docker Engine 25, which do not understand --health-start-interval."
+  ],
+  "checks": "Focused argument-building, validation and inspect-parsing checks live in tests/UiState/Program.cs (container controls block)."
+}
