@@ -62,6 +62,8 @@
   - [x] Portable documentation package script, offline renderer, release asset and readback wiring (`build/package-docs.ps1`); hosted-run and opened-archive verification pending.
   - [ ] Verify the hosted release carries `MaterialDockerImageDocs.zip` and that it opens from a file location.
 - [ ] Establish complete RegexBuddy functional parity and independent workflow evidence.
+  - [ ] Portable documentation package.
+- [ ] Establish complete RegexBuddy functional parity and independent workflow evidence. Matrix in `docs/features/regex-parity.md`: 39 implemented, 14 partial, 30 unavailable or not built (debugger trace, GREP, flavor comparison, integration and others). Logic checks pass; interactive verification of the popover and HuiShots are pending.
 - [ ] Complete localization, accessibility, appearance and onboarding acceptance across supported surfaces.
 - [ ] Address health-check configuration, devices, GPU controls and interactive terminals.
 - [ ] Verify remote engines, alternative architectures and supported workflow combinations.

@@ -17,6 +17,10 @@ public sealed record RegexBuilderFlags
     public bool IgnorePatternWhitespace { get; init; }
     public bool ExplicitCapture { get; init; }
     public bool CultureInvariant { get; init; }
+    /// <summary>Scan from the end of the text towards the start. Needs the backtracking engine.</summary>
+    public bool RightToLeft { get; init; }
+    /// <summary>Require the linear-time engine: patterns that need backtracking are reported instead of falling back.</summary>
+    public bool NonBacktracking { get; init; }
 
     /// <summary>Every flag with its .NET option name and a plain description, in display order.</summary>
     public static readonly IReadOnlyList<(string Name, string Inline, string Description)> All =
@@ -27,6 +31,8 @@ public sealed record RegexBuilderFlags
         ("IgnorePatternWhitespace", "x", "Unescaped white space in the pattern is ignored and # starts a comment."),
         ("ExplicitCapture", "n", "Only named groups (?<name>...) capture; plain parentheses only group."),
         ("CultureInvariant", "", "Case-insensitive matching uses the invariant culture instead of the current one."),
+        ("RightToLeft", "", "The search starts at the end of the text and moves left. Needs the backtracking engine."),
+        ("NonBacktracking", "", "Only use the linear-time engine. Patterns with lookarounds, backreferences, atomic groups or conditionals are then reported as unsupported instead of falling back."),
     ];
 
     public bool Get(string name) => name switch
@@ -37,6 +43,8 @@ public sealed record RegexBuilderFlags
         "IgnorePatternWhitespace" => IgnorePatternWhitespace,
         "ExplicitCapture" => ExplicitCapture,
         "CultureInvariant" => CultureInvariant,
+        "RightToLeft" => RightToLeft,
+        "NonBacktracking" => NonBacktracking,
         _ => throw new ArgumentException("Unknown flag " + name, nameof(name)),
     };
 
@@ -48,6 +56,8 @@ public sealed record RegexBuilderFlags
         "IgnorePatternWhitespace" => this with { IgnorePatternWhitespace = value },
         "ExplicitCapture" => this with { ExplicitCapture = value },
         "CultureInvariant" => this with { CultureInvariant = value },
+        "RightToLeft" => this with { RightToLeft = value },
+        "NonBacktracking" => this with { NonBacktracking = value },
         _ => throw new ArgumentException("Unknown flag " + name, nameof(name)),
     };
 
@@ -60,6 +70,8 @@ public sealed record RegexBuilderFlags
         if (IgnorePatternWhitespace) o |= RegexOptions.IgnorePatternWhitespace;
         if (ExplicitCapture) o |= RegexOptions.ExplicitCapture;
         if (CultureInvariant) o |= RegexOptions.CultureInvariant;
+        if (RightToLeft) o |= RegexOptions.RightToLeft;
+        if (NonBacktracking) o |= RegexOptions.NonBacktracking;
         return o;
     }
 
@@ -162,10 +174,22 @@ public static class RegexBuilderEngine
     {
         if (pattern.Length > MaxPatternLength) return new(null, "", $"The pattern is longer than {MaxPatternLength} characters.", MaxPatternLength, null);
         string? fallback = null;
-        try { return new(new Regex(pattern, options | RegexOptions.NonBacktracking, MatchTimeout), NonBacktrackingEngine, null, -1, null); }
-        catch (RegexParseException e) { return Invalid(e); }
-        catch (NotSupportedException e) { fallback = e.Message; }
-        catch (ArgumentException e) { fallback = e.Message; }
+        var required = (options & RegexOptions.NonBacktracking) != 0;
+        // RightToLeft cannot run on the linear-time engine, so it goes straight to the backtracking one.
+        if ((options & RegexOptions.RightToLeft) != 0)
+        {
+            if (required) return new(null, "", "NonBacktracking and RightToLeft cannot be combined: the linear-time engine only scans left to right.", -1, null);
+            fallback = "RightToLeft scans from the end of the text, which the non-backtracking engine does not support.";
+        }
+        else
+        {
+            try { return new(new Regex(pattern, options | RegexOptions.NonBacktracking, MatchTimeout), NonBacktrackingEngine, null, -1, null); }
+            catch (RegexParseException e) { return Invalid(e); }
+            catch (NotSupportedException e) { fallback = e.Message; }
+            catch (ArgumentException e) { fallback = e.Message; }
+        }
+        if (required) return new(null, "", "The non-backtracking engine does not support this pattern: " + fallback, -1, null);
+        options &= ~RegexOptions.NonBacktracking;
         try { return new(new Regex(pattern, options, MatchTimeout), BacktrackingEngine, null, -1, fallback); }
         catch (RegexParseException e) { return Invalid(e); }
         catch (ArgumentException e) { return new(null, "", "Invalid pattern: " + e.Message, -1, null); }
@@ -359,6 +383,10 @@ public sealed class RegexFieldState
     public RegexBuilderFlags Flags { get; set; } = new();
     public string Sample { get; set; } = "";
     public string Replacement { get; set; } = "";
+    /// <summary>Expected-outcome lines ("+ must match", "- must not match") for this field's test suite. In memory only.</summary>
+    public string TestCases { get; set; } = "";
+    /// <summary>Plain-language building blocks typed in this field's builder. In memory only.</summary>
+    public string Blocks { get; set; } = "";
     public RegexRecentPatterns Recent { get; } = new();
 }
 

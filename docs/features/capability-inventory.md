@@ -79,7 +79,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `local-history` | Local History | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for local-history. |
 | `menu-shortcuts` | Menu Shortcuts | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for menu-shortcuts. |
 | `progress-recovery` | Progress Recovery | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for progress-recovery. |
-| `regex-search` | Regex Search | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for regex-search. |
+| `regex-search` | Regex Search | Unverified | Close the partial and unavailable rows of the RegexBuddy parity matrix that .NET allows (replacement analysis, match navigation, tree export, more conversion targets, parameters), keep the engine-impossible rows documented, verify the popover and its dialogs interactively, localize engine messages, and capture source-bound HuiShots. |
 | `tabs` | Tabs | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for tabs. |
 | `workflow-navigation` | Workflow Navigation | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for workflow-navigation. |
 

@@ -163,7 +163,7 @@ public sealed record RegexSavedPattern(string Name, string Pattern, RegexBuilder
 /// The only persisted builder data: the user's saved patterns, stored as JSON in the app data folder, bounded to
 /// <see cref="MaxEntries"/> entries.
 /// </summary>
-public static class RegexPatternStore
+public static partial class RegexPatternStore
 {
     public const int MaxEntries = 200;
     public const int MaxNameLength = 80;
@@ -178,9 +178,16 @@ public static class RegexPatternStore
         if (!File.Exists(path)) return new();
         var info = new FileInfo(path);
         if (info.Length > 4 * 1024 * 1024) throw new InvalidDataException("The saved patterns file is larger than 4 MiB and was not read.");
+        return Parse(File.ReadAllText(path));
+    }
+
+    /// <summary>Parses the library format. Throws InvalidDataException for anything that is not a valid library.</summary>
+    public static List<RegexSavedPattern> Parse(string text)
+    {
+        if (text.Length > 4 * 1024 * 1024) throw new InvalidDataException("The saved patterns text is larger than 4 MiB and was not read.");
         try
         {
-            using var doc = JsonDocument.Parse(File.ReadAllText(path));
+            using var doc = JsonDocument.Parse(text);
             var root = doc.RootElement;
             if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("format", out var f) || f.GetString() != Format) throw new InvalidDataException("The saved patterns file has an unknown format.");
             if (!root.TryGetProperty("version", out var v) || v.GetInt32() != 1) throw new InvalidDataException("The saved patterns file has an unsupported version.");
@@ -211,6 +218,17 @@ public static class RegexPatternStore
     {
         if (patterns.Count > MaxEntries) throw new InvalidOperationException($"At most {MaxEntries} patterns can be saved.");
         Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        var temp = path + ".tmp";
+        File.WriteAllBytes(temp, SerializeBytes(patterns));
+        File.Move(temp, path, true);
+    }
+
+    /// <summary>The library as JSON text, for export.</summary>
+    public static string Serialize(IReadOnlyList<RegexSavedPattern> patterns) => System.Text.Encoding.UTF8.GetString(SerializeBytes(patterns));
+
+    private static byte[] SerializeBytes(IReadOnlyList<RegexSavedPattern> patterns)
+    {
+        if (patterns.Count > MaxEntries) throw new InvalidOperationException($"At most {MaxEntries} patterns can be saved.");
         using var stream = new MemoryStream();
         using (var w = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true }))
         {
@@ -232,9 +250,7 @@ public static class RegexPatternStore
             w.WriteEndArray();
             w.WriteEndObject();
         }
-        var temp = path + ".tmp";
-        File.WriteAllBytes(temp, stream.ToArray());
-        File.Move(temp, path, true);
+        return stream.ToArray();
     }
 
     /// <summary>Adds or replaces (same name) a pattern, newest first. Refuses invalid patterns and a full library.</summary>
