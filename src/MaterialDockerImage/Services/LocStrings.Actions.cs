@@ -6,6 +6,17 @@ public static partial class Loc
     private static IEnumerable<KeyValuePair<string, string>> ActionAndFieldLabels()
     {
         // Compact layouts and the window-wide personal wording drop.
+        // Container confirmations with real singular and plural forms.
+        yield return new("Stop 1 container?", "停止 1 個容器？");
+        yield return new("Stop {0} containers?", "停止 {0} 個容器？");
+        yield return new("Restart 1 container?", "重新啟動 1 個容器？");
+        yield return new("Restart {0} containers?", "重新啟動 {0} 個容器？");
+        yield return new("Pause 1 container?", "暫停 1 個容器？");
+        yield return new("Pause {0} containers?", "暫停 {0} 個容器？");
+        yield return new("Unpause 1 container?", "恢復 1 個容器？");
+        yield return new("Unpause {0} containers?", "恢復 {0} 個容器？");
+        yield return new("Remove 1 container", "移除 1 個容器");
+        yield return new("Remove {0} containers", "移除 {0} 個容器");
         // Shell and operation panel.
         yield return new("Workspace", "工作區");
         yield return new("No operation is running.", "目前冇進行中嘅操作。");

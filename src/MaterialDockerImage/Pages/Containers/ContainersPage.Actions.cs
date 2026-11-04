@@ -12,6 +12,9 @@ public sealed partial class ContainersPage
 {
     private static readonly Regex ContainerName = new(@"^[a-zA-Z0-9][a-zA-Z0-9_.-]*$", RegexOptions.None, TimeSpan.FromMilliseconds(100));
 
+    /// <summary>"1 container" or "3 containers".</summary>
+    internal static string Count(int n) => n == 1 ? "1 container" : $"{n} containers";
+
     private static string Verb(string action) => action switch
     {
         "start" => "Start", "stop" => "Stop", "restart" => "Restart", "pause" => "Pause", "unpause" => "Unpause", _ => action
@@ -45,7 +48,7 @@ public sealed partial class ContainersPage
         };
         var skipped = rows.Count - targets.Count;
         if (targets.Count == 0) { Host.Notify.Info($"None of the selected containers can be {(action == "start" ? "started" : action == "stop" ? "stopped" : "restarted")} in their current state."); return; }
-        if (action != "start" && !await Host.Overlay.ConfirmAsync($"{Verb(action)} {targets.Count} container(s)?", string.Join("\n", targets.Select(t => "• " + t.Name))
+        if (action != "start" && !await Host.Overlay.ConfirmAsync($"{Verb(action)} {Count(targets.Count)}?", string.Join("\n", targets.Select(t => "• " + t.Name))
             + (skipped > 0 ? $"\n\n{skipped} selected container(s) are skipped because of their state." : ""), Verb(action))) return;
         if (!EnsureCurrent()) return;
         var failures = new List<string>();
@@ -162,7 +165,7 @@ public sealed partial class ContainersPage
         if (targets.Count == 0) { Host.Notify.Warning("All selected containers are running, paused or restarting. Stop them first."); return; }
         var action = "Each container is removed with docker container rm (no force, volumes kept). Writable layers are deleted." +
             (active.Count > 0 ? $" {active.Count} active container(s) are skipped: " + string.Join(", ", active.Select(a => a.Name)) + "." : "");
-        if (!await Host.Overlay.SuperConfirmAsync($"Remove {targets.Count} container(s)", action, targets.Select(t => $"{t.Name}  ({t.ShortId}, {t.Image})").ToList())) return;
+        if (!await Host.Overlay.SuperConfirmAsync($"Remove {Count(targets.Count)}", action, targets.Select(t => $"{t.Name}  ({t.ShortId}, {t.Image})").ToList())) return;
         if (!EnsureCurrent()) return;
         var failures = new List<string>();
         foreach (var t in targets)

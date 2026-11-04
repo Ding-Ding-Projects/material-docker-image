@@ -53,7 +53,7 @@ public static partial class Loc
     };
 
     /// <summary>Exact phrases plus sentence templates (keys containing {0}, {1}…) built once from every dictionary file.</summary>
-    private sealed record Template(string Prefix, string Longest, Regex Pattern, string Value);
+    private sealed record Template(string Prefix, string Longest, int Literal, Regex Pattern, string Value);
     private sealed record Lookup(Dictionary<string, string> Exact, List<Template> Templates);
     private static readonly Lazy<Lookup> Lookups = new(BuildLookup);
     private static readonly ConcurrentDictionary<string, byte> TemplateMisses = new(StringComparer.Ordinal);
@@ -80,10 +80,11 @@ public static partial class Loc
             }
             pattern.Append('$');
             var longest = literals.OrderByDescending(l => l.Length).First();
-            templates.Add(new Template(literals[0], longest, new Regex(pattern.ToString(), RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)), exact[key]));
+            templates.Add(new Template(literals[0], longest, string.Concat(literals).Length, new Regex(pattern.ToString(), RegexOptions.Singleline | RegexOptions.CultureInvariant, TimeSpan.FromMilliseconds(50)), exact[key]));
             exact.Remove(key);
         }
-        return new Lookup(exact, templates.OrderByDescending(t => t.Longest.Length).ToList());
+        // The most specific template wins: more fixed text first, then the longest single piece.
+        return new Lookup(exact, templates.OrderByDescending(t => t.Literal).ThenByDescending(t => t.Longest.Length).ToList());
     }
 
     private static string? Translate(string text)

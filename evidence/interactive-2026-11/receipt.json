@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "recordedUtc": "2026-11-04T13:20:00Z",
+  "sourceCommit": "a4e83f07a8af6a6f5041db7daa0975ac49e8a734",
+  "artifact": { "path": "out/publish/MaterialDockerImage.exe", "version": "0.99.14", "sha256": "c0ec6dfc6899d326904b9d6a4e508b76e063438b3bda9f0825979175d2ae324b" },
+  "host": { "os": "Windows 11 Pro 10.0.26200", "displayScale": "150 %", "engine": "Docker Desktop 29.6.1, Linux, context desktop-linux" },
+  "route": "Application launched on a hidden desktop with --software-rendering; actions invoked through UI Automation patterns from a process on the same hidden desktop; window captures through PrintWindow.",
+  "scope": "Labelled test resources only (label material-docker-image.capture=true). Captures are not published because the list also showed unrelated containers on the host.",
+  "steps": [
+    { "action": "Setup: Next, then Skip for now", "observed": "Setup advanced and closed; Containers listed 25 containers from desktop-linux", "result": "pass" },
+    { "action": "Containers: select capture-web, invoke Stop in the selection bar", "observed": "Confirmation dialog 'Stop 1 container(s)?' listing capture-web", "result": "pass" },
+    { "action": "Confirm Stop in the dialog (08:18:58.669 local)", "observed": "Engine: capture-web exited (0), FinishedAt 2026-11-04T13:18:59.060Z; operation panel 'Stop capture-web · Completed in 1.0s (exit 0)'; row and inspector show exited", "result": "pass" },
+    { "action": "Invoke Start in the selection bar (08:19:32.872 local)", "observed": "Engine: capture-web running, StartedAt 2026-11-04T13:19:33.134Z", "result": "pass" },
+    { "action": "Build companion: invoke Build with the repository root", "observed": "Ran build.bat, live output, state Succeeded, exit code 0, 24 s", "result": "pass" }
+  ],
+  "findings": [
+    "Confirmation title uses 'container(s)' instead of a real plural.",
+    "While the confirmation dialog was open, the strip below the list rendered black instead of the dimmed operation panel (software rendering)."
+  ],
+  "notExercised": ["build and run from Build page", "logs, exec, files tabs", "compose up/down", "prune with super confirmation", "history restore", "registry sign-in"]
+}
