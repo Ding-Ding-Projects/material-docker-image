@@ -91,7 +91,7 @@ public static class RegexPosixTranslator
 
     public sealed record Translation(bool Success, string Pattern, int Replaced, string? Error);
 
-    /// <summary>Rewrites every [:name:] inside a bracket expression. Anything else is copied unchanged. Unknown or negated ([:^name:]) classes are refused.</summary>
+    /// <summary>Rewrites every [:name:] inside a bracket expression. Anything else is copied unchanged. Unknown classes are refused. A negated class ([:^name:]) cannot sit inside a .NET set, so a set that holds one is rewritten as a non-capturing group.</summary>
     public static Translation Translate(string? pattern)
     {
         var p = pattern ?? "";
@@ -103,31 +103,52 @@ public static class RegexPosixTranslator
             var c = p[i];
             if (c == '\\') { sb.Append(c); if (i + 1 < p.Length) sb.Append(p[i + 1]); i += 2; continue; }
             if (c != '[') { sb.Append(c); i++; continue; }
-            // A bracket expression: copy to its end, translating classes.
-            sb.Append('['); i++;
-            if (i < p.Length && p[i] == '^') { sb.Append('^'); i++; }
-            if (i < p.Length && p[i] == ']') { sb.Append("\\]"); i++; }
+            // A bracket expression: copy to its end, translating classes. Negated classes cannot sit inside a .NET set, so the whole expression becomes a group.
+            i++;
+            var outerNegated = false;
+            var rest = new StringBuilder();
+            var negated = new List<string>();
+            if (i < p.Length && p[i] == '^') { outerNegated = true; i++; }
+            if (i < p.Length && p[i] == ']') { rest.Append("\\]"); i++; }
             var closed = false;
             while (i < p.Length)
             {
                 var d = p[i];
-                if (d == '\\') { sb.Append(d); if (i + 1 < p.Length) sb.Append(p[i + 1]); i += 2; continue; }
-                if (d == ']') { sb.Append(']'); i++; closed = true; break; }
+                if (d == '\\') { rest.Append(d); if (i + 1 < p.Length) rest.Append(p[i + 1]); i += 2; continue; }
+                if (d == ']') { i++; closed = true; break; }
                 if (d == '[' && i + 1 < p.Length && p[i + 1] == ':')
                 {
                     var end = p.IndexOf(":]", i + 2, StringComparison.Ordinal);
                     if (end > 0)
                     {
                         var name = p[(i + 2)..end];
-                        if (name.StartsWith('^')) return new(false, p, 0, $"[:{name}:] is a negated class; .NET cannot negate a class inside a set. Write the negated set yourself, for example [^[:{name[1..]}:]].");
-                        if (!Classes.TryGetValue(name, out var members)) return new(false, p, 0, $"[:{name}:] is not a POSIX class this converter knows.");
-                        sb.Append(members); replaced++; i = end + 2; continue;
+                        var isNegated = name.StartsWith('^');
+                        if (isNegated) name = name[1..];
+                        if (!Classes.TryGetValue(name, out var members)) return new(false, p, 0, $"[:{(isNegated ? "^" : "")}{name}:] is not a POSIX class this converter knows.");
+                        if (isNegated) negated.Add(members); else rest.Append(members);
+                        replaced++; i = end + 2; continue;
                     }
                 }
-                if (d == '[') { sb.Append("\\["); i++; continue; }
-                sb.Append(d); i++;
+                if (d == '[') { rest.Append("\\["); i++; continue; }
+                rest.Append(d); i++;
             }
             if (!closed) return new(false, p, 0, "A bracket expression is not closed.");
+            var body = rest.ToString();
+            if (negated.Count == 0) sb.Append('[').Append(outerNegated ? "^" : "").Append(body).Append(']');
+            else if (!outerNegated)
+            {
+                var alternatives = new List<string>();
+                if (body.Length > 0) alternatives.Add("[" + body + "]");
+                alternatives.AddRange(negated.Select(m => "[^" + m + "]"));
+                sb.Append("(?:").Append(string.Join("|", alternatives)).Append(')');
+            }
+            else
+            {
+                sb.Append("(?:");
+                for (var k = 0; k < negated.Count - 1; k++) sb.Append("(?=[").Append(negated[k]).Append("])");
+                if (body.Length > 0) sb.Append("(?![").Append(body).Append("])");
+                sb.Append('[').Append(negated[^1]).Append("])");
+            }
         }
         return new(true, sb.ToString(), replaced, null);
     }

@@ -30,10 +30,10 @@ public static partial class RegexPatternStore
         return new(library, added, skipped);
     }
 
-    /// <summary>Saved patterns whose name or pattern contains the text (ignoring case); an empty query returns everything.</summary>
+    /// <summary>Saved patterns whose name, pattern or description contains the text (ignoring case); an empty query returns everything.</summary>
     public static List<RegexSavedPattern> Search(IReadOnlyList<RegexSavedPattern> library, string? query) =>
         string.IsNullOrWhiteSpace(query) ? library.ToList()
-        : library.Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || p.Pattern.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
+        : library.Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase) || p.Pattern.Contains(query, StringComparison.OrdinalIgnoreCase) || p.Description.Contains(query, StringComparison.OrdinalIgnoreCase)).ToList();
 
     /// <summary>Built-in snippets whose name, description or pattern contains the text (ignoring case).</summary>
     public static List<RegexSnippet> SearchSnippets(string? query) =>
