@@ -59,7 +59,7 @@ public partial class MainWindow : Window
         ApplyAppearance();
         OverlaySlot.Content = overlay;
         DockHost.Content = dock;
-        var notifier = new Notifier(Toasts) { SoundsEnabled = () => settings.Sounds && !settings.LowStimulation && !CaptureMode };
+        var notifier = new Notifier(Toasts) { SoundsEnabled = () => SoundCueRules.MayPlay(settings, CaptureMode) };
         host = new AppHost(settings, notifier, overlay, dock, capture);
         if (!capture) _ = new Shell.VocabularyDrop(this, Root, host);
         notifier.Narrate = Narrator.Speak;
@@ -565,7 +565,7 @@ public partial class MainWindow : Window
         c.Register(new AppCommand { Id = "adhd.momentum", Title = "Momentum streak", Group = "Settings", Icon = Icons.Bolt, Keywords = "adhd streak encouragement", LiveControl = () => host.Lockable("momentum", Ui.Switch("Momentum streak", settings.Momentum, v => { settings.Momentum = v; host.SaveSettings("Momentum " + (v ? "on" : "off")); })) });
         c.Register(new AppCommand { Id = "adhd.time", Title = "Time awareness clock", Group = "Settings", Icon = Icons.Schedule, Keywords = "adhd clock time", LiveControl = () => host.Lockable("time", Ui.Switch("Time awareness clock", settings.TimeAwareness, v => { settings.TimeAwareness = v; host.SaveSettings("Time awareness " + (v ? "on" : "off")); })) });
         c.Register(new AppCommand { Id = "adhd.onething", Title = "One thing at a time", Group = "Settings", Icon = Icons.Tab, Keywords = "adhd single tab", LiveControl = () => host.Lockable("onething", Ui.Switch("One thing at a time", settings.OneThingAtATime, v => { settings.OneThingAtATime = v; host.SaveSettings("One thing at a time " + (v ? "on" : "off")); })) });
-        c.Register(new AppCommand { Id = "set.schedules", Title = "Scheduled language and theme", Group = "Settings", Icon = Icons.Schedule, Keywords = "schedule timer automatic night day", Run = () => host.Navigate("Settings") });
+        c.Register(new AppCommand { Id = "set.schedules", Title = "Scheduled settings", Group = "Settings", Icon = Icons.Schedule, Keywords = "schedule timer automatic night day date range home assistant", Run = () => host.Navigate("Settings") });
         c.Register(new AppCommand { Id = "set.output", Title = "Output panel open", Group = "Settings", Icon = Icons.Terminal, LiveControl = () => Ui.Switch("Output panel open", dock.Expanded, v => { dock.SetExpanded(v); settings.OutputDockOpen = v; host.SaveSettings(null); }) });
     }
 

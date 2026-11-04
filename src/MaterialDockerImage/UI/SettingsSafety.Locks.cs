@@ -29,7 +29,9 @@ public static class ElementLocks
         ["headingweight"] = ["HeadingWeight"], ["railicons"] = ["RailIconStyle"], ["motionlevel"] = ["MotionLevel"],
         ["motionspeed"] = ["MotionSpeed"], ["motion"] = ["ReducedMotion"], ["elevation"] = ["ElevationScale"], ["tint"] = ["SurfaceTint"],
         ["rainbow"] = ["RainbowAccent"], ["logo"] = ["LogoKind", "LogoSymbol", "LogoImageFile"],
-        ["schedules"] = ["ScheduleRules", "ScheduleSourceFile"]
+        ["schedules"] = ["ScheduleRules", "ScheduleSourceFile"],
+        ["schedulehttps"] = ["ScheduleHttpsUrl", "ScheduleHttpsPollMinutes"], ["schedulehomeassistant"] = ["ScheduleHaBaseUrl", "ScheduleHaEntity", "ScheduleHaPollMinutes"],
+        ["soundvolume"] = ["SoundVolume"], ["quiethours"] = ["QuietHoursEnabled", "QuietHoursStart", "QuietHoursEnd"]
     };
 
     public static bool IsValidId(string? id) => id != null && IdPattern.IsMatch(id);

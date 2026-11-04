@@ -18,7 +18,9 @@
 - [ ] Review capability inventory statuses for health checks, devices, GPUs and terminals with evidence.
 - [x] Add settings row locks, scheduled language and theme, attention-mode consumers (Focus, Low stimulation, Momentum), a documented action sound mapping and persisted collapsible filters (rule checks pass; hands-on verification pending)
 - [ ] Drive the new lock, schedule, attention-mode, sound and collapse controls in the built window and record receipts
-- [ ] Add lock credential policies, other schedulable settings and the API and Home Assistant schedule sources
+- [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
+- [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts
+- [ ] Add lock credential policies
 
 ## Delivered and bounded verification
 

@@ -22,8 +22,13 @@ public static class SoundCueRules
         new(SoundCue.DropRefused, "A dropped file was refused", "Beep"),
     ];
 
-    /// <summary>A cue plays only when the Settings switch is on, low stimulation is off and the window is not producing capture images.</summary>
-    public static bool MayPlay(UserSettings settings, bool capture) => !capture && AdhdRules.Resolve(settings).SoundsAllowed;
+    /// <summary>
+    /// A cue plays only when the Settings switch is on, low stimulation is off, the window is not producing capture images,
+    /// the volume is above zero and the clock is outside the quiet hours. <paramref name="now"/> defaults to the local time.
+    /// </summary>
+    public static bool MayPlay(UserSettings settings, bool capture, DateTime? now = null) =>
+        !capture && AdhdRules.Resolve(settings).SoundsAllowed && settings.SoundVolume > 0
+        && !QuietHours.IsQuiet(settings.QuietHoursEnabled, settings.QuietHoursStart, settings.QuietHoursEnd, now ?? DateTime.Now);
 
     /// <summary>Chooses the cue for a finished Docker operation from its argument words. Only a successful run can earn Removal.</summary>
     public static SoundCue ForOperation(IReadOnlyList<string> args, bool succeeded, bool cancelled)
@@ -37,6 +42,24 @@ public static class SoundCueRules
         }
         return SoundCue.Success;
     }
+}
+
+/// <summary>Quiet hours: a daily window, in the computer's local time, in which no sound cue plays.</summary>
+public static class QuietHours
+{
+    /// <summary>
+    /// The window is [start, end). When start is later than end it crosses midnight (22:00 to 07:00 is quiet from 22:00 until just before 07:00 the next morning).
+    /// Equal times describe no window, so they never silence anything. Unreadable times and a disabled switch are never quiet.
+    /// </summary>
+    public static bool IsQuiet(bool enabled, string? start, string? end, DateTime now)
+    {
+        if (!enabled || !ScheduleEvaluator.TryParseTime(start, out var from) || !ScheduleEvaluator.TryParseTime(end, out var to) || from == to) return false;
+        var minute = now.Hour * 60 + now.Minute;
+        return from < to ? minute >= from && minute < to : minute >= from || minute < to;
+    }
+
+    /// <summary>The volume percentage as a gain from 0 to 1. Anything outside 0 to 100 is clamped, so a bad value is never louder than the system level.</summary>
+    public static double Gain(int volumePercent) => Math.Clamp(volumePercent, 0, 100) / 100.0;
 }
 
 /// <summary>Per-surface collapsed state for filter chip bars and statistic strips. Only collapsed surfaces are stored.</summary>
