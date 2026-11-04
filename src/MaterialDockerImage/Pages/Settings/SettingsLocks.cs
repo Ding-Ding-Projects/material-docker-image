@@ -46,6 +46,11 @@ public sealed partial class SettingsPage
         table.RowAction("Support Tickets…", Icons.Help, r => { SupportDeskUi.Show(r.Id); return Task.CompletedTask; });
         table.Height = 360;
         Refresh();
+        // Locks are added from any page and relock on their own, so the list follows the store instead of only its own
+        // actions; it used to keep saying "No locks yet." after a lock was added elsewhere.
+        void OnLocksChanged() => table.Dispatcher.BeginInvoke(Refresh);
+        table.Loaded += (_, _) => { Host.Locks.Changed -= OnLocksChanged; Host.Locks.Changed += OnLocksChanged; Refresh(); };
+        table.Unloaded += (_, _) => Host.Locks.Changed -= OnLocksChanged;
 
         Extra(Ui.Caption("Every lock the app knows about, whether it guards a settings row, a button, a switch, a field, a slider or a drop-down. Each lock has its own policy and its own credentials; unlocking one never unlocks another."));
         Extra(Ui.Caption(Loc.T(ElementLocks.Disclosure)).Margin(0, 4, 0, 4));

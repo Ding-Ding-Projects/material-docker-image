@@ -1186,4 +1186,12 @@ count += RegexRemainingChecks.Run();
     Check(Math.Abs(swShrink.Sum() - 150) < 0.001 && Math.Abs(swShrink[0] - 100) < 0.001, "when nothing fits, segments shrink in proportion and never exceed the space");
     Check(MaterialDockerImage.UI.SegmentWidths.Allocate(new double[] { 50, 80 }, double.PositiveInfinity).All(w => w == 80), "with unlimited width every segment takes the widest width");
 }
+{
+    var lcStore = new MaterialDockerImage.UI.LockStore(null, null, null, 10_000);
+    var lcChanges = 0; lcStore.Changed += () => lcChanges++;
+    lcStore.Configure("lock.changed", MaterialDockerImage.UI.LockPolicy.Pin, "482913");
+    var lcAfterConfigure = lcChanges;
+    lcStore.Attempt("lock.changed", "000000");
+    Check(lcAfterConfigure > 0 && lcChanges > lcAfterConfigure, "the lock store reports every change so the Locks manager can refresh");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

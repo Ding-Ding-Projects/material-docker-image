@@ -7,6 +7,7 @@ public static partial class Loc
     {
         // Compact layouts and the window-wide personal wording drop.
         // Container confirmations with real singular and plural forms.
+        yield return new("Actions for the selected row", "所選行嘅動作");
         yield return new("Stop 1 container?", "停止 1 個容器？");
         yield return new("Stop {0} containers?", "停止 {0} 個容器？");
         yield return new("Restart 1 container?", "重新啟動 1 個容器？");

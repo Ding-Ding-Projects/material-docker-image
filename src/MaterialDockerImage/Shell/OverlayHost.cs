@@ -43,7 +43,8 @@ public sealed class OverlayHost : Grid
         layer.Children.Add(card);
         SizeChanged += (_, _) => Fit();
         Fit();
-        var focus = Keyboard.FocusedElement;
+        // Keyboard focus is empty while the window is inactive; logical focus still names the element to return to.
+        var focus = Keyboard.FocusedElement ?? (Window.GetWindow(this) is { } owner ? FocusManager.GetFocusedElement(owner) : null);
         var closed = false;
         void Close()
         {

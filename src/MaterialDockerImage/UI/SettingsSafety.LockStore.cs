@@ -142,7 +142,15 @@ public sealed partial class LockStore
 
     public string? LoadError { get; private set; }
 
+    /// <summary>Raised after every change to the locks, so lists such as the Locks manager can follow along.</summary>
+    public event Action? Changed;
+
     private void Save()
+    {
+        try { SaveFile(); } finally { Changed?.Invoke(); }
+    }
+
+    private void SaveFile()
     {
         if (path == null) return;
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);

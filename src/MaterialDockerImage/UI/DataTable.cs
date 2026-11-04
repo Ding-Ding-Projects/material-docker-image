@@ -227,6 +227,15 @@ public sealed class DataTable<T> : Grid
     public DataTable<T> RowAction(string label, string? icon, Func<T, Task> action, string? gesture = null, bool danger = false)
     {
         rowActions.Add((label, icon, gesture, action, danger));
+        if (rowActionsButton == null)
+        {
+            // The row menu also opens from this button, so it is reachable without a right-click or Shift+F10: screen
+            // readers and other UI Automation clients cannot open a list row's context menu themselves.
+            rowActionsButton = Ui.IconButton(Icons.MoreVert, "Actions for the selected row", OpenRowActions);
+            rowActionsButton.IsEnabled = Focused is not null;
+            toolbar.Children.Insert(1, rowActionsButton.Dock(System.Windows.Controls.Dock.Right));
+            List.SelectionChanged += (_, _) => rowActionsButton.IsEnabled = Focused is not null;
+        }
         return this;
     }
 
@@ -301,6 +310,28 @@ public sealed class DataTable<T> : Grid
         var selected = List.SelectedItems.Cast<object>().ToHashSet();
         List.SelectedItems.Clear();
         foreach (var row in rows) if (!selected.Contains(row)) List.SelectedItems.Add(row);
+    }
+
+    private Button? rowActionsButton;
+
+    private void OpenRowActions()
+    {
+        if (Focused is not { } item || rowActions.Count == 0 || AppHost.Current?.Overlay is not { } overlay) return;
+        // A dialog rather than the context menu: a context menu closes at once when it cannot capture the mouse (an
+        // inactive window, some assistive technology), while a dialog stays until an action is chosen or it is closed.
+        Action? close = null;
+        var list = Ui.VStack(6);
+        foreach (var action in rowActions)
+        {
+            var a = action;
+            var b = Ui.Button(a.Label, a.Icon, a.Danger ? ButtonKind.Danger : ButtonKind.Text, () => { close?.Invoke(); _ = Run(() => a.Action(item)); });
+            b.HorizontalAlignment = HorizontalAlignment.Stretch; b.HorizontalContentAlignment = HorizontalAlignment.Left;
+            list.Children.Add(b);
+        }
+        var title = List.SelectedItem is TableRow<T> row && row.Cells.Length > 0 ? row.Cells.FirstOrDefault(c => c.Length > 0) ?? "" : "";
+        var body = Ui.VStack(12, Ui.Title(Loc.T("Actions for the selected row"), 18), Ui.Text(title, 13, null, "OnSurfaceVariant", true, false), list,
+            Ui.Button("Close", null, ButtonKind.Text, () => close?.Invoke()));
+        close = overlay.Show(body, 420);
     }
 
     private void ExportMenu()

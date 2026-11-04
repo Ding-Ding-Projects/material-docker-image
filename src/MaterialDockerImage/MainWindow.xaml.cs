@@ -74,7 +74,7 @@ public partial class MainWindow : Window
         BuildTitleBar();
         BuildRail();
         RegisterCommands();
-        AppearanceCommands.Register(host.Commands, OpenAppearanceEditor, () => OpenAppearancePanel(Keyboard.FocusedElement as DependencyObject));
+        AppearanceCommands.Register(host.Commands, OpenAppearanceEditor, () => OpenAppearancePanel(Shell.AppearanceCommands.FocusedTarget()));
         SetUpAppearanceMenus();
         host.Commands.Bind(this);
         if (!capture) _ = new Shell.UpdateBanner(UpdateSlot, host);

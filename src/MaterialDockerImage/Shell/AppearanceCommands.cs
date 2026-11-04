@@ -8,11 +8,22 @@ namespace MaterialDockerImage.Shell;
 /// <summary>Palette commands for appearance: open the editor, edit the focused element, undo and redo, presets and motion.</summary>
 public static class AppearanceCommands
 {
+    /// <summary>
+    /// The element the command applies to: keyboard focus when the window has it, otherwise the window's logical focus.
+    /// A window that is not active (for example one driven by assistive technology through UI Automation) still has a
+    /// logically focused element even though keyboard focus is elsewhere.
+    /// </summary>
+    internal static DependencyObject? FocusedTarget()
+    {
+        if (Keyboard.FocusedElement is DependencyObject keyboard && Application.Current?.MainWindow is { } main && Window.GetWindow(keyboard) == main) return keyboard;
+        return Application.Current?.MainWindow is { } w ? FocusManager.GetFocusedElement(w) as DependencyObject : Keyboard.FocusedElement as DependencyObject;
+    }
+
     public static void Register(CommandRegistry c, Action openEditor, Action editFocused)
     {
         ElementAppearance.Initialize();
         c.Register(new AppCommand { Id = "appearance.customize", Title = "Customize the focused element…", Group = "Appearance", Icon = Icons.Palette, Keywords = "element colour color radius corner font size weight padding hide visibility override",
-            Run = () => { if (ElementAppearance.Climb(Keyboard.FocusedElement as DependencyObject) is { } fe) ElementEditor.Show(fe); else AppHost.Current?.Notify.Info("Focus an element first, or use Pick an element to customize."); } });
+            Run = () => { if (ElementAppearance.Climb(FocusedTarget()) is { } fe) ElementEditor.Show(fe); else AppHost.Current?.Notify.Info("Focus an element first, or use Pick an element to customize."); } });
         c.Register(new AppCommand { Id = "appearance.pick", Title = "Pick an element to customize…", Group = "Appearance", Icon = Icons.Edit, Keywords = "element click choose select pointer customise", Run = AppearancePicker.Start });
         c.Register(new AppCommand { Id = "appearance.overrides", Title = "Show customized elements", Group = "Appearance", Icon = Icons.Tune, Keywords = "element overrides list reset",
             Run = () => { if (Application.Current?.MainWindow is { } w) ElementEditor.Show(w, true); } });
