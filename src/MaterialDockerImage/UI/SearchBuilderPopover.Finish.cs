@@ -115,8 +115,6 @@ internal sealed partial class SearchBuilderPopover
             JumpToPanel(target);
             e.Handled = true;
         };
-        explanationEditCombo = Ui.Combo(["Capturing group", "Non-capturing group", "Atomic group", "Lookahead", "Negative lookahead", "Lookbehind", "Negative lookbehind"], "Non-capturing group");
-        AutomationProperties.SetName(explanationEditCombo, Loc.T("Wrap in"));
         if (grepRecursive != null) grepRecursive.IsChecked = field.State.GrepRecursive;
         if (grepContextCombo != null) grepContextCombo.SelectedItem = field.State.GrepContext.ToString();
         if (field.State.LoadedResults is { } loaded)
@@ -236,6 +234,16 @@ internal sealed partial class SearchBuilderPopover
     private readonly TextBox quantifierBox = Ui.Input("", "Quantifier", true);
     private ComboBox? explanationEditCombo;
 
+    // Created on first use: the explanation panel is built before InitFinish runs, and a null child made WPF throw
+    // "Value cannot be null (Parameter 'element')", so the builder could not open at all.
+    private ComboBox ExplanationEditCombo()
+    {
+        if (explanationEditCombo != null) return explanationEditCombo;
+        explanationEditCombo = Ui.Combo(["Capturing group", "Non-capturing group", "Atomic group", "Lookahead", "Negative lookahead", "Lookbehind", "Negative lookbehind"], "Non-capturing group");
+        AutomationProperties.SetName(explanationEditCombo, Loc.T("Wrap in"));
+        return explanationEditCombo;
+    }
+
     private FrameworkElement TreeEditControls()
     {
         AutomationProperties.SetName(quantifierBox, Loc.T("Quantifier for the selected row"));
@@ -247,7 +255,7 @@ internal sealed partial class SearchBuilderPopover
                 Small("?", "Optional (zero or one)", () => ApplyQuantifier("?"), true), Small("*", "Zero or more", () => ApplyQuantifier("*"), true), Small("+", "One or more", () => ApplyQuantifier("+"), true),
                 Small("Set quantifier", "Applies the quantifier typed above to the selected row.", () => ApplyQuantifier(quantifierBox.Text)),
                 Small("Remove quantifier", "Removes the quantifier of the selected row.", () => ApplyQuantifier(""))),
-            Ui.Wrap(8, Ui.Field("Wrap in", explanationEditCombo!, "Wraps the selected row, with its quantifier, in a group or lookaround.", "Non-capturing group"),
+            Ui.Wrap(8, Ui.Field("Wrap in", ExplanationEditCombo(), "Wraps the selected row, with its quantifier, in a group or lookaround.", "Non-capturing group"),
                 Small("Wrap selected row", "Wraps the selected row in the chosen kind of group.", WrapSelected),
                 Small("Unwrap group", "Removes the selected group and keeps what is inside it.", () => TreeEdit((p, f, n) => RegexTreeEditor.Unwrap(p, f, n.Start, n.Length))),
                 Small("Delete row", "Deletes the selected row from the pattern.", () => TreeEdit((p, f, n) => RegexTreeEditor.Delete(p, f, n.Start, n.Length)))),

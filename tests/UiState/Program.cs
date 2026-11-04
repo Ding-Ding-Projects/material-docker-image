@@ -1199,4 +1199,15 @@ count += RegexFinishChecks.Run();
     lcStore.Attempt("lock.changed", "000000");
     Check(lcAfterConfigure > 0 && lcChanges > lcAfterConfigure, "the lock store reports every change so the Locks manager can refresh");
 }
+{
+    // A control field passed into a layout with the null-forgiving operator compiles, then throws
+    // "Value cannot be null (Parameter 'element')" when WPF adds the child; that once stopped the regex builder opening.
+    var nfDir = new DirectoryInfo(AppContext.BaseDirectory);
+    while (nfDir != null && !Directory.Exists(Path.Combine(nfDir.FullName, "src", "MaterialDockerImage"))) nfDir = nfDir.Parent;
+    var nfPattern = new System.Text.RegularExpressions.Regex(@"Ui\.(Field|VStack|HStack|Wrap|Card|Columns)\([^;]*?\b[a-z]\w*!\s*[,)]");
+    var nfHits = nfDir == null ? new List<string>() : Directory.EnumerateFiles(Path.Combine(nfDir.FullName, "src", "MaterialDockerImage"), "*.cs", SearchOption.AllDirectories)
+        .Where(f => !f.Contains(Path.DirectorySeparatorChar + "obj" + Path.DirectorySeparatorChar) && !f.Contains(Path.DirectorySeparatorChar + "bin" + Path.DirectorySeparatorChar))
+        .SelectMany(f => File.ReadLines(f).Select((line, i) => (f, i, line))).Where(x => nfPattern.IsMatch(x.line)).Select(x => Path.GetFileName(x.f) + ":" + (x.i + 1)).ToList();
+    Check(nfDir != null && nfHits.Count == 0, "no layout receives a control through the null-forgiving operator" + (nfHits.Count > 0 ? ": " + string.Join(", ", nfHits.Take(5)) : ""));
+}
 Console.WriteLine($"UI state checks: {count} passed.");
