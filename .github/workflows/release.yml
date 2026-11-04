@@ -33,7 +33,12 @@ jobs:
           git fetch origin main
           if ($LASTEXITCODE -ne 0) { throw 'Main lineage could not be fetched.' }
           git merge-base --is-ancestor origin/main $env:GITHUB_SHA
-          if ($LASTEXITCODE -ne 0) { throw 'Release source is outside the current main lineage.' }
+          if ($LASTEXITCODE -ne 0) {
+            # A newer commit reached main while this run was building: its own run releases it, so this one stops cleanly.
+            git merge-base --is-ancestor $env:GITHUB_SHA origin/main
+            if ($LASTEXITCODE -eq 0) { Write-Host "::notice::Superseded by a newer main commit; no release published for $env:GITHUB_SHA."; exit 0 }
+            throw 'Release source is outside the current main lineage.'
+          }
           $buildReceipt = Get-Content out/receipts/build.json -Raw | ConvertFrom-Json
           $packageReceipt = Get-Content out/receipts/package.json -Raw | ConvertFrom-Json
           if ($buildReceipt.source -ne $env:GITHUB_SHA -or $packageReceipt.source -ne $env:GITHUB_SHA) { throw 'Delivery receipts do not bind to the workflow source.' }
