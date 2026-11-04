@@ -6,17 +6,17 @@
     "workflows": 10,
     "milestones": 4,
     "counts": {
-      "unverified": 106,
+      "unverified": 102,
       "planned": 0,
-      "implemented": 17,
+      "implemented": 21,
       "verified": 0
     },
-    "sha256": "70c1fd800f6ceb8446d90d2012e06331f589bb8b16e32647d99dc25ac7a8d32e"
+    "sha256": "cd796c37f7cc0d3758e73d6b45482708466dd2880335ca72a39080632c1018ad"
   },
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "cc38cd67b7af88868eb5abff61254fa282f2b6d821cd65a09e1c82dd6ef49393"
+      "sha256": "5c6db81b46d4f542163cc690855bdac74e9e58e8fd85ca812d68396d6f5a46ce"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "ba735288aabcefe9ab74d74c28a2ebc1a6400f000ccbfa8fe436e5ced1a91b98"
+      "sha256": "4fdbd9632eaf53e1006e3609a6cef9b148e63859664b6a8645a92eeeef1c9b08"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -57,6 +57,10 @@
     {
       "path": "docs/features/dockerfile-creator.md",
       "sha256": "6d4ef9b06fc17329e7535b587372ea06401f89f52c33f56021878c9402bbc996"
+    },
+    {
+      "path": "docs/features/documentation-site.md",
+      "sha256": "0e4f31d274f9cb361e273a82b8a527739baf7259dafaa5f8b7e323fb06079622"
     },
     {
       "path": "docs/features/editor-suggestions.md",
@@ -100,11 +104,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "4798c81f13ccfcd354bfae474211c56c9d4b78f7b5f069cc10b0617dbc05b220"
+      "sha256": "0381433402a592a3261ab7a508a2bc6a4c0b9f3017de79a2f621402db45878e7"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "790fc4bbb67db3f41769076ab64a398757fe2a5193ec4103502cb9d7cdf62f60"
+      "sha256": "fe6a69626884761b03b9ac104c51ebf022079693c2ab485fef7af9763294f50d"
     },
     {
       "path": "wiki/Home.md",
@@ -115,6 +119,14 @@
     {
       "path": "favicon.svg",
       "sha256": "e099f8d504adf721deef3d0356f17191f3e931f06cd012cbc5b3f79433ff8604"
+    },
+    {
+      "path": "provenance.json",
+      "sha256": "57a5c8cd2458096d98e5c983eb2ab122fd4dda0887161de0ae007a6da5483033"
+    },
+    {
+      "path": "social-preview.png",
+      "sha256": "f80025bdc7d82f0f245ee90d1cfbdd1aba18fe0715cd159c1e1929356306b302"
     }
   ],
   "images": [

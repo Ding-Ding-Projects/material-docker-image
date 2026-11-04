@@ -1187,19 +1187,19 @@
         "en": "Front Provenance",
         "zh": "首頁來源資料"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "The documentation home page states its source version (the application project version) and an update time taken from the latest commit that touched the rendered sources, stored in website/provenance.json and bound by the manifest. The running application release version appears in the download panel when it loads.",
+        "zh": "文件首頁列出來源版本（應用程式專案版本）同更新時間（取自最後一次改動所載來源嘅提交），儲存喺 website/provenance.json 並由清單綁定。執行中應用程式嘅發行版本會喺下載面板載入後顯示。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for front-provenance.",
-        "zh": "確認「首頁來源資料」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Verify the stamp on the deployed page after the next documentation change, and decide whether the in-application front screen needs its own provenance verification record.",
+        "zh": "喺下次文件更新後驗證已部署頁面嘅時間戳，並決定應用程式前畫面是否需要獨立嘅來源驗證記錄。"
       },
       "evidence": [
         {
           "kind": "source",
-          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/documentation-site.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -1439,19 +1439,19 @@
         "en": "Installer Download Button",
         "zh": "安裝程式下載按鈕"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "The home page download panel looks up the latest release when viewed and lists version, UTC date, Setup.exe, the build companion, the offline documentation archive and every attached file with sizes. Offline, rate-limited, missing-release and unreadable-reply states fall back to the releases page without inventing a version. Parsing and every failure state are covered by focused checks and one headless browser run against the live release list.",
+        "zh": "首頁下載面板喺瀏覽時查詢最新發行版本，顯示版本、UTC 日期、Setup.exe、建置助手、離線文件檔同全部附件大小。離線、被限流、冇最新發行或回覆讀取唔到時，會轉用發行頁面，唔會編造版本。聚焦檢查涵蓋解析同各失敗狀態，另有一次對真實發行清單嘅無頭瀏覽器執行。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for installer-download-button.",
-        "zh": "確認「安裝程式下載按鈕」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Verify the deployed home page on the live site, on a phone-width screen, in each language mode and with a release that carries every named asset; confirm keyboard use and the rate-limited path against the real service.",
+        "zh": "喺已部署嘅正式網站、手機闊度、各語言模式同附有全部指名檔案嘅發行版本驗證首頁，並對真實服務確認鍵盤操作同限流路徑。"
       },
       "evidence": [
         {
           "kind": "source",
-          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/documentation-site.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -1971,19 +1971,19 @@
         "en": "Offline Documentation Companion",
         "zh": "離線文件工具"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "build/package-docs.ps1 produces MaterialDockerImageDocs.zip: the complete embedded corpus as an offline site with no remote asset and no release lookup, bound to the source by a receipt. The release workflow attaches it and reads it back. The renderer, link and no-remote-asset checks pass; the script was run locally and produced an archive of 31 files.",
+        "zh": "build/package-docs.ps1 會產生 MaterialDockerImageDocs.zip：完整內嵌內容嘅離線網站，冇遠端資源亦唔查詢發行版本，並以收據綁定來源。發行工作流程會附上並讀回。渲染、連結同冇遠端資源檢查已通過；腳本已在本機執行並產生 31 個檔案嘅壓縮檔。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for offline-documentation-companion.",
-        "zh": "確認「離線文件工具」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Run the packaging in the hosted release workflow, download the attached archive from a real release and open it from a file location in a browser; the interactive offline experience and the other portable documentation duties (the full wiki) remain unverified.",
+        "zh": "喺託管發行工作流程執行打包、由真實發行版本下載附件並喺瀏覽器以檔案位置開啟；離線互動體驗同其他可攜文件責任（完整百科）仍未驗證。"
       },
       "evidence": [
         {
           "kind": "source",
-          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/documentation-site.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
@@ -2671,19 +2671,19 @@
         "en": "Shared Link Embed",
         "zh": "分享連結預覽"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "The page head carries Open Graph and Twitter card metadata pointing at a committed 1200 x 630 preview image composed from a real capture of the built application by scripts/make-social-preview.mjs. Metadata, image dimensions and manifest hash are checked.",
+        "zh": "頁首包含 Open Graph 同 Twitter 卡片資料，指向由 scripts/make-social-preview.mjs 用已建置應用程式真實畫面組成、已儲存嘅 1200 x 630 預覽圖。資料、圖片尺寸同清單雜湊都有檢查。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for shared-link-embed.",
-        "zh": "確認「分享連結預覽」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "Confirm how real platforms render a shared link to the deployed site (platform crawlers were not exercised) and refresh the preview image when the application is redesigned.",
+        "zh": "確認真實平台喺分享已部署網站連結時嘅顯示（未試過平台爬蟲），並喺應用程式改版後更新預覽圖。"
       },
       "evidence": [
         {
           "kind": "source",
-          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/capability-inventory.md",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/docs/features/documentation-site.md",
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
