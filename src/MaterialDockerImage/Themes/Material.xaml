@@ -978,7 +978,7 @@
       <Setter.Value>
         <ControlTemplate TargetType="TabControl">
           <DockPanel>
-            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource SurfaceHigh}" BorderThickness="0,0,0,1" Margin="0,0,0,12"><TabPanel IsItemsHost="True"/></Border>
+            <Border DockPanel.Dock="Top" BorderBrush="{DynamicResource SurfaceHigh}" BorderThickness="0,0,0,1" Margin="0,0,0,12"><WrapPanel IsItemsHost="True" KeyboardNavigation.TabNavigation="Once" KeyboardNavigation.DirectionalNavigation="Cycle"/></Border>
             <ContentPresenter ContentSource="SelectedContent" m:MotionAttached.Effect="TabContent"/>
           </DockPanel>
         </ControlTemplate>

@@ -15,6 +15,37 @@ public static partial class Loc
         foreach (var pair in RegexRestConversionNotes()) yield return pair;
         foreach (var pair in RegexRestSnippets()) yield return pair;
         foreach (var pair in RegexRestTables()) yield return pair;
+        foreach (var pair in RegexRestSkipReasons()) yield return pair;
+    }
+
+    // ----- why a file was skipped by Search in files, by a replacement or by an undo -----
+    private static IEnumerable<KeyValuePair<string, string>> RegexRestSkipReasons()
+    {
+        yield return new("binary file (contains a NUL byte)", "二進位檔案（入面有 NUL 位元組）");
+        yield return new("folder could not be read", "讀唔到呢個資料夾");
+        yield return new("link or junction (not followed)", "連結或者 junction（唔會跟過去）");
+        yield return new("hidden (hidden items are not searched)", "隱藏咗（唔會搜尋隱藏項目）");
+        yield return new("system item (system items are not searched)", "系統項目（唔會搜尋系統項目）");
+        yield return new("read-only (read-only files are not searched)", "唯讀（唔會搜尋唯讀檔案）");
+        yield return new("could not be read", "讀唔到");
+        yield return new("the file limit was reached", "已經到咗檔案數量上限");
+        yield return new("not valid in its own encoding, so it is shown in searches but never edited", "用佢自己嘅編碼睇唔通，所以搜尋會顯示，但永遠唔會改");
+        yield return new("read-only file", "唯讀檔案");
+        yield return new("the plan reached its total size limit", "成個計劃已經到咗總大小上限");
+        yield return new("changed since the preview, so it was not touched", "預覽之後改過，所以冇郁佢");
+        yield return new("not editable", "唔改得");
+        yield return new("the result would be too large", "改完會太大");
+        yield return new("invalid snapshot entry", "還原快照入面有一項唔啱");
+        yield return new("the file no longer exists", "個檔案已經唔喺度");
+        yield return new("changed after the replacement, so it was not restored", "替換之後再改過，所以冇還原");
+        yield return new("the snapshot copy is damaged", "快照嘅副本壞咗");
+        yield return new("could not be restored:", "還原唔到：");
+        yield return new("larger than {0} KiB", "大過 {0} KiB");
+        yield return new("a replacement plan covers at most {0} files", "一個替換計劃最多處理 {0} 個檔案");
+        yield return new("only the first {0} matches of this file are listed", "呢個檔案只列出頭 {0} 個配對");
+        yield return new("the pattern exceeded the {0} ms limit in this file", "樣式喺呢個檔案超過咗 {0} 毫秒嘅上限");
+        yield return new("{0} file restored.", "還原咗 {0} 個檔案。");
+        yield return new("{0} files restored.", "還原咗 {0} 個檔案。");
     }
 
     // ----- the lead-ins and frames that wrap the comparison sentences of a conversion -----

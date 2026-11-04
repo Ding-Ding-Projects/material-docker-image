@@ -436,7 +436,7 @@ internal sealed partial class SearchBuilderPopover
             grepGrid.ItemsSource = result.Matches.Select(m => new RegexGrepRow(SafeRelative(root, m.File), m.Line, m.Column, m.Text, m.LineText)).ToList();
             grepGrid.Visibility = result.Matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             grepStatus.Text = result.Valid ? result.Summary() : Loc.T(result.Error ?? "The search could not run.");
-            grepSkipped.Text = string.Join("\n", result.Skipped.Take(5).Select(s => "• " + SafeRelative(root, s.File) + ": " + s.Reason)) + (result.Skipped.Count > 5 ? "\n• …" : "");
+            grepSkipped.Text = string.Join("\n", result.Skipped.Take(5).Select(s => "• " + SafeRelative(root, s.File) + ": " + RegexGrep.TranslateSkipReason(s.Reason, Loc.T))) + (result.Skipped.Count > 5 ? "\n• …" : "");
             grepSkipped.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
         }
         catch (OperationCanceledException) { grepStatus.Text = Loc.T("Search cancelled."); }
@@ -473,7 +473,7 @@ internal sealed partial class SearchBuilderPopover
             grepStatus.Text = plan.Files.Count == 0
                 ? Loc.T("Nothing to replace in the searched files.")
                 : $"{plan.TotalReplacements} replacement{(plan.TotalReplacements == 1 ? "" : "s")} in {plan.Files.Count} file{(plan.Files.Count == 1 ? "" : "s")}. " + Loc.T("Nothing has been written. Use Apply to write them.") + (plan.Truncated ? " " + Loc.T("The plan was cut at its limit.") : "");
-            grepSkipped.Text = string.Join("\n", plan.Skipped.Take(5).Select(s => "• " + SafeRelative(root, s.File) + ": " + s.Reason));
+            grepSkipped.Text = string.Join("\n", plan.Skipped.Take(5).Select(s => "• " + SafeRelative(root, s.File) + ": " + RegexGrep.TranslateSkipReason(s.Reason, Loc.T)));
         }
         catch (OperationCanceledException) { grepStatus.Text = Loc.T("Preview cancelled."); }
     }
@@ -550,7 +550,7 @@ internal sealed partial class SearchBuilderPopover
         grepStatus.Text = Loc.T("Restoring…");
         var result = await Task.Run(() => RegexGrep.Undo(UndoRoot, snapshot.Id));
         grepStatus.Text = result.Success
-            ? $"{result.FilesRestored} file{(result.FilesRestored == 1 ? "" : "s")} restored." + (result.Skipped.Count > 0 ? " " + string.Join(" ", result.Skipped.Take(3).Select(s => Path.GetFileName(s.File) + ": " + s.Reason)) : "")
+            ? string.Format(Loc.T(result.FilesRestored == 1 ? "{0} file restored." : "{0} files restored."), result.FilesRestored) + (result.Skipped.Count > 0 ? " " + string.Join(" ", result.Skipped.Take(3).Select(s => Path.GetFileName(s.File) + ": " + RegexGrep.TranslateSkipReason(s.Reason, Loc.T))) : "")
             : Loc.T(result.Error ?? "The snapshot could not be restored.");
         if (result.Success) AppHost.Current.History.Record("regex-undo", $"Restored {result.FilesRestored} file(s) from undo snapshot {snapshot.Id}");
         RenderSnapshots();

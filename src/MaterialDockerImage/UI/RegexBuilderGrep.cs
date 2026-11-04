@@ -104,6 +104,38 @@ public sealed record RegexGrepSnapshotInfo(string Id, DateTimeOffset Created, st
 /// </summary>
 public static class RegexGrep
 {
+    /// <summary>The fixed skip reasons, kept in English in the result so saved results stay readable everywhere; see <see cref="TranslateSkipReason"/>.</summary>
+    public static readonly IReadOnlyList<string> FixedSkipReasons =
+    [
+        "binary file (contains a NUL byte)", "folder could not be read", "link or junction (not followed)", "hidden (hidden items are not searched)",
+        "system item (system items are not searched)", "read-only (read-only files are not searched)", "could not be read", "the file limit was reached",
+        "not valid in its own encoding, so it is shown in searches but never edited", "read-only file", "the plan reached its total size limit",
+        "changed since the preview, so it was not touched", "not editable", "the result would be too large", "invalid snapshot entry",
+        "the file no longer exists", "changed after the replacement, so it was not restored", "the snapshot copy is damaged",
+    ];
+
+    /// <summary>The skip reasons that carry a number, as English templates matched back from the stored text.</summary>
+    private static readonly (System.Text.RegularExpressions.Regex Match, string Template)[] NumberedSkipReasons =
+    [
+        (new(@"^larger than (\d+) KiB$"), "larger than {0} KiB"),
+        (new(@"^a replacement plan covers at most (\d+) files$"), "a replacement plan covers at most {0} files"),
+        (new(@"^only the first (\d+) matches of this file are listed$"), "only the first {0} matches of this file are listed"),
+        (new(@"^the pattern exceeded the (\d+) ms limit in this file$"), "the pattern exceeded the {0} ms limit in this file"),
+    ];
+
+    /// <summary>English templates of the numbered skip reasons, for the translation checks.</summary>
+    public static IEnumerable<string> NumberedSkipTemplates => NumberedSkipReasons.Select(n => n.Template);
+
+    /// <summary>Shows a stored skip reason in the interface language. The text after "could not be restored:" is the system's own error, shown as written.</summary>
+    public static string TranslateSkipReason(string reason, Func<string, string> translate)
+    {
+        const string restoreLead = "could not be restored: ";
+        if (reason.StartsWith(restoreLead, StringComparison.Ordinal)) return translate("could not be restored:") + " " + reason[restoreLead.Length..];
+        foreach (var (match, template) in NumberedSkipReasons)
+            if (match.Match(reason) is { Success: true } m) return string.Format(System.Globalization.CultureInfo.InvariantCulture, translate(template), m.Groups[1].Value);
+        return translate(reason);
+    }
+
     public const int MaxChangesShownPerFile = 5;
     public const int MaxReplacementsPerFile = 10000;
     public const int MaxApplyFiles = 500;

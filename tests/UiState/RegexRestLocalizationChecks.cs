@@ -36,6 +36,13 @@ public static class RegexRestLocalizationChecks
                 Check(missing.Count == 0, name + (missing.Count == 0 ? "" : $" ({missing.Count} without Cantonese, first: {missing[0]})"));
             }
 
+            // ----- why Search in files, a replacement or an undo skipped a file -----
+            Covered(RegexGrep.FixedSkipReasons, r => RegexGrep.TranslateSkipReason(r, Loc.T), "every fixed folder-search skip reason has Cantonese wording");
+            Covered(RegexGrep.NumberedSkipTemplates, Loc.T, "every numbered folder-search skip reason has Cantonese wording");
+            Check(RegexGrep.TranslateSkipReason("larger than 512 KiB", Loc.T) == "大過 512 KiB", "a numbered skip reason keeps its number when translated");
+            Check(RegexGrep.TranslateSkipReason("could not be restored: Access is denied.", Loc.T) == "還原唔到： Access is denied.", "the system's own restore error is kept after the translated lead-in");
+            Check(RegexGrep.TranslateSkipReason("larger than 512 KiB", s => s) == "larger than 512 KiB", "skip reasons stay unchanged in English");
+
             // ----- conversion reasons and notes: every target, every kind, patterns and flags that provoke every kind of note -----
             var patterns = new[]
             {
