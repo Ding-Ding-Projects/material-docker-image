@@ -52,6 +52,8 @@ public sealed class AppHost
     /// <summary>Saves settings and, when an action is named, records the change in local history.</summary>
     public void SaveSettings(string? historyAction)
     {
+        // Capture mode changes theme, language and context in memory only; it must never overwrite the user's saved settings.
+        if (IsCapture) { SettingsChanged?.Invoke(); return; }
         try { Settings.Save(); }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Notify.Error("Settings could not be saved: " + e.Message); return; }
         if (historyAction != null && !IsCapture) History.Record("settings", historyAction, new Dictionary<string, string> { ["settings/settings.json"] = Settings.ToJson() });

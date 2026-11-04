@@ -70,10 +70,13 @@ public static partial class Loc
             var literals = marker.Split(key);
             var pattern = new System.Text.StringBuilder("^");
             var holes = marker.Matches(key);
+            // A template with little fixed text ("{0} of {1}", "{0} s") would otherwise rewrite ordinary sentences;
+            // its holes may only capture single tokens such as counts, sizes and names.
+            var hole = string.Concat(literals).Trim().Length <= 6 ? @"\S{1,60}?" : ".+?";
             for (var i = 0; i < literals.Length; i++)
             {
                 pattern.Append(Regex.Escape(literals[i]));
-                if (i < holes.Count) pattern.Append("(?<g").Append(int.Parse(holes[i].Value.Trim('{', '}'), CultureInfo.InvariantCulture)).Append(">.+?)");
+                if (i < holes.Count) pattern.Append("(?<g").Append(int.Parse(holes[i].Value.Trim('{', '}'), CultureInfo.InvariantCulture)).Append('>').Append(hole).Append(')');
             }
             pattern.Append('$');
             var longest = literals.OrderByDescending(l => l.Length).First();

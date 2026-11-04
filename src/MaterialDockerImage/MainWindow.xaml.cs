@@ -24,8 +24,9 @@ public partial class MainWindow : Window
 {
     private readonly UserSettings settings = UserSettings.Load();
     private readonly AppHost host;
-    private readonly OverlayHost overlay = new();
-    private readonly OperationsDock dock = new();
+    // Built in the constructor after the saved language is applied, so their labels use it from the start.
+    private readonly OverlayHost overlay;
+    private readonly OperationsDock dock;
     private readonly Dictionary<string, PageBase> pages = new(StringComparer.Ordinal);
     private readonly Dictionary<string, RadioButton> railItems = new(StringComparer.Ordinal);
     private readonly List<TabState> tabs = new();
@@ -46,9 +47,12 @@ public partial class MainWindow : Window
         InitializeComponent();
         if (capture) SourceInitialized += (_, _) => System.Windows.Interop.HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle)?.AddHook(AllowLargerThanScreen);
         Loc.Language = settings.Language; Loc.FunnyEnglish = settings.FunnyEnglish; Loc.FunnyCantonese = settings.FunnyCantonese; Loc.DialogEmoji = settings.DialogEmoji; Loc.SchoolMode = settings.SchoolMode;
-        if (capture && captureLanguage is "English" or "Cantonese" or "Bilingual") Loc.Language = captureLanguage;
+        // Capture mode sets the language in memory only (as UseCaptureTheme does), so pages that sync from settings keep it.
+        if (capture && captureLanguage is "English" or "Cantonese" or "Bilingual") { settings.Language = captureLanguage; Loc.Language = captureLanguage; }
         // Captures are published, so imported personal wording is never loaded in capture mode.
         if (!capture && !string.IsNullOrWhiteSpace(settings.PersonalVocabularyPath) && File.Exists(settings.PersonalVocabularyPath)) Loc.LoadVocabulary(settings.PersonalVocabularyPath);
+        overlay = new OverlayHost();
+        dock = new OperationsDock();
         ApplyAppearance();
         OverlaySlot.Content = overlay;
         DockHost.Content = dock;
@@ -324,6 +328,7 @@ public partial class MainWindow : Window
     {
         settings.OpenTabs = tabs.Where(t => !t.Workspace).Select(t => t.Destination).ToList();
         settings.PinnedTabs = tabs.Where(t => t.Pinned && !t.Workspace).Select(t => t.Destination).ToList();
+        if (CaptureMode) return; // captures never overwrite the user's saved settings
         try { settings.Save(); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
     }
 
@@ -589,7 +594,7 @@ public partial class MainWindow : Window
         if (CaptureMode) return;
         if (host.Busy) { e.Cancel = true; host.Notify.Warning("Cancel the active operation and wait for its result before closing."); return; }
         var dirty = pages.Values.OfType<IDirtyAware>().Where(p => p.IsDirty).ToList();
-        if (dirty.Count == 0 || allowClose) { try { settings.Save(); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { } return; }
+        if (dirty.Count == 0 || allowClose) { if (!CaptureMode) { try { settings.Save(); } catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { } } return; }
         e.Cancel = true;
         if (await overlay.ConfirmAsync("Discard unsaved drafts?", string.Join(Environment.NewLine, dirty.Select(d => d.DirtyLabel)) + Environment.NewLine + Environment.NewLine + "The discard is recorded in local history.", "Discard and close", true))
         {

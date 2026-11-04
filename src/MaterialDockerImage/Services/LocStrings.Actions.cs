@@ -6,6 +6,9 @@ public static partial class Loc
     private static IEnumerable<KeyValuePair<string, string>> ActionAndFieldLabels()
     {
         // Compact layouts and the window-wide personal wording drop.
+        yield return new("{0} selected of {1} matching", "已揀 {0} 項（{1} 項符合）");
+        yield return new("filters:", "篩選：");
+        yield return new("search active", "搜尋中");
         yield return new("Show details", "顯示詳情");
         yield return new("Hide details", "隱藏詳情");
         yield return new("Selected item summary", "已選項目摘要");

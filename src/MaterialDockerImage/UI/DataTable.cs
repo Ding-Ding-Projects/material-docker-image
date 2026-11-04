@@ -250,7 +250,7 @@ public sealed class DataTable<T> : Grid
         var filtered = all.Count > 0 && rows.Count == 0;
         empty.Content = all.Count == 0 ? Ui.EmptyState(Icons.Inventory2, EmptyTitle, EmptyMessage) : filtered ? Ui.EmptyState(Icons.FilterList, "No matches", Search.Status.Length > 0 ? Search.Status : NoMatchMessage) : null;
         empty.Visibility = rows.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
-        statusText.Text = all.Count == 0 ? "" : $"{rows.Count} of {all.Count} shown" + (active.Count > 0 ? " · filters: " + string.Join(", ", active.Select(f => Loc.T(f.Label))) : "") + (Search.IsActive ? " · search active" : "");
+        statusText.Text = all.Count == 0 ? "" : Loc.T($"{rows.Count} of {all.Count} shown") + (active.Count > 0 ? " · " + Loc.T("filters:") + " " + string.Join(", ", active.Select(f => Loc.T(f.Label))) : "") + (Search.IsActive ? " · " + Loc.T("search active") : "");
         UpdateBulk();
     }
 
@@ -258,7 +258,7 @@ public sealed class DataTable<T> : Grid
     {
         var count = List.SelectedItems.Count;
         bulkBar.Visibility = count > 0 && bulkActions.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
-        bulkText.Text = $"{count} {Loc.T("Selected").ToLowerInvariant()} of {rows.Count} matching";
+        bulkText.Text = Loc.T($"{count} selected of {rows.Count} matching");
     }
 
     public void SelectAllMatching() => List.SelectAll();
