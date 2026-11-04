@@ -146,7 +146,7 @@ foreach(var bad in new[]{"[]","{\"entries\":{}}","{\"version\":2,\"entries\":{}}
 }
 MaterialDockerImage.Services.Loc.Language="Cantonese";
 Check(MaterialDockerImage.Services.Loc.T("3 of 5")=="3 / 5" && MaterialDockerImage.Services.Loc.T("A miniature of the window drawn with the current appearance.")=="A miniature of the window drawn with the current appearance." && MaterialDockerImage.Services.Loc.T("Runs in 30 s")=="Runs in 30 s", "short templates translate counts but never split ordinary sentences");
-Check(MaterialDockerImage.Services.Loc.T("Show details")=="顯示詳情" && MaterialDockerImage.Services.Loc.T("1 selected of 95 matching")=="已揀 1 項（95 項符合）" && MaterialDockerImage.Services.Loc.T("95 of 95 shown")=="顯示 95 / 95" && MaterialDockerImage.Services.Loc.T("Ready")=="準備就緒", "table status, selection and compact detail labels translate");
+Check(MaterialDockerImage.Services.Loc.T("Show details")=="顯示詳情" && MaterialDockerImage.Services.Loc.T("1 selected of 95 matching")=="已揀 1 項（95 項符合）" && MaterialDockerImage.Services.Loc.T("95 of 95 shown")=="顯示 95 / 95" && MaterialDockerImage.Services.Loc.T("Ready")=="準備就緒" && MaterialDockerImage.Services.Loc.T("No operation is running.")=="目前冇進行中嘅操作。" && MaterialDockerImage.Services.Loc.T("Workspace")=="工作區", "table status, selection, shell and compact detail labels translate");
 MaterialDockerImage.Services.Loc.Language="English";
 Check(MaterialDockerImage.Services.Loc.T("1 selected of 95 matching")=="1 selected of 95 matching", "English table selection line is unchanged");
 MaterialDockerImage.Services.Loc.Language="Cantonese"; MaterialDockerImage.Services.Loc.FunnyCantonese=1;

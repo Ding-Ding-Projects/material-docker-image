@@ -6,6 +6,14 @@ public static partial class Loc
     private static IEnumerable<KeyValuePair<string, string>> ActionAndFieldLabels()
     {
         // Compact layouts and the window-wide personal wording drop.
+        // Shell and operation panel.
+        yield return new("Workspace", "工作區");
+        yield return new("No operation is running.", "目前冇進行中嘅操作。");
+        yield return new("elapsed", "已用時間");
+        yield return new("Operation output", "操作輸出");
+        yield return new("Output copied.", "已複製輸出。");
+        yield return new("Copy output", "複製輸出");
+        yield return new("Clear output", "清除輸出");
         yield return new("{0} selected of {1} matching", "已揀 {0} 項（{1} 項符合）");
         yield return new("filters:", "篩選：");
         yield return new("search active", "搜尋中");
