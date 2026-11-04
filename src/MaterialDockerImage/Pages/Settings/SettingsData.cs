@@ -48,7 +48,8 @@ public sealed partial class SettingsPage
             SettingRows.Toggle(S.SuggestionsWhileTyping, v => { S.SuggestionsWhileTyping = v; Commit("Suggestions while typing " + (v ? "on" : "off")); }), s => s.SuggestionsWhileTyping,
             "Suggestions come from the Dockerfile reference built into the app, the stages and variables in the file, local images on the selected engine context and file names in the build context folder. Secret-looking files are never listed and nothing is sent anywhere.");
         var setup = Ui.Button("Run setup again", Icons.RocketLaunch, ButtonKind.Tonal, () => Host.Navigate("Setup"));
-        rows.Add("setup", "Setup wizard", "Detect Docker, choose the engine context and project folder again. Your other settings are kept.", setup, null);
+        rows.Add("setup", "Setup wizard", "Detect Docker, choose the engine context and project folder again. Your other settings are kept.", setup, null,
+            "Setup re-runs the Docker detection and the engine context and project folder choices. It does not delete settings, history or any Docker resource.");
     }
 
     private void DataSection()
@@ -59,6 +60,14 @@ public sealed partial class SettingsPage
         rows.Add("historyfolder", "History folder", PageParts.Sanitize(Host.History.Root),
             Ui.Button("Open folder", Icons.FolderOpen, ButtonKind.Text, () => PageParts.OpenFolder(Host.History.Root)), null,
             "A Git repository used only for local history. Activity lists, restores and exports its revisions.");
+        rows.Add("autoupdate", "Check for updates", "Looks for a newer release in the background and stages it. Nothing restarts until you choose to.",
+            SettingRows.Toggle(S.AutoUpdateCheck, v => { S.AutoUpdateCheck = v; Commit("Update checks " + (v ? "on" : "off")); }), s => s.AutoUpdateCheck,
+            "Only an installed copy updates itself; a portable or development run never does. The check reads the public RELEASES file of this project's GitHub releases and sends no personal data. Releases are unsigned, so Windows may warn about an unknown publisher. A staged update opens the next time you start the app, or when you press Restart to update.");
+        var updateStatus = Ui.Caption(Host.Updates.Message);
+        Host.Updates.Changed += () => updateStatus.Dispatcher.BeginInvoke(() => updateStatus.Text = Loc.T(Host.Updates.Message));
+        var updateNow = Ui.AsyncButton("Check now", Icons.Refresh, ButtonKind.Tonal, () => Host.Updates.CheckAsync(true));
+        rows.Add("updatecheck", "Update status", "Checks the release feed once, even when background checks are off.", Ui.VStack(6, updateNow, updateStatus), null,
+            "A check compares this build's version with the newest full package in the feed. If a newer one exists and this copy is installed, it is downloaded and staged; the running app is never restarted for you.", true);
         rows.Add("school", "School mode", "Uses English only and hides Cantonese wording, funny lead-ins and the dim sum surprise.",
             SettingRows.Toggle(S.SchoolMode, v => { S.SchoolMode = v; Commit("School mode " + (v ? "on" : "off")); }), s => s.SchoolMode,
             "Your language and funny-level choices are kept and come back when School mode is turned off.");
@@ -68,7 +77,8 @@ public sealed partial class SettingsPage
         rows.Add("exportimport", "Export or import settings", "Saves all settings to a JSON file, or loads them from one after a preview.", buttons, null,
             "Exported files contain preferences and paths (build folder, editor, personal wording file), never credentials or the personal wording itself. Imports are validated in full before anything changes.", true);
         rows.Add("resetall", "Reset all settings", "Returns every setting to its built-in default. Local history is kept.",
-            Ui.AsyncButton("Reset all…", Icons.RestartAlt, ButtonKind.Danger, ResetAllAsync), null);
+            Ui.AsyncButton("Reset all…", Icons.RestartAlt, ButtonKind.Danger, ResetAllAsync), null,
+            "Every preference returns to its built-in default, including appearance, language and the personal wording file path. Local history and your Docker resources are not touched, and you are asked to confirm first.");
     }
 
     private void AboutSection()
@@ -87,11 +97,12 @@ public sealed partial class SettingsPage
         var save = Ui.Button("Save", Icons.Save, ButtonKind.Tonal, () => SaveName(name.Text));
         var reset = Ui.Button(Loc.T("Reset to") + " " + UserSettings.ShippedName, null, ButtonKind.Text, () => { name.Text = UserSettings.ShippedName; SaveName(UserSettings.ShippedName); }, false);
         name.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) SaveName(name.Text); };
-        rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.HStack(8, name, save, reset), error), s => s.DisplayName, null, true);
+        rows.Add("displayname", "Display name", "The name shown in the title bar and the window title.", Ui.VStack(6, Ui.HStack(8, name, save, reset), error), s => s.DisplayName, "Only the title bar and the window title change. The shipped product name stays visible in About and in the diagnostics report.", true);
         rows.Add("productname", "Product name", UserSettings.ShippedName, new Border(), null,
             "About and the diagnostics report always show the shipped product name, so a renamed display name never hides which product this is. Renaming changes only the title bar and window title; the settings, history and data folders keep their locations.");
         var (version, _, built) = PageParts.AppInfo();
-        rows.Add("version", "Version", $"{version} · build {PageParts.BuildText(built)} · .NET {Environment.Version}", new Border(), null);
+        rows.Add("version", "Version", $"{version} · build {PageParts.BuildText(built)} · .NET {Environment.Version}", new Border(), null,
+            "The version and build time are read from this program's own metadata, so they describe the copy you are running. Tools has the changelog.");
         var licences = Ui.VStack(6,
             Ui.Text("Third-party components", 14, FontWeights.SemiBold),
             Ui.Caption("Material Symbols font by Google, licensed under the Apache License 2.0."),

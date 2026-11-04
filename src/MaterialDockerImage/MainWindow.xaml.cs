@@ -76,6 +76,7 @@ public partial class MainWindow : Window
         AppearanceCommands.Register(host.Commands, OpenAppearanceEditor, () => OpenAppearancePanel(Keyboard.FocusedElement as DependencyObject));
         SetUpAppearanceMenus();
         host.Commands.Bind(this);
+        if (!capture) _ = new Shell.UpdateBanner(UpdateSlot, host);
         RestoreTabs();
         MinimizeButton.Click += (_, _) => WindowState = WindowState.Minimized;
         MaximizeButton.Click += (_, _) => WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
@@ -89,6 +90,7 @@ public partial class MainWindow : Window
             AppearanceRuntime.Refresh(); // motion-dependent appearance (rainbow accent) needs the host, which exists now
             await RefreshContexts();
             if (!CaptureMode) { host.Schedules.Start(); MaybeDimSum(); }
+            if (!CaptureMode) _ = Task.Delay(TimeSpan.FromSeconds(8)).ContinueWith(_ => Dispatcher.InvokeAsync(() => host.Updates.CheckAsync(false)), TaskScheduler.Default);
         };
         clock.Tick += (_, _) => clockText.Text = DateTime.Now.ToString("HH:mm:ss");
         clock.Start();
@@ -255,7 +257,7 @@ public partial class MainWindow : Window
             item.Checked += (_, _) => { if (!navigating) Navigate(destination.Key); };
             item.ContextMenu = new ContextMenu();
             item.ContextMenu.Items.Add(Ui.MenuItem("Open in new tab", Icons.Tab, () => OpenTab(destination.Key, false)));
-            item.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(item, new[] { "SecondaryContainer", "OnSecondaryContainer", "OnSurfaceVariant", "Surface", "HoverLayer" }, "Navigation item"), "Ctrl+Shift+E"));
+            item.ContextMenu.Items.Add(Ui.CommandMenuItem("Edit appearance…", Icons.Palette, "appearance.element", () => OpenAppearancePanel(item, new[] { "SecondaryContainer", "OnSecondaryContainer", "OnSurfaceVariant", "Surface", "HoverLayer" }, "Navigation item")));
             railItems[destination.Key] = item;
             (destination.Key == "Settings" ? RailBottom : Rail).Children.Add(item);
         }
@@ -269,7 +271,7 @@ public partial class MainWindow : Window
     {
         PageHost.ContextMenuOpening += (_, e) => contextTarget = e.OriginalSource as DependencyObject;
         PageHost.ContextMenu = new ContextMenu();
-        PageHost.ContextMenu.Items.Add(Ui.MenuItem("Edit appearance…", Icons.Palette, () => OpenAppearancePanel(contextTarget), "Ctrl+Shift+E"));
+        PageHost.ContextMenu.Items.Add(Ui.CommandMenuItem("Edit appearance…", Icons.Palette, "appearance.element", () => OpenAppearancePanel(contextTarget)));
     }
 
     private void OpenAppearanceEditor()
@@ -387,7 +389,7 @@ public partial class MainWindow : Window
             radio.MouseUp += (_, e) => { if (e.ChangedButton == MouseButton.Middle && !tab.Workspace) CloseTab(index); };
             var menu = new ContextMenu();
             if (!tab.Workspace) menu.Items.Add(Ui.MenuItem(tab.Pinned ? "Unpin tab" : "Pin tab", Icons.Keep, () => { tabs[index] = tab with { Pinned = !tab.Pinned }; Reorder(); }));
-            if (!tab.Workspace) menu.Items.Add(Ui.MenuItem("Close tab", Icons.Close, () => CloseTab(index), "Ctrl+W"));
+            if (!tab.Workspace) menu.Items.Add(Ui.CommandMenuItem("Close tab", Icons.Close, "tab.close", () => CloseTab(index)));
             menu.Items.Add(Ui.MenuItem("Close other tabs", Icons.Close, () => CloseWhere(t => t != tab)));
             menu.Items.Add(Ui.MenuItem("Close tabs containing text…", Icons.FilterList, () => CloseByText(true)));
             menu.Items.Add(Ui.MenuItem("Close tabs not containing text…", Icons.FilterList, () => CloseByText(false)));
@@ -603,7 +605,7 @@ public partial class MainWindow : Window
         });
         var body = Ui.VStack(12,
             Ui.Title("Accessibility tools"),
-            host.Lockable("fontsize", Ui.Field("Text size", size)),
+            host.Lockable("fontsize", Ui.Field("Text size", size, "Changes the text size of the whole window from 12 to 22 points and is saved with your settings.", "14")),
             host.Lockable("contrast", Ui.Switch("High contrast", settings.HighContrast, v => { settings.HighContrast = v; host.SaveSettings("High contrast " + (v ? "on" : "off")); })),
             host.Lockable("motion", Ui.Switch("Reduced motion", settings.ReducedMotion, v => { settings.ReducedMotion = v; host.SaveSettings("Reduced motion " + (v ? "on" : "off")); })),
             host.Lockable("targets", Ui.Switch("Larger targets", settings.LargerTargets, v => { settings.LargerTargets = v; host.SaveSettings("Larger targets " + (v ? "on" : "off")); })),

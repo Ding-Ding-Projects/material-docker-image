@@ -57,15 +57,14 @@ public sealed class ToolsPage : PageBase
                 PageParts.OpenExternal(ReleasesUrl);
         });
         open.HorizontalAlignment = HorizontalAlignment.Left;
-        var body = Ui.VStack(16,
+        var header = Ui.VStack(14,
             Ui.Title("Changelog", 18),
-            Ui.Caption("This build reads its version and build time from its own assembly metadata. It does not contact the internet or a Git repository."),
+            Ui.Caption("This build reads its version and build time from its own assembly metadata. The history below was bundled when the build was made; this page does not contact the internet."),
             rows,
-            Ui.Divider(),
-            Ui.Text("Release notes for each version are published on the project's releases page. They are not bundled in the app, so nothing is shown here that the releases page does not say."),
+            Ui.Caption("Newer releases may exist. Check the releases page for anything published after this build."),
             Ui.Mono(ReleasesUrl, 13, "OnSurfaceVariant", true),
             open);
-        return Ui.Scroll(Ui.Card(body, 24, "SurfaceLow", 16).Margin(0, 0, 8, 16));
+        return new ChangelogView(header).Root;
     }
 
     public override IEnumerable<AppCommand> PageCommands() =>

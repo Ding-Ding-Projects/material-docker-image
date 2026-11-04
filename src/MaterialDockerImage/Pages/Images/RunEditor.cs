@@ -214,7 +214,7 @@ internal sealed partial class RunEditor
     private static Grid Two(UIElement a, UIElement b) => Ui.Columns(12, [1, 1], a, b);
 
     private UIElement BuildIdentity() => Ui.VStack(12,
-        Ui.Field("Image", Ui.Mono(image, 13, "OnSurface", true)),
+        Ui.Field("Image", Ui.Mono(image, 13, "OnSurface", true), "The image this container is created from. Change it by choosing a different image in the Images list."),
         Two(Ui.Field("Container name", name, "Optional. Docker generates a random name when empty. Letters, digits, underscores, periods and hyphens.", "hello-api"),
             Ui.Field("Hostname", hostname, "--hostname sets the host name the container sees for itself. Leave empty for the short container ID.", "api-1")));
 

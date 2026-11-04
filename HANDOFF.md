@@ -30,6 +30,15 @@ A native Windows WPF workspace for Docker with a complete Material 3 interface. 
 - `Tests and screenshots` workflow run 41698541353 at source `afc72c0df9be118fdb6d07c238a4ff3b458edc0d`: the published application rendered all 18 surfaces in dark and light themes at 1440 x 960 and in dark at 960 x 720, on Windows Server 2025 with a real Windows container engine and labelled resources that were removed afterwards. The 54 captures are in `evidence/screenshots/` with hashes in `evidence/inventory.json`. They were reviewed; layout problems they showed (stretched captures, a 320 px dialog limit, squeezed inspectors, wrapped chips, rail overlap, a tall empty output panel) were fixed before this run.
 - Capture mode only renders; interactive behaviour of each workflow on a personal machine (clicking through builds, runs, removals, prunes, sign-in, history restores) has not been exercised in this rewrite. Earlier native workflow evidence (source f370d66 and release v0.5.1) belongs to the previous interface and is not relabelled.
 
+## Records, exports, shortcuts, info icons and updates
+
+- `build/make-changelog.ps1` writes `src/MaterialDockerImage/Assets/changelog.json` from git log (deterministic, merge commits omitted, grouped under the first containing `vX.Y.Z` tag, the rest as unreleased). `build/publish.ps1` runs it before every build; the file is git-ignored and embedded when present. `UI/ChangelogModel.cs` parses and filters it; `Pages/Tools/ChangelogView.cs` is the viewer (regex search, typed dates, copy and Markdown export, commit links behind a confirmation).
+- `UI/TableExport.cs` serialises every `DataTable` export and copy-as (CSV, TSV, JSON schema 1, Markdown, HTML).
+- `Ui.CommandMenuItem` derives shortcut text from `AppCommand.Gesture`; `tests/UiState/RecordsChecks.cs` scans the source and fails on a hand-typed shortcut that is not a declared list-local key.
+- `Ui.Info` is the one info-icon component; `SettingRows` falls back to `UI/InfoGuidance.cs` text for rows without hand-written guidance.
+- `UI/UpdateFeed.cs` (version comparison, RELEASES parsing, decision) is framework-free and checked; `Services/UpdateService.cs` fetches the feed and runs Update.exe only for an installed copy; `Shell/UpdateBanner.cs` shows the unsigned-build banner and restarts only after confirmation. Nothing here has been run against a published feed or an installed copy.
+- Verification: `build.bat -Tests` passes (UI-state checks including the new ones, each logic piece seen failing first by sabotage); `build.bat -Version 0.0.1` compiles. Nothing was driven in the built window and no capture was taken.
+
 ## Known limits
 
 - Language modes cover the shell and the copy of every destination page (about 3,200 Cantonese phrases and sentence templates). Docker CLI output, engine data, log lines and some long explanations assembled from several fragments are shown as produced and stay English in every mode.

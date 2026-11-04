@@ -115,7 +115,7 @@ public sealed partial class InstructionForm : StackPanel
             case InstructionKind.Expose:
                 yield return Ui.Columns(12, [1, 1],
                     Ui.Field("Port", Text(i.Port, "Port", v => i.Port = v), "Port the service listens on. Documentation only; publish it when you run the container.", "8080"),
-                    Ui.Field("Protocol", Ui.Segmented(["tcp", "udp"], i.Protocol.Trim().Length == 0 ? "tcp" : i.Protocol.Trim().ToLowerInvariant(), v => { i.Protocol = v; changed(); }, false)));
+                    Ui.Field("Protocol", Ui.Segmented(["tcp", "udp"], i.Protocol.Trim().Length == 0 ? "tcp" : i.Protocol.Trim().ToLowerInvariant(), v => { i.Protocol = v; changed(); }, false), "Transport protocol the port uses. Documentation only, like the port itself.", "tcp"));
                 break;
             case InstructionKind.Volume:
                 yield return Ui.Field("Mount points", new ListRows(i.Sources, "Path", "Add path", changed), "Paths that hold data outside the container's writable layer. Each run gets an anonymous volume unless you mount one.", "/data");
@@ -165,7 +165,7 @@ public sealed partial class InstructionForm : StackPanel
                 var text = Ui.CodeBox(i.Value, 72);
                 text.TextChanged += (_, _) => { i.Value = text.Text; changed(); };
                 yield return Ui.Caption("This source was kept exactly as written because the Creator does not model it. It is rendered unchanged.");
-                yield return Ui.Field("Source", text);
+                yield return Ui.Field("Source", text, "The original text of this instruction. Edits here replace it exactly as typed.");
                 break;
             }
         }

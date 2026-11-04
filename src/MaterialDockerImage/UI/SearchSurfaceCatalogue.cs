@@ -165,6 +165,7 @@ public static class SearchSurfaceCatalogue
         F("system.engine-facts", "System", "Pages/System/EngineInfoCard.cs", "Search engine facts"),
         // Tools
         F("tools.docs", "Tools", "Pages/Tools/DocsBrowser.cs", "Search documentation"),
+        F("tools.changelog", "Tools", "Pages/Tools/ChangelogView.cs", "Search the changelog"),
     ];
 
     /// <summary>Constructions that create a search field. Each yields the construct name and the argument list start.</summary>

@@ -77,6 +77,12 @@ internal sealed class SettingRows
         return Same(value(Host.Settings), fallback) ? $"Default: {shown} (built-in default)" : $"Saved in settings.json · default {shown}";
     }
 
+    private static string FormatDefault(Func<UserSettings, object?> value, Func<object?, string>? format)
+    {
+        var fallback = value(Defaults);
+        return format?.Invoke(fallback) ?? Show(fallback);
+    }
+
     private static bool Same(object? a, object? b) => a is double x && b is double y ? Math.Abs(x - y) < 0.001 : Equals(a, b);
 
     private static string Show(object? value) => value switch
@@ -94,7 +100,9 @@ internal sealed class SettingRows
         var provenance = value == null ? null : Ui.Text(ProvenanceText(value, format), 12, null, "Outline");
         var title = new StackPanel { Orientation = Orientation.Horizontal };
         title.Children.Add(Ui.Text(label, 14, FontWeights.SemiBold));
-        if (info != null) title.Children.Add(Ui.InfoButton(label, info, example));
+        // Every saved setting gets an info icon: hand-written guidance when the row has it, otherwise a generic default-and-undo note.
+        info ??= value == null ? null : InfoGuidance.ForSavedSetting(explanation, FormatDefault(value, format));
+        if (info != null) title.Children.Add(Ui.Info(label, info, example));
         System.Windows.Automation.AutomationProperties.SetName(control, Loc.T(label));
         System.Windows.Automation.AutomationProperties.SetHelpText(control, explanation);
         var lockNote = Ui.Caption("");

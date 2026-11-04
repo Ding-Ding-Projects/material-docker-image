@@ -55,6 +55,13 @@
 - [ ] Implement and verify container GPU access controls (`container-gpu-access`). Implemented with focused checks and a real-engine argument receipt; built-application interaction and a GPU-capable host still pending.
 
 - [ ] Verify the application icon, title-bar logo picker and display-name rename interactively in the built window and the installed shortcut (`app-icon`, `logo-customization`, `display-name`); add logo crop, fit and background editing.
+- [x] Build the in-app changelog from git log at build time, with version grouping, regex search, date range and Markdown export (`changelog`; built-window interaction pending).
+- [x] Export or copy every table as CSV, TSV, JSON, Markdown or HTML with checked escaping (`exports`).
+- [x] Derive menu shortcut text from the command gesture and guard against hand-typed ones (`menu-shortcuts`).
+- [x] One shared info-icon component used on settings rows and the previously bare field labels (`info-icon-guidance`).
+- [x] Background update check against the published feed with an unsigned-build banner, a setting and a manual check (`auto-updates`).
+- [ ] Exercise the changelog, exports, update banner and info icons in the built window; run the updater against a real published feed and an installed copy.
+- [ ] Add the changelog calendar date picker with range presets, language-mode voice for entries, and the update deferral and progress settings.
 - [ ] Complete all 109 required-feature acceptance rows without removing unfinished identifiers.
 - [ ] Deliver portable documentation and dedicated build companions.
   - [x] Build companion window (`src/BuildCompanion`), single-file packaging script, release asset and logic checks (see `docs/features/build-companion.md`).

@@ -5,3 +5,4 @@ out/
 .agent/
 *.user
 *.suo
+src/MaterialDockerImage/Assets/changelog.json

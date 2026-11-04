@@ -6,6 +6,8 @@ $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 New-Item -ItemType Directory -Force out/logs,out/receipts | Out-Null
 $dotnet = (Get-Content .tools/dotnet-path.txt -Raw).Trim()
+# The in-app changelog is generated from git log before every build; a failure stops the build instead of shipping a stale file.
+& "$PSScriptRoot/make-changelog.ps1"
 $binding = Get-SourceBinding
 $source = $binding.source
 $started = [DateTime]::UtcNow.ToString('o')

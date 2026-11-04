@@ -25,7 +25,7 @@ Every list, table, menu, log and source viewer has its own search field. It matc
 
 ## Lists
 
-Tables support multi-select (click, Shift and Ctrl), select all matching, invert selection, a bulk action bar that states the exact count, row context menus with a filter field and their working shortcuts, filter chips, and export of the visible rows as CSV, TSV, JSON or Markdown.
+Tables support multi-select (click, Shift and Ctrl), select all matching, invert selection, a bulk action bar that states the exact count, row context menus with a filter field and their working shortcuts, filter chips, and export or copy of the visible rows as CSV, TSV, JSON, Markdown or HTML (see [Records, exports, shortcuts and updates](records-and-updates.md)).
 
 ## Notifications
 

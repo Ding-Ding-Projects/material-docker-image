@@ -110,8 +110,8 @@ public static class AppearancePanel
         var full = Ui.Button("Open full editor", Icons.OpenInNew, ButtonKind.Tonal, () => { close!(); openEditor(); });
         var current = AppearanceRuntime.Current;
         var quick = Ui.VStack(8,
-            Ui.Field("Theme", Ui.Segmented(AppearanceState.Themes, current.Theme, v => Change("theme set to " + v, m => m.Theme = v))),
-            Ui.Field("Density", Ui.Segmented(AppearanceState.Densities, current.Density, v => Change("density set to " + v, m => m.Density = v))));
+            Ui.Field("Theme", Ui.Segmented(AppearanceState.Themes, current.Theme, v => Change("theme set to " + v, m => m.Theme = v)), "Dark, Light, or follow the Windows setting. Applies at once and is saved.", "System"),
+            Ui.Field("Density", Ui.Segmented(AppearanceState.Densities, current.Density, v => Change("density set to " + v, m => m.Density = v)), "Comfortable leaves more space between controls; compact fits more on screen.", "Compact"));
         var header = new DockPanel();
         header.Children.Add(Ui.Icon(Icons.Palette, 22, true, "Primary").Margin(0, 0, 10, 0).Dock(Dock.Left));
         header.Children.Add(Ui.HStack(0, undo, redo, closeButton).Dock(Dock.Right));

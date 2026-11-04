@@ -164,7 +164,7 @@ public static class Ui
     {
         var header = new StackPanel { Orientation = Orientation.Horizontal };
         header.Children.Add(Overline(label));
-        if (info != null) header.Children.Add(InfoButton(label, info, example));
+        if (info != null) header.Children.Add(Info(label, info, example));
         AutomationProperties.SetName(control, Loc.T(label));
         if (control is TextBox tb && tb.MinWidth < 1) tb.MinWidth = 60;
         var stack = new StackPanel();
@@ -173,10 +173,16 @@ public static class Ui
         stack.Children.Add(control);
         return stack;
     }
-    public static Button InfoButton(string target, string explanation, string? example = null)
+    /// <summary>
+    /// The one info-icon component: an icon button with the accessible name "About &lt;target&gt;", a tooltip that carries the explanation
+    /// for hover and screen readers, and a popover with the same explanation and an optional worked example.
+    /// </summary>
+    public static Button Info(string target, string explanation, string? example = null)
     {
         var b = IconButton(Icons.Info, "About " + Loc.T(target));
         b.Width = b.Height = b.MinHeight = 28; b.FontSize = 16; b.Margin = new Thickness(4, -6, 0, -6);
+        b.ToolTip = Loc.T(explanation);
+        AutomationProperties.SetHelpText(b, Loc.T(explanation));
         b.Click += (_, _) =>
         {
             var body = VStack(10, Text(target, 16, FontWeights.SemiBold), Text(explanation, 14, null, "OnSurfaceVariant"));
@@ -185,6 +191,9 @@ public static class Ui
         };
         return b;
     }
+
+    /// <summary>Older name for <see cref="Info"/>, kept so existing call sites read the same.</summary>
+    public static Button InfoButton(string target, string explanation, string? example = null) => Info(target, explanation, example);
 
     /// <summary>An anchored popup that paints its own surface and closes on Escape or outside click, returning focus to the opener.</summary>
     public static Popup ShowPopup(FrameworkElement anchor, UIElement content, double width = 360)
@@ -378,6 +387,21 @@ public static class Ui
     }
 
     public static ScrollViewer Scroll(UIElement content, bool horizontal = false) => new() { Content = content, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = horizontal ? ScrollBarVisibility.Auto : ScrollBarVisibility.Disabled, Focusable = false };
+
+    /// <summary>
+    /// A menu item whose shortcut text comes from the registered <see cref="AppCommand"/> with this id, so the shown shortcut is always
+    /// the working binding. Use this for anything that is also a command; hand-typed gestures on <see cref="MenuItem"/> are only for
+    /// keys local to one list (Del, Enter, Alt+Up) and are checked by tests/UiState.
+    /// </summary>
+    public static MenuItem CommandMenuItem(string header, string? icon, string commandId, Action action, bool danger = false)
+    {
+        var m = MenuItem(header, icon, action, null, danger);
+        void Refresh() { m.InputGestureText = AppHost.Current?.Commands.GestureText(commandId) ?? ""; }
+        Refresh();
+        // Menus are often built before the commands are registered, so the text is read again when the item is first shown.
+        m.Loaded += (_, _) => Refresh();
+        return m;
+    }
 
     public static MenuItem MenuItem(string header, string? icon, Action action, string? gesture = null, bool danger = false)
     {
