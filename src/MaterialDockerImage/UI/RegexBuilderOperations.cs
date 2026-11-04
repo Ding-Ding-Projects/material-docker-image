@@ -90,7 +90,17 @@ public static class RegexBuilderOperations
 public sealed record RegexDiagnostic(string Code, string Message, int Start, int Length);
 
 /// <summary>One growth-probe measurement.</summary>
-public sealed record RegexBenchmarkRow(string Subject, int Size, double Milliseconds, bool TimedOut, bool Matched);
+public sealed record RegexBenchmarkRow(string Subject, int Size, double Milliseconds, bool TimedOut, bool Matched)
+{
+    /// <summary>The row as one line of the timing table, with its fixed words in the chosen language (English when <paramref name="translate"/> is null).</summary>
+    public string Format(Func<string, string>? translate = null)
+    {
+        var t = translate ?? (s => s);
+        string Pick(string english, string key) { var found = t(key); return found == key ? english : found; }
+        var time = TimedOut ? ">" + RegexDiagnostics.ProbeTimeout.TotalMilliseconds.ToString("0") : Milliseconds.ToString("0.00");
+        return $"{t(Subject),-12} {Size,6} {Pick("chars", "probe characters")}  {time} {t("ms")}  {(TimedOut ? t("timed out") : Matched ? Pick("match", "probe matched") : Pick("no match", "probe did not match"))}";
+    }
+}
 
 /// <summary>Bounded growth measurements with a plain verdict.</summary>
 public sealed record RegexBenchmarkResult(bool Valid, string? Error, IReadOnlyList<RegexBenchmarkRow> Rows, string Verdict, bool Suspicious, bool Cancelled);
@@ -158,8 +168,9 @@ public static class RegexDiagnostics
     /// Times the pattern on the sample repeated 1, 2, 4, 8 and 16 times and on an adversarial probe (a run of "a" then
     /// "!"). Uses the backtracking engine on purpose, with a 250 ms limit per measurement and a 3 s total budget.
     /// </summary>
-    public static RegexBenchmarkResult Benchmark(string pattern, RegexBuilderFlags flags, string sample, CancellationToken cancellation = default)
+    public static RegexBenchmarkResult Benchmark(string pattern, RegexBuilderFlags flags, string sample, CancellationToken cancellation = default, Func<string, string>? translate = null)
     {
+        var t = translate ?? (s => s);
         var compiled = RegexBuilderEngine.Compile(pattern, flags);
         if (!compiled.Valid) return new(false, compiled.Error, [], "", false, false);
         Regex regex;
@@ -189,11 +200,11 @@ public static class RegexDiagnostics
         var timedOutRow = rows.FirstOrDefault(r => r.TimedOut);
         var suspicious = false;
         string verdict;
-        if (cancelled) verdict = "Cancelled.";
+        if (cancelled) verdict = t("Cancelled.");
         else if (timedOutRow != null)
         {
             suspicious = true;
-            verdict = $"Warning: {timedOutRow.Subject} ({timedOutRow.Size} characters) exceeded the {ProbeTimeout.TotalMilliseconds:0} ms limit. The pattern may backtrack catastrophically on similar text.";
+            verdict = t($"Warning: {t(timedOutRow.Subject)} ({timedOutRow.Size} characters) exceeded the {ProbeTimeout.TotalMilliseconds:0} ms limit.") + " " + t("The pattern may backtrack catastrophically on similar text.");
         }
         else
         {
@@ -201,9 +212,9 @@ public static class RegexDiagnostics
             if (run.Count == 3 && run[1].Milliseconds >= 5 && run[2].Milliseconds > run[1].Milliseconds * 6)
             {
                 suspicious = true;
-                verdict = "Warning: time grew more than six times when the probe doubled. That is super-linear growth.";
+                verdict = t("Warning: time grew more than six times when the probe doubled.") + " " + t("That is super-linear growth.");
             }
-            else verdict = overBudget ? "Stopped at the 3 s budget; later probes were not run." : "No super-linear growth was seen on these inputs. This is a measurement on a few inputs, not a proof.";
+            else verdict = overBudget ? t("Stopped at the 3 s budget; later probes were not run.") : t("No super-linear growth was seen on these inputs.") + " " + t("This is a measurement on a few inputs, not a proof.");
         }
         return new(true, null, rows, verdict, suspicious, cancelled);
     }

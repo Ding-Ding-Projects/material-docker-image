@@ -8,6 +8,18 @@ public sealed record RegexCompareRow(string Pattern, bool Valid, string? Error, 
 {
     public bool AllCorrect => Valid && !TimedOut && MatchingPassed == MatchingTotal && NonMatchingPassed == NonMatchingTotal;
     public double TotalMs => MatchingMs + NonMatchingMs;
+
+    /// <summary>
+    /// The row as one line of the comparison table. <paramref name="translate"/> turns the fixed words into the chosen language; the pattern, the numbers and the error text
+    /// that the .NET framework itself wrote for an invalid pattern stay as they are, after a translated lead-in. English is produced when it is null.
+    /// </summary>
+    public string Format(Func<string, string>? translate = null)
+    {
+        var t = translate ?? (s => s);
+        if (!Valid) return $"✗ {Pattern}   {t("invalid:")} {Error}";
+        var unit = t("ms");
+        return $"{(AllCorrect ? "✓" : "✗")} {Pattern}   {t($"must match {MatchingPassed}/{MatchingTotal}, must not match {NonMatchingPassed}/{NonMatchingTotal}")}   {MatchingMs:0.000} {unit} / {NonMatchingMs:0.000} {unit}   {(TimedOut ? t("timed out") : Engine)}";
+    }
 }
 
 /// <summary>The comparison of several patterns on the same matching and non-matching subjects.</summary>
