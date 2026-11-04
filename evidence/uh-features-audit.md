@@ -299,7 +299,14 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 
 ## Update after the regex and camera lanes (4 November 2026, night)
 
-- Regular expression parity: 70 of 83 topics implemented, 5 partial, 8 impossible on .NET. New: editing the pattern through the explanation tree, code templates, panel layout and preferences, a keyboard map, nested builders in library filters, engine version pickers, folder-search extras, command-line and action-file entry.
+- Regular expression parity: 73 of 83 topics implemented, 2 partial, 8 impossible on .NET. New: editing the pattern through the explanation tree, code templates, panel layout and preferences, a keyboard map, nested builders in library filters, engine version pickers, folder-search extras, command-line and action-file entry.
 - Authenticator registration from a camera is built with logic checks; it was not driven because opening a camera raises the Windows permission prompt on the host.
 - Found while driving and fixed: the builder could not open at all after the regex merge (a combo box used before creation); a source check now rejects layouts that receive a control through the null-forgiving operator.
-- Checks: `build.bat -Tests` passes 23 core, 2,457 UI-state and 24 checklist checks. Receipt: 35 steps.
+- Checks: `build.bat -Tests` passes 23 core, 2,562 UI-state and 24 checklist checks. Receipt: 36 steps.
+
+## Update, 2026-11-04 (late)
+
+- Regular expression parity: 73 of 83 topics implemented, 2 partial, 8 impossible on .NET. Newly implemented: hidden, read-only and system filters and byte-order-mark-free encodings in Search in files (`grep.all`); the `grep -E` conversion checked against real GNU grep on 33 patterns (`convert.grep`); Cantonese for every generated sentence, including conversion reasons, snippet descriptions, comparison and timing tables and folder-search skip reasons (`ui.localization`). Importing grep and ripgrep output into the result list was added; `integration.all` stays partial because scripting beyond the command line is missing.
+- Layout: the probe now asks WPF for each text width in place at the real DPI. The last cut finding was a real one-pixel squeeze of the Dockerfile Creator's `.dockerignore` tab by the default tab panel; tab strips now wrap instead. The final matrix over 264 surfaces has no cut and no overflow.
+- Interactive: whack-a-mole was reached three times through the ladder; every round was graded lost because UI Automation presses arrive about two seconds late on a hidden desktop. The winning path is covered by logic checks only.
+- Checks: `build.bat -Tests` passes 23 core, 2,562 UI-state and 24 checklist checks. Receipt: 36 steps.

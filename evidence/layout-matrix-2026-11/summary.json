@@ -1,5 +1,5 @@
 {
-  "tool": "--capture-probe (src/MaterialDockerImage/Shell/LayoutProbe.cs)",
+  "tool": "--capture-probe (src/MaterialDockerImage/Shell/LayoutProbe.cs; text width now measured by WPF itself, in place, at the window's real DPI)",
   "configurations": [
     "English, Cantonese and bilingual at 1440x960, 1200x800 and 960x720 (dark)",
     "English 960x720 light",
@@ -22,22 +22,10 @@
   "final": {
     "surfaces": 264,
     "findings": {
-      "ellipsis": 1148,
-      "cut": 12
+      "ellipsis": 1071
     },
-    "remaining": [
-      {
-        "kind": "cut",
-        "surface": "creator",
-        "text": ".dockerignore"
-      },
-      {
-        "kind": "cut",
-        "surface": "creator-suggestions",
-        "text": ".dockerignore"
-      }
-    ]
+    "source": "main 5c048f4",
+    "note": "Zero cut and zero outside across all 11 configurations. The last two cut findings, the .dockerignore tab of the Dockerfile Creator at 1200 and 1440 pixels wide, were a real one-pixel squeeze by the default tab panel; tab strips now use a wrapping panel that always gives each tab its full width."
   },
-  "remaining_explained": ".dockerignore tab label: the probe measures 85 px of text in an 84 px rounded layout box; the rendered capture shows the full label, so this is measurement rounding, not clipping.",
   "note": "The probed captures show the test host's own containers and images, so they are not published; this summary keeps only interface labels."
 }

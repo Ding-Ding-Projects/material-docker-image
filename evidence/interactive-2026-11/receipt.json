@@ -281,6 +281,15 @@
       },
       "observed": "Found and fixed: after the last regex merge every builder failed with 'Value cannot be null (Parameter element)' because a combo box was used before it was created. After the fix the app started with the palette's builder open, the pattern ^job-2027 filled in, regular expressions on and 'Valid pattern.'",
       "result": "pass after fix"
+    },
+    {
+      "action": "Unlock ladder: whack-a-mole driven by a compiled UI Automation sweeper (one cached call per sweep, each press on its own task)",
+      "artifact": {
+        "version": "0.1.0 local build",
+        "source": "main 5c048f4"
+      },
+      "observed": "The ladder fell from the sums to whack-a-mole as designed in three separate lockouts. The sweeper saw 13 of 14 moles and pressed each within about 200 ms of it appearing, but every press reached the application about two seconds later, because UI Automation Invoke blocks for roughly two seconds on a hidden desktop. All three rounds were graded lost and the ladder moved on to the clock, which is the specified behaviour for a lost round. The winning path is covered by the logic checks of the hit counter and the win ledger, not by this drive.",
+      "result": "pass (losing path); winning round not reachable with this input route"
     }
   ],
   "findings": [
@@ -292,7 +301,7 @@
     "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host)",
     "the School mode Windows Hello passkey (its prompt appears on the visible secure desktop)",
     "clicking a locked control with a pointer, and the clipboard QR route (both would need the visible desktop or the host's clipboard)",
-    "a winning whack-a-mole round (UI Automation polling is too slow to hit 8 moles)",
+    "a winning whack-a-mole round: on a hidden desktop every UI Automation press arrives about two seconds late and posted mouse or key input does not reach the window, so no driven press lands inside the one-second window of a mole",
     "camera QR registration (opening a camera raises the Windows permission prompt and the camera light on the host)"
   ],
   "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged)."
