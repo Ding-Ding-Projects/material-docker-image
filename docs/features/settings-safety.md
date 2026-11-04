@@ -42,9 +42,26 @@ Disclosure shown every time: a lock is a speed bump you set for yourself, not se
 
 ## Authenticator tool
 
-Tools has an **Authenticator** section for the app's own locks. It pairs an authenticator app with a lock, checks a code for a lock without using it up or counting it as an unlock attempt, lists the locks that have a policy (with their recovery codes left and **Remove policy**) and runs **Run RFC 6238 self-test**, which computes the 18 published RFC 6238 vectors (SHA-1, SHA-256, SHA-512, 8 digits) with the build's own code. The command palette has **Authenticator for locks**. A lock registered in an authenticator on the same computer is mostly for fun, since the key sits beside the lock it opens.
+Tools has an **Authenticator** section with two parts, chosen at the top: **My accounts** and **App locks**.
 
-Not built: a general authenticator for arbitrary accounts (live codes with countdown and next-code peek, import from an image, the clipboard or a camera, grouping and search, a secrets export behind super confirmation).
+### My accounts (general authenticator)
+
+Keeps the time-based one-time codes for any account you register.
+
+- **Adding**: paste an `otpauth://totp/` link (issuer, algorithm SHA1, SHA256 or SHA512, 6 to 8 digits and the period are taken from the link, never replaced by defaults) or enter the issuer, account, Base32 secret, algorithm, digits and period by hand. Spaces, hyphens and lower case in a secret are tolerated; counter-based (HOTP) links, unsupported algorithms, repeated parameters and links over 2,048 characters are refused with a plain reason.
+- **Codes**: each account shows its current code grouped for reading (`123 456`), the seconds left as a number and a bar (never colour only; the number turns to the warning colour in the last five seconds) and the next code. **Copy** puts the current code on the clipboard.
+- **Managing**: search (with its own regular expression builder), rename, move up or down and delete with confirmation. At most 200 accounts; an exact duplicate is refused.
+- **Storage**: one file, `authenticator.bin`, protected for the current Windows account with DPAPI. The whole document is encrypted, so issuers and names are protected as well as secrets. A file this account cannot open, or that is damaged, is reported and never overwritten. Nothing is written to `settings.json`, local history, notifications, logs or exports.
+- **Backup**: **Export encrypted backup…** writes AES-256-GCM with a key derived from a passphrase (at least 8 characters) by PBKDF2-SHA256 (600,000 iterations), a random salt and nonce. **Import encrypted backup…** validates everything before adding anything, skips accounts already present and refuses wrong passphrases, changed files, unsafe key settings and oversize files.
+- **Capture mode** shows three labelled sample accounts with example data and disables adding and backups, so a HuiShot never shows a real secret or code.
+
+Standards: codes come from RFC 4226 and RFC 6238 and are checked against all 18 published RFC 6238 vectors through the account model.
+
+Not built: registering from a QR image file, the clipboard or a camera, grouping, a warning when the system clock is far off (this needs a trusted time source), a secrets export behind super confirmation, and any driving of the section in the built window.
+
+### App locks
+
+Tools has an **Authenticator** section for the app's own locks. It pairs an authenticator app with a lock, checks a code for a lock without using it up or counting it as an unlock attempt, lists the locks that have a policy (with their recovery codes left and **Remove policy**) and runs **Run RFC 6238 self-test**, which computes the 18 published RFC 6238 vectors (SHA-1, SHA-256, SHA-512, 8 digits) with the build's own code. The command palette has **Authenticator for locks**. A lock registered in an authenticator on the same computer is mostly for fun, since the key sits beside the lock it opens.
 
 The QR encoder (`UI/SettingsSafety.Qr.cs`) is dependency free and draws nothing itself: byte mode, level L, versions 1 to 10 (271 bytes). Text beyond that is refused rather than truncated, and an otpauth link for a lock fits easily.
 
