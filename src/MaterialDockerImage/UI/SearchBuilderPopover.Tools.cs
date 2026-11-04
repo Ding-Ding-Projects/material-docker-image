@@ -404,10 +404,15 @@ internal sealed partial class SearchBuilderPopover
         var (extra, _) = ExtraOptions();
         field.State.GrepRecursive = grepRecursive?.IsChecked != false;
         field.State.GrepContext = extra?.ContextLines ?? 0;
+        field.State.GrepIncludeHidden = extra?.IncludeHidden ?? true;
+        field.State.GrepIncludeReadOnly = extra?.IncludeReadOnly ?? true;
+        field.State.GrepIncludeSystem = extra?.IncludeSystem ?? true;
+        field.State.GrepEncoding = extra?.BomlessEncoding ?? RegexGrepEncoding.Auto;
         return new RegexGrepOptions
         {
             Folder = grepFolder.Text, Globs = grepGlobs.Text, Recursive = grepRecursive?.IsChecked != false, MaxFileBytes = kib * 1024,
             ModifiedAfterUtc = extra?.ModifiedAfterUtc, ModifiedBeforeUtc = extra?.ModifiedBeforeUtc, ContextLines = extra?.ContextLines ?? 0,
+            IncludeHidden = extra?.IncludeHidden ?? true, IncludeReadOnly = extra?.IncludeReadOnly ?? true, IncludeSystem = extra?.IncludeSystem ?? true, BomlessEncoding = extra?.BomlessEncoding ?? RegexGrepEncoding.Auto,
         };
     }
 

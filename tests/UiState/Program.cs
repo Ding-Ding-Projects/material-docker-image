@@ -972,6 +972,7 @@ count += PasskeyQrChecks.Run();
 count += CameraQrChecks.Run();
 count += RegexPartialChecks.Run();
 count += RegexFinishChecks.Run();
+count += RegexGrepAttributeEncodingChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

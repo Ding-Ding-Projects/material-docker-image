@@ -412,6 +412,11 @@ public sealed class RegexFieldState
     public bool GrepRecursive { get; set; } = true;
     /// <summary>Context lines chosen for the folder search (0 to 5). In memory only.</summary>
     public int GrepContext { get; set; }
+    /// <summary>File attribute filters and the encoding for files without a byte order mark. In memory only.</summary>
+    public bool GrepIncludeHidden { get; set; } = true;
+    public bool GrepIncludeReadOnly { get; set; } = true;
+    public bool GrepIncludeSystem { get; set; } = true;
+    public RegexGrepEncoding GrepEncoding { get; set; } = RegexGrepEncoding.Auto;
     /// <summary>A result list loaded from a file, shown by the next builder opened on this field. In memory only.</summary>
     public RegexGrepSavedList? LoadedResults { get; set; }
     public RegexRecentPatterns Recent { get; } = new();

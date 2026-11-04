@@ -89,6 +89,17 @@ public static partial class Loc
         yield return new("Modified before (optional)", "修改時間早於（可選）");
         yield return new("Modified before:", "修改時間早於：");
         yield return new("Context lines", "上下文行數");
+        yield return new("Include hidden files and folders", "包括隱藏嘅檔案同資料夾");
+        yield return new("Include read-only files", "包括唯讀檔案");
+        yield return new("Include system files and folders", "包括系統檔案同資料夾");
+        yield return new("Encoding for files without a byte order mark", "冇位元組次序標記嘅檔案編碼");
+        yield return new("Auto (UTF-8)", "自動（UTF-8）");
+        yield return new("UTF-16 little endian", "UTF-16 小端序");
+        yield return new("UTF-16 big endian", "UTF-16 大端序");
+        yield return new("Windows-1252", "Windows-1252");
+        yield return new("Latin-1 (ISO 8859-1)", "Latin-1（ISO 8859-1）");
+        yield return new("How a file with no byte order mark is read and written back. A byte order mark (UTF-8, UTF-16 or UTF-32) always wins. Auto means UTF-8. A replacement writes each file back in the encoding it was read in. A read-only file is never edited, whatever this says.", "冇位元組次序標記嘅檔案點樣讀取同寫返。有位元組次序標記（UTF-8、UTF-16 或者 UTF-32）嘅話，一定跟標記。自動即係 UTF-8。取代時每個檔案都會用讀入時嘅編碼寫返。唔理呢度點揀，唯讀檔案永遠唔會被編輯。");
+        yield return new("The encoding for files without a byte order mark is not one of the supported choices.", "冇位元組次序標記嘅檔案編碼唔屬於支援嘅選項。");
         yield return new("Only files last written at or after this local time are searched. Write 2026-11-04 or 2026-11-04 13:30. Empty means no limit.", "只會搜尋最後修改時間喺呢個本地時間或者之後嘅檔案。寫法係 2026-11-04 或者 2026-11-04 13:30。留空就冇限制。");
         yield return new("Only files last written at or before this local time. A date without a time covers that whole day.", "只會搜尋最後修改時間喺呢個本地時間或者之前嘅檔案。冇寫時間嘅日期代表嗰一整日。");
         yield return new("Lines shown before and after each match when you select a result, and written to saved result lists. At most 5.", "揀一個結果時會顯示每個比對前後嘅行，儲存結果清單時亦會寫入。最多 5 行。");

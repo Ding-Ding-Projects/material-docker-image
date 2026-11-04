@@ -23,9 +23,13 @@ public sealed record RegexSearchAction
     public string Globs { get; init; } = "*";
     public bool Recursive { get; init; } = true;
     public int ContextLines { get; init; }
+    public bool IncludeHidden { get; init; } = true;
+    public bool IncludeReadOnly { get; init; } = true;
+    public bool IncludeSystem { get; init; } = true;
+    public RegexGrepEncoding BomlessEncoding { get; init; } = RegexGrepEncoding.Auto;
 
     /// <summary>The folder-search options this action describes, with the engine limits left at their defaults.</summary>
-    public RegexGrepOptions ToGrepOptions() => new() { Folder = Folder, Globs = Globs, Recursive = Recursive, ContextLines = ContextLines };
+    public RegexGrepOptions ToGrepOptions() => new() { Folder = Folder, Globs = Globs, Recursive = Recursive, ContextLines = ContextLines, IncludeHidden = IncludeHidden, IncludeReadOnly = IncludeReadOnly, IncludeSystem = IncludeSystem, BomlessEncoding = BomlessEncoding };
 
     /// <summary>Why the action cannot be used, or null. The pattern must compile with its flags and every text field must be within its bound.</summary>
     public string? Problem()
@@ -38,7 +42,17 @@ public sealed record RegexSearchAction
         if (Replacement.Length > RegexBuilderEngine.MaxPatternLength) return "The replacement is too long.";
         if (Folder.Length > MaxFieldLength || Globs.Length > MaxFieldLength) return "The folder or file patterns are too long.";
         if (ContextLines is < 0 or > RegexGrep.MaxContextLines) return $"Context lines must be between 0 and {RegexGrep.MaxContextLines}.";
+        if (!Enum.IsDefined(BomlessEncoding)) return "The encoding for files without a byte order mark is not one of the supported choices.";
         return null;
+    }
+
+    /// <summary>The file names of the encoding choices, as written in action files.</summary>
+    public static string EncodingName(RegexGrepEncoding e) => e switch { RegexGrepEncoding.Utf16Le => "utf-16le", RegexGrepEncoding.Utf16Be => "utf-16be", RegexGrepEncoding.Windows1252 => "windows-1252", RegexGrepEncoding.Latin1 => "latin1", _ => "auto" };
+
+    public static bool TryParseEncoding(string? name, out RegexGrepEncoding encoding)
+    {
+        encoding = (name ?? "auto").Trim().ToLowerInvariant() switch { "auto" or "utf-8" or "utf8" or "" => RegexGrepEncoding.Auto, "utf-16le" => RegexGrepEncoding.Utf16Le, "utf-16be" => RegexGrepEncoding.Utf16Be, "windows-1252" => RegexGrepEncoding.Windows1252, "latin1" or "iso-8859-1" => RegexGrepEncoding.Latin1, _ => (RegexGrepEncoding)(-1) };
+        return Enum.IsDefined(encoding);
     }
 
     public string Serialize()
@@ -59,6 +73,10 @@ public sealed record RegexSearchAction
             w.WriteString("globs", Globs);
             w.WriteBoolean("recursive", Recursive);
             if (ContextLines > 0) w.WriteNumber("contextLines", ContextLines);
+            if (!IncludeHidden) w.WriteBoolean("includeHidden", false);
+            if (!IncludeReadOnly) w.WriteBoolean("includeReadOnly", false);
+            if (!IncludeSystem) w.WriteBoolean("includeSystem", false);
+            if (BomlessEncoding != RegexGrepEncoding.Auto) w.WriteString("bomlessEncoding", EncodingName(BomlessEncoding));
             w.WriteEndObject();
         }
         return Encoding.UTF8.GetString(stream.ToArray());
@@ -79,11 +97,18 @@ public sealed record RegexSearchAction
             if (root.TryGetProperty("flags", out var fl))
                 foreach (var (name, _, _) in RegexBuilderFlags.All)
                     if (fl.TryGetProperty(name, out var b)) flags = flags.With(name, b.GetBoolean());
+            var enc = RegexGrepEncoding.Auto;
+            if (root.TryGetProperty("bomlessEncoding", out var be) && !TryParseEncoding(be.ValueKind == JsonValueKind.String ? be.GetString() : "?", out enc))
+                throw new InvalidDataException("The encoding for files without a byte order mark is not one of the supported choices.");
             var action = new RegexSearchAction
             {
                 Description = Text("description"), Pattern = Text("pattern"), Flags = flags, Replacement = Text("replacement"), Folder = Text("folder"), Globs = Text("globs", "*"),
                 Recursive = !root.TryGetProperty("recursive", out var r) || r.ValueKind != JsonValueKind.False,
                 ContextLines = root.TryGetProperty("contextLines", out var c) ? c.GetInt32() : 0,
+                IncludeHidden = !root.TryGetProperty("includeHidden", out var ih) || ih.ValueKind != JsonValueKind.False,
+                IncludeReadOnly = !root.TryGetProperty("includeReadOnly", out var ir) || ir.ValueKind != JsonValueKind.False,
+                IncludeSystem = !root.TryGetProperty("includeSystem", out var isy) || isy.ValueKind != JsonValueKind.False,
+                BomlessEncoding = enc,
             };
             var problem = action.Problem();
             if (problem != null) throw new InvalidDataException(problem);

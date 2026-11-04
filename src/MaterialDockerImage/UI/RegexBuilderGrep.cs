@@ -29,7 +29,18 @@ public sealed record RegexGrepOptions
     public DateTime? ModifiedBeforeUtc { get; init; }
     /// <summary>Lines of context listed before and after each match in a search (0 to <see cref="RegexGrep.MaxContextLines"/>).</summary>
     public int ContextLines { get; init; }
+    /// <summary>Whether hidden files and folders are searched. On by default, which is how folder searches always behaved.</summary>
+    public bool IncludeHidden { get; init; } = true;
+    /// <summary>Whether read-only files are searched. A replacement never edits a read-only file whatever this says.</summary>
+    public bool IncludeReadOnly { get; init; } = true;
+    /// <summary>Whether files and folders with the system attribute are searched.</summary>
+    public bool IncludeSystem { get; init; } = true;
+    /// <summary>How a file without a byte order mark is read and written back. Auto means UTF-8. A byte order mark always wins.</summary>
+    public RegexGrepEncoding BomlessEncoding { get; init; } = RegexGrepEncoding.Auto;
 }
+
+/// <summary>The encoding assumed for a file that has no byte order mark.</summary>
+public enum RegexGrepEncoding { Auto, Utf16Le, Utf16Be, Windows1252, Latin1 }
 
 /// <summary>One match in one file. <see cref="Column"/> counts UTF-16 units from 1.</summary>
 public sealed record RegexGrepMatch(string File, int Line, int Column, int Length, string Text, string LineText)
@@ -105,14 +116,28 @@ public static class RegexGrep
 
     // ----- file text -----
 
-    private enum TextKind { Utf8, Utf8Bom, Utf16Le, Utf16Be }
+    private enum TextKind { Utf8, Utf8Bom, Utf16Le, Utf16Be, Utf32Le, Utf32Be, Utf16LeNoBom, Utf16BeNoBom, Windows1252, Latin1 }
 
     private sealed record FileText(string Text, TextKind Kind, bool RoundTrips, byte[] Bytes);
 
+    private static readonly Lazy<Encoding?> Cp1252 = new(() =>
+    {
+        try
+        {
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            return Encoding.GetEncoding(1252, EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback);
+        }
+        catch (Exception e) when (e is ArgumentException or NotSupportedException) { return null; }
+    });
+
     private static Encoding EncodingOf(TextKind kind) => kind switch
     {
-        TextKind.Utf16Le => new UnicodeEncoding(false, false, true),
-        TextKind.Utf16Be => new UnicodeEncoding(true, false, true),
+        TextKind.Utf16Le or TextKind.Utf16LeNoBom => new UnicodeEncoding(false, false, true),
+        TextKind.Utf16Be or TextKind.Utf16BeNoBom => new UnicodeEncoding(true, false, true),
+        TextKind.Utf32Le => new UTF32Encoding(false, false, true),
+        TextKind.Utf32Be => new UTF32Encoding(true, false, true),
+        TextKind.Windows1252 => Cp1252.Value ?? Encoding.Latin1,
+        TextKind.Latin1 => Encoding.GetEncoding("iso-8859-1", EncoderFallback.ExceptionFallback, DecoderFallback.ExceptionFallback),
         _ => new UTF8Encoding(false, true),
     };
 
@@ -121,8 +146,12 @@ public static class RegexGrep
         TextKind.Utf8Bom => [0xEF, 0xBB, 0xBF],
         TextKind.Utf16Le => [0xFF, 0xFE],
         TextKind.Utf16Be => [0xFE, 0xFF],
+        TextKind.Utf32Le => [0xFF, 0xFE, 0x00, 0x00],
+        TextKind.Utf32Be => [0x00, 0x00, 0xFE, 0xFF],
         _ => [],
     };
+
+    private static bool IsWide(TextKind kind) => kind is TextKind.Utf16Le or TextKind.Utf16Be or TextKind.Utf32Le or TextKind.Utf32Be or TextKind.Utf16LeNoBom or TextKind.Utf16BeNoBom;
 
     private static byte[] Encode(string text, TextKind kind)
     {
@@ -135,19 +164,33 @@ public static class RegexGrep
     }
 
     /// <summary>Decodes a text file, or returns null with the reason when it is binary. A file that does not round-trip is searchable but not editable.</summary>
-    private static FileText? Decode(byte[] bytes, out string? skip)
+    private static FileText? Decode(byte[] bytes, RegexGrepEncoding bomless, out string? skip)
     {
         skip = null;
         TextKind kind;
         int offset;
         if (bytes.Length >= 3 && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF) { kind = TextKind.Utf8Bom; offset = 3; }
+        else if (bytes.Length >= 4 && bytes[0] == 0xFF && bytes[1] == 0xFE && bytes[2] == 0 && bytes[3] == 0) { kind = TextKind.Utf32Le; offset = 4; }
+        else if (bytes.Length >= 4 && bytes[0] == 0 && bytes[1] == 0 && bytes[2] == 0xFE && bytes[3] == 0xFF) { kind = TextKind.Utf32Be; offset = 4; }
         else if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE) { kind = TextKind.Utf16Le; offset = 2; }
         else if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF) { kind = TextKind.Utf16Be; offset = 2; }
         else
         {
-            kind = TextKind.Utf8; offset = 0;
-            var probe = Math.Min(bytes.Length, 8192);
-            for (var i = 0; i < probe; i++) if (bytes[i] == 0) { skip = "binary file (contains a NUL byte)"; return null; }
+            kind = bomless switch
+            {
+                RegexGrepEncoding.Utf16Le => TextKind.Utf16LeNoBom,
+                RegexGrepEncoding.Utf16Be => TextKind.Utf16BeNoBom,
+                RegexGrepEncoding.Windows1252 => TextKind.Windows1252,
+                RegexGrepEncoding.Latin1 => TextKind.Latin1,
+                _ => TextKind.Utf8,
+            };
+            offset = 0;
+            // A NUL byte means binary, except in an encoding where NUL is part of every ordinary character.
+            if (!IsWide(kind))
+            {
+                var probe = Math.Min(bytes.Length, 8192);
+                for (var i = 0; i < probe; i++) if (bytes[i] == 0) { skip = "binary file (contains a NUL byte)"; return null; }
+            }
         }
         string text;
         try { text = EncodingOf(kind).GetString(bytes, offset, bytes.Length - offset); }
@@ -223,6 +266,9 @@ public static class RegexGrep
             {
                 if (stop()) yield break;
                 if ((entry.Attributes & FileAttributes.ReparsePoint) != 0) { Skip(skipped, entry.FullName, "link or junction (not followed)"); continue; }
+                if (!o.IncludeHidden && (entry.Attributes & FileAttributes.Hidden) != 0) { Skip(skipped, entry.FullName, "hidden (hidden items are not searched)"); continue; }
+                if (!o.IncludeSystem && (entry.Attributes & FileAttributes.System) != 0) { Skip(skipped, entry.FullName, "system item (system items are not searched)"); continue; }
+                if (!o.IncludeReadOnly && (entry.Attributes & FileAttributes.Directory) == 0 && (entry.Attributes & FileAttributes.ReadOnly) != 0) { Skip(skipped, entry.FullName, "read-only (read-only files are not searched)"); continue; }
                 if ((entry.Attributes & FileAttributes.Directory) != 0)
                 {
                     if (o.Recursive && !excluded.Contains(entry.Name)) subdirectories.Add(entry.FullName);
@@ -270,6 +316,7 @@ public static class RegexGrep
             MaxMatchesPerFile = Math.Clamp(o.MaxMatchesPerFile, 1, 10000),
             MaxTotalBytes = Math.Clamp(o.MaxTotalBytes, 1, 1024L * 1024 * 1024),
             ContextLines = Math.Clamp(o.ContextLines, 0, MaxContextLines),
+            BomlessEncoding = Enum.IsDefined(o.BomlessEncoding) ? o.BomlessEncoding : RegexGrepEncoding.Auto,
         }, o.ModifiedAfterUtc is { } a && o.ModifiedBeforeUtc is { } b && a > b ? "The earliest modified time is later than the latest one, so no file can match." : null);
     }
 
@@ -322,7 +369,7 @@ public static class RegexGrep
             if (bytes == null) continue;
             if (totalBytes + bytes.Length > o.MaxTotalBytes) { byteBudget = true; break; }
             totalBytes += bytes.Length;
-            var file = Decode(bytes, out var skipReason);
+            var file = Decode(bytes, o.BomlessEncoding, out var skipReason);
             if (file == null) { Skip(skipped, full, skipReason!); continue; }
             searched++;
             var hits = 0;
@@ -406,7 +453,7 @@ public static class RegexGrep
             if (searched >= o.MaxFiles) { truncated = true; Skip(skipped, full, "the file limit was reached"); break; }
             var bytes = ReadFile(full, o.MaxFileBytes, skipped);
             if (bytes == null) continue;
-            var file = Decode(bytes, out var reason);
+            var file = Decode(bytes, o.BomlessEncoding, out var reason);
             if (file == null) { Skip(skipped, full, reason!); continue; }
             searched++;
             if (!file.RoundTrips) { if (regex.IsMatch(file.Text)) Skip(skipped, full, "not valid in its own encoding, so it is shown in searches but never edited"); continue; }
@@ -483,7 +530,7 @@ public static class RegexGrep
             var bytes = ReadFile(file.File, plan.Options.MaxFileBytes, skipped);
             if (bytes == null) continue;
             if (Sha(bytes) != file.OriginalSha256) { Skip(skipped, file.File, "changed since the preview, so it was not touched"); continue; }
-            var text = Decode(bytes, out _);
+            var text = Decode(bytes, plan.Options.BomlessEncoding, out _);
             if (text is not { RoundTrips: true }) { Skip(skipped, file.File, "not editable"); continue; }
             var edit = ReplaceInText(compiled.Regex!, text.Text, plan.Replacement, withChanges: false, cancellation, out var timeout);
             if (edit == null || timeout || edit.Count == 0) { Skip(skipped, file.File, timeout ? "the pattern timed out" : "nothing to replace any more"); continue; }
