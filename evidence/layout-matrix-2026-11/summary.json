@@ -1,0 +1,43 @@
+{
+  "tool": "--capture-probe (src/MaterialDockerImage/Shell/LayoutProbe.cs)",
+  "configurations": [
+    "English, Cantonese and bilingual at 1440x960, 1200x800 and 960x720 (dark)",
+    "English 960x720 light",
+    "Cantonese 960x720 at 200 % scale"
+  ],
+  "kinds": {
+    "cut": "one-line text wider than its box with no ellipsis",
+    "outside": "an element past the window edge or a horizontally clipping parent (sideways-scrolling areas excluded)",
+    "ellipsis": "text shortened with an ellipsis; deliberate, full text in a tooltip and the accessible name"
+  },
+  "first": {
+    "surfaces": 264,
+    "findings": {
+      "ellipsis": 931,
+      "outside": 471,
+      "cut": 12
+    },
+    "note": "Measured with the probe's first version, which also counted rows of sideways-scrolling tables; real overflows were page headers, segmented controls, title-bar search, buttons and several settings rows."
+  },
+  "final": {
+    "surfaces": 264,
+    "findings": {
+      "ellipsis": 1148,
+      "cut": 12
+    },
+    "remaining": [
+      {
+        "kind": "cut",
+        "surface": "creator",
+        "text": ".dockerignore"
+      },
+      {
+        "kind": "cut",
+        "surface": "creator-suggestions",
+        "text": ".dockerignore"
+      }
+    ]
+  },
+  "remaining_explained": ".dockerignore tab label: the probe measures 85 px of text in an 84 px rounded layout box; the rendered capture shows the full label, so this is measurement rounding, not clipping.",
+  "note": "The probed captures show the test host's own containers and images, so they are not published; this summary keeps only interface labels."
+}

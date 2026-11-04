@@ -375,6 +375,19 @@ public sealed class RegexSearchQuery
         try { return compiled.Regex!.IsMatch(candidate); }
         catch (RegexMatchTimeoutException) { TimedOut = true; return false; }
     }
+
+    /// <summary>
+    /// Matches a row made of several fields. A row matches when the pattern matches any single field or the fields
+    /// joined by spaces, so anchors such as ^ and $ work on a column while patterns that span columns keep working.
+    /// Matching only the joined text meant ^name never matched, because every row starts with its first column.
+    /// </summary>
+    public bool MatchesFields(IReadOnlyList<string> fields)
+    {
+        if (IsEmpty) return true;
+        if (Matches(string.Join(" ", fields))) return true;
+        foreach (var field in fields) if (Matches(field)) return true;
+        return false;
+    }
 }
 
 /// <summary>Per-field, in-memory builder state. Nothing here is persisted.</summary>

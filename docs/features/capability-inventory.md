@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 29. Planned: 0. Unverified: 94.
+123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 30. Planned: 0. Unverified: 93.
 
 ### Interface and personalization
 
@@ -33,7 +33,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `appearance-editor` | Appearance Editor | Unverified | Drive the element editor in the built window in every language mode, theme and display scale; bring element overrides into presets, export and Undo; add the remaining property types (italic, underline, shadow, spacing, alignment). |
 | `blank-editors` | Blank Editors | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for blank-editors. |
 | `changelog` | Changelog | Implemented, verification pending | Calendar date picker with month/year jump, range presets and the language-mode voice for entries are not built; entries show original subject lines only, newer releases published after a build are not listed, and nothing was driven in the built window yet. |
-| `layout-overflow-matrix` | Layout Overflow Matrix | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for layout-overflow-matrix. |
+| `layout-overflow-matrix` | Layout Overflow Matrix | Implemented, verification pending | The probed captures show the test host's own engine data, so only the summary (evidence/layout-matrix-2026-11/summary.json) is published. The CI screenshot run does not pass the probe flag yet. |
 | `color-picker` | Color Picker | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for color-picker. |
 | `mobile-website` | Mobile Website | Unverified | Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for mobile-website. |
 | `dim-sum` | Dim Sum | Unverified | Drive the toast in the built window (picture and offline name-only paths, three language modes, reduced motion, screen reader) and run the live catalogue fetch inside the app. |

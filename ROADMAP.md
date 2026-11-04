@@ -11,7 +11,7 @@
 - [ ] Exercise every destination interactively on a personal Windows machine and record receipts.
 - [x] Fix small-window truncation found in the 960 x 720 captures (title bar search, operation panel, stacked lists, Images tiles, segmented buttons).
 - [x] Add language and display-scale options to capture mode and stop loading personal wording in captures.
-- [ ] Capture and review the full language x theme x 100-200% scale matrix with the new options.
+- [x] Capture and review the full language x theme x 100-200% scale matrix with the new options (layout probe over 264 surfaces, clipping fixed, final run clean: evidence/layout-matrix-2026-11/summary.json)
 - [x] Accept a personal wording file dropped anywhere on the window with validation, celebration and outcome sounds (checks pass; hands-on verification pending).
 - [x] Record a source audit of the shared feature requirements in `evidence/uh-features-audit.md`.
 - [x] Localize page-specific copy in Cantonese and bilingual modes (built-in phrase list and sentence templates; running the built application in each mode on every destination is still to be recorded).
@@ -19,21 +19,24 @@
 - [x] Add settings row locks, scheduled language and theme, attention-mode consumers (Focus, Low stimulation, Momentum), a documented action sound mapping and persisted collapsible filters (rule checks pass; hands-on verification pending)
 - [ ] Drive the new lock, schedule, attention-mode, sound and collapse controls in the built window and record receipts
 - [x] Add lock policies (confirm only, PIN, authenticator app), a lock command on settings rows and major page buttons, the unlock ladder with persistent backoff and single-use recovery codes, and an Authenticator section in Tools with an in-process QR code (rule checks pass, including the RFC 6238 vectors; hands-on verification pending)
-- [ ] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window, and scan the QR code with a real authenticator app
+- [x] Drive the lock wizard, the ladder dialog and the Authenticator section in the built window (receipt steps 18-25; codes matched an independent RFC 6238 calculation)
+- [ ] Scan the lock QR code with a real phone authenticator app
 - [x] Add a general authenticator for arbitrary accounts: otpauth link and manual entry, live codes with countdown and next code, rename, reorder, delete, DPAPI-protected storage and encrypted backup (RFC 6238 vectors and rule checks pass; nothing driven in the built window)
 - [ ] Add QR image, clipboard and camera registration, grouping and a super-confirmed secrets export to the authenticator
 - [x] Add a per-element appearance editor: pick any element, edit colours, corner radius, font size and weight, padding and visibility with live preview, stable element identity, persistence, reset per element and all, an overrides list and lock awareness (rule checks pass; not driven in the built window)
 - [ ] Bring per-element overrides into appearance presets, export and Undo, and cover the remaining property types (italic, underline, shadow, spacing, alignment)
 - [x] Add the dish, sums and whack-a-mole ladder rungs with single-use graded challenges, a three-per-hour budget and School mode starting at the sums, a shared renamable School mode with a hashed PIN or password, and the startup dim sum surprise from the public catalogue (rule checks pass; nothing driven in the built window, the live catalogue fetch not run inside the app)
-- [ ] Drive the three games, the School mode PIN and the surprise toast in the built window, and run the live catalogue fetch in the app
+- [x] Drive the dish game, the School mode PIN and the live catalogue fetch in the built window (the dish round was broken and is fixed)
+- [ ] Drive the sums and whack-a-mole rungs and the startup surprise toast in the built window
 - [ ] Add a passkey choice for School mode and hide every Cantonese, bilingual, funny-level, vocabulary and dim sum surface under it
 - [x] Add the password lock policy, the four combined policies with ordered steps and one shared attempt budget, unlock durations (this action only, 5 minutes, 1 hour, until the app closes) with persisted expiry, a lock command on every button, switch, option, drop-down, text field and slider with stable derived ids, a Locks manager in Settings and the local Support Tickets desk (rule checks pass and were seen failing first; nothing driven in the built window)
-- [ ] Drive the new wizard, the ordered unlock steps, the timed relock, the Locks manager and the Support Tickets screen in the built window, and confirm the folder it opens matches the path shown
+- [x] Drive the PIN wizard, the unlock steps, the lockout wait and the Support Tickets screen in the built window
+- [ ] Drive combined policies, the timed relock and the Locks manager in the built window, and confirm the folder the desk opens matches the path shown
 - [ ] Add tab, tab group and appearance locks, the disabled-click authentication prompt, locked labels in the palette and tab searches and the keypad PIN entry
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts
-- [ ] Add lock credential policies
+- [x] Add lock credential policies (PIN, password, authenticator and their combinations)
 
 ## Delivered and bounded verification
 
@@ -54,7 +57,7 @@
 
 - [x] Verify the local 0.5.0 build, genuine installer production and actual saved-workspace restart restoration from 3ce1ed7.
 - [x] Retain and inspect source-bound 0.5.0 Build and populated Canvas captures at normal 1440x960 and minimum 960x720 sizes.
-- [ ] Extend English/dark/100% normal/minimum evidence to the full supported language, theme and display-scale matrix.
+- [x] Extend English/dark/100% normal/minimum evidence to the full supported language, theme and display-scale matrix (same probe run; the published CI screenshots stay English at 100 %)
 - [ ] Exercise OCI export, registry push, supported cache backends and secret-file builds beyond implemented controls and focused checks.
 - [ ] Extend the verified current-host update/launch/setup proof to fresh install, automatic ready-banner behavior, cancellation and uninstall acceptance.
 

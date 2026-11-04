@@ -131,7 +131,7 @@ Identifier note: thirteen identifiers in the maintainer list are not in `website
 | `screen-recording` | Recorded session of the built application shown in the README | Missing | No recording exists. |
 | `design-reference-parity` | Reference viewer and parity comparison against the checked-in design | Missing | `design/` holds the reference, but there is no deterministic reference renderer or comparison diff. |
 | `design-folder` | Design surfaces are stored in the repository `design/` folder | Delivered | `design/README.md`, `CANVAS.md`, `STATES.md`, `WEBSITE.md`, `design/workspace-redesign-2026-11/`. |
-| `layout-overflow-matrix` | Layout and clipping matrix across sizes, languages, themes and display scales | Partial | Captures at 1440x960 (dark, light) and 960x720 (dark) in English at 100%. Roadmap lists the full language, theme and scale matrix as open. |
+| `layout-overflow-matrix` | Layout and clipping matrix across sizes, languages, themes and display scales | Delivered | `--capture-probe` (`Shell/LayoutProbe.cs`) over 264 surfaces: three languages at 1440, 1200 and 960 px, light theme and 200 % scale. Clipping found was fixed; the final run reports no overflow (`evidence/layout-matrix-2026-11/summary.json`). |
 | `public-screenshot-gallery` | Separate public screenshot gallery for a private source repository | Not applicable | Applies to private source repositories; this repository is public and already publishes captures. |
 
 ## Documentation site and shared links
@@ -279,3 +279,12 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 - Regular expression parity: 50 of 83 topics implemented, 18 partial, 15 unavailable (most are impossible on the .NET engine). The popover was opened in the built window on a hidden desktop; its tool sections have logic checks only.
 - Interactive evidence: the receipt now has 17 steps, including a successful registry sign-in and sign-out, an interactive terminal through the classic console option, Compose up and down, exec, file changes, the prune confirmation and Emergency exit, a settings history restore, the registry sign-in failure path and the regex popover. Not exercised: the terminal's default Windows Terminal path.
 - Checks: `build.bat -Tests` passes 23 core, 1,621 UI-state and 24 checklist checks.
+
+## Update after the built-window drive (4 November 2026, afternoon)
+
+- Driven in the built window and recorded in the receipt (25 steps): the authenticator (codes match an independent RFC 6238 calculation), a support ticket, School mode with a PIN, a PIN lock through a lockout, the dish game and unlock, an anchored regex filter, registry sign-in and sign-out, and an interactive terminal through the classic console option.
+- Fixed because of that drive: the dish game never opened (a reused Cancel button), anchored regex filters matched nothing in tables (rows were matched as one string), the School mode PIN note did not update, Sign out buttons shared one accessible name, and several hints could not wrap.
+- `layout-overflow-matrix` is delivered: a layout probe covered 264 surfaces and the clipping it found was fixed.
+- Not driven: the per-element appearance editor (its entry points need keyboard focus or a pointer, which a hidden-desktop window does not receive), the sums and whack-a-mole rungs, combined lock policies, the timed relock and the Locks manager, and the default Windows Terminal path.
+- Still not built: tab, tab-group and appearance-value locks, the keypad PIN entry, a School mode passkey, QR image or camera registration for the authenticator, and the regex topics marked partial or unavailable in `docs/features/regex-parity.md`.
+- Checks: `build.bat -Tests` passes 23 core, 1,974 UI-state and 24 checklist checks.

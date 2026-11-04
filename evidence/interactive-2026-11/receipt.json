@@ -119,6 +119,78 @@
       },
       "observed": "conhost.exe started 'docker --context desktop-linux exec -it <id> sh' as a separate window on the same hidden desktop; an sh process appeared in the container; typing 'cat /etc/alpine-release; echo mdi-terminal-ok' printed 3.20.10 and the marker; 'exit' closed the console. settings.json was restored byte for byte afterwards.",
       "result": "pass"
+    },
+    {
+      "action": "Tools › Authenticator › My accounts › add an otpauth link (RFC 6238 test secret)",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "The account appeared with a live code, a countdown and the next code. At 12:11:06 the panel showed 458 171 (24 s left) and next 905 764; both match an independent HMAC-SHA1 calculation for that moment.",
+      "result": "pass"
+    },
+    {
+      "action": "Tools › Authenticator › delete the account",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "The confirmation dialog had one Delete button; confirming removed the account from the list.",
+      "result": "pass"
+    },
+    {
+      "action": "Tools › Support Tickets › file a ticket",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "TKT-20261104-0001 was filed and stored in tickets.json, then advanced from New to Acknowledged on its own about 25 seconds later.",
+      "result": "pass"
+    },
+    {
+      "action": "Settings › School mode › set a PIN, turn on, wrong PIN, right PIN",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "The PIN was saved as a salted hash in the shared record; turning the mode on needed nothing; turning it off asked for the PIN; a wrong PIN kept it on and counted one failure; the right PIN turned it off and reset the count. Found and fixed: the row kept saying no PIN was set after one was saved.",
+      "result": "pass after fix"
+    },
+    {
+      "action": "Settings › lock Monitor refresh interval with a PIN",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "The wizard took policy PIN and the PIN twice; locks.json held only hashes; the recovery-code dialog kept Done disabled until 'I have saved these recovery codes' was ticked.",
+      "result": "pass"
+    },
+    {
+      "action": "Unlock prompt › wrong PINs, wait, Play to shorten the wait",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "Two free tries, then a 30 s wait doubling to 60 s, 120 s and on, with a live countdown and 'Games left this hour: 3 / 3'. Play did nothing on the first builds: the dish round reused its Cancel button without detaching it and WPF threw. After the fix the round showed a catalogue picture and four names; the right answer ended the wait, kept the failure count, left the lock locked and recorded one win in ladder.json.",
+      "result": "pass after fix"
+    },
+    {
+      "action": "Unlock prompt › correct PIN",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "The lock unlocked (grant active) and the failure count went back to 0.",
+      "result": "pass"
+    },
+    {
+      "action": "Containers › regular expression builder › ^job-2027-hosted",
+      "artifact": {
+        "version": "0.99.31-0.99.35",
+        "source": "main after 779918a, with the fixes committed alongside this receipt"
+      },
+      "observed": "Found and fixed: rows were matched as one string beginning with the State column, so an anchored pattern showed 0 of 25. After the fix the table showed 4 of 25, the same four containers docker ps lists for that pattern.",
+      "result": "pass after fix"
     }
   ],
   "findings": [
@@ -127,6 +199,9 @@
     "Capture route artifact, not a product defect: window captures of a live window on the hidden desktop show a black band at the bottom while a dialog is open; the application's own render of the same dialog is complete."
   ],
   "notExercised": [
-    "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host, so it was not launched there)"
-  ]
+    "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host)",
+    "the per-element appearance editor: its entry points need keyboard focus or a pointer click, and a window on a hidden desktop receives neither from UI Automation",
+    "the sums and whack-a-mole rungs in the window (the dish rung was answered correctly first, which ends the ladder)"
+  ],
+  "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged)."
 }

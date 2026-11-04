@@ -147,6 +147,17 @@ public sealed class SearchFilter : Border
         return result;
     }
 
+    /// <summary>Row matching: any single field or the fields joined (see RegexSearchQuery.MatchesFields).</summary>
+    public bool MatchesFields(IReadOnlyList<string> fields)
+    {
+        var p = Predicate;
+        var result = p.MatchesFields(fields);
+        status = !p.IsValid ? (p.Error ?? "Invalid pattern.") + " Correct the expression to filter results."
+            : p.TimedOut ? $"The pattern exceeded the {RegexBuilderEngine.MatchTimeout.TotalMilliseconds:0} ms limit on some items, which are hidden. Simplify the expression."
+            : "";
+        return result;
+    }
+
     /// <summary>True when the current pattern can run (used to refuse bulk actions on invalid patterns).</summary>
     public bool IsValid => Predicate.IsValid;
 

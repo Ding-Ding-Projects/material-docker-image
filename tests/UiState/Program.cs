@@ -1166,4 +1166,15 @@ count += RegexRemainingChecks.Run();
         try { MaterialDockerImage.UI.ConsoleLaunch.Build(bad, true, @"C:\Windows\System32"); } catch (System.ArgumentException) { clRejected++; }
     Check(clRejected == 4, "console launch rejects empty, spaced or quoted arguments");
 }
+{
+    var mfRow = new[] { "running", "job-2027-hosted-v2-web-1", "sha256:7c49", "0.0.0.0:8443->8443/tcp" };
+    var mfAnchor = new MaterialDockerImage.UI.RegexSearchQuery("^job-2027-hosted", true, new MaterialDockerImage.UI.RegexBuilderFlags());
+    Check(mfAnchor.MatchesFields(mfRow) && !mfAnchor.Matches(string.Join(" ", mfRow)), "an anchored pattern matches a single column of a row");
+    var mfSpan = new MaterialDockerImage.UI.RegexSearchQuery("running job-", true, new MaterialDockerImage.UI.RegexBuilderFlags());
+    Check(mfSpan.MatchesFields(mfRow), "a pattern spanning columns still matches the joined row");
+    var mfMiss = new MaterialDockerImage.UI.RegexSearchQuery("^capture-", true, new MaterialDockerImage.UI.RegexBuilderFlags());
+    Check(!mfMiss.MatchesFields(mfRow), "a pattern no column matches leaves the row out");
+    var mfBad = new MaterialDockerImage.UI.RegexSearchQuery("(", true, new MaterialDockerImage.UI.RegexBuilderFlags());
+    Check(!mfBad.MatchesFields(mfRow) && new MaterialDockerImage.UI.RegexSearchQuery("", true, new MaterialDockerImage.UI.RegexBuilderFlags()).MatchesFields(mfRow), "an invalid pattern matches nothing and an empty one matches everything");
+}
 Console.WriteLine($"UI state checks: {count} passed.");

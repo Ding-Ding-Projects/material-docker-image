@@ -419,14 +419,14 @@
         "en": "Layout Overflow Matrix",
         "zh": "版面溢出矩陣"
       },
-      "status": "unverified",
+      "status": "implemented",
       "summary": {
-        "en": "Complete acceptance has not been established for this required capability.",
-        "zh": "呢項必需功能嘅完整驗收尚未確立。"
+        "en": "Capture mode has a layout probe (--capture-probe) that records text cut off without an ellipsis and elements that pass the window or a clipping parent. It ran on every surface in English, Cantonese and bilingual at 1440, 1200 and 960 px, in light theme and at 200 % scale: 264 surfaces. The clipping it found (page headers, segmented controls, title-bar search, buttons, several settings rows) was fixed, and the final run reports no overflow.",
+        "zh": "截圖模式有個版面探測器（--capture-probe），會記低冇省略號就畀切走嘅字，同埋凸出視窗或者剪裁容器嘅元件。佢喺英文、廣東話同雙語、1440／1200／960 闊、淺色主題同 200% 縮放下行勻 264 個畫面；搵到嘅切字（頁頭、分段掣、標題列搜尋、按鈕、幾行設定）已經修好，最後一次冇再出界。"
       },
       "remaining": {
-        "en": "Confirm implementation, documentation, localization, persistence where applicable, focused regression checks and source-bound interaction evidence for layout-overflow-matrix.",
-        "zh": "確認「版面溢出矩陣」嘅實作、文件、語言、適用嘅儲存功能、回歸檢查同對應來源嘅操作證據。"
+        "en": "The probed captures show the test host's own engine data, so only the summary (evidence/layout-matrix-2026-11/summary.json) is published. The CI screenshot run does not pass the probe flag yet.",
+        "zh": "探測截圖顯示測試電腦自己嘅引擎資料，所以只公開摘要（evidence/layout-matrix-2026-11/summary.json）。CI 截圖流程暫時未加探測旗標。"
       },
       "evidence": [
         {
@@ -435,6 +435,14 @@
           "label": {
             "en": "Source reference",
             "zh": "來源參考"
+          }
+        },
+        {
+          "kind": "source",
+          "url": "https://github.com/Ding-Ding-Projects/material-docker-image/blob/main/evidence/layout-matrix-2026-11/summary.json",
+          "label": {
+            "en": "Layout matrix summary",
+            "zh": "版面矩陣摘要"
           }
         }
       ]

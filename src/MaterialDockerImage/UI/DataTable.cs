@@ -278,7 +278,7 @@ public sealed class DataTable<T> : Grid
         {
             if (active.Any(f => !f.Predicate(item))) continue;
             var row = new TableRow<T>(item, columns.Select(c => c.Text(item) ?? "").ToArray(), columns.Select(c => c.Chip?.Invoke(item).ToString() ?? "").ToArray());
-            if (!Search.Matches(row.SearchText)) continue;
+            if (!Search.MatchesFields(row.Cells)) continue;
             rows.Add(row);
         }
         var filtered = all.Count > 0 && rows.Count == 0;
