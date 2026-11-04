@@ -391,6 +391,13 @@ internal sealed partial class SearchBuilderPopover
     private readonly TextBox grepAfter = Ui.Input("", "Modified after (optional)", true);
     private readonly TextBox grepBefore = Ui.Input("", "Modified before (optional)", true);
     private ComboBox? grepContextCombo;
+    private CheckBox? grepHidden, grepReadOnly, grepSystem;
+    private ComboBox? grepEncodingCombo;
+    private static readonly (string Label, RegexGrepEncoding Value)[] EncodingChoices =
+    [
+        ("Auto (UTF-8)", RegexGrepEncoding.Auto), ("UTF-16 little endian", RegexGrepEncoding.Utf16Le), ("UTF-16 big endian", RegexGrepEncoding.Utf16Be),
+        ("Windows-1252", RegexGrepEncoding.Windows1252), ("Latin-1 (ISO 8859-1)", RegexGrepEncoding.Latin1),
+    ];
     private readonly TextBlock grepExtraStatus = Ui.Caption("");
     private readonly TextBlock grepContext = new() { TextWrapping = TextWrapping.Wrap };
     private IReadOnlyList<RegexGrepMatch> grepMatches = [];
@@ -401,12 +408,19 @@ internal sealed partial class SearchBuilderPopover
     {
         grepContextCombo = Ui.Combo(Enumerable.Range(0, RegexGrep.MaxContextLines + 1).Select(i => i.ToString()), "0");
         AutomationProperties.SetName(grepContextCombo, Loc.T("Context lines"));
+        grepHidden = Ui.Check("Include hidden files and folders", field.State.GrepIncludeHidden);
+        grepReadOnly = Ui.Check("Include read-only files", field.State.GrepIncludeReadOnly);
+        grepSystem = Ui.Check("Include system files and folders", field.State.GrepIncludeSystem);
+        grepEncodingCombo = Ui.Combo(EncodingChoices.Select(c => c.Label), EncodingChoices.First(c => c.Value == field.State.GrepEncoding).Label);
+        AutomationProperties.SetName(grepEncodingCombo, Loc.T("Encoding for files without a byte order mark"));
         grepContext.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
         grepContext.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
         return Ui.VStack(6,
             Ui.Wrap(8,
                 Ui.Field("Modified after", grepAfter, "Only files last written at or after this local time are searched. Write 2026-11-04 or 2026-11-04 13:30. Empty means no limit.", "2026-11-01"),
                 Ui.Field("Modified before", grepBefore, "Only files last written at or before this local time. A date without a time covers that whole day.", "2026-11-04")),
+            Ui.Wrap(8, grepHidden, grepReadOnly, grepSystem),
+            Ui.Field("Encoding for files without a byte order mark", grepEncodingCombo, "How a file with no byte order mark is read and written back. A byte order mark (UTF-8, UTF-16 or UTF-32) always wins. Auto means UTF-8. A replacement writes each file back in the encoding it was read in. A read-only file is never edited, whatever this says.", "Auto (UTF-8)"),
             Ui.Field("Context lines", grepContextCombo, "Lines shown before and after each match when you select a result, and written to saved result lists. At most 5.", "2"),
             Ui.Wrap(8,
                 Small("Save results…", "Saves the result list as JSON that can be loaded again, as text with context lines, or as CSV.", SaveResults),
@@ -422,7 +436,12 @@ internal sealed partial class SearchBuilderPopover
         if (p1 != null) return (null, Loc.T("Modified after:") + " " + RegexText.Sentences(p1, Loc.T));
         if (p2 != null) return (null, Loc.T("Modified before:") + " " + RegexText.Sentences(p2, Loc.T));
         var context = int.TryParse(grepContextCombo?.SelectedItem as string, out var c) ? c : 0;
-        return (new RegexGrepOptions { ModifiedAfterUtc = after, ModifiedBeforeUtc = before, ContextLines = context }, null);
+        var encoding = EncodingChoices.FirstOrDefault(c => c.Label == grepEncodingCombo?.SelectedItem as string).Value;
+        return (new RegexGrepOptions
+        {
+            ModifiedAfterUtc = after, ModifiedBeforeUtc = before, ContextLines = context, BomlessEncoding = encoding,
+            IncludeHidden = grepHidden?.IsChecked != false, IncludeReadOnly = grepReadOnly?.IsChecked != false, IncludeSystem = grepSystem?.IsChecked != false,
+        }, null);
     }
 
     private void ShowGrepContext()
@@ -485,7 +504,7 @@ internal sealed partial class SearchBuilderPopover
     {
         var (text, flags) = Effective();
         var (extra, _) = ExtraOptions();
-        return new RegexSearchAction { Pattern = text, Flags = flags, Replacement = field.State.Replacement, Folder = field.State.GrepFolder, Globs = field.State.GrepGlobs, Recursive = grepRecursive?.IsChecked != false, ContextLines = extra?.ContextLines ?? 0 };
+        return new RegexSearchAction { Pattern = text, Flags = flags, Replacement = field.State.Replacement, Folder = field.State.GrepFolder, Globs = field.State.GrepGlobs, Recursive = grepRecursive?.IsChecked != false, ContextLines = extra?.ContextLines ?? 0, IncludeHidden = extra?.IncludeHidden ?? true, IncludeReadOnly = extra?.IncludeReadOnly ?? true, IncludeSystem = extra?.IncludeSystem ?? true, BomlessEncoding = extra?.BomlessEncoding ?? RegexGrepEncoding.Auto };
     }
 
     private FrameworkElement ActionFileControls() => Ui.VStack(6,
@@ -544,6 +563,10 @@ internal sealed partial class SearchBuilderPopover
         field.State.GrepGlobs = action.Globs;
         field.State.GrepRecursive = action.Recursive;
         field.State.GrepContext = action.ContextLines;
+        field.State.GrepIncludeHidden = action.IncludeHidden;
+        field.State.GrepIncludeReadOnly = action.IncludeReadOnly;
+        field.State.GrepIncludeSystem = action.IncludeSystem;
+        field.State.GrepEncoding = action.BomlessEncoding;
     }
 
     // ----- engine versions -----
