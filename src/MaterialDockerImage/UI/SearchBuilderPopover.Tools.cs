@@ -93,7 +93,8 @@ internal sealed partial class SearchBuilderPopover
 
     private FrameworkElement ExplanationControls()
     {
-        precisionCombo = Ui.Combo(new[] { "Overview", "Standard", "Full" }, "Full");
+        explainPrecision = prefs.Precision;
+        precisionCombo = Ui.Combo(new[] { "Overview", "Standard", "Full" }, prefs.ExplanationDetail);
         exportCombo = Ui.Combo(RegexTreeExport.Formats, "Markdown");
         AutomationProperties.SetName(precisionCombo, Loc.T("Detail"));
         AutomationProperties.SetName(exportCombo, Loc.T("Export format"));
@@ -343,8 +344,8 @@ internal sealed partial class SearchBuilderPopover
         }
         RenderFlavors();
         return Section("Flavor comparison", "How the constructs this pattern uses are read by other engines. It comes from a hand-written table, checked against each engine while it was written; the pattern itself is never run in another engine.",
-            picks, flavorPanel,
-            Small("Copy comparison", "Copies the comparison as text.", () => { var (text, flags) = Effective(); Copy(RegexFlavors.ToText(text, flags, chosenFlavors), "Comparison copied."); }));
+            picks, FlavorVersionPickers(), flavorPanel,
+            Small("Copy comparison", "Copies the comparison as text, at the engine versions chosen above.", () => { var (text, flags) = Effective(); Copy(RegexFlavorVersions.ToText(text, flags, chosenFlavors, chosenVersions), "Comparison copied."); }));
     }
 
     private void RenderFlavors()
@@ -352,7 +353,7 @@ internal sealed partial class SearchBuilderPopover
         flavorPanel.Children.Clear();
         if (field.Query.Length == 0) { flavorPanel.Children.Add(Ui.Caption("Type a pattern to compare it across engines.")); return; }
         if (!field.RegexMode) { flavorPanel.Children.Add(Ui.Caption("Regular expression mode is off, so the field is plain text and every engine reads it the same way.")); return; }
-        var verdicts = RegexFlavors.Compare(field.Query, field.Flags, chosenFlavors);
+        var verdicts = RegexFlavorVersions.Compare(field.Query, field.Flags, chosenFlavors, chosenVersions);
         if (verdicts.Count == 0) { flavorPanel.Children.Add(Ui.Caption("Choose at least one engine.")); return; }
         if (verdicts[0].Findings.Count == 0) flavorPanel.Children.Add(Ui.Caption("The pattern uses no construct the table tracks, so every engine reads it the same way."));
         foreach (var v in verdicts)
@@ -393,13 +394,21 @@ internal sealed partial class SearchBuilderPopover
                 grepApplyButton,
                 Small("Cancel search", null, () => grepRun?.Cancel())),
             grepStatus, grepConfirm, grepSkipped, grepGrid, grepPlanOutput,
+            GrepExtras(), ActionFileControls(),
             Ui.Overline("Undo snapshots"), grepSnapshots);
     }
 
     private RegexGrepOptions GrepOptions()
     {
         long kib = long.TryParse(grepMaxKib.Text, out var k) && k > 0 ? k : 2048;
-        return new RegexGrepOptions { Folder = grepFolder.Text, Globs = grepGlobs.Text, Recursive = grepRecursive?.IsChecked != false, MaxFileBytes = kib * 1024 };
+        var (extra, _) = ExtraOptions();
+        field.State.GrepRecursive = grepRecursive?.IsChecked != false;
+        field.State.GrepContext = extra?.ContextLines ?? 0;
+        return new RegexGrepOptions
+        {
+            Folder = grepFolder.Text, Globs = grepGlobs.Text, Recursive = grepRecursive?.IsChecked != false, MaxFileBytes = kib * 1024,
+            ModifiedAfterUtc = extra?.ModifiedAfterUtc, ModifiedBeforeUtc = extra?.ModifiedBeforeUtc, ContextLines = extra?.ContextLines ?? 0,
+        };
     }
 
     private async void RunGrep()
@@ -407,6 +416,8 @@ internal sealed partial class SearchBuilderPopover
         grepRun?.Cancel();
         var cts = grepRun = new CancellationTokenSource();
         var (text, flags) = Effective();
+        var (_, dateProblem) = ExtraOptions();
+        if (dateProblem != null) { grepStatus.Text = dateProblem; return; }
         var options = GrepOptions();
         grepStatus.Text = Loc.T("Searching…");
         grepPlanOutput.Text = ""; grepConfirm.Visibility = Visibility.Collapsed;
@@ -416,6 +427,7 @@ internal sealed partial class SearchBuilderPopover
             if (cts.IsCancellationRequested && !result.Cancelled) return;
             if (!popup.IsOpen) return;
             var root = result.Valid ? options.Folder.Trim().Trim('"') : "";
+            lastGrepResult = result; lastGrepOptions = options with { Folder = root }; grepMatches = result.Matches; field.State.LoadedResults = null; grepContext.Text = "";
             grepGrid.ItemsSource = result.Matches.Select(m => new RegexGrepRow(SafeRelative(root, m.File), m.Line, m.Column, m.Text, m.LineText)).ToList();
             grepGrid.Visibility = result.Matches.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             grepStatus.Text = result.Valid ? result.Summary() : Loc.T(result.Error ?? "The search could not run.");
@@ -437,6 +449,8 @@ internal sealed partial class SearchBuilderPopover
         var cts = grepRun = new CancellationTokenSource();
         var (text, flags) = Effective();
         var replacementText = field.State.Replacement;
+        var (_, dateProblem) = ExtraOptions();
+        if (dateProblem != null) { grepStatus.Text = dateProblem; return; }
         var options = GrepOptions();
         grepStatus.Text = Loc.T("Previewing…");
         grepConfirm.Visibility = Visibility.Collapsed;

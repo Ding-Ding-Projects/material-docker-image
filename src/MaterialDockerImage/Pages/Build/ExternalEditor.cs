@@ -42,7 +42,10 @@ public static class ExternalEditor
     }
 
     /// <summary>Opens <paramref name="path"/> in the configured editor or VS Code. Returns a user-facing problem, or null on success.</summary>
-    public static async Task<string?> OpenAsync(string path, string configuredEditor)
+    public static Task<string?> OpenAsync(string path, string configuredEditor) => OpenAsync(path, configuredEditor, 0, 0);
+
+    /// <summary>Opens <paramref name="path"/> at a line and column when the editor is one whose line syntax is known (see <see cref="MaterialDockerImage.UI.RegexGrepResults.EditorArguments"/>); otherwise the file alone.</summary>
+    public static async Task<string?> OpenAsync(string path, string configuredEditor, int line, int column)
     {
         string? executable = null;
         if (!string.IsNullOrWhiteSpace(configuredEditor))
@@ -57,7 +60,8 @@ public static class ExternalEditor
         try
         {
             var info = new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = !executable.EndsWith(".exe", StringComparison.OrdinalIgnoreCase) };
-            info.ArgumentList.Add(path);
+            if (line > 0) foreach (var a in MaterialDockerImage.UI.RegexGrepResults.EditorArguments(executable, path, line, column).Arguments) info.ArgumentList.Add(a);
+            else info.ArgumentList.Add(path);
             using var _ = Process.Start(info);
             return null;
         }

@@ -46,25 +46,27 @@ internal sealed partial class SearchBuilderPopover
 
     private void ShowTokenHelp(TreeViewItem? item)
     {
-        tokenHelp.Text = item?.Tag is RegexExplainNode node ? RegexTokenHelp.Describe(node) : Loc.T(HelpHint);
+        tokenHelp.Text = item?.Tag is RegexExplainNode node ? RegexTokenHelp.Describe(node, Loc.T) : Loc.T(HelpHint);
     }
 
     // ----- Unicode blocks -----
 
     private FrameworkElement UnicodeBlockPicker()
     {
-        var filter = Ui.Input("", "Filter the blocks", true);
+        var filter = new SearchFilter("Filter the blocks", 280) { Width = double.NaN };
         var combo = Ui.Combo(RegexUnicodeBlocks.All.Select(BlockLabel), BlockLabel(RegexUnicodeBlocks.All.First(b => b.Name == "Cyrillic")));
         var negate = Ui.Check("Not in this block", false);
-        AutomationProperties.SetName(filter, Loc.T("Filter the blocks"));
         AutomationProperties.SetName(combo, Loc.T("Unicode block"));
-        filter.TextChanged += (_, _) =>
+        var status = Ui.Caption("");
+        // The filter is a search field like every other and opens its own builder; this popup stays open while that one is in use.
+        filter.Changed += () =>
         {
-            var shown = RegexUnicodeBlocks.Search(filter.Text).Select(BlockLabel).ToList();
+            var shown = RegexUnicodeBlocks.Search(filter.Predicate).Select(BlockLabel).ToList();
             combo.ItemsSource = shown;
             if (shown.Count > 0) combo.SelectedIndex = 0;
+            status.Text = filter.Predicate.IsValid ? "" : Loc.T(filter.Predicate.Error ?? "Invalid pattern.");
         };
-        var status = Ui.Caption("");
+        RegisterNested(filter);
         return Ui.VStack(6,
             Ui.Field("Unicode block", Ui.VStack(6, filter, Ui.HStack(8, combo, negate)), "Matches a character of one named block such as Greek or Cyrillic. .NET knows the blocks of the Basic Multilingual Plane by name.", @"\p{IsCyrillic}"),
             Ui.Caption(RegexUnicodeBlocks.ScriptNotice),
@@ -116,7 +118,7 @@ internal sealed partial class SearchBuilderPopover
         if (field.Query.Length == 0) { scopeStatus.Text = Loc.T("Enter a pattern to test."); scopeOutput.Text = ""; return; }
         var (text, flags) = Effective();
         var result = RegexSubject.RunScopes(text, flags, field.State.Sample, ChosenScope());
-        scopeOutput.Text = result.Valid ? RegexSubject.Report(result) : "";
+        scopeOutput.Text = result.Valid ? RegexSubject.Report(result, Loc.T) : "";
         scopeStatus.Text = result.Valid ? Loc.T("Matches by scope") + ": " + result.TotalMatches : result.Error ?? "";
     }
 
@@ -125,13 +127,13 @@ internal sealed partial class SearchBuilderPopover
         var name = ChosenEncoding();
         var view = RegexSubject.Hex(field.State.Sample, name == "Auto" ? "UTF-8" : name);
         hexOutput.Text = view.Text;
-        subjectStatus.Text = $"{view.ByteCount} bytes in {view.Encoding}" + (view.Truncated ? $", the first {RegexSubject.MaxHexBytes} shown. " : ". ") + RegexSubject.CountLineEndings(field.State.Sample).Summary;
+        subjectStatus.Text = RegexSubject.HexStatus(view, field.State.Sample, Loc.T);
     }
 
     private void ConvertEndings()
     {
         sample.Text = RegexSubject.NormalizeLineEndings(sample.Text, endingCombo?.SelectedItem as string ?? "LF");
-        subjectStatus.Text = RegexSubject.CountLineEndings(sample.Text).Summary;
+        subjectStatus.Text = Loc.T(RegexSubject.CountLineEndings(sample.Text).Summary);
     }
 
     private void LoadSubjectFile()
@@ -188,10 +190,10 @@ internal sealed partial class SearchBuilderPopover
         compareStatus.Text = Loc.T("Comparing…"); compareOutput.Text = "";
         try
         {
-            var result = await Task.Run(() => RegexCompare.Run(patterns, flags, suite, cts.Token), cts.Token);
+            var result = await Task.Run(() => RegexCompare.Run(patterns, flags, suite, cts.Token, Loc.T), cts.Token);
             if (cts.IsCancellationRequested || !popup.IsOpen) return;
             if (!result.Valid) { compareStatus.Text = Loc.T(result.Error ?? ""); return; }
-            compareStatus.Text = Loc.T(result.Verdict);
+            compareStatus.Text = result.Verdict;
             compareOutput.Text = string.Join("\n", result.Rows.Select(r => !r.Valid
                 ? $"✗ {r.Pattern}   invalid: {r.Error}"
                 : $"{(r.AllCorrect ? "✓" : "✗")} {r.Pattern}   must match {r.MatchingPassed}/{r.MatchingTotal}, must not match {r.NonMatchingPassed}/{r.NonMatchingTotal}   {r.MatchingMs:0.000} ms / {r.NonMatchingMs:0.000} ms   {(r.TimedOut ? "timed out" : r.Engine)}"));
