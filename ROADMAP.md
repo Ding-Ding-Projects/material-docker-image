@@ -41,6 +41,10 @@
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts
 - [x] Add lock credential policies (PIN, password, authenticator and their combinations)
+- [x] Render the design boards and bring every destination's controls and structure in line with them, with Cantonese for the new wording (compared against captures of the built application; see HANDOFF, Design parity pass)
+- [x] Show navigation rail labels at every window height (overrides the icon-only rail on the boards)
+- [x] Accept the shared personal wording file (`"version": 1`) when it is dropped on the window
+- [ ] Build the later-board pages: dedicated Images view, Creator suggestions, Appearance studio, three-pane regex builder, canvas minimap and elbow connectors, palette command descriptions, two-line table cells with an optional checkbox column
 
 ## Delivered and bounded verification
 

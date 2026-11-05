@@ -344,7 +344,7 @@ public static class Ui
     /// List beside its inspector from the breakpoint, otherwise stacked. When stacked on a short window and a summary is
     /// supplied, the inspector folds into a one-line strip with Show details, so the list keeps its rows.
     /// </summary>
-    public static Grid SplitInspector(FrameworkElement list, FrameworkElement inspector, double breakpoint = 1100, double wideInspectorWidth = 400, double gap = 12, Func<string?>? summary = null, double compactBelowHeight = 560)
+    public static Grid SplitInspector(FrameworkElement list, FrameworkElement inspector, double breakpoint = 1100, double wideInspectorWidth = 400, double gap = 12, Func<string?>? summary = null, double compactBelowHeight = 660)
     {
         var grid = new Grid();
         grid.Children.Add(list); grid.Children.Add(inspector);

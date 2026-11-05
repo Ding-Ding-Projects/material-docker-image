@@ -19,15 +19,14 @@ internal static class PageParts
     /// <summary>A titled card section with optional trailing actions that wrap at narrow widths.</summary>
     public static Border Section(string title, string? subtitle, UIElement body, params UIElement[] actions)
     {
-        var head = new Grid();
-        head.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 160 });
-        head.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        head.Children.Add(Ui.VStack(2, Ui.Text(title, 16, FontWeights.SemiBold), subtitle == null ? null : Ui.Caption(subtitle)));
+        var titleStack = Ui.VStack(2, Ui.Text(title, 16, FontWeights.SemiBold), subtitle == null ? null : Ui.Caption(subtitle));
+        UIElement head = titleStack;
         if (actions.Length > 0)
         {
             var wrap = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
             foreach (var a in actions) { if (a is FrameworkElement fe) fe.Margin = new Thickness(8, 2, 0, 2); wrap.Children.Add(a); }
-            head.Children.Add(wrap.At(0, 1));
+            // The actions move under the title when both do not fit, so a long (bilingual) title never pushes them out of the card.
+            head = new HeaderPanel(titleStack, wrap);
         }
         return Ui.Card(Ui.VStack(12, head, body), 16, "SurfaceLow", 16);
     }

@@ -81,11 +81,14 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
             Ui.IconButton(Icons.VerticalSplit, "Show stages beside source", ToggleMap));
         toolbar.HorizontalAlignment = HorizontalAlignment.Right;
         foreach (var icon in toolbar.Children.OfType<Button>()) { icon.Width = icon.Height = icon.MinHeight = 36; icon.Margin = new Thickness(0, 0, 4, 0); }
-        // A 48px bar with a hairline under it: title, stage and caret state, then the 36px icon buttons.
-        var titleBar = new Border { Height = 48, Padding = new Thickness(16, 0, 8, 0), BorderThickness = new Thickness(0, 0, 0, 1) };
+        // A bar of at least 48px with a hairline under it: the title with the stage and caret state under it, then the
+        // 36px icon buttons, which wrap onto a second line instead of pushing the bar wider than a narrow editor.
+        var titleBar = new Border { MinHeight = 48, Padding = new Thickness(16, 4, 8, 4), BorderThickness = new Thickness(0, 0, 0, 1) };
         titleBar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
-        editorState.Margin = new Thickness(0, 0, 8, 0);
-        titleBar.Child = Ui.Columns(8, [1, 0, 0], Ui.Text("Dockerfile", 14, FontWeights.SemiBold, "OnSurface", false), editorState, toolbar);
+        editorState.TextWrapping = TextWrapping.NoWrap; editorState.TextTrimming = TextTrimming.CharacterEllipsis;
+        var editorTitle = Ui.VStack(0, Ui.Text("Dockerfile", 14, FontWeights.SemiBold, "OnSurface", false), editorState);
+        editorTitle.VerticalAlignment = VerticalAlignment.Center; editorTitle.MinWidth = 120; editorTitle.MaxWidth = 240;
+        titleBar.Child = Ui.Columns(8, [0, 1], editorTitle, toolbar);
 
         var editorGrid = new Grid();
         editorGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 280 });

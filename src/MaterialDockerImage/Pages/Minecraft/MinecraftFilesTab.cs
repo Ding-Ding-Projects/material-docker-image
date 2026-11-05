@@ -23,7 +23,7 @@ internal sealed class MinecraftFilesTab : MinecraftTab
         table.Key = f => f.Name;
         table.EmptyTitle = Loc("Empty folder");
         table.EmptyMessage = Loc("This folder has no files. Use Copy file in to add one.");
-        table.ChipColumn("Kind", f => f.IsDirectory ? "folder" : "file", f => f.IsDirectory ? Tone.Primary : Tone.Neutral, 90)
+        table.ChipColumn("Kind", f => Services.Loc.T(f.IsDirectory ? "folder" : "file"), f => f.IsDirectory ? Tone.Primary : Tone.Neutral, 90)
             .Column("Name", f => f.Name, 260, true)
             .Column("Size", f => f.IsDirectory ? "—" : Ui.FormatBytes(f.Size), 100)
             .Column("Modified", f => f.Modified, 140)

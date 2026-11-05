@@ -53,7 +53,7 @@ public sealed partial class SecurityPage : PageBase
              .ChipColumn("Medium", r => r.Count(ScoutSeverity.Medium), r => r.CountTone(ScoutSeverity.Medium), 84)
              .ChipColumn("Low", r => r.Count(ScoutSeverity.Low), r => r.CountTone(ScoutSeverity.Low), 70)
              .Column("Fixable", r => r.FixableText, 76)
-             .ChipColumn("Analyzed", r => r.StatusText, r => r.StatusTone, 170)
+             .ChipColumn("Analyzed", r => Loc.T(r.StatusText), r => r.StatusTone, 170)
              .Filter("Critical or high", r => r.Counts is { } c && c.Critical + c.High > 0)
              .Filter("Fixable only", r => r.Counts is { Fixable: > 0 })
              .Filter("Not analyzed", r => r.Result == null)

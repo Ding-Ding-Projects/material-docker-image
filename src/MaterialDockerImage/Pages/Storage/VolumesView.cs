@@ -35,7 +35,7 @@ public sealed class VolumesView : Grid
         table.Column("Name", v => v.Name, 300)
             .Column("Driver", v => v.Driver, 90)
             .Column("Size", v => v.Size, 100)
-            .ChipColumn("Used by", v => v.InUse ? v.UsedByText : "Not used", v => v.InUse ? Tone.Success : Tone.Neutral, 220)
+            .ChipColumn("Used by", v => v.InUse ? v.UsedByText : Loc.T("Not used"), v => v.InUse ? Tone.Success : Tone.Neutral, 220)
             .Column("Created", v => v.Created, 130)
             .Column("Labels", v => v.Labels, 200, true)
             .Filter("In use", v => v.InUse)

@@ -123,11 +123,16 @@ public partial class MainWindow : Window
         Provenance.Visibility = AdhdRules.Resolve(settings, !(ActualWidth > 0 && ActualWidth < 1040)).ShowProvenance ? Visibility.Visible : Visibility.Collapsed;
         // Labels stay visible at every height so each destination says what it is; Focus mode is the deliberate icon-only choice.
         // A short window tightens the items and the rail scrolls instead of dropping the words.
-        var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
+        // Each item gets the height the rail can spare (title bar, rail margins and the Settings item taken off), and the
+        // items shrink in steps so that a 960 px window shows every destination without cutting the last label.
+        var scrolling = railItems.Count(pair => pair.Key != "Settings");
+        var budget = ActualHeight > 0 && scrolling > 0 ? (ActualHeight - 48 - 16 - 60) / scrolling : double.MaxValue;
+        var (padding, pill, labelSize) = budget >= 61 ? (4.0, 32.0, 12.0) : budget >= 54 ? (1.0, 32.0, 11.0) : budget >= 46 ? (0.0, 26.0, 11.0) : (0.0, 24.0, 11.0);
         foreach (var item in railItems.Values)
         {
-            if (item.Content is TextBlock label) { label.Visibility = settings.FocusMode ? Visibility.Collapsed : Visibility.Visible; label.FontSize = shortWindow ? 11 : 12; }
-            item.Padding = shortWindow ? new Thickness(0, 1, 0, 1) : new Thickness(0, 4, 0, 4);
+            if (item.Content is TextBlock label) { label.Visibility = settings.FocusMode ? Visibility.Collapsed : Visibility.Visible; label.FontSize = labelSize; }
+            item.Padding = new Thickness(0, padding, 0, padding);
+            item.Resources["RailPillHeight"] = pill;
         }
         dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
     }
@@ -156,7 +161,7 @@ public partial class MainWindow : Window
         var assembly = Assembly.GetExecutingAssembly();
         var version = assembly.GetName().Version?.ToString(3) ?? "unavailable";
         var stamp = assembly.GetCustomAttributes<AssemblyMetadataAttribute>().FirstOrDefault(x => x.Key == "BuildTimestamp")?.Value;
-        Provenance.Text = $"{Loc.T("Version")} {version} · {Loc.T("Updated")} " + (DateTimeOffset.TryParse(stamp, out var t) ? t.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") + " UTC" + t.ToLocalTime().ToString("zzz") : "provenance unavailable");
+        Provenance.Text = $"{Loc.T("Version")} {version} · {Loc.T("Updated")} " + (DateTimeOffset.TryParse(stamp, out var t) ? t.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") + " UTC" + t.ToLocalTime().ToString("zzz") : Loc.T("provenance unavailable"));
         var chrome = AdhdRules.Resolve(settings);
         RailColumn.Width = new GridLength(chrome.RailWidth);
         clockText.Visibility = chrome.ShowClock ? Visibility.Visible : Visibility.Collapsed;
@@ -277,7 +282,7 @@ public partial class MainWindow : Window
     {
         foreach (var destination in Destinations.All.Where(d => d.OnRail))
         {
-            var item = new RadioButton { Style = (Style)FindResource("Rail.Item"), Tag = destination.Icon, Content = new TextBlock { Text = Loc.T(destination.Key), TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 76, TextAlignment = TextAlignment.Center }, GroupName = "rail", ToolTip = Loc.T(destination.Description) };
+            var item = new RadioButton { Style = (Style)FindResource("Rail.Item"), Tag = destination.Icon, Content = new TextBlock { Text = Loc.T(destination.Key), TextWrapping = TextWrapping.Wrap, TextTrimming = TextTrimming.CharacterEllipsis, MaxWidth = 76, MaxHeight = 34, TextAlignment = TextAlignment.Center }, GroupName = "rail", ToolTip = Loc.T(destination.Description) };
             AutomationProperties.SetName(item, Loc.T(destination.Key));
             item.Checked += (_, _) => { if (!navigating) Navigate(destination.Key, true); };
             item.ContextMenu = new ContextMenu();

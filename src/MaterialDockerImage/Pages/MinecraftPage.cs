@@ -51,7 +51,7 @@ public sealed class MinecraftPage : PageBase
         table.Key = s => s.Name;
         table.EmptyTitle = Loc.T("No Minecraft servers yet");
         table.EmptyMessage = Loc.T("Create a server to run Minecraft Java or Bedrock Edition in a container on this engine. Only containers this page created (labelled") + " " + MinecraftSpecRules.Label + ") are listed.";
-        table.ChipColumn("State", s => s.State, s => s.StateTone, 100)
+        table.ChipColumn("State", s => Loc.T(s.State), s => s.StateTone, 100)
             .Column("Name", s => s.Name, 150)
             .ChipColumn("Edition", s => s.EditionText, s => s.IsJava ? Tone.Primary : Tone.Tertiary, 90)
             .Column("Version", s => s.Spec.Version, 110, true)

@@ -22,7 +22,7 @@ public sealed class BuildHistoryCard : DockPanel
 
     public BuildHistoryCard()
     {
-        table.ChipColumn("Status", r => r.Status, r => r.Status switch
+        table.ChipColumn("Status", r => Loc.T(r.Status), r => r.Status switch
         {
             "Completed" => Tone.Success,
             "Failed" or "Error" => Tone.Error,
@@ -34,7 +34,7 @@ public sealed class BuildHistoryCard : DockPanel
             .Column("Duration", r => r.Seconds is { } s ? BuildTimelineView.FormatSeconds(s) : "—", 90, true)
             .Column("Cached / steps", r => r.Steps, 110, true)
             .Column("Started", r => r.Started?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? "—", 150)
-            .ChipColumn("Source", r => r.Source, r => r.Source == "This app" ? Tone.Primary : Tone.Tertiary, 100)
+            .ChipColumn("Source", r => Loc.T(r.Source), r => r.Source == "This app" ? Tone.Primary : Tone.Tertiary, 100)
             .Column("Reference", r => r.Reference, 260, true)
             .Filter("This app", r => r.Source == "This app")
             .Filter("Failed", r => r.Status is "Failed" or "Error")

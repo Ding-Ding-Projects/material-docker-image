@@ -186,6 +186,7 @@ internal sealed partial class ContainerInspector : Border
         border.SetValue(Border.BackgroundProperty, Brushes.Transparent);
         border.SetValue(Border.BorderThicknessProperty, new Thickness(0, 0, 0, 3));
         border.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
+        border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
         var content = new FrameworkElementFactory(typeof(ContentPresenter));
         content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
         content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);

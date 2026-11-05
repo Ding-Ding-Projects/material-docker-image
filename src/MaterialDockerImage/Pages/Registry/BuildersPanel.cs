@@ -52,7 +52,7 @@ internal sealed class BuildersPanel
         };
         Table.Column("Name", b => b.Name + (b.Current ? " (default)" : ""), 150, true)
             .Column("Driver", b => b.Driver, 110)
-            .ChipColumn("Status", b => b.Status, b => b.Status.Equals("running", StringComparison.OrdinalIgnoreCase) ? Tone.Success : b.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase) ? Tone.Neutral : Tone.Warning, 110)
+            .ChipColumn("Status", b => Loc.T(b.Status), b => b.Status.Equals("running", StringComparison.OrdinalIgnoreCase) ? Tone.Success : b.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase) ? Tone.Neutral : Tone.Warning, 110)
             .Column("Platforms", b => b.Platforms, 220)
             .Filter("Running", b => b.Status.Equals("running", StringComparison.OrdinalIgnoreCase))
             .RowAction("Inspect", Icons.Info, b => InspectAsync(b, false), "Enter")
@@ -64,13 +64,13 @@ internal sealed class BuildersPanel
         Table.MinHeight = 260; Table.MaxHeight = 480;
         var create = Ui.AsyncButton("Create builder", Icons.Add, ButtonKind.Filled, CreateAsync);
         var refresh = Ui.AsyncIconButton(Icons.Refresh, "Refresh builders", RefreshAsync);
-        var selected = Ui.HStack(8,
+        var selected = Ui.Wrap(8,
             Ui.AsyncButton("Inspect", Icons.Info, ButtonKind.Text, () => WithFocused(b => InspectAsync(b, false))),
             Ui.AsyncButton("Disk usage", Icons.DataUsage, ButtonKind.Text, () => WithFocused(DiskUsageAsync)),
             Ui.AsyncButton("Prune cache", Icons.CleaningServices, ButtonKind.Outlined, () => WithFocused(PruneAsync)),
             Ui.AsyncButton("Remove", Icons.Delete, ButtonKind.Text, () => WithFocused(RemoveAsync)));
         var note = Ui.Caption("The default builder is not changed here: this page never runs docker buildx use, because that changes the global default for every tool. Choosing a builder per build will belong to Build and is not implemented yet.");
-        var body = Ui.VStack(12, state, Table, new WrapPanel { Children = { selected } }, note, Ui.Card(Ui.VStack(8, detailTitle, detail), 12, "SurfaceContainer", 12));
+        var body = Ui.VStack(12, state, Table, selected, note, Ui.Card(Ui.VStack(8, detailTitle, detail), 12, "SurfaceContainer", 12));
         Card = PageParts.Section("Builders", "docker buildx", body, create, refresh);
     }
 

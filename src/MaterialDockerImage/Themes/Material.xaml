@@ -42,6 +42,7 @@
   <FontFamily x:Key="IconFont">pack://application:,,,/MaterialDockerImage;component/Assets/Fonts/#Material Symbols Rounded Outline</FontFamily>
   <FontFamily x:Key="IconFontFilled">pack://application:,,,/MaterialDockerImage;component/Assets/Fonts/#Material Symbols Rounded Filled</FontFamily>
   <sys:Double x:Key="TargetHeight">40</sys:Double>
+  <sys:Double x:Key="RailPillHeight">32</sys:Double>
   <!-- Shape and density tokens. Services/AppearanceRuntime.cs rewrites them from the corner radius scale and density. -->
   <CornerRadius x:Key="RadiusSmall">8</CornerRadius>
   <CornerRadius x:Key="RadiusMedium">12</CornerRadius>
@@ -168,7 +169,7 @@
         <ControlTemplate TargetType="RadioButton">
           <Border x:Name="root" Background="Transparent" Width="80" MinHeight="40" Padding="{TemplateBinding Padding}" Margin="0,1">
             <StackPanel VerticalAlignment="Center">
-              <Border x:Name="pill" Width="56" Height="32" CornerRadius="16" Background="Transparent" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" m:MotionAttached.Effect="RailPill">
+              <Border x:Name="pill" Width="56" Height="{DynamicResource RailPillHeight}" CornerRadius="16" Background="Transparent" HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5" m:MotionAttached.Effect="RailPill">
                 <Border.Child>
                   <Grid>
                     <TextBlock x:Name="iconOutline" Text="{TemplateBinding Tag}" FontFamily="{DynamicResource RailIconFont}" FontSize="22" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="{TemplateBinding Foreground}"/>

@@ -119,5 +119,17 @@ public static partial class Loc
         yield return new("to cancel without changing anything.", "取消，乜都唔會改。");
         yield return new("Affected", "受影響");
         yield return new("No actions match this filter.", "冇動作符合呢個篩選。");
+        yield return new("Exited", "已退出");
+        yield return new("Restarting", "重新啟動緊");
+        yield return new("Dead", "已失效");
+        yield return new("Removing", "移除緊");
+        yield return new("not created", "未建立");
+        yield return new("folder", "資料夾");
+        yield return new("file", "檔案");
+        yield return new("online", "在線");
+        yield return new("offline", "離線");
+        yield return new("inactive", "未啟動");
+        yield return new("provenance unavailable", "冇來源資料");
+        yield return new("Search commands, resources and settings", "搜尋指令、資源同設定");
     }
 }

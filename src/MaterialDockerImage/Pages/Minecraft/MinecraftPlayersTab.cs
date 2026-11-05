@@ -29,7 +29,7 @@ internal sealed class MinecraftPlayersTab : MinecraftTab
         table.Key = p => p.Name;
         table.EmptyTitle = Loc.T("No players known yet");
         table.EmptyMessage = Loc.T("Nobody is online and the operator and whitelist files are empty. Add a player below.");
-        table.ChipColumn("Status", p => p.Status, p => p.Online ? Tone.Success : Tone.Neutral, 100)
+        table.ChipColumn("Status", p => Loc.T(p.Status), p => p.Online ? Tone.Success : Tone.Neutral, 100)
             .Column("Name", p => p.Name, 200, true)
             .Column("Roles", p => p.Roles, 220)
             .Filter("Online", p => p.Online)

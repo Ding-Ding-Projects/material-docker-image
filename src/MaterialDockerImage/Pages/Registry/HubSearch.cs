@@ -42,7 +42,7 @@ internal sealed class HubSearch
             Key = r => r.Name
         };
         Table.Column("Name", r => r.Name, 170, true)
-            .ChipColumn("Official", r => r.Official ? "Official" : "Community", r => r.Official ? Tone.Success : Tone.Neutral, 110)
+            .ChipColumn("Official", r => Loc.T(r.Official ? "Official" : "Community"), r => r.Official ? Tone.Success : Tone.Neutral, 110)
             .Column("Stars", r => r.StarsText, 70)
             .Column("Description", r => r.Description, 260)
             .Filter("Official", r => r.Official)

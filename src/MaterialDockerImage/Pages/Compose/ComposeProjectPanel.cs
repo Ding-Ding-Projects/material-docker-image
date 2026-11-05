@@ -73,7 +73,7 @@ public sealed partial class ComposeProjectPanel : Grid
         services.EmptyMessage = Loc.T("Compose reported no services for this project.");
         services.Column("Service", s => s.Service, 110, true)
             .Column("Image", s => s.Image, 150, true)
-            .ChipColumn("State", s => s.Created ? s.State : "not created", s => s.StateTone, 100)
+            .ChipColumn("State", s => Loc.T(s.Created ? s.State : "not created"), s => s.StateTone, 100)
             .Column("Ports", s => s.Ports, 160, true)
             .Column("Health", s => s.Health.Length > 0 ? s.Health : "—", 70)
             .Column("Status", s => s.Status, 130)
