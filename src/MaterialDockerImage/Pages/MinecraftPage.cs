@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
 
@@ -20,6 +21,15 @@ public sealed class MinecraftPage : PageBase
     private readonly ContentControl orphanHost = new();
     private readonly FrameworkElement listView;
     private readonly Grid header;
+    // Board layout: server cards on top, the selected server's console and controls below. The table stays reachable as a list view.
+    private readonly UniformGrid cardsPanel = new() { Columns = 3 };
+    private readonly ScrollViewer cardsScroll;
+    private readonly ContentControl inlineHost = new();
+    private readonly ContentControl contentHost = new();
+    private readonly FrameworkElement cardsView;
+    private MinecraftServerDetail? inline;
+    private MinecraftControlsAside? aside;
+    private string? selectedName;
     private MinecraftServerDetail? detail;
     private List<MinecraftServer> servers = new();
     private bool refreshing;
@@ -34,6 +44,7 @@ public sealed class MinecraftPage : PageBase
     public MinecraftPage()
     {
         header = Ui.Header("Minecraft", "Minecraft servers in containers: create, configure, run and back up", out subtitle,
+            Ui.Chip("List view", false, asList => { contentHost.Content = asList ? table : cardsView; }),
             Ui.AsyncIconButton(Icons.Refresh, "Refresh", SafeRefresh),
             Ui.Button("Create server", Icons.Add, ButtonKind.Filled, OpenWizard));
 
@@ -64,14 +75,26 @@ public sealed class MinecraftPage : PageBase
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true);
         table.Activated += s => OpenDetail(s, "Overview");
 
+        cardsScroll = Ui.Scroll(cardsPanel);
+        cardsScroll.MaxHeight = 300;
+        cardsScroll.SizeChanged += (_, _) => cardsPanel.Columns = Math.Clamp((int)(cardsScroll.ActualWidth / 300), 1, 3);
+        var cards = new Grid();
+        cards.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        cards.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 240 });
+        cards.Children.Add(cardsScroll.At(0));
+        cards.Children.Add(inlineHost.At(1));
+        cardsView = cards;
+        contentHost.Content = cardsView;
+        IsVisibleChanged += (_, _) => { if (IsVisible) inline?.ReloadTab(); else inline?.Close(); };
+
         var grid = new Grid();
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 240 });
         grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        grid.Children.Add(TargetsStrip().Margin(0, 0, 0, 12));
+        grid.Children.Add(new Expander { Header = Loc.T("Where servers can run"), Content = TargetsStrip().Margin(0, 8, 0, 0), IsExpanded = false, Margin = new Thickness(0, 0, 0, 8) });
         grid.Children.Add(errorHost.At(1));
-        grid.Children.Add(table.At(2));
+        grid.Children.Add(contentHost.At(2));
         grid.Children.Add(orphanHost.At(3));
         listView = grid;
         view.Content = listView;
@@ -124,12 +147,14 @@ public sealed class MinecraftPage : PageBase
             errorHost.Content = null;
             servers = loaded;
             table.SetItems(servers);
+            SyncCards();
             orphanHost.Content = orphans.Count == 0 ? null : OrphanCard(orphans);
             subtitle.Text = Loc.Line($"{servers.Count} {(servers.Count == 1 ? "server" : "servers")} · {servers.Count(s => s.IsRunning)} running · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
             detail?.Update(servers.FirstOrDefault(s => s.Name == detail.Server.Name));
             await MinecraftOps.FillPlayersAsync(servers, context);
             if (context != SnapshotContext || !ReferenceEquals(loaded, servers)) return;
             table.SetItems(servers);
+            SyncCards();
             detail?.Update(servers.FirstOrDefault(s => s.Name == detail.Server.Name));
         }
         finally
@@ -137,6 +162,40 @@ public sealed class MinecraftPage : PageBase
             refreshing = false;
             if (refreshAgain) { refreshAgain = false; _ = SafeRefresh(); }
         }
+    }
+
+    /// <summary>Rebuilds the server cards and keeps the console and controls below them on the selected server.</summary>
+    private void SyncCards()
+    {
+        var chosen = servers.FirstOrDefault(s => s.Name == selectedName) ?? servers.FirstOrDefault();
+        selectedName = chosen?.Name;
+        cardsPanel.Children.Clear();
+        foreach (var s in servers)
+        {
+            var name = s.Name;
+            cardsPanel.Children.Add(MinecraftServerCards.Card(s, name == selectedName, () => SelectServer(name)));
+        }
+        if (chosen == null)
+        {
+            inline?.Close(); inline = null; aside = null;
+            inlineHost.Content = Ui.EmptyState(Icons.Public, "No Minecraft servers yet", "Create a server to run Minecraft Java or Bedrock Edition in a container on this engine.");
+            return;
+        }
+        if (inline == null || inline.Server.Name != chosen.Name)
+        {
+            inline?.Close();
+            inline = new MinecraftServerDetail(this, chosen, "Console", true);
+            aside = new MinecraftControlsAside(this, chosen, inline);
+            inlineHost.Content = Ui.SplitInspector(inline, aside.Root, 1000, 340, 16);
+        }
+        else { inline.Update(chosen); aside!.Update(chosen); }
+    }
+
+    private void SelectServer(string name)
+    {
+        if (name == selectedName) return;
+        selectedName = name;
+        SyncCards();
     }
 
     private FrameworkElement OrphanCard(List<string> volumes)
@@ -168,11 +227,13 @@ public sealed class MinecraftPage : PageBase
 
     private void OpenWizard()
     {
+        inline?.Close();
         detail?.Close();
         detail = null;
         var wizard = new MinecraftCreateWizard(() => Context, EnsureCurrent, servers.Select(s => s.Name).ToList(), name =>
         {
             view.Content = listView;
+            inline?.ReloadTab();
             if (name != null) _ = OpenAfterCreateAsync(name);
         });
         viewContext = Context;
@@ -187,6 +248,7 @@ public sealed class MinecraftPage : PageBase
 
     internal void OpenDetail(MinecraftServer server, string tab)
     {
+        inline?.Close();
         detail?.Close();
         detail = new MinecraftServerDetail(this, server, tab);
         viewContext = Context;
@@ -198,6 +260,7 @@ public sealed class MinecraftPage : PageBase
         detail?.Close();
         detail = null;
         view.Content = listView;
+        inline?.ReloadTab();
         _ = SafeRefresh();
     }
 

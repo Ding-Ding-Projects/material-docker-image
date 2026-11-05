@@ -23,6 +23,11 @@ public sealed partial class SettingsPage : PageBase
     private readonly ScrollViewer scroller;
     private readonly TextBlock searchState = Ui.Caption("");
     private readonly Dictionary<string, Border> sectionCards = new();
+    // Section cards flow into two columns on a wide window, as on the Settings board, and into one column when narrow.
+    private readonly Grid masonry = new();
+    private readonly StackPanel columnA = new(), columnB = new();
+    private readonly List<(Border Card, int Weight)> placed = new();
+    private bool? twoColumns;
     private SettingRows rows = new();
     private bool stale;
     private bool committing;
@@ -36,6 +41,7 @@ public sealed partial class SettingsPage : PageBase
         nav.SelectionChanged += (_, _) => { if (!fillingNav && nav.SelectedItem is ListBoxItem { Tag: string name } && sectionCards.TryGetValue(name, out var card)) card.BringIntoView(new Rect(0, 0, 1, 1)); };
         search.Changed += ApplySearch;
         scroller = Ui.Scroll(content.Margin(0, 0, 12, 24));
+        scroller.SizeChanged += (_, _) => ArrangeCards(false);
         var left = new DockPanel();
         left.Children.Add(Ui.VStack(8, search, searchState).Margin(0, 0, 0, 8).Dock(Dock.Top));
         left.Children.Add(nav);
@@ -61,7 +67,7 @@ public sealed partial class SettingsPage : PageBase
     {
         // Saves made from this page do not rebuild it (that would reset the control being used).
         rows = new SettingRows { Guard = save => { committing = true; try { save(); } finally { committing = false; } } };
-        content.Children.Clear(); sectionCards.Clear();
+        content.Children.Clear(); sectionCards.Clear(); placed.Clear();
         var builders = new Dictionary<string, Action>
         {
             ["Appearance"] = AppearanceSection, ["Language"] = LanguageSection, ["Schedules"] = SchedulesSection, ["Accessibility"] = AccessibilitySection,
@@ -83,9 +89,38 @@ public sealed partial class SettingsPage : PageBase
             card.Margin = new Thickness(0, 0, 0, 16);
             card.Tag = name;
             sectionCards[name] = card;
-            content.Children.Add(card);
+            placed.Add((card, rows.All.Count - before + extras.Count * 2 + 2));
         }
+        content.Children.Add(masonry);
+        ArrangeCards(true);
         ApplySearch();
+    }
+
+    private void ArrangeCards(bool force)
+    {
+        var two = scroller.ActualWidth <= 0 || scroller.ActualWidth >= 900;
+        if (!force && twoColumns == two) return;
+        twoColumns = two;
+        columnA.Children.Clear(); columnB.Children.Clear();
+        masonry.Children.Clear(); masonry.ColumnDefinitions.Clear();
+        masonry.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        masonry.Children.Add(columnA);
+        Grid.SetColumn(columnA, 0);
+        if (!two)
+        {
+            foreach (var (card, _) in placed) { card.Margin = new Thickness(0, 0, 0, 16); columnA.Children.Add(card); }
+            return;
+        }
+        masonry.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
+        masonry.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        masonry.Children.Add(columnB);
+        Grid.SetColumn(columnB, 2);
+        int a = 0, b = 0;
+        foreach (var (card, weight) in placed)
+        {
+            card.Margin = new Thickness(0, 0, 0, 16);
+            if (a <= b) { columnA.Children.Add(card); a += weight; } else { columnB.Children.Add(card); b += weight; }
+        }
     }
 
     private List<UIElement> currentExtras = new();

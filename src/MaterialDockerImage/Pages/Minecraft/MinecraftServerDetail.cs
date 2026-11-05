@@ -36,14 +36,21 @@ internal sealed class MinecraftServerDetail : DockPanel
     private readonly ContentControl headerHost = new();
     private readonly ContentControl body = new();
     private readonly Dictionary<string, MinecraftTab> tabs = new();
+    private readonly Dictionary<string, RadioButton> radios = new();
+    private readonly bool embedded;
     private string tab;
     private bool gone;
 
-    public MinecraftServerDetail(MinecraftPage page, MinecraftServer server, string initialTab)
+    /// <summary>
+    /// With <paramref name="embedded"/> the view sits under the server cards on the list page: the card already shows the
+    /// identity and the lifecycle actions live in the controls aside, so only the tabs and their content are drawn.
+    /// </summary>
+    public MinecraftServerDetail(MinecraftPage page, MinecraftServer server, string initialTab, bool embedded = false)
     {
         Page = page; Server = server; tab = TabNames.Contains(initialTab) ? initialTab : "Overview";
+        this.embedded = embedded;
         LastChildFill = true;
-        Children.Add(headerHost.Dock(Dock.Top));
+        if (!embedded) Children.Add(headerHost.Dock(Dock.Top));
         var bar = new WrapPanel { Margin = new Thickness(0, 12, 0, 12) };
         var group = "mcdetail" + Guid.NewGuid().ToString("N");
         foreach (var name in TabNames)
@@ -51,6 +58,7 @@ internal sealed class MinecraftServerDetail : DockPanel
             var radio = new RadioButton { Style = UnderlineTabs.Style, GroupName = group, Content = Loc.T(name), IsChecked = name == tab, Padding = new Thickness(14, 0, 14, 0) };
             System.Windows.Automation.AutomationProperties.SetName(radio, Loc.T(name));
             radio.Checked += (_, _) => Select(name);
+            radios[name] = radio;
             bar.Children.Add(radio);
         }
         System.Windows.Automation.AutomationProperties.SetName(bar, Loc.T("Server sections"));
@@ -63,6 +71,9 @@ internal sealed class MinecraftServerDetail : DockPanel
         RenderHeader();
         Select(tab);
     }
+
+    /// <summary>Switches to a tab by name, as if its tab button had been pressed.</summary>
+    public void ShowTab(string name) { if (radios.TryGetValue(name, out var r)) r.IsChecked = true; }
 
     private MinecraftTab Create(string name) => name switch
     {
@@ -89,6 +100,7 @@ internal sealed class MinecraftServerDetail : DockPanel
     {
         if (server == null)
         {
+            if (embedded) return;
             gone = true;
             headerHost.Content = Ui.VStack(12, Back(), Ui.Card(Ui.Text($"The server {Server.Name} is no longer on this engine. It may have been removed outside this page.", 14, null, "OnErrorContainer", true, true), 14, "ErrorContainer", 12));
             return;
@@ -111,7 +123,7 @@ internal sealed class MinecraftServerDetail : DockPanel
 
     private void RenderHeader()
     {
-        if (gone) return;
+        if (gone || embedded) return;
         var s = Server;
         var chips = Ui.Wrap(8,
             Ui.Badge(s.State, s.StateTone),
