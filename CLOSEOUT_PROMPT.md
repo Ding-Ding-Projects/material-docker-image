@@ -11,10 +11,10 @@ State on main (4 November 2026, after the built-window drive):
 - Regular expression builder: 75 of 83 parity topics implemented, none partial, 8 impossible on .NET; adds a windowless --regex-run automation mode; table filters now match each column, so anchors work.
 - Registry sign-in and sign-out, interactive terminals with a classic console option.
 - Checks: build.bat -Tests passes 23 core, 2,612 UI-state and 24 checklist checks.
-- Interactive receipt: evidence/interactive-2026-11/receipt.json, 36 steps through UI Automation on a hidden desktop.
+- Interactive receipt: evidence/interactive-2026-11/receipt.json, 37 steps through UI Automation on a hidden desktop.
 
 Next:
-1. On a desktop that may show windows: the School mode Windows Hello passkey, pointer clicks on locked controls, the clipboard QR route, the terminal's default Windows Terminal path, and a winning whack-a-mole round.
+1. On a desktop that may show windows: the School mode Windows Hello passkey, pointer clicks on locked controls, the terminal's default Windows Terminal path, and a winning whack-a-mole round.
 2. Scan the lock QR code with a phone authenticator; try the https and Home Assistant schedule sources against real servers.
 3. Regex parity: 5 topics partial (flavor comparison, grep conversion, folder search extras, external tool integration, some localization); 8 are impossible on .NET. Camera QR registration is built but not driven.
 4. Consider adding --capture-probe to the CI screenshot run so clipping is caught on every change.

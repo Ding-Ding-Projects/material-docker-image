@@ -290,6 +290,15 @@
       },
       "observed": "The ladder fell from the sums to whack-a-mole as designed in three separate lockouts. The sweeper saw 13 of 14 moles and pressed each within about 200 ms of it appearing, but every press reached the application about two seconds later, because UI Automation Invoke blocks for roughly two seconds on a hidden desktop. All three rounds were graded lost and the ladder moved on to the clock, which is the specified behaviour for a lost round. The winning path is covered by the logic checks of the hit counter and the win ledger, not by this drive.",
       "result": "pass (losing path); winning round not reachable with this input route"
+    },
+    {
+      "action": "Tools › Authenticator › My accounts › From the clipboard, with a QR picture on the clipboard",
+      "artifact": {
+        "version": "0.1.0 local build",
+        "source": "main 6fd705e"
+      },
+      "observed": "A QR code for a test otpauth link (issuer ClipboardCheck, a published demonstration secret) was put on the clipboard as a picture. From the clipboard decoded it and reported \"Account added: ClipboardCheck · mdi-clipboard\". The next code it showed, 750 942 with 10 s left, matched an independent RFC 6238 calculation for the same secret and time. The clipboard was empty before the drive and was cleared afterwards; the app data folder was restored byte for byte.",
+      "result": "pass"
     }
   ],
   "findings": [
@@ -300,7 +309,7 @@
   "notExercised": [
     "the default-terminal path of Open terminal (Windows Terminal was running on the visible desktop of the test host)",
     "the School mode Windows Hello passkey (its prompt appears on the visible secure desktop)",
-    "clicking a locked control with a pointer, and the clipboard QR route (both would need the visible desktop or the host's clipboard)",
+    "clicking a locked control with a pointer (it would need the visible desktop)",
     "a winning whack-a-mole round: on a hidden desktop every UI Automation press arrives about two seconds late and posted mouse or key input does not reach the window, so no driven press lands inside the one-second window of a mole",
     "camera QR registration (opening a camera raises the Windows permission prompt and the camera light on the host)"
   ],
