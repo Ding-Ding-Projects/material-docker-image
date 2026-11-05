@@ -22,7 +22,6 @@ internal sealed partial class SearchBuilderPopover
     private readonly SearchFilter field;
     private readonly Popup popup;
     private readonly Border card;
-    private readonly ScrollViewer scroll;
     private readonly TextBox pattern = Ui.Input("", "Pattern", true);
     private readonly TextBlock errorView = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBlock validation = Ui.Caption("");
@@ -126,10 +125,9 @@ internal sealed partial class SearchBuilderPopover
         RegisterPanel("flavors", FlavorSection());
         RegisterPanel("files", FilesSection());
         RegisterPanel("preferences", PreferencesSection());
-        contentStack = Ui.VStack(14);
+        card = Ui.Card(BuildPanes(), 16, "SurfaceContainer", 16);
         ApplyLayout();
-        scroll = new ScrollViewer { Content = contentStack, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Padding = new Thickness(0, 0, 4, 0) };
-        card = Ui.Card(scroll, 16, "SurfaceHigh", 16);
+        card.SizeChanged += (_, _) => UpdatePanes();
         card.Effect = Ui.Elevation(18, 4, .35);
         card.Margin = new Thickness(0, 4, 12, 12);
         card.Focusable = false;
@@ -190,10 +188,7 @@ internal sealed partial class SearchBuilderPopover
 
     public void Open()
     {
-        var window = Window.GetWindow(field);
-        var width = Math.Min(600, Math.Max(320, (window?.ActualWidth ?? 960) - 48));
-        card.Width = width;
-        scroll.MaxHeight = Math.Max(260, ((window?.ActualHeight ?? 720) - 140) * 0.9);
+        SizeToWindow();
         popup.IsOpen = true;
         RenderMine();
         Refresh();
@@ -220,6 +215,8 @@ internal sealed partial class SearchBuilderPopover
     /// <summary>Below the field when it fits, otherwise above it (WPF picks the first placement that stays on screen).</summary>
     private CustomPopupPlacement[] Place(Size popupSize, Size targetSize, Point offset) =>
     [
+        new(new Point(CenteredOffset(), targetSize.Height + 4), PopupPrimaryAxis.Horizontal),
+        new(new Point(CenteredOffset(), -popupSize.Height - 4), PopupPrimaryAxis.Horizontal),
         new(new Point(0, targetSize.Height + 4), PopupPrimaryAxis.Horizontal),
         new(new Point(0, -popupSize.Height - 4), PopupPrimaryAxis.Horizontal),
         new(new Point(targetSize.Width - popupSize.Width, targetSize.Height + 4), PopupPrimaryAxis.Horizontal),
@@ -542,7 +539,7 @@ internal sealed partial class SearchBuilderPopover
         view.SetResourceReference(Border.BackgroundProperty, "SurfaceLowest");
         return Section("Test", $"Paste up to {RegexBuilderEngine.MaxSampleBytes / 1024} KiB of sample text. It stays in memory for this field only.",
             Ui.Field("Sample text", sample, "Matches are highlighted below. Zero-width matches (such as \\b) show as a thin marker.", "nginx:1.27 alpine:3.20"),
-            testStatus, NavigationRow(), view, groups);
+            testStatus, NavigationRow(), view);
     }
 
     private FrameworkElement ReplaceSection() => Section("Replace preview", "Shows the sample after replacement. Nothing in the app is changed.",
@@ -643,7 +640,7 @@ internal sealed partial class SearchBuilderPopover
 
     private FrameworkElement ActionsRow()
     {
-        var wrap = new WrapPanel();
+        var wrap = new StackPanel();
         foreach (var b in new[]
         {
             Ui.Button("Copy pattern", Icons.ContentCopy, ButtonKind.Tonal, () => Copy(field.Query, "Pattern copied.")),
@@ -651,7 +648,7 @@ internal sealed partial class SearchBuilderPopover
             Ui.Button("Export JSON…", Icons.FileExport, ButtonKind.Tonal, Export),
             Ui.Button("Done", null, ButtonKind.Filled, Close),
         })
-        { b.Margin = new Thickness(0, 0, 8, 8); wrap.Children.Add(b); }
+        { b.Margin = new Thickness(0, 0, 0, 8); b.HorizontalAlignment = HorizontalAlignment.Stretch; wrap.Children.Add(b); }
         return wrap;
     }
 

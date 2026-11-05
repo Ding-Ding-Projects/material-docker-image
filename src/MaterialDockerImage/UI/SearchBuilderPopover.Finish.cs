@@ -30,8 +30,7 @@ internal sealed partial class SearchBuilderPopover
     // ----- panels, layout and keyboard -----
 
     private readonly Dictionary<string, FrameworkElement> panelElements = new();
-    private StackPanel? contentStack;
-    private FrameworkElement? headerElement, actionsElement, noteElement;
+    private FrameworkElement? actionsElement, noteElement;
     private RegexBuilderPreferences prefs = RegexBuilderPreferences.Current;
     private readonly TextBlock prefsStatus = Ui.Caption("");
     private readonly StackPanel layoutList = new();
@@ -43,16 +42,21 @@ internal sealed partial class SearchBuilderPopover
         panelElements[id] = element;
     }
 
-    /// <summary>Rebuilds the content in the saved panel order, leaving out the panels that are hidden. Required panels always stay.</summary>
+    /// <summary>
+    /// Rebuilds the three panes in the saved panel order, leaving out the panels that are hidden. Required panels always stay. Each panel keeps
+    /// its pane (tokens and library, pattern and test, captures and actions); within a pane the saved order applies.
+    /// </summary>
     private void ApplyLayout()
     {
-        if (contentStack == null) return;
-        contentStack.Children.Clear();
-        contentStack.Children.Add(headerElement ??= Header());
-        contentStack.Children.Add(modeSwitch);
-        foreach (var id in prefs.Layout.Visible()) if (panelElements.TryGetValue(id, out var element)) contentStack.Children.Add(element);
-        contentStack.Children.Add(actionsElement ??= ActionsRow());
-        contentStack.Children.Add(noteElement ??= DialectNote());
+        if (!panesBuilt) return;
+        foreach (var stack in paneStacks) stack.Children.Clear();
+        var visible = prefs.Layout.Visible();
+        paneStacks[CenterPane].Children.Add(modeSwitch);
+        if (visible.Contains("test")) paneStacks[RightPane].Children.Add(capturesElement ??= CapturesSection());
+        foreach (var id in visible) if (panelElements.TryGetValue(id, out var element)) paneStacks[PaneFor(id)].Children.Add(element);
+        if (paneStacks[LeftPane].Children.Count == 0) paneStacks[LeftPane].Children.Add(Ui.Caption("The Insert panel is hidden. Show it again under Preferences and layout."));
+        paneStacks[RightPane].Children.Add(actionsElement ??= ActionsRow());
+        paneStacks[RightPane].Children.Add(noteElement ??= DialectNote());
         RenderLayoutList();
         keyboardHelp.Text = LocalKeyboardHelp(prefs.Layout.Visible());
     }
@@ -80,6 +84,7 @@ internal sealed partial class SearchBuilderPopover
     private void JumpToPanel(string id)
     {
         if (!panelElements.TryGetValue(id, out var element)) return;
+        RevealPane(PaneFor(id));
         element.BringIntoView();
         if (id == "pattern") { pattern.Focus(); Keyboard.Focus(pattern); return; }
         element.MoveFocus(new TraversalRequest(FocusNavigationDirection.First));
