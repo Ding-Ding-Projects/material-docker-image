@@ -46,13 +46,14 @@ public sealed partial class SettingsPage
     {
         if (appearanceListener != null) AppearanceRuntime.Changed -= appearanceListener;
         var syncs = new List<Action>();
-        appearanceListener = () => { foreach (var sync in syncs) sync(); };
+        appearanceListener = () => RunStudioSyncs(syncs);
         AppearanceRuntime.Changed += appearanceListener;
         var a = AppearanceRuntime.Current;
 
-        // ----- Preview -----
-        var preview = new AppearancePreview { MaxWidth = 720, HorizontalAlignment = HorizontalAlignment.Left };
-        rows.Add("appearancepreview", "Live preview", "A miniature of the window drawn with the current appearance. It updates as you change anything below; nothing in it runs.", preview, null, null, true);
+        // ----- Studio: presets, colour, motion, shape and the live preview -----
+        var preview = new AppearancePreview();
+        rows.Add("appearancestudio", "Appearance studio", "Every change applies live and is saved in settings.json. Undo keeps the last 100 appearance changes.",
+            AppearanceStudio(syncs, preview), null, null, true);
 
         // ----- Presets, undo, redo, reset, copy and paste -----
         rows.Add("presets", "Presets and history", "Apply a named look, save your own, export or import one, copy or paste a style, and undo or redo up to 100 appearance changes.",
@@ -66,7 +67,7 @@ public sealed partial class SettingsPage
 
         // ----- Theme and colour -----
         rows.Add("theme", "Theme", "Chooses light or dark colours, or follows the Windows app theme.",
-            Resettable(Ui.Segmented(AppearanceState.Themes, a.Theme, v => Look("theme set to " + v, m => m.Theme = v)), "theme", (m, d) => m.Theme = d.Theme), s => s.Theme,
+            Resettable(Synced(new StudioChoice(AppearanceState.Themes, () => AppearanceRuntime.Current.Theme, v => Look("theme set to " + v, m => m.Theme = v)), syncs), "theme", (m, d) => m.Theme = d.Theme), s => s.Theme,
             "System reads the Windows \"app mode\" setting when the theme is applied (at start and whenever a setting changes).");
 
         AppearanceRgba.TryParseStorageHex(a.Seed, out var seed);
@@ -84,12 +85,13 @@ public sealed partial class SettingsPage
             "Overrides apply after the theme, seed, surface tint and high contrast, so they always win. Each role shows its contrast against the colour it is normally read with. Choosing Animated rainbow for a role cycles its hue (only while motion is on).", true, v => v is string { Length: > 0 } t ? t : "none");
 
         rows.Add("contrast", "High contrast", "Makes surfaces and outlines stronger so edges and secondary text are easier to see.",
-            SettingRows.Toggle(S.HighContrast, v => { S.HighContrast = v; Commit("High contrast " + (v ? "on" : "off")); }), s => s.HighContrast);
+            SyncedToggle(syncs, () => S.HighContrast, v => { S.HighContrast = v; Commit("High contrast " + (v ? "on" : "off")); }), s => s.HighContrast);
 
         // ----- Shape -----
         var radiusText = Ui.Text($"{a.RadiusScale:0.00}x", 13, null, "OnSurfaceVariant", false, false);
         var radius = StepSlider(0.5, 1.5, a.RadiusScale, 0.05);
-        radius.ValueChanged += (_, e) => { radiusText.Text = $"{radius.Value:0.00}x"; Look($"corner radius set to {radius.Value:0.00}x", m => m.RadiusScale = radius.Value, true); };
+        radius.ValueChanged += (_, e) => { radiusText.Text = $"{radius.Value:0.00}x"; if (!studioSyncing) Look($"corner radius set to {radius.Value:0.00}x", m => m.RadiusScale = radius.Value, true); };
+        syncs.Add(() => { var now = AppearanceRuntime.Current.RadiusScale; if (Math.Abs(radius.Value - now) > 0.001) radius.Value = now; });
         FrameworkElement Shape(string key, string label)
         {
             var b = new Border { Width = 56, Height = 36, BorderThickness = new Thickness(1), Child = Ui.Text(label, 11, null, "OnSecondaryContainer", false, false) };
@@ -105,10 +107,10 @@ public sealed partial class SettingsPage
 
         // ----- Density -----
         rows.Add("density", "Density", "Sets the height of buttons, fields and segmented controls and their side padding.",
-            Resettable(Ui.Segmented(AppearanceState.Densities, a.Density, v => Look("density set to " + v, m => m.Density = v)), "density", (m, d) => m.Density = d.Density), s => s.Density,
+            Resettable(Synced(new StudioChoice(AppearanceState.Densities, () => AppearanceRuntime.Current.Density, v => Look("density set to " + v, m => m.Density = v)), syncs), "density", (m, d) => m.Density = d.Density), s => s.Density,
             "Compact uses 36-pixel targets, Comfortable 40 and Spacious 44. Larger targets raises every target to at least 48 pixels whatever the density.");
         rows.Add("targets", "Larger targets", "Raises the shared target height to at least 48 pixels so controls are easier to hit.",
-            SettingRows.Toggle(S.LargerTargets, v => { S.LargerTargets = v; Commit("Larger targets " + (v ? "on" : "off")); }), s => s.LargerTargets);
+            SyncedToggle(syncs, () => S.LargerTargets, v => { S.LargerTargets = v; Commit("Larger targets " + (v ? "on" : "off")); }), s => s.LargerTargets);
 
         // ----- Typography -----
         var uiFont = new AppearanceFontPicker(a.UiFont, AppearanceRuntime.DefaultTextFont, "Build, run and ship containers. 0123456789 · 建立映像", false);
@@ -121,7 +123,8 @@ public sealed partial class SettingsPage
             monoFont, s => s.MonoFontFamily, "Choose a monospace font so columns line up. Proportional fonts work but make tables of identifiers harder to scan.", true, v => v is string { Length: > 0 } t ? t : "Cascadia Mono");
         var sizeText = Ui.Text($"{a.FontSize:0} px", 13, null, "OnSurfaceVariant", false, false);
         var size = StepSlider(12, 22, a.FontSize, 1);
-        size.ValueChanged += (_, _) => { sizeText.Text = $"{size.Value:0} px"; Look("font size set to " + size.Value.ToString("0"), m => m.FontSize = size.Value, true); };
+        size.ValueChanged += (_, _) => { sizeText.Text = $"{size.Value:0} px"; if (!studioSyncing) Look("font size set to " + size.Value.ToString("0"), m => m.FontSize = size.Value, true); };
+        syncs.Add(() => { var now = AppearanceRuntime.Current.FontSize; if (Math.Abs(size.Value - now) > 0.001) size.Value = now; });
         rows.Add("fontsize", "Font size", "Sets the base text size of the window, from 12 to 22 pixels.",
             Resettable(Ui.HStack(12, size, sizeText), "font size", (m, d) => m.FontSize = d.FontSize), s => s.FontSize, null, false, v => $"{v:0} px");
         var weights = new[] { ("Regular", 400), ("Medium", 500), ("SemiBold", 600), ("Bold", 700), ("Heavy", 800) };
@@ -133,38 +136,29 @@ public sealed partial class SettingsPage
 
         // ----- Motion -----
         var motionNote = Ui.Caption("");
-        void Note()
-        {
-            var effective = Motion.EffectiveLevel;
-            motionNote.Text = Motion.WindowsAnimationsOff ? Loc.T("Windows animation effects are off (Settings, Accessibility, Visual effects), so this app does not animate either. Turn them on in Windows to see motion.")
-                : S.ReducedMotion ? Loc.T("Reduced motion is on, so everything snaps to its final state instantly.")
-                : S.LowStimulation ? Loc.T("Low stimulation is on, so everything snaps to its final state instantly.")
-                : effective == "Off" ? Loc.T("Motion is off: every change appears instantly.")
-                : effective == "Reduced" ? Loc.T("Reduced: every change appears instantly, with no movement.")
-                : effective == "Expressive" ? Loc.T("Expressive: longer, bouncier Material motion with larger travel.")
-                : Loc.T("Standard Material 3 motion: emphasized easing, 50 to 600 ms.");
-        }
+        void Note() => motionNote.Text = MotionNoteText();
         Note();
         syncs.Add(Note);
         rows.Add("motionlevel", "Motion", "How much the interface moves: page and tab transitions, dialogs, toasts, the rail indicator, presses, switches and list entrances.",
-            Ui.VStack(6, Resettable(Ui.Segmented(AppearanceMotion.Levels, a.MotionLevel, v => Look("motion set to " + v, m => m.MotionLevel = v)), "motion", (m, d) => m.MotionLevel = d.MotionLevel), motionNote),
+            Ui.VStack(6, Resettable(Synced(new StudioChoice(AppearanceMotion.Levels, () => AppearanceRuntime.Current.MotionLevel, v => Look("motion set to " + v, m => m.MotionLevel = v)), syncs), "motion", (m, d) => m.MotionLevel = d.MotionLevel), motionNote),
             s => s.MotionLevel,
             "Motion follows Material 3 easing (emphasized, emphasized decelerate and accelerate, standard) and duration tokens (short 50-200 ms, medium 250-400 ms, long 450-600 ms). Motion never carries information on its own: every state is also shown without it. Reduced motion, Low stimulation, the Windows animation setting and documentation captures always win.", true);
         var speedText = Ui.Text($"{a.MotionSpeed:0.00}x", 13, null, "OnSurfaceVariant", false, false);
         var speed = StepSlider(0.5, 2, a.MotionSpeed, 0.25);
-        speed.ValueChanged += (_, _) => { speedText.Text = $"{speed.Value:0.00}x"; Look($"motion speed set to {speed.Value:0.00}x", m => m.MotionSpeed = speed.Value, true); };
+        speed.ValueChanged += (_, _) => { speedText.Text = $"{speed.Value:0.00}x"; if (!studioSyncing) Look($"motion speed set to {speed.Value:0.00}x", m => m.MotionSpeed = speed.Value, true); };
+        syncs.Add(() => { var now = AppearanceRuntime.Current.MotionSpeed; if (Math.Abs(speed.Value - now) > 0.001) speed.Value = now; });
         rows.Add("motionspeed", "Motion speed", "Speeds animations up (up to 2x, shorter) or slows them down (down to 0.5x, longer).",
             Resettable(Ui.HStack(12, speed, speedText), "motion speed", (m, d) => m.MotionSpeed = d.MotionSpeed), s => s.MotionSpeed, null, false, v => $"{v:0.00}x");
         rows.Add("motion", "Reduced motion", "Turns off all animations; the interface snaps to each final state.",
-            SettingRows.Toggle(S.ReducedMotion, v => { S.ReducedMotion = v; Commit("Reduced motion " + (v ? "on" : "off")); Note(); }), s => s.ReducedMotion);
+            ReducedMotionToggle(syncs, Note), s => s.ReducedMotion);
         var demoState = Ui.Caption("");
         var play = Ui.Button("Play motion demo", Icons.PlayArrow, ButtonKind.Tonal, () =>
         {
             preview.BringIntoView();
             preview.PlayDemo();
-            demoState.Text = Motion.Enabled ? Loc.T("Playing on the live preview above.") : Loc.T("Motion is not running, so the preview shows the final state at once. ") + motionNote.Text;
+            demoState.Text = Motion.Enabled ? Loc.T("Playing on the live preview in the studio above.") : Loc.T("Motion is not running, so the preview shows the final state at once. ") + motionNote.Text;
         });
-        rows.Add("motionpreview", "Motion demo", "Plays a page entrance, a staggered list and a counting number on the live preview with the current motion settings.",
+        rows.Add("motionpreview", "Motion demo", "Plays a page entrance, a staggered list, a progress bar and a notification on the studio's live preview with the current motion settings.",
             Ui.VStack(6, play, demoState), null);
 
         // ----- Effects -----
@@ -200,29 +194,10 @@ public sealed partial class SettingsPage
         }
         AppearancePreset? Selected() => AppearanceRuntime.AllPresets.FirstOrDefault(p => p.Id == (combo.SelectedItem as ComboBoxItem)?.Tag as string);
         FillPresets();
-        // A locked preset cannot be replaced, renamed or deleted until it is unlocked.
-        async Task<bool> PresetFree(string presetName)
-        {
-            if (AppearanceLocks.PresetBlocker(Host.Settings, presetName) is not { } block) return true;
-            await LockUi.UnlockThenAsync(block.Id, block.Label);
-            return AppearanceLocks.PresetBlocker(Host.Settings, presetName) == null;
-        }
-
+        // Presets saved or imported from the studio appear here too.
+        syncs.Add(() => { if (!combo.IsDropDownOpen && !AppearanceRuntime.AllPresets.Select(p => p.Id).SequenceEqual(combo.Items.OfType<ComboBoxItem>().Select(i => i.Tag as string))) FillPresets(); });
         var apply = Ui.Button("Apply", Icons.Check, ButtonKind.Filled, () => { if (Selected() is { } p) AppearanceRuntime.ApplyPreset(p); });
-        var save = Ui.AsyncButton("Save current as…", Icons.Save, ButtonKind.Tonal, async () =>
-        {
-            var name = await Host.Overlay.PromptAsync("Save appearance preset", "Preset name", "My look", "Saves the current colours, shape, density, fonts and effects as a preset on this computer.", n => AppearancePresets.ValidateName(n) ?? (AppearancePresets.BuiltIn.Any(b => b.Name.Equals(n.Trim(), StringComparison.OrdinalIgnoreCase)) ? "That is a built-in preset name. Choose another." : null));
-            if (name == null) return;
-            name = name.Trim();
-            var list = AppearanceRuntime.UserPresets.ToList();
-            var existing = list.FindIndex(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-            if (existing >= 0 && !await PresetFree(list[existing].Name)) return;
-            if (existing >= 0 && !await Host.Overlay.ConfirmAsync("Replace preset?", $"A preset named \"{list[existing].Name}\" exists. Replace it with the current appearance? The old version stays in local history.", "Replace", true)) return;
-            var preset = new AppearancePreset(name, AppearanceRuntime.Current);
-            if (existing >= 0) list[existing] = preset; else list.Add(preset);
-            if (list.Count > AppearancePresets.MaxUserPresets) { Host.Notify.Warning($"You can keep up to {AppearancePresets.MaxUserPresets} presets. Delete one first."); return; }
-            if (AppearanceRuntime.SaveUserPresets(list, "saved " + name)) { FillPresets(preset.Id); Host.Notify.Success($"Preset \"{name}\" saved."); }
-        });
+        var save = Ui.AsyncButton("Save current as…", Icons.Save, ButtonKind.Tonal, () => SaveCurrentPresetAsync(id => FillPresets(id)));
         var rename = Ui.AsyncButton("Rename…", Icons.DriveFileRenameOutline, ButtonKind.Text, async () =>
         {
             if (Selected() is not { BuiltIn: false } preset) { Host.Notify.Info("Built-in presets cannot be renamed. Save a copy with Save current as… after applying it."); return; }
@@ -245,35 +220,8 @@ public sealed partial class SettingsPage
             if (Selected() is not { BuiltIn: false } preset) { Host.Notify.Info("Built-in presets cannot be changed, so they need no lock."); return; }
             await LockUi.ToggleAsync(AppearanceLocks.PresetId(preset.Name), "Preset: " + preset.Name);
         });
-        var export = Ui.Button("Export…", Icons.FileExport, ButtonKind.Text, () =>
-        {
-            if (Selected() is not { } preset) return;
-            var dialog = new SaveFileDialog { Filter = "Appearance preset|*.json", FileName = string.Concat(preset.Name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c)) + ".appearance.json", Title = Loc.T("Export appearance preset") };
-            if (dialog.ShowDialog() != true) return;
-            try { File.WriteAllText(dialog.FileName, AppearancePresets.Export(preset)); Host.Notify.Success($"Preset \"{preset.Name}\" exported to {Path.GetFileName(dialog.FileName)}."); }
-            catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset could not be exported:") + " " + e.Message); }
-        });
-        var import = Ui.AsyncButton("Import…", Icons.Upload, ButtonKind.Text, async () =>
-        {
-            var dialog = new OpenFileDialog { Filter = "Appearance preset|*.json|All files|*.*", Title = Loc.T("Import appearance preset") };
-            if (dialog.ShowDialog() != true) return;
-            AppearancePreset preset;
-            try
-            {
-                if (new FileInfo(dialog.FileName).Length > AppearancePresets.MaxPresetBytes) throw new InvalidDataException("The file is larger than 64 KiB, so it is not an appearance preset.");
-                preset = AppearancePresets.Import(await File.ReadAllTextAsync(dialog.FileName));
-            }
-            catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset was not imported, nothing changed:") + " " + e.Message); return; }
-            var list = AppearanceRuntime.UserPresets.ToList();
-            var name = preset.Name; var n = 2;
-            while (AppearanceRuntime.AllPresets.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) name = $"{preset.Name} ({n++})";
-            preset = preset with { Name = name };
-            if (!await Host.Overlay.ConfirmAsync($"Import preset \"{name}\"?", "The file was checked in full. The preset is added to your presets and applied now; undo returns to your current appearance.", "Add and apply")) return;
-            list.Add(preset);
-            if (!AppearanceRuntime.SaveUserPresets(list, "imported " + name)) return;
-            FillPresets(preset.Id);
-            AppearanceRuntime.ApplyPreset(preset);
-        });
+        var export = Ui.Button("Export…", Icons.FileExport, ButtonKind.Text, () => { if (Selected() is { } preset) ExportPreset(preset); });
+        var import = Ui.AsyncButton("Import…", Icons.Upload, ButtonKind.Text, () => ImportPresetAsync(id => FillPresets(id)));
         var copy = Ui.Button("Copy style", Icons.ContentCopy, ButtonKind.Text, () =>
         {
             ActionSounds.Copy(AppearancePresets.Export(new AppearancePreset("Copied style", AppearanceRuntime.Current)));
@@ -289,11 +237,7 @@ public sealed partial class SettingsPage
         });
         var undo = Ui.Button("Undo", Icons.Undo, ButtonKind.Tonal, AppearanceRuntime.Undo);
         var redo = Ui.Button("Redo", Icons.Redo, ButtonKind.Tonal, AppearanceRuntime.Redo);
-        var resetAll = Ui.AsyncButton("Reset appearance…", Icons.RestartAlt, ButtonKind.Danger, async () =>
-        {
-            if (!await Host.Overlay.ConfirmAsync("Reset the appearance?", "Theme, seed colour, role overrides, shape, density, fonts, motion and effects return to their built-in defaults. You can undo this, and the previous values stay in local history. High contrast, larger targets and reduced motion are accessibility settings and are kept.", "Reset appearance", true)) return;
-            AppearanceRuntime.ResetAll();
-        });
+        var resetAll = Ui.AsyncButton("Reset appearance…", Icons.RestartAlt, ButtonKind.Danger, ResetAppearanceAsync);
         var history = Ui.Caption("");
         void UpdateHistory()
         {
@@ -308,6 +252,86 @@ public sealed partial class SettingsPage
             Ui.Wrap(8, undo, redo, copy, paste, resetAll),
             history, problem);
     }
+
+    // ----- Preset actions shared by the presets bar and the studio -----
+
+    /// <summary>A locked preset cannot be replaced, renamed or deleted until it is unlocked.</summary>
+    private static async Task<bool> PresetFree(string presetName)
+    {
+        var host = AppHost.Current;
+        if (AppearanceLocks.PresetBlocker(host.Settings, presetName) is not { } block) return true;
+        await LockUi.UnlockThenAsync(block.Id, block.Label);
+        return AppearanceLocks.PresetBlocker(host.Settings, presetName) == null;
+    }
+
+    /// <summary>Asks for a name and saves the current appearance as a user preset (replacing one of that name after confirmation).</summary>
+    private async Task SaveCurrentPresetAsync(Action<string>? saved)
+    {
+        var name = await Host.Overlay.PromptAsync("Save appearance preset", "Preset name", "My look", "Saves the current colours, shape, density, fonts and effects as a preset on this computer.", n => AppearancePresets.ValidateName(n) ?? (AppearancePresets.BuiltIn.Any(b => b.Name.Equals(n.Trim(), StringComparison.OrdinalIgnoreCase)) ? "That is a built-in preset name. Choose another." : null));
+        if (name == null) return;
+        name = name.Trim();
+        var list = AppearanceRuntime.UserPresets.ToList();
+        var existing = list.FindIndex(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (existing >= 0 && !await PresetFree(list[existing].Name)) return;
+        if (existing >= 0 && !await Host.Overlay.ConfirmAsync("Replace preset?", $"A preset named \"{list[existing].Name}\" exists. Replace it with the current appearance? The old version stays in local history.", "Replace", true)) return;
+        var preset = new AppearancePreset(name, AppearanceRuntime.Current);
+        if (existing >= 0) list[existing] = preset; else list.Add(preset);
+        if (list.Count > AppearancePresets.MaxUserPresets) { Host.Notify.Warning($"You can keep up to {AppearancePresets.MaxUserPresets} presets. Delete one first."); return; }
+        if (AppearanceRuntime.SaveUserPresets(list, "saved " + name)) { saved?.Invoke(preset.Id); Host.Notify.Success($"Preset \"{name}\" saved."); }
+    }
+
+    /// <summary>Writes one preset to a file the person chooses.</summary>
+    private void ExportPreset(AppearancePreset preset)
+    {
+        var dialog = new SaveFileDialog { Filter = "Appearance preset|*.json", FileName = string.Concat(preset.Name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '-' : c)) + ".appearance.json", Title = Loc.T("Export appearance preset") };
+        if (dialog.ShowDialog() != true) return;
+        try { File.WriteAllText(dialog.FileName, AppearancePresets.Export(preset)); Host.Notify.Success($"Preset \"{preset.Name}\" exported to {Path.GetFileName(dialog.FileName)}."); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset could not be exported:") + " " + e.Message); }
+    }
+
+    /// <summary>Reads a preset file, checks it in full, adds it to the user presets and applies it after confirmation.</summary>
+    private async Task ImportPresetAsync(Action<string>? imported)
+    {
+        var dialog = new OpenFileDialog { Filter = "Appearance preset|*.json|All files|*.*", Title = Loc.T("Import appearance preset") };
+        if (dialog.ShowDialog() != true) return;
+        AppearancePreset preset;
+        try
+        {
+            if (new FileInfo(dialog.FileName).Length > AppearancePresets.MaxPresetBytes) throw new InvalidDataException("The file is larger than 64 KiB, so it is not an appearance preset.");
+            preset = AppearancePresets.Import(await File.ReadAllTextAsync(dialog.FileName));
+        }
+        catch (Exception e) when (e is InvalidDataException or IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The preset was not imported, nothing changed:") + " " + e.Message); return; }
+        var list = AppearanceRuntime.UserPresets.ToList();
+        var name = preset.Name; var n = 2;
+        while (AppearanceRuntime.AllPresets.Any(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase))) name = $"{preset.Name} ({n++})";
+        preset = preset with { Name = name };
+        if (!await Host.Overlay.ConfirmAsync($"Import preset \"{name}\"?", "The file was checked in full. The preset is added to your presets and applied now; undo returns to your current appearance.", "Add and apply")) return;
+        list.Add(preset);
+        if (!AppearanceRuntime.SaveUserPresets(list, "imported " + name)) return;
+        imported?.Invoke(preset.Id);
+        AppearanceRuntime.ApplyPreset(preset);
+    }
+
+    /// <summary>Returns every appearance value to its default after confirmation (one undo step).</summary>
+    private async Task ResetAppearanceAsync()
+    {
+        if (!await Host.Overlay.ConfirmAsync("Reset the appearance?", "Theme, seed colour, role overrides, shape, density, fonts, motion and effects return to their built-in defaults. You can undo this, and the previous values stay in local history. High contrast, larger targets and reduced motion are accessibility settings and are kept.", "Reset appearance", true)) return;
+        AppearanceRuntime.ResetAll();
+    }
+
+    /// <summary>Registers a segmented choice for synchronisation and returns it.</summary>
+    private static StudioChoice Synced(StudioChoice choice, List<Action> syncs) { syncs.Add(choice.Sync); return choice; }
+
+    /// <summary>A row switch that follows its setting when it changes elsewhere (for example in the studio).</summary>
+    private CheckBox SyncedToggle(List<Action> syncs, Func<bool> read, Action<bool> write)
+    {
+        var toggle = SettingRows.Toggle(read(), v => { if (!studioSyncing && read() != v) write(v); });
+        syncs.Add(() => { if (toggle.IsChecked != read()) toggle.IsChecked = read(); });
+        return toggle;
+    }
+
+    private CheckBox ReducedMotionToggle(List<Action> syncs, Action note) =>
+        SyncedToggle(syncs, () => S.ReducedMotion, v => { S.ReducedMotion = v; Commit("Reduced motion " + (v ? "on" : "off")); note(); });
 
     // ----- Role overrides -----
 

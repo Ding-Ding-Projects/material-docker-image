@@ -144,6 +144,7 @@ public static class SearchSurfaceCatalogue
         F("settings.fonts", "Settings", "Pages/Settings/AppearanceFontPicker.cs", "mono ? \"Search monospace and code fonts\" : \"Search installed fonts\""),
         T("settings.locks", "Settings", "Pages/Settings/SettingsLocks.cs", "Locks manager"),
         F("settings.colour-roles", "Settings", "Pages/Settings/AppearanceEditor.cs", "Search colour roles"),
+        F("settings.appearance-studio", "Settings", "Pages/Settings/AppearanceStudio.cs", "Search appearance"),
         // Setup
         F("setup.contexts", "Setup", "Pages/Setup/SetupSteps.cs", "Search contexts"),
         // Storage
