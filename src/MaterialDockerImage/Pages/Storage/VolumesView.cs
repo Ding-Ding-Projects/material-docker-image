@@ -7,7 +7,7 @@ using MaterialDockerImage.UI;
 
 namespace MaterialDockerImage.Pages;
 
-public sealed record VolumeRow(string Name, string Driver, string Scope, string Mountpoint, string Size, double? SizeBytes, IReadOnlyList<string> UsedBy, string Labels)
+public sealed record VolumeRow(string Name, string Driver, string Scope, string Mountpoint, string Size, double? SizeBytes, IReadOnlyList<string> UsedBy, string Labels, string Created = "")
 {
     public bool Anonymous => Regex.IsMatch(Name, "^[0-9a-f]{64}$");
     public bool InUse => UsedBy.Count > 0;
@@ -32,10 +32,11 @@ public sealed class VolumesView : Grid
         table.Key = v => v.Name;
         table.EmptyTitle = Loc.T("No volumes");
         table.EmptyMessage = Loc.T("This engine has no volumes. Create one to keep data outside a container's writable layer.");
-        table.Column("Name", v => v.Name, 300, true)
+        table.Column("Name", v => v.Name, 300)
             .Column("Driver", v => v.Driver, 90)
             .Column("Size", v => v.Size, 100)
             .ChipColumn("Used by", v => v.InUse ? v.UsedByText : "Not used", v => v.InUse ? Tone.Success : Tone.Neutral, 220)
+            .Column("Created", v => v.Created, 130)
             .Column("Labels", v => v.Labels, 200, true)
             .Filter("In use", v => v.InUse)
             .Filter("Unused", v => !v.InUse)
@@ -117,18 +118,49 @@ public sealed class VolumesView : Grid
             }
             catch (JsonException) { }
         }
+        // Creation times come from one inspect call for all volumes; a failure leaves the column empty.
+        var created = new Dictionary<string, string>(StringComparer.Ordinal);
+        var names = rows.Select(r => CliValues.Str(r, "Name")).Where(n => n.Length > 0).ToList();
+        if (names.Count > 0)
+        {
+            var inspected = await Host.Read(["volume", "inspect", .. names], ctx);
+            if (inspected.Success)
+            {
+                try
+                {
+                    using var doc = JsonDocument.Parse(inspected.StandardOutput);
+                    foreach (var v in doc.RootElement.EnumerateArray())
+                        if (DateTimeOffset.TryParse(CliValues.Str(v, "CreatedAt"), System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var at))
+                            created[CliValues.Str(v, "Name")] = AgoText(at);
+                }
+                catch (JsonException) { }
+            }
+        }
         var items = rows.Select(r =>
         {
             var name = CliValues.Str(r, "Name");
             var size = sizes.TryGetValue(name, out var s) && s.Length > 0 ? s : "N/A";
             return new VolumeRow(name, CliValues.Str(r, "Driver"), CliValues.Str(r, "Scope"), CliValues.Str(r, "Mountpoint"), size, CliValues.ParseSize(size),
-                usedBy.TryGetValue(name, out var u) ? u : [], CliValues.Str(r, "Labels"));
+                usedBy.TryGetValue(name, out var u) ? u : [], CliValues.Str(r, "Labels"), created.TryGetValue(name, out var c) ? c : "");
         }).ToList();
         table.SetItems(items);
         var total = items.Where(i => i.SizeBytes.HasValue).Sum(i => i.SizeBytes!.Value);
         var unused = items.Count(i => !i.InUse);
         StatsChanged?.Invoke(items.Count, sizes.Count > 0 ? total : null, unused);
         setSummary(Loc.Line($"{items.Count} volume{(items.Count == 1 ? "" : "s")}" + (sizes.Count > 0 ? $" · {Ui.FormatBytes(total)}" : " · sizes not reported by this engine") + $" · {unused} not used by any container"));
+    }
+
+    private static string AgoText(DateTimeOffset at)
+    {
+        var span = DateTimeOffset.Now - at;
+        string Plural(double n, string unit) => $"{(int)n} {unit}{((int)n == 1 ? "" : "s")} ago";
+        return span.TotalMinutes < 1 ? Loc.T("just now")
+            : span.TotalHours < 1 ? Plural(span.TotalMinutes, "minute")
+            : span.TotalDays < 1 ? Plural(span.TotalHours, "hour")
+            : span.TotalDays < 7 ? Plural(span.TotalDays, "day")
+            : span.TotalDays < 30 ? Plural(span.TotalDays / 7, "week")
+            : span.TotalDays < 365 ? Plural(span.TotalDays / 30, "month")
+            : Plural(span.TotalDays / 365, "year");
     }
 
     private async Task InspectAsync(VolumeRow v)

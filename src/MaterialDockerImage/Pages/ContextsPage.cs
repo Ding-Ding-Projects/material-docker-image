@@ -15,7 +15,7 @@ public sealed class ContextsPage : PageBase
     public override string Key => "Contexts";
     private readonly TextBlock subtitle;
     private readonly SearchFilter search = new("Search contexts", 300);
-    private readonly WrapPanel cards = new();
+    private readonly System.Windows.Controls.Primitives.UniformGrid cards = new() { Columns = 3, Margin = new Thickness(-6, 0, -6, 0) };
     private readonly ContentControl cardsState = new();
     private readonly ContextPluginsPanel plugins = new();
     private readonly ContextActions actions;
@@ -41,6 +41,8 @@ public sealed class ContextsPage : PageBase
             plugins,
             ConfigNote());
         Layout(header, Ui.Scroll(body));
+        // Design: three cards per row that stretch to the row; fewer columns when the window is narrow.
+        SizeChanged += (_, _) => cards.Columns = ActualWidth >= 1000 ? 3 : ActualWidth >= 640 ? 2 : 1;
     }
 
     private static Border ConfigNote()
@@ -97,7 +99,7 @@ public sealed class ContextsPage : PageBase
         var shown = entries.Where(e => search.Matches(e.SearchText)).ToList();
         foreach (var e in shown)
         {
-            var view = new ContextCardView(e, e.Name == window, actions) { Margin = new Thickness(0, 0, 16, 16) };
+            var view = new ContextCardView(e, e.Name == window, actions) { Margin = new Thickness(6, 0, 6, 12) };
             if (probes.TryGetValue(e.Name, out var p)) view.SetProbe(p);
             views.Add(view);
             cards.Children.Add(view);

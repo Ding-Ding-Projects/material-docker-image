@@ -48,13 +48,17 @@ internal sealed class MinecraftServerDetail : DockPanel
         var group = "mcdetail" + Guid.NewGuid().ToString("N");
         foreach (var name in TabNames)
         {
-            var radio = new RadioButton { Style = (Style)Application.Current.FindResource("Tab.Item"), GroupName = group, Content = Loc.T(name), IsChecked = name == tab, Padding = new Thickness(14, 0, 14, 0) };
+            var radio = new RadioButton { Style = UnderlineTabs.Style, GroupName = group, Content = Loc.T(name), IsChecked = name == tab, Padding = new Thickness(14, 0, 14, 0) };
             System.Windows.Automation.AutomationProperties.SetName(radio, Loc.T(name));
             radio.Checked += (_, _) => Select(name);
             bar.Children.Add(radio);
         }
         System.Windows.Automation.AutomationProperties.SetName(bar, Loc.T("Server sections"));
-        Children.Add(bar.Dock(Dock.Top));
+        // Underline tabs sit on a 1 px divider, as in the design.
+        var barHost = UnderlineTabs.Strip(bar);
+        barHost.Margin = new Thickness(0, 12, 0, 12);
+        bar.Margin = new Thickness(0);
+        Children.Add(barHost.Dock(Dock.Top));
         Children.Add(body);
         RenderHeader();
         Select(tab);

@@ -27,7 +27,7 @@ public sealed class GraphSurface : Border
 
     public GraphSurface()
     {
-        CornerRadius = new CornerRadius(16); ClipToBounds = true;
+        CornerRadius = new CornerRadius(12); ClipToBounds = true;
         SetResourceReference(BackgroundProperty, "SurfaceLowest");
         canvas.Background = Brushes.Transparent;
         canvas.LayoutTransform = scale;
@@ -137,16 +137,26 @@ public sealed class GraphSurface : Border
         figure.Segments.Add(new BezierSegment(new Point(from.X + dx, from.Y), new Point(to.X - dx, to.Y), to, true));
         var path = new System.Windows.Shapes.Path { Data = new PathGeometry([figure]), StrokeThickness = 2, IsHitTestVisible = false };
         path.SetResourceReference(Shape.StrokeProperty, brush);
-        if (dashed) path.StrokeDashArray = new DoubleCollection([5, 3]);
+        // Design: connectors are solid 2 px lines; the pill label carries the kind of link.
         canvas.Children.Add(path);
         var arrow = new Polygon { Points = new PointCollection([to, new Point(to.X - 9, to.Y - 5), new Point(to.X - 9, to.Y + 5)]), IsHitTestVisible = false };
         arrow.SetResourceReference(Shape.FillProperty, brush);
         canvas.Children.Add(arrow);
         if (label.Length == 0) return;
-        var text = Ui.Mono(label, 11, brush);
-        var box = new Border { Child = text, CornerRadius = new CornerRadius(6), Padding = new Thickness(6, 2, 6, 2), BorderThickness = new Thickness(1), MaxWidth = 200, IsHitTestVisible = false };
-        box.SetResourceReference(BackgroundProperty, "SurfaceLowest");
-        box.SetResourceReference(BorderBrushProperty, "OutlineVariant");
+        var tertiary = brush == "Tertiary";
+        var lines = label.Split('\n');
+        var text = Ui.Mono(lines[0], 12, tertiary ? "OnTertiaryContainer" : brush);
+        text.FontWeight = FontWeights.SemiBold;
+        var box = new Border { Child = text, CornerRadius = new CornerRadius(13), Padding = new Thickness(10, 3, 10, 3), MaxWidth = 220, IsHitTestVisible = false };
+        box.SetResourceReference(BackgroundProperty, tertiary ? "TertiaryContainer" : "SurfaceHighest");
+        if (lines.Length > 1)
+        {
+            var path2 = Ui.Text(lines[1], 11, null, "OnSurfaceVariant", false, false);
+            Canvas.SetLeft(path2, Math.Min(from.X, to.X) + 12);
+            Canvas.SetTop(path2, (from.Y + to.Y) / 2 + 12 + labelOffset);
+            Panel.SetZIndex(path2, 1);
+            canvas.Children.Add(path2);
+        }
         box.Loaded += (_, _) =>
         {
             Canvas.SetLeft(box, (from.X + to.X) / 2 - box.ActualWidth / 2);
@@ -156,6 +166,27 @@ public sealed class GraphSurface : Border
         Canvas.SetTop(box, (from.Y + to.Y) / 2 - 10 + labelOffset);
         Panel.SetZIndex(box, 1);
         canvas.Children.Add(box);
+    }
+
+    /// <summary>Dashed base-image pill (28 high, 14 radius) with a 2 px connector down to the stage it feeds.</summary>
+    public void AddBasePill(double x, double y, string text, double connectorLength)
+    {
+        var label = Ui.Mono(text, 12, "OnSurfaceVariant");
+        label.VerticalAlignment = VerticalAlignment.Center;
+        var pill = new Border { Child = label, Height = 28, CornerRadius = new CornerRadius(14), Padding = new Thickness(12, 0, 12, 0), BorderThickness = new Thickness(1), MaxWidth = NodeWidth };
+        pill.SetResourceReference(BorderBrushProperty, "Outline");
+        var dash = new System.Windows.Shapes.Rectangle { RadiusX = 14, RadiusY = 14, StrokeThickness = 1, StrokeDashArray = new DoubleCollection([3, 3]), IsHitTestVisible = false };
+        dash.SetResourceReference(Shape.StrokeProperty, "Outline");
+        pill.BorderThickness = new Thickness(0);
+        var host = new Grid { Height = 28 };
+        host.Children.Add(dash);
+        host.Children.Add(pill);
+        Canvas.SetLeft(host, x); Canvas.SetTop(host, y);
+        canvas.Children.Add(host);
+        var line = new System.Windows.Shapes.Rectangle { Width = 2, Height = connectorLength, IsHitTestVisible = false };
+        line.SetResourceReference(Shape.FillProperty, "Outline");
+        Canvas.SetLeft(line, x + 60); Canvas.SetTop(line, y + 28);
+        canvas.Children.Add(line);
     }
 
     public void AddLabel(double x, double y, string text, string brush = "OnSurfaceVariant")

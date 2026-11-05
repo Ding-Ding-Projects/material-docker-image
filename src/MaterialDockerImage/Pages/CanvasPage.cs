@@ -19,6 +19,7 @@ public sealed partial class CanvasPage : PageBase
     private readonly ListBox objects = new();
     private readonly SearchFilter objectSearch = new("Search objects", 200);
     private readonly StackPanel inspector = new();
+    private readonly ContentControl inspectorActions = new();
     private readonly TextBlock objectsNote = Ui.Caption("");
     private readonly TextBlock zoomText = Ui.Text("100%", 13, null, "OnSurfaceVariant", false, false);
     private readonly TextBlock subtitle;
@@ -54,17 +55,23 @@ public sealed partial class CanvasPage : PageBase
         surface.ZoomChanged += z => zoomText.Text = $"{z:P0}";
         var zoomBar = Ui.HStack(0, zoomOut, zoomText, zoomIn, fit, reset);
         zoomBar.HorizontalAlignment = HorizontalAlignment.Right;
-        var toolbar = Ui.Columns(8, [1, 0], segmented, zoomBar);
+        var toolbarRow = Ui.Columns(8, [1, 0], segmented, zoomBar);
+        // Design: the toolbar is a 56 px strip with a 1 px divider inside the centre card.
+        var toolbar = new Border { Child = toolbarRow, Height = 56, Padding = new Thickness(16, 0, 10, 0), BorderThickness = new Thickness(0, 0, 0, 1) };
+        toolbar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHighest");
+        toolbarRow.VerticalAlignment = VerticalAlignment.Center;
 
         warning = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(Icons.Warning, 20, true, "OnWarningContainer"), warningText), 12, "WarningContainer", 12);
         warning.Visibility = Visibility.Collapsed;
         graphHost.Children.Add(surface);
-        var centre = new DockPanel();
-        centre.Children.Add(toolbar.Dock(System.Windows.Controls.Dock.Top));
-        warning.Margin = new Thickness(0, 10, 0, 0);
-        centre.Children.Add(warning.Dock(System.Windows.Controls.Dock.Top));
-        graphHost.Margin = new Thickness(0, 12, 0, 0);
-        centre.Children.Add(graphHost);
+        var centreInner = new DockPanel();
+        centreInner.Children.Add(toolbar.Dock(System.Windows.Controls.Dock.Top));
+        warning.Margin = new Thickness(8, 8, 8, 0);
+        centreInner.Children.Add(warning.Dock(System.Windows.Controls.Dock.Top));
+        graphHost.Margin = new Thickness(8);
+        centreInner.Children.Add(graphHost);
+        var centre = Ui.Card(centreInner, 0, "SurfaceLow", 16);
+        centre.ClipToBounds = true;
 
         objectSearch.Width = double.NaN;
         objectSearch.Changed += FillObjects;
@@ -74,7 +81,7 @@ public sealed partial class CanvasPage : PageBase
         objects.MouseDoubleClick += (_, _) => { if (objects.SelectedItem is ListBoxItem { Tag: GraphObject o }) o.Activate?.Invoke(); };
         objects.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter && objects.SelectedItem is ListBoxItem { Tag: GraphObject o }) { (o.Activate ?? o.Select)(); e.Handled = true; } };
         var left = new DockPanel();
-        left.Children.Add(Ui.Text("Objects", 16, FontWeights.SemiBold).Dock(System.Windows.Controls.Dock.Top));
+        left.Children.Add(Ui.Overline("Objects").Margin(8, 0, 8, 0).Dock(System.Windows.Controls.Dock.Top));
         objectSearch.Margin = new Thickness(0, 10, 0, 10);
         left.Children.Add(objectSearch.Dock(System.Windows.Controls.Dock.Top));
         objectsNote.Margin = new Thickness(0, 10, 0, 0);
@@ -97,7 +104,11 @@ public sealed partial class CanvasPage : PageBase
         };
         body.Children.Add(Ui.Card(left, 16, "SurfaceLow", 16));
         body.Children.Add(centre.At(0, 2));
-        body.Children.Add(Ui.Card(Ui.Scroll(inspector), 20, "SurfaceLow", 16).At(0, 4));
+        var inspectorBody = new DockPanel();
+        inspectorActions.Margin = new Thickness(0, 12, 0, 0);
+        inspectorBody.Children.Add(inspectorActions.Dock(System.Windows.Controls.Dock.Bottom));
+        inspectorBody.Children.Add(Ui.Scroll(inspector));
+        body.Children.Add(Ui.Card(inspectorBody, 20, "SurfaceLow", 16).At(0, 4));
         Layout(header, body);
         ShowInspectorHint("Select a stage or resource to inspect it.");
     }
@@ -150,10 +161,12 @@ public sealed partial class CanvasPage : PageBase
         foreach (var o in objectItems)
         {
             if (!objectSearch.Matches(o.Label + " " + o.Meta)) continue;
-            var content = Ui.Columns(8, [0, 1], Ui.Icon(o.Icon, 18),
-                Ui.VStack(0, Ui.Text(o.Label, 13, o.Indent == 0 ? FontWeights.SemiBold : FontWeights.Normal, "OnSurface", false, false),
-                    o.Meta.Length == 0 ? null : Ui.Text(o.Meta, 12, null, "OnSurfaceVariant", false, false)));
-            var item = new ListBoxItem { Content = content, Tag = o, Padding = new Thickness(10 + o.Indent * 18, 6, 10, 6), MinHeight = 32 };
+            // Design: 44 px rows, icon, label (ellipsis), meta right-aligned in 12 px.
+            var label = Ui.Text(o.Label, 14, o.Indent == 0 ? FontWeights.SemiBold : FontWeights.Normal, "OnSurface", false, false);
+            label.TextTrimming = TextTrimming.CharacterEllipsis;
+            var content = Ui.Columns(10, [0, 1, 0], Ui.Icon(o.Icon, 18), label,
+                o.Meta.Length == 0 ? new Border() : Ui.Text(o.Meta, 12, null, "OnSurfaceVariant", false, false));
+            var item = new ListBoxItem { Content = content, Tag = o, Padding = new Thickness(10 + o.Indent * 18, 0, 10, 0), MinHeight = 44 };
             System.Windows.Automation.AutomationProperties.SetName(item, o.Label + (o.Meta.Length > 0 ? ", " + o.Meta : ""));
             objects.Items.Add(item);
             if (Equals(o.Key, selectedKey)) objects.SelectedItem = item;
@@ -171,6 +184,7 @@ public sealed partial class CanvasPage : PageBase
     private void ShowInspectorHint(string text)
     {
         inspector.Children.Clear();
+        inspectorActions.Content = null;
         inspector.Children.Add(Ui.Text("Inspector", 16, FontWeights.SemiBold));
         inspector.Children.Add(Ui.Caption(text).Margin(0, 8, 0, 0));
     }

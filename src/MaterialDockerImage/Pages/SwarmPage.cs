@@ -20,6 +20,10 @@ public sealed class SwarmPage : PageBase
     private readonly Dictionary<string, SwarmTabView> views = new(StringComparer.Ordinal);
     private readonly SwarmMembershipPanel membership;
     private readonly Border tabs;
+    private readonly Dictionary<string, RadioButton> tabRadios = new(StringComparer.Ordinal);
+
+    private static UIElement TabContent(string name, string? count) =>
+        count == null ? new TextBlock { Text = Loc.T(name) } : Ui.HStack(8, new TextBlock { Text = Loc.T(name) }, Ui.Text(count, 12, null, "OnSurfaceVariant", false, false));
     private string tab = "Services";
     private string tabSummary = "";
     private SwarmMembership? state;
@@ -41,12 +45,29 @@ public sealed class SwarmPage : PageBase
             var view = Make(name);
             var n = name;
             view.Reload = () => LoadTabAsync(n);
-            view.Summary += s => { if (tab == n) { tabSummary = s; UpdateSubtitle(); } };
+            view.Summary += s =>
+            {
+                // Summaries start with the item count ("4 services · ..."), which the tab label shows beside its name.
+                var digits = new string(s.TakeWhile(char.IsDigit).ToArray());
+                if (digits.Length > 0 && tabRadios.TryGetValue(n, out var radio)) radio.Content = TabContent(n, digits);
+                if (tab == n) { tabSummary = s; UpdateSubtitle(); }
+            };
             views[name] = view;
         }
-        tabs = Ui.Segmented(Tabs, tab, v => { tab = v; ShowTab(); });
-        tabs.MaxWidth = 620;
-        tabs.HorizontalAlignment = HorizontalAlignment.Left;
+        // Underline tabs as in the design: a 1 px divider under the strip and a 3 px primary line under the selected tab.
+        var strip = new WrapPanel();
+        var group = "swarm" + Guid.NewGuid().ToString("N");
+        foreach (var name in Tabs)
+        {
+            var n = name;
+            var radio = new RadioButton { Style = UnderlineTabs.Style, GroupName = group, Content = TabContent(n, null), IsChecked = n == tab, Padding = new Thickness(16, 0, 16, 0) };
+            System.Windows.Automation.AutomationProperties.SetName(radio, Loc.T(n));
+            radio.Checked += (_, _) => { tab = n; ShowTab(); };
+            tabRadios[n] = radio;
+            strip.Children.Add(radio);
+        }
+        System.Windows.Automation.AutomationProperties.SetName(strip, Loc.T("Swarm sections"));
+        tabs = UnderlineTabs.Strip(strip);
         var header = Ui.Header("Swarm", "Swarm services, stacks, nodes, secrets and configs", out subtitle,
             Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
         Layout(header, host);
