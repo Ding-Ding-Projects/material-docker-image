@@ -71,6 +71,7 @@ public static class CommandDescriptions
         ["images.pull"] = "Download an image from a registry by name and tag",
         ["images.load"] = "Load images from a docker save tar archive",
         ["images.import"] = "Create an image from a filesystem tarball",
+        ["images.openDetail"] = "Show the selected image full page with its layers, platforms and vulnerabilities",
         ["images.prune"] = "Delete untagged images that no container uses",
         ["images.retag"] = "Add several tags to the selected image at once",
         ["images.pushRepository"] = "Upload every tag of the selected repository",

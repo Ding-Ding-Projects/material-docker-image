@@ -9,6 +9,7 @@ public static partial class Loc
         yield return new("Search every command, destination and setting in one place", "喺同一個地方搵晒所有指令、目的地同設定");
         yield return new("Open the catalogue of destinations, tools and settings in a new tab", "喺新分頁打開目的地、工具同設定目錄");
         yield return new("Close the current tab", "閂咗而家呢個分頁");
+        yield return new("Show the selected image full page with its layers, platforms and vulnerabilities", "用全頁顯示揀咗嘅映像，包括分層、平台同漏洞");
         yield return new("Switch to the tab on the right, wrapping around at the end", "轉去右邊嗰個分頁，去到尾會兜返轉頭");
         yield return new("Find an open tab by its title and jump to it", "用標題搵返打開咗嘅分頁，一下跳過去");
         yield return new("Close every tab whose title contains the text or pattern you enter", "閂晒標題包含你輸入文字或模式嘅分頁");
