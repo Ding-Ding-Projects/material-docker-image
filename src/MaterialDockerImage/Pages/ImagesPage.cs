@@ -18,6 +18,8 @@ public sealed partial class ImagesPage : PageBase
     private readonly ImageInspector inspector;
     private readonly TextBlock subtitle;
     private readonly ContentControl errorHost = new();
+    private readonly Grid listView;
+    private ImageDetailView? detail;
     private bool reloading;
     private readonly ImageStatTile totalTile = new("Images", Icons.Layers);
     private readonly ImageStatTile sizeTile = new("Total size", Icons.Storage);
@@ -57,6 +59,7 @@ public sealed partial class ImagesPage : PageBase
              .BulkAction("Push selected", Icons.CloudUpload, PushAsync)
              .BulkAction("Remove selected", Icons.Delete, RemoveManyAsync, true)
              .RowAction("Run…", Icons.PlayArrow, i => { OpenRun(i); return Task.CompletedTask; }, "Enter")
+             .RowAction("Open details", Icons.OpenInFull, i => { OpenDetail(i); return Task.CompletedTask; })
              .RowAction("Tag…", Icons.Sell, TagAsync)
              .RowAction("Retag to multiple…", Icons.Tag, RetagManyAsync)
              .RowAction("Push to registry…", Icons.CloudUpload, i => PushAsync([i]))
@@ -92,7 +95,28 @@ public sealed partial class ImagesPage : PageBase
         var body = Ui.SplitInspector(listSurface, inspector, 1300, 340, summary: () => table.Focused is { } f ? $"{f.Name} · {f.ShortId} · {f.Size}" : null);
         table.FocusedChanged += _ => (body.Tag as Action)?.Invoke();
         Children.Clear(); RowDefinitions.Clear();
+        listView = body;
         Children.Add(body);
+    }
+
+    /// <summary>Replaces the list with the full-page detail of one image (design/workspace-redesign-2026-11/project/ImagesV2.dc.html).</summary>
+    internal void OpenDetail(ImageRow image)
+    {
+        var view = new ImageDetailView(this, image, CloseDetail) { Focusable = true, FocusVisualStyle = null };
+        detail = view;
+        Children.Clear();
+        Children.Add(view);
+        view.Loaded += (_, _) => { if (detail == view && !view.IsKeyboardFocusWithin) view.Focus(); };
+    }
+
+    /// <summary>Returns from the image detail to the list, keeping the list's selection, filters and scroll position.</summary>
+    internal void CloseDetail()
+    {
+        if (detail == null) return;
+        detail = null;
+        Children.Clear();
+        Children.Add(listView);
+        Dispatcher.BeginInvoke(() => table.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
     public override async Task RefreshAsync()
@@ -192,6 +216,7 @@ public sealed partial class ImagesPage : PageBase
         new AppCommand { Id = "images.retag", Title = "Retag selected image to multiple tags…", Group = "Images", Icon = Icons.Tag, Keywords = "tag many names", Run = () => _ = Guarded(() => table.Focused is { } i ? RetagManyAsync(i) : NoSelection()) },
         new AppCommand { Id = "images.pushRepository", Title = "Push all tags of selected repository…", Group = "Images", Icon = Icons.CloudSync, Keywords = "upload all-tags registry", Run = () => _ = Guarded(() => table.Focused is { } i ? PushRepositoryAsync(i) : NoSelection()) },
         new AppCommand { Id = "images.copyPull", Title = "Copy pull command of selected image", Group = "Images", Icon = Icons.ContentCopy, Keywords = "clipboard docker pull", Run = () => { if (table.Focused is { } i) CopyPullCommand(i); else _ = NoSelection(); } },
+        new AppCommand { Id = "images.openDetail", Title = "Open details of selected image", Group = "Images", Icon = Icons.OpenInFull, Keywords = "layers platforms full view", Run = () => { if (table.Focused is { } i) OpenDetail(i); else _ = NoSelection(); } },
         new AppCommand { Id = "images.refresh", Title = "Refresh images", Group = "Images", Icon = Icons.Refresh, Run = () => _ = SafeRefresh() },
     ];
 

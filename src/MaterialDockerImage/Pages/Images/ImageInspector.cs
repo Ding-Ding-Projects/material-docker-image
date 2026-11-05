@@ -164,7 +164,8 @@ internal sealed class ImageInspector : Border
             menu.Items.Add(Ui.MenuItem("Copy image ID", Icons.ContentCopy, () => PageKit.Copy(image.Id, "the image ID")));
             menu.IsOpen = true;
         };
-        return Ui.Wrap(8, run, raw,
+        var open = Ui.IconButton(Icons.OpenInFull, "Open full view", () => page.OpenDetail(image));
+        return Ui.Wrap(8, run, raw, open,
             Ui.AsyncButton("Tag…", Icons.Sell, ButtonKind.Outlined, () => page.TagAsync(image)),
             Ui.AsyncButton("Push…", Icons.CloudUpload, ButtonKind.Outlined, () => page.PushAsync([image])),
             more);
@@ -176,7 +177,10 @@ internal sealed class ImageInspector : Border
         catch (Exception e) when (e is not OutOfMemoryException) { Host.Notify.Error(e.Message); }
     }
 
-    private void ShowRaw(ImageRow image)
+    private void ShowRaw(ImageRow image) => ShowRaw(image, rawJson);
+
+    /// <summary>Shows docker image inspect output with environment values masked until the user chooses to show them.</summary>
+    internal static void ShowRaw(ImageRow image, string rawJson)
     {
         if (rawJson.Length == 0) { Host.Notify.Warning("The image details have not loaded yet."); return; }
         var masked = PageKit.FormatInspect(rawJson, true) ?? rawJson;
