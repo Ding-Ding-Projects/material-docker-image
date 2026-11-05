@@ -10,6 +10,8 @@ internal sealed record ImageRow(string Repository, string Tag, string Id, string
 {
     public int Running { get; init; }
     public int Total { get; init; }
+    /// <summary>os/architecture[/variant] from docker image inspect; empty when it could not be read.</summary>
+    public string Platform { get; init; } = "";
     public bool Tagged => Repository != "<none>" && Tag != "<none>";
     public bool Dangling => Repository == "<none>" && Tag == "<none>";
     public string Name => Tagged ? Repository + ":" + Tag : Repository != "<none>" ? Repository + " (untagged)" : "<none>";

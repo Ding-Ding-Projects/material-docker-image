@@ -56,9 +56,33 @@ public sealed class BuildTimelineView : Border
         head.Children.Add(actions.Dock(System.Windows.Controls.Dock.Right));
         head.Children.Add(Ui.VStack(4, title, commandText).Margin(0, 0, 12, 0));
 
-        var tiles = new System.Windows.Controls.Primitives.UniformGrid { Columns = 4 };
-        foreach (var tile in new[] { totalTile, cachedTile, stepsTile, digestTile }) { tile.Margin = new Thickness(0, 0, 8, 8); tiles.Children.Add(tile); }
-        tiles.SizeChanged += (_, e) => tiles.Columns = e.NewSize.Width < 560 ? 2 : 4;
+        // Four tiles in a 1 : 1 : 1 : 1.6 row (the digest gets the extra width); two rows of two when the card is narrow.
+        var tiles = new Grid();
+        var tileList = new[] { totalTile, cachedTile, stepsTile, digestTile };
+        string? tileMode = null;
+        void ArrangeTiles(double width)
+        {
+            var wide = width <= 0 || width >= 560;
+            var now = wide ? "wide" : "narrow";
+            if (tileMode == now) return;
+            tileMode = now;
+            tiles.ColumnDefinitions.Clear(); tiles.RowDefinitions.Clear(); tiles.Children.Clear();
+            if (wide)
+            {
+                foreach (var weight in new[] { 1.0, 1.0, 1.0, 1.6 }) tiles.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(weight, GridUnitType.Star) });
+                for (var i = 0; i < tileList.Length; i++) { tileList[i].Margin = new Thickness(i == 0 ? 0 : 8, 0, 0, 0); tiles.Children.Add(tileList[i].At(0, i)); }
+            }
+            else
+            {
+                tiles.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                tiles.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                tiles.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                tiles.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+                for (var i = 0; i < tileList.Length; i++) { tileList[i].Margin = new Thickness(i % 2 == 0 ? 0 : 8, i < 2 ? 0 : 8, 0, 0); tiles.Children.Add(tileList[i].At(i / 2, i % 2)); }
+            }
+        }
+        ArrangeTiles(0);
+        tiles.SizeChanged += (_, e) => ArrangeTiles(e.NewSize.Width);
 
         failure = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), failureText), 12, "ErrorContainer", 12);
         failure.Visibility = Visibility.Collapsed;
@@ -207,33 +231,32 @@ public sealed class BuildTimelineView : Border
         : $"{(int)(seconds / 60)}m {(int)(seconds % 60):00}s";
 }
 
-/// <summary>A tonal tile with one big value, a label and a detail line.</summary>
+/// <summary>A quiet tile with a small label, one big value and the detail in its tooltip.</summary>
 public sealed class BuildStatTile : Border
 {
-    private readonly TextBlock valueText = Ui.Text("—", 24, FontWeights.SemiBold, "OnSurface", false, false);
-    private readonly TextBlock detailText = Ui.Text("", 12, null, "OnSurfaceVariant", false, false);
+    private readonly TextBlock valueText = Ui.Text("—", 20, FontWeights.SemiBold, "OnSurface", false, false);
     private readonly Button? copy;
     private string? copyText;
 
     public string Value { set => valueText.Text = value; }
-    public string Detail { set => detailText.Text = value; }
+    public string Detail { set => ToolTip = string.IsNullOrEmpty(value) ? null : value; }
     public string? CopyText { set { copyText = value; if (copy != null) copy.Visibility = value == null ? Visibility.Collapsed : Visibility.Visible; } }
 
     public BuildStatTile(string label, string icon, bool mono = false)
     {
-        if (mono) valueText.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
+        if (mono) { valueText.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont"); valueText.FontSize = 13; valueText.LineHeight = 26; valueText.TextTrimming = TextTrimming.CharacterEllipsis; }
         var head = new DockPanel();
         if (mono)
         {
             copy = Ui.IconButton(Icons.ContentCopy, "Copy " + Loc.T(label).ToLowerInvariant(), () => { if (copyText != null) { ActionSounds.Copy(copyText); AppHost.Current.Notify.Info("Copied the digest."); } });
-            copy.Width = copy.Height = copy.MinHeight = 28; copy.Margin = new Thickness(0, -6, -6, -6);
+            copy.Width = copy.Height = copy.MinHeight = 24; copy.FontSize = 16; copy.Margin = new Thickness(0, -4, -6, -4);
             copy.Visibility = Visibility.Collapsed;
             head.Children.Add(copy.Dock(System.Windows.Controls.Dock.Right));
         }
-        head.Children.Add(Ui.HStack(6, Ui.Icon(icon, 16, false, "Primary"), Ui.Overline(label)));
-        Child = Ui.VStack(4, head, valueText, detailText);
-        Padding = new Thickness(14, 12, 14, 12);
-        CornerRadius = new CornerRadius(14);
+        head.Children.Add(Ui.Text(label, 12, null, "OnSurfaceVariant", false));
+        Child = Ui.VStack(2, head, valueText);
+        Padding = new Thickness(12, 10, 12, 10);
+        CornerRadius = new CornerRadius(12);
         SetResourceReference(BackgroundProperty, "SurfaceContainer");
         System.Windows.Automation.AutomationProperties.SetName(this, Loc.T(label));
     }

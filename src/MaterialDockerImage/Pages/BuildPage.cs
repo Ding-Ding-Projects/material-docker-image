@@ -23,7 +23,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
 
     private readonly BuildOptionsPanel options = new();
     private readonly TabControl tabs = new();
-    private readonly TabItem editorTab, runTab, historyTab;
+    private readonly TabItem runTab, historyTab;
     private readonly BuildTimelineView timeline;
     private readonly BuildRunner runner;
     private readonly BuildHistoryCard history = new();
@@ -63,7 +63,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         BuildRunner.ActiveChanged += SetRunning;
         options.CallChanged += UpdateBuildLabel;
 
-        var config = Ui.Card(Ui.Scroll(options), 20, "SurfaceLow", 16);
+        var config = Ui.Card(Ui.Scroll(options), 16, "SurfaceLow", 16);
         options.Tags.SetTags(TagInput.Split(Host.Settings.ImageTag));
         options.ContextFolder.Text = Host.Settings.BuildFolder;
         options.FolderChosen += folder => PageTasks.Fire(() => FolderChosenAsync(folder));
@@ -80,7 +80,12 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
             Ui.AsyncIconButton(Icons.OpenInNew, "Open in Visual Studio Code", OpenInEditorAsync),
             Ui.IconButton(Icons.VerticalSplit, "Show stages beside source", ToggleMap));
         toolbar.HorizontalAlignment = HorizontalAlignment.Right;
-        var titleRow = Ui.Columns(8, [1, 0], Ui.VStack(2, Ui.Text("Dockerfile", 16, FontWeights.SemiBold), editorState), toolbar);
+        foreach (var icon in toolbar.Children.OfType<Button>()) { icon.Width = icon.Height = icon.MinHeight = 36; icon.Margin = new Thickness(0, 0, 4, 0); }
+        // A 48px bar with a hairline under it: title, stage and caret state, then the 36px icon buttons.
+        var titleBar = new Border { Height = 48, Padding = new Thickness(16, 0, 8, 0), BorderThickness = new Thickness(0, 0, 0, 1) };
+        titleBar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
+        editorState.Margin = new Thickness(0, 0, 8, 0);
+        titleBar.Child = Ui.Columns(8, [1, 0, 0], Ui.Text("Dockerfile", 14, FontWeights.SemiBold, "OnSurface", false), editorState, toolbar);
 
         var editorGrid = new Grid();
         editorGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 280 });
@@ -95,28 +100,38 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         stageMap.OpenCanvasRequested += () => Host.Navigate("Canvas");
 
         var right = new DockPanel();
-        right.Children.Add(titleRow.Dock(System.Windows.Controls.Dock.Top));
-        find.Margin = new Thickness(0, 10, 0, 10);
+        find.Margin = new Thickness(12, 12, 12, 10);
         right.Children.Add(find.Dock(System.Windows.Controls.Dock.Top));
+        editorGrid.Margin = new Thickness(12, 0, 12, 12);
         right.Children.Add(editorGrid);
-        editorTab = new TabItem { Header = Loc.T("Dockerfile"), Content = right };
+        var editorCard = Ui.Card(Ui.Rows(0, [0, 1], titleBar, right), 0, "SurfaceLow", 16);
+        editorCard.ClipToBounds = true;
+        editorCard.MinHeight = 200;
+        // The build output and recent builds sit in their own card under the editor.
         runTab = new TabItem { Header = Loc.T("Build run"), Content = timeline };
         historyTab = new TabItem { Header = Loc.T("Recent builds"), Content = history };
-        tabs.Items.Add(editorTab); tabs.Items.Add(runTab); tabs.Items.Add(historyTab);
+        tabs.Items.Add(runTab); tabs.Items.Add(historyTab);
         tabs.SelectionChanged += (_, e) =>
         {
             if (e.OriginalSource != tabs || tabs.SelectedItem != historyTab || historyLoaded) return;
             historyLoaded = true;
             PageTasks.Fire(history.RefreshAsync);
         };
-        var editorCard = Ui.Card(tabs, 16, "SurfaceLow", 16);
+        var outputCard = Ui.Card(tabs, 16, "SurfaceLow", 16);
+        outputCard.MinHeight = 200;
+        var rightColumn = new Grid();
+        rightColumn.RowDefinitions.Add(new RowDefinition { Height = new GridLength(3, GridUnitType.Star), MinHeight = 200 });
+        rightColumn.RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
+        rightColumn.RowDefinitions.Add(new RowDefinition { Height = new GridLength(2, GridUnitType.Star), MinHeight = 200 });
+        rightColumn.Children.Add(editorCard);
+        rightColumn.Children.Add(outputCard.At(2));
 
         var body = new Grid();
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star), MinWidth = 320, MaxWidth = 460 });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star), MinWidth = 360 });
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(380), MinWidth = 320 });
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 360 });
         body.Children.Add(config);
-        body.Children.Add(editorCard.At(0, 2));
+        body.Children.Add(rightColumn.At(0, 2));
         Layout(header, body);
 
         editor.Box.TextChanged += (_, _) =>
@@ -209,7 +224,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         var ctrlOnly = Keyboard.Modifiers == ModifierKeys.Control;
         if (ctrl && !Keyboard.Modifiers.HasFlag(ModifierKeys.Alt) && e.Key == System.Windows.Input.Key.S) { PageTasks.Fire(() => SaveAsync(shift)); e.Handled = true; }
         else if (ctrlOnly && e.Key == System.Windows.Input.Key.O) { PageTasks.Fire(OpenAsync); e.Handled = true; }
-        else if (ctrlOnly && e.Key == System.Windows.Input.Key.F && tabs.SelectedItem == editorTab) { find.FocusSearch(); e.Handled = true; }
+        else if (ctrlOnly && e.Key == System.Windows.Input.Key.F) { find.FocusSearch(); e.Handled = true; }
         else if (e.Key == System.Windows.Input.Key.F3) { if (shift) find.FindPrevious(); else find.FindNext(); e.Handled = true; }
     }
 
