@@ -121,8 +121,14 @@ public partial class MainWindow : Window
         PaletteSlot.MaxWidth = narrow ? 220 : 460;
         UpdatePaletteLabel();
         Provenance.Visibility = AdhdRules.Resolve(settings, !(ActualWidth > 0 && ActualWidth < 1040)).ShowProvenance ? Visibility.Visible : Visibility.Collapsed;
+        // Labels stay visible at every height so each destination says what it is; Focus mode is the deliberate icon-only choice.
+        // A short window tightens the items and the rail scrolls instead of dropping the words.
         var shortWindow = ActualHeight > 0 && ActualHeight < Destinations.All.Count(d => d.OnRail) * 62 + 120;
-        foreach (var item in railItems.Values) if (item.Content is TextBlock label) label.Visibility = settings.FocusMode || shortWindow ? Visibility.Collapsed : Visibility.Visible;
+        foreach (var item in railItems.Values)
+        {
+            if (item.Content is TextBlock label) { label.Visibility = settings.FocusMode ? Visibility.Collapsed : Visibility.Visible; label.FontSize = shortWindow ? 11 : 12; }
+            item.Padding = shortWindow ? new Thickness(0, 1, 0, 1) : new Thickness(0, 4, 0, 4);
+        }
         dock.CompactHeight = ActualHeight > 0 && ActualHeight < 860;
     }
 
@@ -193,8 +199,17 @@ public partial class MainWindow : Window
             host.Notify.Info($"Engine context is now {selected}. Engine views refreshed; open drafts were kept.");
             await CheckEngine();
         };
-        var contextChip = Ui.HStack(0, contextState, contexts);
-        contextChip.VerticalAlignment = VerticalAlignment.Center;
+        // The context selector is a pill with its reachability dot inside, as in the title bar design.
+        contexts.Resources["RadiusSmall"] = new CornerRadius(16);
+        contexts.Resources["Surface"] = Brushes.Transparent;
+        contexts.Resources["ComboTextMargin"] = new Thickness(28, 0, 34, 0);
+        contextState.Margin = new Thickness(14, 0, 0, 0);
+        contextState.HorizontalAlignment = HorizontalAlignment.Left;
+        contextState.VerticalAlignment = VerticalAlignment.Center;
+        contextState.IsHitTestVisible = false;
+        var contextChip = new Grid { VerticalAlignment = VerticalAlignment.Center };
+        contextChip.Children.Add(contexts);
+        contextChip.Children.Add(contextState);
         WindowChrome.SetIsHitTestVisibleInChrome(contexts, true);
         var bell = Ui.IconButton(Icons.Notifications, "Notifications", ShowNotifications);
         var badgeBorder = new Border { Child = badge, MinWidth = 14, Height = 14, CornerRadius = new CornerRadius(7), Padding = new Thickness(3, 0, 3, 0), HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 6, 6, 0), Visibility = Visibility.Collapsed, IsHitTestVisible = false };

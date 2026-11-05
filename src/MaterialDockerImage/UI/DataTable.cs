@@ -190,15 +190,27 @@ public sealed class DataTable<T> : Grid
         columns.Add(new(header, text, width, false, tone));
         var border = new FrameworkElementFactory(typeof(Border));
         border.SetValue(Border.CornerRadiusProperty, new CornerRadius(12));
-        border.SetValue(Border.PaddingProperty, new Thickness(10, 3, 10, 3));
+        border.SetValue(Border.PaddingProperty, new Thickness(8, 0, 10, 0));
+        border.SetValue(Border.MinHeightProperty, 24.0);
         border.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Left);
         border.SetBinding(Border.BackgroundProperty, new Binding($"Tones[{index}]") { Converter = new ToneBrushConverter() });
+        // A small dot in the chip colour leads the label, as the design's state chips do.
+        var row = new FrameworkElementFactory(typeof(StackPanel));
+        row.SetValue(StackPanel.OrientationProperty, Orientation.Horizontal);
+        row.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+        var dot = new FrameworkElementFactory(typeof(System.Windows.Shapes.Ellipse));
+        dot.SetValue(WidthProperty, 6.0); dot.SetValue(HeightProperty, 6.0);
+        dot.SetValue(MarginProperty, new Thickness(0, 0, 6, 0));
+        dot.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+        dot.SetBinding(System.Windows.Shapes.Shape.FillProperty, new Binding($"Tones[{index}]") { Converter = new ToneBrushConverter { Foreground = true } });
         var label = new FrameworkElementFactory(typeof(TextBlock));
         label.SetBinding(TextBlock.TextProperty, new Binding($"Cells[{index}]"));
         label.SetValue(TextBlock.FontSizeProperty, 12.0);
-        label.SetValue(TextBlock.FontWeightProperty, FontWeights.SemiBold);
+        label.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
         label.SetBinding(TextBlock.ForegroundProperty, new Binding($"Tones[{index}]") { Converter = new ToneBrushConverter { Foreground = true } });
-        border.AppendChild(label);
+        row.AppendChild(dot);
+        row.AppendChild(label);
+        border.AppendChild(row);
         view.Columns.Add(new GridViewColumn { Header = Loc.T(header), Width = width, CellTemplate = new DataTemplate { VisualTree = border } });
         return this;
     }

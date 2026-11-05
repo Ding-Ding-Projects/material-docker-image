@@ -54,7 +54,7 @@ public abstract class PageBase : Grid
     public virtual FrameworkElement? FindTarget(string id) => null;
 
     /// <summary>Standard page layout: a header row and a body that fills the rest.</summary>
-    protected void Layout(UIElement header, UIElement body, double gap = 16)
+    protected void Layout(UIElement header, UIElement body, double gap = 12)
     {
         Children.Clear(); RowDefinitions.Clear();
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -73,7 +73,7 @@ public abstract class PageBase : Grid
         if (Destinations.Find(Key) is not { } destination) return header;
         var glyph = Ui.Icon(destination.Icon, 24, true, "OnPrimaryContainer");
         glyph.HorizontalAlignment = HorizontalAlignment.Center;
-        var tile = new Border { Width = 48, Height = 48, CornerRadius = new CornerRadius(14), Child = glyph, VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 16, 0) };
+        var tile = new Border { Width = 48, Height = 48, CornerRadius = new CornerRadius(14), Child = glyph, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 14, 0) };
         tile.SetResourceReference(Border.BackgroundProperty, "PrimaryContainer");
         var row = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(tile, Dock.Left);

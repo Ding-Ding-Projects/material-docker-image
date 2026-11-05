@@ -286,7 +286,8 @@ public sealed partial class CreatorPage : PageBase
     private async Task ApplyStarterAsync(DockerfileStarter starter)
     {
         var hasContent = doc.Stages.Count > 0 || doc.Preamble.Count > 0;
-        if (hasContent && !await Host.Overlay.ConfirmAsync($"Start from {starter.Label}?", starter.Description + Environment.NewLine + Environment.NewLine + Loc.T("This replaces the current draft. The current draft is saved in local history first, so you can restore it from Activity."), "Replace draft"))
+        // Capture mode never saves the draft or history, so the screenshot run replaces it without a prompt that would stay on screen.
+        if (hasContent && !Host.IsCapture && !await Host.Overlay.ConfirmAsync($"Start from {starter.Label}?", starter.Description + Environment.NewLine + Environment.NewLine + Loc.T("This replaces the current draft. The current draft is saved in local history first, so you can restore it from Activity."), "Replace draft"))
             return;
         ReplaceDraft(starter.Create(), "applying the " + starter.Label + " starter");
         Host.Notify.Success(Loc.T("Started from") + " " + starter.Label + ". " + starter.Description);

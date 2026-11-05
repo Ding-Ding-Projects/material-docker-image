@@ -46,7 +46,7 @@
       </Grid.ColumnDefinitions>
       <DockPanel x:Name="RailPanel" Margin="0,8,0,8" LastChildFill="True">
         <StackPanel x:Name="RailBottom" DockPanel.Dock="Bottom"/>
-        <ScrollViewer VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled" Focusable="False">
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
           <StackPanel x:Name="Rail" AutomationProperties.Name="Destinations"/>
         </ScrollViewer>
       </DockPanel>

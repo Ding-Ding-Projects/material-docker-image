@@ -17,7 +17,7 @@ namespace MaterialDockerImage.UI;
 public sealed class SearchFilter : Border
 {
     private readonly TextBox query = new() { Style = (Style)Application.Current.FindResource("Field.Search"), MinWidth = 96 };
-    private readonly ToggleButton regexToggle = new() { Content = ".*", Width = 36, Height = 28, Cursor = Cursors.Hand, FocusVisualStyle = null };
+    private readonly ToggleButton regexToggle = new() { Content = ".*", MinWidth = 30, Height = 28, Padding = new Thickness(8, 0, 8, 0), FontSize = 12, FontWeight = FontWeights.SemiBold, Cursor = Cursors.Hand, FocusVisualStyle = null };
     private readonly Button builderButton;
     private readonly TextBlock placeholder;
     private string placeholderText;
@@ -109,14 +109,15 @@ public sealed class SearchFilter : Border
         var border = new FrameworkElementFactory(typeof(Border), "bg");
         border.SetValue(Border.CornerRadiusProperty, new CornerRadius(14));
         border.SetResourceReference(Border.BackgroundProperty, "SurfaceHighest");
+        border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
         var text = new FrameworkElementFactory(typeof(ContentPresenter));
         text.SetValue(HorizontalAlignmentProperty, HorizontalAlignment.Center);
         text.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
         border.AppendChild(text);
         template.VisualTree = border;
         var on = new Trigger { Property = ToggleButton.IsCheckedProperty, Value = true };
-        on.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("Primary"), "bg"));
-        on.Setters.Add(new Setter(Control.ForegroundProperty, new DynamicResourceExtension("OnPrimary")));
+        on.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("SecondaryContainer"), "bg"));
+        on.Setters.Add(new Setter(Control.ForegroundProperty, new DynamicResourceExtension("OnSecondaryContainer")));
         template.Triggers.Add(on);
         var focus = new Trigger { Property = IsKeyboardFocusedProperty, Value = true };
         focus.Setters.Add(new Setter(Border.BorderThicknessProperty, new Thickness(2), "bg"));

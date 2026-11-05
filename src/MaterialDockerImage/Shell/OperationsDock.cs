@@ -70,7 +70,16 @@ public sealed class OperationsDock : Border
         else body.Visibility = expanded ? Visibility.Visible : Visibility.Collapsed;
         toggle.Content = expanded ? Icons.ExpandMore : Icons.ExpandLess;
         AutomationProperties.SetName(toggle, Loc.T(expanded ? "Collapse output" : "Expand output"));
+        UpdatePresence();
     }
+
+    /// <summary>
+    /// The idle bar is not part of the page design: the dock stays out of the layout until an operation starts in this
+    /// session or the user opens it (Ctrl+J or the palette), and then remains as the summary of the last result. Log lines
+    /// written without an operation do not bring it up; they are still there when it is opened.
+    /// </summary>
+    private void UpdatePresence() => Visibility = Expanded || hadOperation ? Visibility.Visible : Visibility.Collapsed;
+    private bool hadOperation;
 
     public void Begin(string label)
     {
@@ -84,6 +93,8 @@ public sealed class OperationsDock : Border
         cancel.IsEnabled = true;
         clock.Start();
         Append($"[{DateTimeOffset.Now:HH:mm:ss}] {label}");
+        hadOperation = true;
+        UpdatePresence();
     }
 
     /// <summary>Records the actual result. Cancellation and unknown outcomes never read as success.</summary>

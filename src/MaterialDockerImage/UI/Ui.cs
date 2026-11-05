@@ -33,7 +33,9 @@ public static class Ui
 
     public static TextBlock Text(string text, double size = 14, FontWeight? weight = null, string brush = "OnSurface", bool wrap = true, bool translate = true)
     {
-        var t = new TextBlock { Text = translate ? Loc.T(text) : text, FontSize = size, FontWeight = weight ?? FontWeights.Normal, TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap, VerticalAlignment = VerticalAlignment.Center, LineHeight = Math.Round(size * 1.35) };
+        var t = new TextBlock { Text = translate ? Loc.T(text) : text, FontSize = size, FontWeight = weight ?? FontWeights.Normal, TextWrapping = wrap ? TextWrapping.Wrap : TextWrapping.NoWrap, VerticalAlignment = VerticalAlignment.Center };
+        // The design sets a line height on titles only (1.3); body text keeps the font's own spacing, so rows are not taller than designed.
+        if (size >= 18) t.LineHeight = Math.Round(size * 1.3);
         if (!wrap) t.TextTrimming = TextTrimming.CharacterEllipsis;
         t.SetResourceReference(TextBlock.ForegroundProperty, brush);
         return t;
@@ -59,7 +61,7 @@ public static class Ui
         // A DockPanel (not a horizontal stack) lets a button that is narrower than its label shorten the label with an
         // ellipsis instead of cutting it off mid-character; the full label is then shown as a tooltip.
         var content = new DockPanel { LastChildFill = true };
-        if (icon != null) { var glyph = Icon(icon, 18, kind == ButtonKind.Filled); glyph.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = b }); glyph.Margin = new Thickness(-4, 0, 8, 0); DockPanel.SetDock(glyph, System.Windows.Controls.Dock.Left); content.Children.Add(glyph); }
+        if (icon != null) { var glyph = Icon(icon, 18, kind == ButtonKind.Filled); glyph.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Control.Foreground)) { Source = b }); glyph.Margin = new Thickness(0, 0, 8, 0); DockPanel.SetDock(glyph, System.Windows.Controls.Dock.Left); content.Children.Add(glyph); }
         var text = new TextBlock { Text = translate ? Loc.T(label) : label, VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
         content.Children.Add(text);
         b.Content = content;
@@ -196,7 +198,8 @@ public static class Ui
     public static Button Info(string target, string explanation, string? example = null)
     {
         var b = IconButton(Icons.Info, "About " + Loc.T(target));
-        b.Width = b.Height = b.MinHeight = 28; b.FontSize = 16; b.Margin = new Thickness(4, -6, 0, -6);
+        b.Width = b.Height = b.MinHeight = 24; b.FontSize = 16; b.Margin = new Thickness(4, -4, 0, -4);
+        b.SetResourceReference(Control.ForegroundProperty, "Outline");
         b.ToolTip = Loc.T(explanation);
         AutomationProperties.SetHelpText(b, Loc.T(explanation));
         b.Click += (_, _) =>
@@ -275,8 +278,8 @@ public static class Ui
     public static Border Badge(string text, Tone tone = Tone.Neutral, bool translate = true)
     {
         var (bg, fg) = ToneKeys(tone);
-        var label = Text(translate ? Loc.T(text) : text, 12, FontWeights.SemiBold, fg, false, false);
-        var b = new Border { Child = label, CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 3, 10, 3), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
+        var label = Text(translate ? Loc.T(text) : text, 12, FontWeights.Normal, fg, false, false);
+        var b = new Border { Child = label, CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 0, 10, 0), MinHeight = 24, HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center };
         b.SetResourceReference(Border.BackgroundProperty, bg);
         return b;
     }
@@ -305,7 +308,7 @@ public static class Ui
         subtitleText = Caption(subtitle);
         var left = VStack(2, Title(title), subtitleText);
         var right = new WrapPanel { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center };
-        foreach (var a in actions) { if (a is FrameworkElement fe) fe.Margin = new Thickness(8, 4, 0, 4); right.Children.Add(a); }
+        foreach (var a in actions) { if (a is FrameworkElement fe) fe.Margin = new Thickness(12, 4, 0, 4); right.Children.Add(a); }
         // The header panel decides from the width it is offered, so the actions never push the page wider than the window.
         var g = new Grid();
         g.Children.Add(new HeaderPanel(left, right));
