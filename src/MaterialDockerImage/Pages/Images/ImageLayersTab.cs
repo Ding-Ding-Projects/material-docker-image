@@ -12,6 +12,8 @@ namespace MaterialDockerImage.Pages;
 /// Layers tab (design/workspace-redesign-2026-11/project/ImagesV2.dc.html): docker image history as a table with the
 /// step number, the cleaned instruction in mono with a short note, a bar showing the layer's share relative to the
 /// largest layer, and the size. Has its own search, a sort order and an option to hide metadata-only (empty) layers.
+/// When the image was built from a Dockerfile this application knows, the note names the Dockerfile line (or the base
+/// image for rows below the first FROM); see <see cref="ImageLayerSources"/>. No note is shown unless the match is exact.
 /// On narrow hosts such as the side inspector the bar moves under the instruction.
 /// </summary>
 internal sealed class ImageLayersTab : ImageDetailTab
@@ -25,6 +27,7 @@ internal sealed class ImageLayersTab : ImageDetailTab
     private readonly SearchFilter search = new("Search layers", 200);
     private readonly Grid columnHeader;
     private readonly IReadOnlyList<ImageLayerEntry> layers;
+    private readonly ImageLayerSources sources = ImageLayerSources.Empty;
     private readonly string problem = "";
     private readonly MenuItem hideItem;
     private readonly List<MenuItem> orderItems = [];
@@ -42,6 +45,7 @@ internal sealed class ImageLayersTab : ImageDetailTab
             try { layers = ImageLayerHistory.Parse(history.StandardOutput); }
             catch (JsonException e) { layers = []; problem = Loc.T("History output could not be parsed:") + " " + e.Message; }
         }
+        sources = ImageLayerSources.Find(context.Image.Id, layers);
 
         heading.TextTrimming = TextTrimming.CharacterEllipsis;
         caption.TextTrimming = TextTrimming.CharacterEllipsis;
@@ -115,7 +119,7 @@ internal sealed class ImageLayersTab : ImageDetailTab
         foreach (var layer in ordered)
         {
             if (hideEmpty && layer.Empty) continue;
-            if (search.IsActive && !search.Matches(layer.Keyword + " " + layer.Instruction + " " + layer.SizeText + " " + layer.CreatedSince + " " + layer.Comment)) continue;
+            if (search.IsActive && !search.Matches(layer.Keyword + " " + layer.Instruction + " " + layer.SizeText + " " + layer.CreatedSince + " " + layer.Comment + " " + Note(layer))) continue;
             rows.Children.Add(Row(layer, layers.Count - layer.Index, largest));
             shown++;
         }
@@ -164,8 +168,12 @@ internal sealed class ImageLayersTab : ImageDetailTab
         var instruction = Ui.Mono(command.Length > 0 ? command : Loc.T("(no instruction recorded)"), 12, "OnSurface");
         instruction.TextTrimming = TextTrimming.CharacterEllipsis;
         instruction.ToolTip = layer.CreatedBy;
-        var note = Ui.Text(Note(layer), 12, null, "OnSurfaceVariant", false, false);
+        var source = sources.For(layer);
+        var note = Ui.Text(Note(layer), 12, null, source is { IsBase: false } ? "Primary" : "OnSurfaceVariant", false, false);
         note.TextTrimming = TextTrimming.CharacterEllipsis;
+        if (source != null) note.ToolTip = source.IsBase
+            ? Loc.T("This step comes from the base image named in the first FROM of the Dockerfile.")
+            : Loc.T("Matched exactly to this Dockerfile:") + " " + sources.Origin;
         var bar = SizeBar(layer.Bytes, largest, layer.Bytes == largest && largest > 1);
         var middle = Ui.VStack(2, instruction, note);
         middle.VerticalAlignment = VerticalAlignment.Center;
@@ -214,13 +222,19 @@ internal sealed class ImageLayersTab : ImageDetailTab
         row.ContextMenu = new ContextMenu();
         row.ContextMenu.Items.Add(Ui.MenuItem("Copy instruction", Icons.ContentCopy, () => PageKit.Copy(command, "the instruction"), "Ctrl+C"));
         row.ContextMenu.Items.Add(Ui.MenuItem("Copy recorded command", Icons.Terminal, () => PageKit.Copy(layer.CreatedBy, "the recorded command")));
+        if (source is { IsBase: false } && sources.InEditor && Host.HandOff.TryGetValue("Build.GoToLine", out var goTo) && goTo is Action<int> goToLine)
+            row.ContextMenu.Items.Add(Ui.MenuItem("Show this line in Build", Icons.Code, () => goToLine(source.Line)));
         return row;
     }
 
-    /// <summary>The second line under the instruction: what the history records about the step, nothing inferred.</summary>
-    private static string Note(ImageLayerEntry layer)
+    /// <summary>
+    /// The second line under the instruction: the exact Dockerfile source when one is known, then what the history
+    /// records about the step. Nothing is inferred.
+    /// </summary>
+    private string Note(ImageLayerEntry layer)
     {
         var parts = new List<string>();
+        if (sources.For(layer) is { } source) parts.Add(ImageLayerSources.Describe(source));
         if (layer.Empty) parts.Add(Loc.T("Metadata only"));
         if (layer.CreatedSince.Length > 0) parts.Add(layer.CreatedSince);
         if (layer.Comment.Length > 0) parts.Add(layer.Comment);

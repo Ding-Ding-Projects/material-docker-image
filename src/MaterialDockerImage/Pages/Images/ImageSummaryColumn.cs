@@ -11,7 +11,7 @@ namespace MaterialDockerImage.Pages;
 /// The right-hand column of the image detail (design/workspace-redesign-2026-11/project/ImagesV2.dc.html): a Platforms
 /// card and a Docker Scout summary card. Platforms come from docker image inspect and, for pulled images, from the
 /// registry manifest read with docker buildx imagetools inspect --raw. The Scout card only shows an analysis that ran in
-/// this session; nothing is estimated.
+/// this session, and its base image recommendation runs docker scout recommendations on request; nothing is estimated.
 /// </summary>
 internal sealed class ImageSummaryColumn : StackPanel
 {
@@ -47,7 +47,7 @@ internal sealed class ImageSummaryColumn : StackPanel
         var buttons = Ui.Columns(8, [1, 1], findings, analyze);
         var scoutCard = Ui.Card(Ui.VStack(12,
             Ui.Columns(8, [0, 1, 0], Ui.Icon(Icons.Security, 20, false, "Primary"), Ui.Text("Scout summary", 15, FontWeights.SemiBold, "OnSurface", false), analysed),
-            severity, summary, buttons), 16, "SurfaceLow", 16);
+            severity, summary, new BaseImageRecommendationPanel(context), buttons), 16, "SurfaceLow", 16);
         System.Windows.Automation.AutomationProperties.SetName(scoutCard, Loc.T("Scout summary"));
 
         Children.Add(platformsCard);

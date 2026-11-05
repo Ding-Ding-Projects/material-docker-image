@@ -47,5 +47,7 @@
     <Compile Include="../../src/MaterialDockerImage/Pages/Canvas/CanvasRouting.cs" Link="CanvasRouting.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Pages/Canvas/CanvasBuildFooters.cs" Link="CanvasBuildFooters.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/PaletteLiveLines.cs" Link="PaletteLiveLines.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/ScoutRecommendationReport.cs" Link="ScoutRecommendationReport.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/DockerfileLayerSource.cs" Link="DockerfileLayerSource.cs"/>
   </ItemGroup>
 </Project>

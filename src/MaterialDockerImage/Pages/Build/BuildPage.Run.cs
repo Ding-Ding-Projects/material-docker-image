@@ -57,8 +57,9 @@ public sealed partial class BuildPage
         var builtTarget = (options.Target.Text ?? "").Trim();
         try
         {
-            var result = await runner.RunAsync(label, args, context, null, string.Join(", ", summary.Tags));
-            if (call == BuildKitCall.Build && result != null) RecordForCanvas(builtHash, builtTarget, result, summary.Tags.FirstOrDefault() ?? "", context);
+            var built = call == BuildKitCall.Build;
+            var result = await runner.RunAsync(label, args, context, null, string.Join(", ", summary.Tags), built ? dockerfilePath : "", built ? editor.Text : "");
+            if (built && result != null) RecordForCanvas(builtHash, builtTarget, result, summary.Tags.FirstOrDefault() ?? "", context);
             if (result?.Success != true) return result;
             timeline.SetResult(call switch
             {

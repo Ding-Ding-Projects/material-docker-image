@@ -14,7 +14,7 @@ namespace MaterialDockerImage.Pages;
 /// Build destination: configuration card on the left; on the right, tabs for the Dockerfile editor (with find, line
 /// numbers and an optional stage outline), the live BuildKit run timeline and recent builds. Engine actions are in
 /// Pages/Build/BuildPage.Run.cs. Hand-offs: Build.OpenDockerfile, Build.Source (in); Build.CurrentSource,
-/// Build.SetSource, Build.SetTarget, Build.GoToLine (published for Canvas).
+/// Build.CurrentPath, Build.SetSource, Build.SetTarget, Build.GoToLine (published for Canvas and the Images layer table).
 /// </summary>
 public sealed partial class BuildPage : PageBase, IDirtyAware
 {
@@ -147,6 +147,7 @@ public sealed partial class BuildPage : PageBase, IDirtyAware
         PreviewKeyDown += OnKeys;
 
         Host.HandOff["Build.CurrentSource"] = (Func<string>)(() => editor.Text);
+        Host.HandOff["Build.CurrentPath"] = (Func<string>)(() => dockerfilePath);
         Host.HandOff["Build.SetSource"] = (Action<string>)SetSourceFromCanvas;
         Host.HandOff["Build.SetTarget"] = (Action<string>)(name =>
         {
