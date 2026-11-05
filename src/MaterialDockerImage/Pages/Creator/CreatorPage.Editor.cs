@@ -85,13 +85,13 @@ public sealed partial class CreatorPage
         addInstruction = Ui.Button("Add instruction", Icons.Add, ButtonKind.Tonal, () => OpenAddMenu(addInstruction!));
         addInstruction.Height = 36; addInstruction.MinHeight = 36; addInstruction.Padding = new Thickness(14, 0, 14, 0);
         addInstruction.ToolTip = Loc.T("Choose an instruction to add after the open card, or at the end.");
-        var quick = Ui.Wrap(6,
+        quickChips = Ui.Wrap(6,
             QuickChip("RUN with cache mount", () => new DockerInstruction { Kind = InstructionKind.Run, Command = "echo build", Mounts = { new RunMount { Type = RunMounts.Cache, Target = "/root/.cache" } } }, false),
             QuickChip("RUN heredoc script", () => new DockerInstruction { Kind = InstructionKind.Run, Heredoc = true, HeredocDelimiter = "EOF", HeredocBody = "set -e\necho build" }, false),
             QuickChip("HEALTHCHECK", () => DockerfileModel.Create(InstructionKind.Healthcheck), true),
             QuickChip("Non-root USER", () => new DockerInstruction { Kind = InstructionKind.User, Value = "10001" }, true),
             QuickChip("EXPOSE", () => DockerfileModel.Create(InstructionKind.Expose), true));
-        var addRow = Ui.Wrap(8, addInstruction, quick);
+        var addRow = Ui.Wrap(8, addInstruction, quickChips);
         footer = new Border { Child = addRow, Padding = new Thickness(0, 10, 0, 0), BorderThickness = new Thickness(0, 1, 0, 0) };
         footer.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
 
@@ -102,9 +102,13 @@ public sealed partial class CreatorPage
         var stack = Ui.VStack(14, preambleSection, stageFields, Ui.Divider(), cards);
         var grid = new Grid();
         editorScroll = Ui.Scroll(stack);
+        focusHost.Visibility = Visibility.Collapsed;
+        var body = new Grid();
+        body.Children.Add(editorScroll);
+        body.Children.Add(focusHost);
         var host = new DockPanel();
         host.Children.Add(footer.Dock(System.Windows.Controls.Dock.Bottom));
-        host.Children.Add(editorScroll);
+        host.Children.Add(body);
         grid.Children.Add(host);
         grid.Children.Add(noStage);
         return grid;
@@ -280,7 +284,7 @@ public sealed partial class CreatorPage
             escapeField.Visibility = doc.Escape.Trim().Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         }
         finally { syncingStage = false; }
-        if (!has) return;
+        if (!has) { expanded = null; focusHost.Children.Clear(); focusHost.Visibility = Visibility.Collapsed; RefreshOutline(); return; }
         var stage = doc.Stages[selectedStage];
         syncingStage = true;
         try
@@ -293,10 +297,40 @@ public sealed partial class CreatorPage
         ShowStageProblems();
         if (stage.Instructions.Count == 0) cards.Children.Add(Ui.Caption("This stage has no instructions yet. Use Add instruction or a quick-add chip below."));
         for (var i = 0; i < stage.Instructions.Count; i++) cards.Children.Add(Card(stage.Instructions, i, selectedStage));
+        ShowFocusedStep();
+    }
+
+    /// <summary>
+    /// When a step is open, the centre shows only that step's editor (as on the design board); otherwise the stage
+    /// overview with the build arguments, stage fields and step cards.
+    /// </summary>
+    private void ShowFocusedStep()
+    {
+        focusHint = null;
+        focusHost.Children.Clear();
+        List<DockerInstruction>? list = null;
+        if (expanded != null)
+        {
+            if (doc.Preamble.Contains(expanded)) list = doc.Preamble;
+            else if (doc.Stages.Count > 0 && doc.Stages[selectedStage].Instructions.Contains(expanded)) list = doc.Stages[selectedStage].Instructions;
+            else expanded = null;
+        }
+        var focused = list != null && expanded != null && doc.Stages.Count > 0;
+        focusHost.Visibility = focused ? Visibility.Visible : Visibility.Collapsed;
+        editorScroll.Visibility = doc.Stages.Count > 0 && !focused ? Visibility.Visible : Visibility.Collapsed;
+        quickChips.Visibility = focused ? Visibility.Collapsed : Visibility.Visible;
+        if (focused) focusHost.Children.Add(BuildFocused(list!, expanded!));
+        RefreshOutline();
     }
 
     private void UpdateCardSummaries()
     {
+        if (focusHint is { } hintView && expanded != null)
+        {
+            var list = doc.Preamble.Contains(expanded) ? doc.Preamble : doc.Stages.Count > 0 ? doc.Stages[selectedStage].Instructions : null;
+            if (list != null) hintView.Text = StepLine(list, expanded);
+        }
+        RefreshOutline();
         foreach (var (instruction, summary, hint, card) in cardViews)
         {
             summary.Text = DockerfileModel.Summary(instruction);
@@ -315,7 +349,6 @@ public sealed partial class CreatorPage
     private Border Card(List<DockerInstruction> list, int index, int stageIndex)
     {
         var instruction = list[index];
-        var isOpen = expanded == instruction;
         var keyword = DockerfileModel.Keyword(instruction.Kind);
         var chip = KeywordPill(keyword, instruction.Kind is InstructionKind.Comment or InstructionKind.Raw);
         chip.VerticalAlignment = VerticalAlignment.Top;
@@ -324,45 +357,15 @@ public sealed partial class CreatorPage
         var hint = Ui.Caption(DockerfileModel.Hint(instruction));
         var text = Ui.VStack(2, summary, hint);
 
-        void Move(int delta)
-        {
-            var to = index + delta;
-            if (to < 0 || to >= list.Count) return;
-            FlushCommit();
-            (list[index], list[to]) = (list[to], list[index]);
-            Changed();
-            FocusCard(instruction);
-        }
-        var up = Ui.IconButton(Icons.ExpandLess, "Move up (Alt+Up)", () => Move(-1));
-        var down = Ui.IconButton(Icons.ExpandMore, "Move down (Alt+Down)", () => Move(1));
-        up.IsEnabled = index > 0; down.IsEnabled = index < list.Count - 1;
-        var edit = Ui.IconButton(isOpen ? Icons.Check : Icons.Edit, isOpen ? "Done editing" : "Edit", () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); FocusCard(instruction); });
-        var duplicate = Ui.IconButton(Icons.FilterNone, "Duplicate", () => { FlushCommit(); var copy = instruction.Clone(); list.Insert(index + 1, copy); expanded = copy; Changed(); });
-        var delete = Ui.IconButton(Icons.Delete, "Delete (Del)", () => { FlushCommit(); list.RemoveAt(index); if (expanded == instruction) expanded = null; Changed(); Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it.")); });
-        var asText = Ui.IconButton(Icons.Code, "Edit as text", () => EditAsText(instruction));
-        asText.Visibility = instruction.Kind == InstructionKind.Raw ? Visibility.Visible : Visibility.Collapsed;
-        // One overflow button replaces the row of icon buttons; every action stays in the menu below (and on the keyboard).
+        // One overflow button holds every step action (also on the keyboard and the context menu).
         var more = Ui.IconButton(Icons.MoreVert, "More step actions");
         more.Width = more.Height = more.MinHeight = 32; more.FontSize = 18;
         more.VerticalAlignment = VerticalAlignment.Top;
-        var actions = more;
 
-        var top = Ui.Columns(12, [0, 1, 0], chip, text, actions);
-        var body = new StackPanel();
-        body.Children.Add(top);
-        if (isOpen)
-        {
-            var form = new InstructionForm(instruction, EarlierStageNames, Touched) { Margin = new Thickness(0, 10, 0, 0) };
-            var done = Ui.Button("Done", null, ButtonKind.Filled, () => { FlushCommit(); expanded = null; RebuildStageEditor(); FocusCard(instruction); });
-            done.Height = 32; done.MinHeight = 32; done.Padding = new Thickness(12, 0, 12, 0); done.FontSize = 13;
-            var editHeader = Ui.Columns(8, [0, 1, 0], KeywordPill(keyword, false), Ui.Text($"{Loc.T("Editing step")} {index + 1}", 14, FontWeights.SemiBold), done);
-            body.Children.Add(Ui.Divider().Margin(0, 12, 0, 0));
-            body.Children.Add(editHeader.Margin(0, 10, 0, 0));
-            body.Children.Add(form);
-        }
-        var card = new Border { Child = body, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), BorderThickness = new Thickness(isOpen ? 2 : 0), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction };
-        card.SetResourceReference(Border.BackgroundProperty, isOpen ? "SurfaceHigh" : "SurfaceContainer");
-        var marked = isOpen || highlighted == instruction;
+        var top = Ui.Columns(12, [0, 1, 0], chip, text, more);
+        var card = new Border { Child = top, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction, Cursor = System.Windows.Input.Cursors.Hand };
+        card.SetResourceReference(Border.BackgroundProperty, "SurfaceContainer");
+        var marked = highlighted == instruction;
         var invalidNow = DockerfileModel.Validate(instruction).Count > 0;
         card.BorderThickness = new Thickness(marked ? 2 : invalidNow ? 1 : 0);
         card.SetResourceReference(Border.BorderBrushProperty, invalidNow ? "Error" : marked ? "Primary" : "OutlineVariant");
@@ -375,25 +378,161 @@ public sealed partial class CreatorPage
         };
         card.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
         System.Windows.Automation.AutomationProperties.SetName(card, $"{Loc.T("Step")} {index + 1}: {keyword} {summary.Text}");
+        card.ToolTip = Loc.T("Click or press Enter to edit this step.");
         card.PreviewKeyDown += (_, e) =>
         {
             var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
-            if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Up) { Move(-1); e.Handled = true; }
-            else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { Move(1); e.Handled = true; }
-            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Enter) { edit.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); e.Handled = true; }
-            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Delete) { delete.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)); e.Handled = true; }
+            if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Up) { MoveStep(list, instruction, -1); e.Handled = true; }
+            else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { MoveStep(list, instruction, 1); e.Handled = true; }
+            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Enter) { OpenStep(instruction, true); e.Handled = true; }
+            else if (e.OriginalSource == card && key == System.Windows.Input.Key.Delete) { DeleteStep(list, instruction); e.Handled = true; }
         };
-        card.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2 && !isOpen) { expanded = instruction; RebuildStageEditor(); e.Handled = true; } };
-        card.ContextMenu = new ContextMenu();
-        card.ContextMenu.Items.Add(Ui.MenuItem(isOpen ? "Done editing" : "Edit", Icons.Edit, () => { FlushCommit(); expanded = isOpen ? null : instruction; RebuildStageEditor(); }, "Enter"));
-        card.ContextMenu.Items.Add(Ui.MenuItem("Edit as text", Icons.Code, () => EditAsText(instruction)));
-        card.ContextMenu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => Move(-1), "Alt+Up"));
-        card.ContextMenu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => Move(1), "Alt+Down"));
-        card.ContextMenu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => duplicate.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent))));
-        card.ContextMenu.Items.Add(Ui.MenuItem("Delete", Icons.Delete, () => delete.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)), "Del", true));
+        card.MouseLeftButtonUp += (_, e) => { if (e.OriginalSource is DependencyObject d && IsInsideButton(d, card)) return; OpenStep(instruction, true); e.Handled = true; };
+        card.ContextMenu = StepMenu(list, instruction);
         more.Click += (_, _) => { card.ContextMenu.PlacementTarget = more; card.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; card.ContextMenu.IsOpen = true; };
         cardViews.Add((instruction, summary, hint, card));
         return card;
+    }
+
+    private static bool IsInsideButton(DependencyObject source, DependencyObject stop)
+    {
+        for (var d = source; d != null && d != stop; d = System.Windows.Media.VisualTreeHelper.GetParent(d) ?? LogicalTreeHelper.GetParent(d))
+            if (d is System.Windows.Controls.Primitives.ButtonBase) return true;
+        return false;
+    }
+
+    // ----------------------------------------------------------------- step actions (cards, the open step and the outline)
+
+    private ContextMenu StepMenu(List<DockerInstruction> list, DockerInstruction instruction)
+    {
+        var menu = new ContextMenu();
+        var open = expanded == instruction;
+        menu.Items.Add(Ui.MenuItem(open ? "Done editing" : "Edit", Icons.Edit, () => { if (open) CloseStep(); else OpenStep(instruction, true); }, "Enter"));
+        menu.Items.Add(Ui.MenuItem("Edit as text", Icons.Code, () => EditAsText(instruction)));
+        menu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => MoveStep(list, instruction, -1), "Alt+Up"));
+        menu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => MoveStep(list, instruction, 1), "Alt+Down"));
+        menu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => DuplicateStep(list, instruction)));
+        menu.Items.Add(Ui.MenuItem("Delete", Icons.Delete, () => DeleteStep(list, instruction), "Del", true));
+        menu.Opened += (_, _) =>
+        {
+            var index = list.IndexOf(instruction);
+            ((MenuItem)menu.Items[2]).IsEnabled = index > 0;
+            ((MenuItem)menu.Items[3]).IsEnabled = index >= 0 && index < list.Count - 1;
+        };
+        return menu;
+    }
+
+    private void OpenStep(DockerInstruction instruction, bool focus)
+    {
+        FlushCommit();
+        expanded = instruction;
+        highlighted = instruction;
+        RebuildStageEditor();
+        HighlightLines(instruction);
+        if (focus) FocusCard(instruction);
+    }
+
+    private void CloseStep()
+    {
+        var was = expanded;
+        FlushCommit();
+        expanded = null;
+        RebuildStageEditor();
+        if (was != null) FocusCard(was);
+    }
+
+    private void MoveStep(List<DockerInstruction> list, DockerInstruction instruction, int delta)
+    {
+        var index = list.IndexOf(instruction);
+        var to = index + delta;
+        if (index < 0 || to < 0 || to >= list.Count) return;
+        FlushCommit();
+        (list[index], list[to]) = (list[to], list[index]);
+        Changed();
+        FocusCard(instruction);
+    }
+
+    private void DuplicateStep(List<DockerInstruction> list, DockerInstruction instruction)
+    {
+        var index = list.IndexOf(instruction);
+        if (index < 0) return;
+        FlushCommit();
+        var copy = instruction.Clone();
+        list.Insert(index + 1, copy);
+        expanded = copy;
+        Changed();
+    }
+
+    private void DeleteStep(List<DockerInstruction> list, DockerInstruction instruction)
+    {
+        var index = list.IndexOf(instruction);
+        if (index < 0) return;
+        FlushCommit();
+        list.RemoveAt(index);
+        if (expanded == instruction) expanded = null;
+        if (highlighted == instruction) highlighted = null;
+        Changed();
+        Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it."));
+    }
+
+    // ----------------------------------------------------------------- the open step
+
+    private readonly Grid focusHost = new();
+    /// <summary>Quick-add chips; hidden while a step is open so its form keeps the height.</summary>
+    private WrapPanel quickChips = null!;
+    private TextBlock? focusHint;
+    private Border? focusHead;
+
+    private string StepLine(List<DockerInstruction> list, DockerInstruction instruction) =>
+        $"{Loc.T("Step")} {list.IndexOf(instruction) + 1} / {list.Count}" + (ReferenceEquals(list, doc.Preamble) ? " · " + Loc.T("global") : "") + " · " + Loc.T(DockerfileModel.Hint(instruction));
+
+    /// <summary>The open step: keyword, title, step position, previous/next, collapse and the step menu, then its form.</summary>
+    private FrameworkElement BuildFocused(List<DockerInstruction> list, DockerInstruction instruction)
+    {
+        var keyword = DockerfileModel.Keyword(instruction.Kind);
+        var neutral = instruction.Kind is InstructionKind.Comment or InstructionKind.Raw;
+        var pillText = Ui.Mono(keyword, 13, neutral ? "OnSurfaceVariant" : "OnTertiaryContainer");
+        pillText.FontWeight = FontWeights.Bold;
+        var pill = new Border { Child = pillText, Height = 28, CornerRadius = new CornerRadius(8), Padding = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
+        pill.SetResourceReference(Border.BackgroundProperty, neutral ? "SurfaceHighest" : "TertiaryContainer");
+        var title = Ui.Text(DockerfileOutline.Title(instruction.Kind), 16, FontWeights.SemiBold, "OnSurface", false);
+        focusHint = Ui.Text(StepLine(list, instruction), 12, null, "OnSurfaceVariant", false, false);
+        focusHint.ToolTip = focusHint.Text;
+        var index = list.IndexOf(instruction);
+        var previous = Ui.IconButton(Icons.ExpandLess, "Previous step", () => { if (index > 0) OpenStep(list[index - 1], true); });
+        var next = Ui.IconButton(Icons.ExpandMore, "Next step", () => { if (index < list.Count - 1) OpenStep(list[index + 1], true); });
+        previous.IsEnabled = index > 0; next.IsEnabled = index < list.Count - 1;
+        var collapse = Ui.IconButton(Icons.CloseFullscreen, "Collapse instruction (Esc)", CloseStep);
+        var more = Ui.IconButton(Icons.MoreVert, "More instruction actions");
+        var menu = StepMenu(list, instruction);
+        more.Click += (_, _) => { menu.PlacementTarget = more; menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; menu.IsOpen = true; };
+        foreach (var b in new[] { previous, next, collapse, more }) { b.Width = b.Height = b.MinHeight = 36; b.FontSize = 20; }
+        var head = Ui.Columns(10, [0, 1, 0, 0, 0, 0], pill, Ui.VStack(2, title, focusHint), previous, next, collapse, more);
+        focusHead = new Border { Child = head, Focusable = true, Padding = new Thickness(0, 0, 0, 14), Background = System.Windows.Media.Brushes.Transparent };
+        focusHead.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
+        focusHead.ContextMenu = menu;
+        System.Windows.Automation.AutomationProperties.SetName(focusHead, $"{keyword} · {Loc.T(DockerfileOutline.Title(instruction.Kind))} · {StepLine(list, instruction)}");
+
+        var form = new InstructionForm(instruction, ReferenceEquals(list, doc.Preamble) ? () => Array.Empty<string>() : EarlierStageNames, Touched);
+        var panel = new DockPanel();
+        panel.Children.Add(focusHead.Dock(System.Windows.Controls.Dock.Top));
+        panel.Children.Add(Ui.Scroll(form));
+        panel.PreviewKeyDown += (_, e) =>
+        {
+            var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
+            if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Up) { MoveStep(list, instruction, -1); e.Handled = true; }
+            else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { MoveStep(list, instruction, 1); e.Handled = true; }
+            else if (key == System.Windows.Input.Key.Escape && Keyboard.Modifiers == ModifierKeys.None && !InOpenDropDown()) { CloseStep(); e.Handled = true; }
+        };
+        return panel;
+    }
+
+    /// <summary>True while the keyboard focus is inside a combo box whose list is open (Escape then closes the list, not the step).</summary>
+    private static bool InOpenDropDown()
+    {
+        for (var d = Keyboard.FocusedElement as DependencyObject; d != null; d = System.Windows.Media.VisualTreeHelper.GetParent(d))
+            if (d is ComboBox { IsDropDownOpen: true }) return true;
+        return false;
     }
 
     /// <summary>The instruction keyword in a 26 px pill (comments and raw lines use the neutral colour).</summary>
@@ -410,6 +549,7 @@ public sealed partial class CreatorPage
     private void FocusCard(DockerInstruction instruction) =>
         Dispatcher.BeginInvoke(() =>
         {
+            if (expanded == instruction && focusHost.Visibility == Visibility.Visible && focusHead != null) { focusHead.Focus(); return; }
             var view = cardViews.FirstOrDefault(c => c.Instruction == instruction);
             view.Card?.Focus();
             view.Card?.BringIntoView();

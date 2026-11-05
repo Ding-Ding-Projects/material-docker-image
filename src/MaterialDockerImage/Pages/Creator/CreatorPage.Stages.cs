@@ -47,17 +47,72 @@ public sealed partial class CreatorPage
             starters.Children.Add(b);
         }
 
-        var stack = Ui.VStack(10,
+        // The outline of the selected stage: one row per line, click to open that step in the centre.
+        System.Windows.Automation.AutomationProperties.SetName(outlineList, Loc.T("Instructions"));
+        ScrollViewer.SetHorizontalScrollBarVisibility(outlineList, ScrollBarVisibility.Disabled);
+        outlineList.SelectionChanged += (_, _) =>
+        {
+            if (syncingOutline || outlineList.SelectedItem is not ListBoxItem { Tag: int index }) return;
+            if (doc.Stages.Count == 0) return;
+            var stage = doc.Stages[selectedStage];
+            if (index < 0)
+            {
+                if (expanded == null) return;
+                CloseStep();
+                Dispatcher.BeginInvoke(() => baseImage.Focus(), System.Windows.Threading.DispatcherPriority.Loaded);
+            }
+            else if (index < stage.Instructions.Count && expanded != stage.Instructions[index]) OpenStep(stage.Instructions[index], false);
+        };
+        outlineHeading.Margin = new Thickness(4, 4, 4, 6);
+
+        add.HorizontalAlignment = HorizontalAlignment.Left;
+        var stagesCard = Ui.Card(Ui.VStack(8,
             Ui.Overline("Stages"),
-            stageSearch, stageList, actions, add,
-            Ui.Divider().Margin(0, 6, 0, 0),
+            stageSearch, stageList, Ui.Columns(8, [1, 0], actions, add),
+            Ui.Divider().Margin(0, 4, 0, 4),
+            outlineHeading,
+            outlineList), 12, "SurfaceLow", 16);
+        var startersCard = Ui.Card(Ui.VStack(10,
             Ui.Wrap(0, Ui.Overline("Start from"), Ui.InfoButton("Starters", "A starter builds a complete draft for a common stack. Hover a starter to see exactly what it creates.", "Node.js: deps, build and runtime stages with npm cache mounts, USER node and EXPOSE 8080.")),
             starters,
-            Ui.Caption("A starter replaces the draft. The previous draft stays in local history (Activity) and can be restored."),
-            Ui.Divider().Margin(0, 6, 0, 0),
-            BuildDetectSection());
-        add.HorizontalAlignment = HorizontalAlignment.Left;
-        return Ui.Scroll(stack);
+            Ui.Caption("A starter replaces the draft. The previous draft stays in local history (Activity) and can be restored.")), 16, "SurfaceLow", 16);
+        return Ui.Scroll(Ui.VStack(12, BuildDetectSection(), stagesCard, startersCard));
+    }
+
+    // ----------------------------------------------------------------- outline of the selected stage
+
+    private readonly ListBox outlineList = new();
+    private readonly TextBlock outlineHeading = Ui.Text("", 12, FontWeights.SemiBold, "OnSurfaceVariant", false, false);
+    private bool syncingOutline;
+
+    private void RefreshOutline()
+    {
+        syncingOutline = true;
+        try
+        {
+            outlineList.Items.Clear();
+            if (doc.Stages.Count == 0) { outlineHeading.Text = Loc.T("No stages yet"); return; }
+            var stage = doc.Stages[selectedStage];
+            outlineHeading.Text = Loc.T("Stage") + " " + (stage.Name.Trim().Length > 0 ? stage.Name.Trim() : selectedStage.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            foreach (var row in DockerfileOutline.Rows(stage))
+            {
+                var op = Ui.Mono(row.Keyword, 12, "Tertiary");
+                op.FontWeight = FontWeights.SemiBold;
+                var arg = Ui.Mono(row.Argument, 12, "OnSurface");
+                arg.ToolTip = row.Argument;
+                var grid = new Grid();
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
+                grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                grid.Children.Add(op);
+                grid.Children.Add(arg.At(0, 1));
+                var item = new ListBoxItem { Content = grid, Tag = row.InstructionIndex, MinHeight = 36, Padding = new Thickness(10, 0, 10, 0) };
+                System.Windows.Automation.AutomationProperties.SetName(item, row.Keyword + " " + row.Argument);
+                outlineList.Items.Add(item);
+                var on = row.InstructionIndex >= 0 && row.InstructionIndex < stage.Instructions.Count && stage.Instructions[row.InstructionIndex] == expanded;
+                if (on) outlineList.SelectedItem = item;
+            }
+        }
+        finally { syncingOutline = false; }
     }
 
     private void RefreshStageList()

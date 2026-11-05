@@ -333,7 +333,10 @@ public sealed class EditorValuePickerPopup
         cancel.Margin = new Thickness(0, 0, 8, 0);
         buttons.Children.Add(cancel);
         if (produce != null) buttons.Children.Add(Ui.Button("Apply", Icons.Check, ButtonKind.Filled, () => { if (produce() is { } v) Commit(v); }));
-        var heading = Ui.Text(title, 15, FontWeights.SemiBold);
+        // Heading with the value kind in a primary-container tile, as on the pickers board.
+        var tile = new Border { Child = Ui.Icon(SuggestionPresentation.PickerIcon(span.Kind), 20, true, "OnPrimaryContainer"), Width = 36, Height = 36, CornerRadius = new CornerRadius(10), VerticalAlignment = VerticalAlignment.Center };
+        tile.SetResourceReference(Border.BackgroundProperty, "PrimaryContainer");
+        var heading = Ui.Columns(10, [0, 1], tile, Ui.Text(title, 15, FontWeights.SemiBold));
         var content = Ui.VStack(12, heading, body, error, buttons);
         var card = Ui.Card(content, 14, "SurfaceHigh", 14);
         card.Width = width;

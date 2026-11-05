@@ -53,9 +53,10 @@ public sealed class EditorSuggestions
         hintAction = Ui.Button("Add # syntax header (Ctrl+Enter)", Icons.Bolt, ButtonKind.Text, ApplySyntaxUpgrade);
         hintAction.Focusable = false;
         hintAction.Visibility = Visibility.Collapsed;
-        var hintCard = new Border { Child = Ui.HStack(8, hintText, hintAction), CornerRadius = new CornerRadius(8), Padding = new Thickness(10, 4, 6, 4), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 10, 10), Effect = Ui.Elevation(10, 2, .25) };
-        hintCard.SetResourceReference(Border.BackgroundProperty, "SurfaceHigh");
-        hintCard.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
+        // The signature note of the design board: surface-highest, radius 8, monospace 12, required parts in bold.
+        hintText.MaxWidth = 720;
+        var hintCard = EditorSuggestionsList.SignatureNote(Ui.HStack(8, hintText, hintAction));
+        hintCard.Margin = new Thickness(0, 0, 10, 10);
         AutomationProperties.SetName(hintCard, Loc.T("Suggestion hint"));
         AutomationProperties.SetLiveSetting(hintText, AutomationLiveSetting.Polite);
         hint = new Popup { Child = hintCard, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative, PlacementTarget = box };
@@ -307,7 +308,7 @@ public sealed class EditorSuggestions
 
     private void ShowHint(string text, bool offerUpgrade)
     {
-        hintText.Text = text;
+        EditorSuggestionsList.FillSignature(hintText, text);
         hintAction.Visibility = offerUpgrade ? Visibility.Visible : Visibility.Collapsed;
         hintLine = LineOf(Box.CaretIndex);
         Position(hint, SuggestionText.LineStart(Box.Text, Box.CaretIndex), false, Box.CaretIndex);

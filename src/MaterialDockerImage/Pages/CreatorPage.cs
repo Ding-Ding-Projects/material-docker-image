@@ -32,39 +32,62 @@ public sealed partial class CreatorPage : PageBase
     private readonly DispatcherTimer persistTimer = new() { Interval = TimeSpan.FromMilliseconds(800) };
     private readonly DispatcherTimer recordTimer = new() { Interval = TimeSpan.FromSeconds(2) };
     private readonly TextBlock subtitle;
-    private readonly Button undoButton, redoButton;
+    private readonly Button undoButton, redoButton, checkButton;
+    /// <summary>The Dockerfile text last written to <see cref="savedPath"/>, to tell saved from unsaved changes.</summary>
+    private string savedText = "";
 
     public CreatorPage()
     {
         undoButton = Ui.IconButton(Icons.Undo, "Undo (Ctrl+Z)", Undo);
         redoButton = Ui.IconButton(Icons.Redo, "Redo (Ctrl+Y)", Redo);
-        var import = Ui.Button("Open existing", Icons.FolderOpen, ButtonKind.Text, () => PageTasks.Fire(ImportAsync));
+        var more = Ui.IconButton(Icons.MoreVert, "More Creator actions");
+        var moreMenu = new ContextMenu();
+        var import = Ui.MenuItem("Open existing Dockerfile", Icons.FolderOpen, () => PageTasks.Fire(ImportAsync));
         import.ToolTip = Loc.T("Import a Dockerfile into the Creator. Lines the Creator cannot model are kept exactly as written.");
-        var saveAs = Ui.Button("Save as…", Icons.Save, ButtonKind.Outlined, SaveAs);
-        var openInBuild = Ui.AsyncButton("Open in Build", Icons.Construction, ButtonKind.Filled, OpenInBuildAsync);
-        var header = Ui.Header("Dockerfile Creator", "", out subtitle, undoButton, redoButton, import, saveAs, openInBuild);
+        moreMenu.Items.Add(import);
+        moreMenu.Items.Add(Ui.MenuItem("Save as…", Icons.Save, SaveAs));
+        moreMenu.Items.Add(Ui.MenuItem("Copy as build command", Icons.Terminal, CopyBuildCommand));
+        moreMenu.Items.Add(Ui.MenuItem("Choose project folder…", Icons.ManageSearch, () => PageTasks.Fire(ChooseAndDetectAsync)));
+        var startFrom = new MenuItem { Header = Loc.T("Start from") };
+        foreach (var starter in DockerfileStarters.All)
+        {
+            var item = Ui.MenuItem(starter.Label, Icons.RocketLaunch, () => PageTasks.Fire(() => ApplyStarterAsync(starter)));
+            item.ToolTip = starter.Description;
+            startFrom.Items.Add(item);
+        }
+        moreMenu.Items.Add(new Separator());
+        moreMenu.Items.Add(startFrom);
+        more.Click += (_, _) => { moreMenu.PlacementTarget = more; moreMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; moreMenu.IsOpen = true; };
+        checkButton = Ui.Button("Check", Icons.FactCheck, ButtonKind.Outlined, OpenChecks);
+        checkButton.ToolTip = Loc.T("Runs the checks on the draft and lists the results with their fixes.");
+        var save = Ui.Button("Save", Icons.Save, ButtonKind.Tonal, Save);
+        save.ToolTip = Loc.T("Saves the Dockerfile to the file it was last saved to, or asks where to save it.");
+        var openInBuild = Ui.AsyncButton("Build", Icons.Construction, ButtonKind.Filled, OpenInBuildAsync);
+        openInBuild.ToolTip = Loc.T("Opens the draft in Build, where you start the build.");
+        var header = Ui.Header("Dockerfile Creator", "", out subtitle, undoButton, redoButton, more, checksCount, checkButton, save, openInBuild);
 
-        var left = Ui.Card(BuildStagesColumn(), 16, "SurfaceLow", 16);
+        // Three columns as on the design board: project and outline (300), the open step (rest), preview (420).
+        var left = BuildStagesColumn();
         var centre = Ui.Card(BuildEditorColumn(), 16, "SurfaceLow", 16);
         var right = BuildPreviewColumn();
 
         var body = new Grid();
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 200, MaxWidth = 300 });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star), MinWidth = 340 });
-        var rightGap = new ColumnDefinition { Width = new GridLength(16) };
-        var rightColumn = new ColumnDefinition { Width = new GridLength(1.6, GridUnitType.Star), MinWidth = 300 };
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(300) });
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+        body.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 340 });
+        var rightGap = new ColumnDefinition { Width = new GridLength(12) };
+        var rightColumn = new ColumnDefinition { Width = new GridLength(420) };
         body.ColumnDefinitions.Add(rightGap);
         body.ColumnDefinitions.Add(rightColumn);
         body.Children.Add(left);
         body.Children.Add(centre.At(0, 2));
         body.Children.Add(right.At(0, 4));
 
-        // Narrow windows: the preview and checks share the centre column, switched by a segmented control.
+        // Narrow windows: the preview shares the centre column, switched by a segmented control.
         var showPreview = false;
         var narrow = false;
         Action applyWidth = () => { };
-        var narrowSwitch = Ui.Segmented(["Steps", "Preview and checks"], "Steps", option => { showPreview = option != "Steps"; applyWidth(); });
+        var narrowSwitch = Ui.Segmented(["Steps", "Preview"], "Steps", option => { showPreview = option != "Steps"; applyWidth(); });
         narrowSwitch.Width = 300; narrowSwitch.HorizontalAlignment = HorizontalAlignment.Left; narrowSwitch.Margin = new Thickness(0, 0, 0, 12);
         var bodyHost = new DockPanel();
         bodyHost.Children.Add(narrowSwitch.Dock(System.Windows.Controls.Dock.Top));
@@ -72,14 +95,13 @@ public sealed partial class CreatorPage : PageBase
         applyWidth = () =>
         {
             narrowSwitch.Visibility = narrow ? Visibility.Visible : Visibility.Collapsed;
-            rightGap.Width = new GridLength(narrow ? 0 : 16);
-            rightColumn.Width = narrow ? new GridLength(0) : new GridLength(1.6, GridUnitType.Star);
-            rightColumn.MinWidth = narrow ? 0 : 300;
+            rightGap.Width = new GridLength(narrow ? 0 : 12);
+            rightColumn.Width = new GridLength(narrow ? 0 : 420);
             Grid.SetColumn(right, narrow ? 2 : 4);
             right.Visibility = !narrow || showPreview ? Visibility.Visible : Visibility.Collapsed;
             centre.Visibility = !narrow || !showPreview ? Visibility.Visible : Visibility.Collapsed;
         };
-        bodyHost.SizeChanged += (_, e) => { var now = e.NewSize.Width < 1000; if (now != narrow) { narrow = now; applyWidth(); } };
+        bodyHost.SizeChanged += (_, e) => { var now = e.NewSize.Width < 1100; if (now != narrow) { narrow = now; applyWidth(); } };
         applyWidth();
         Layout(header, bodyHost);
 
@@ -198,6 +220,7 @@ public sealed partial class CreatorPage : PageBase
         RefreshPreview();
         RefreshChecks();
         UpdateSubtitle();
+        RefreshPresetChips();
     }
 
     private void UpdateUndoButtons()
@@ -213,8 +236,16 @@ public sealed partial class CreatorPage : PageBase
         parts.Add($"{doc.Stages.Count} {Loc.T(doc.Stages.Count == 1 ? "stage" : "stages")}");
         var count = DockerfileModel.InstructionCount(doc);
         parts.Add($"{count} {Loc.T(count == 1 ? "instruction" : "instructions")}");
-        parts.Add(savedPath.Length > 0 ? Loc.T("last saved to") + " " + savedPath : Loc.T("draft kept automatically"));
+        parts.Add(DockerfileOutline.SaveState(savedPath, savedText, DockerfileModel.Render(doc)) switch
+        {
+            CreatorSaveState.DraftOnly => Loc.T("draft kept automatically"),
+            CreatorSaveState.Saved => Loc.T("last saved to") + " " + savedPath,
+            _ => Loc.T("unsaved changes") + " · " + savedPath,
+        });
         subtitle.Text = string.Join(" · ", parts);
+        subtitle.ToolTip = subtitle.Text;
+        subtitle.TextTrimming = TextTrimming.CharacterEllipsis;
+        subtitle.TextWrapping = TextWrapping.NoWrap;
     }
 
     private void Undo()
@@ -275,7 +306,7 @@ public sealed partial class CreatorPage : PageBase
         doc = replacement;
         selectedStage = Math.Max(0, doc.Stages.Count - 1);
         expanded = null; highlighted = null;
-        savedPath = "";
+        savedPath = ""; savedText = "";
         Changed();
         recordTimer.Stop();
         RecordDraft(null);
@@ -318,12 +349,32 @@ public sealed partial class CreatorPage : PageBase
         var folder = savedPath.Length > 0 ? Path.GetDirectoryName(savedPath) : Host.Settings.BuildFolder;
         if (Directory.Exists(folder)) dialog.InitialDirectory = folder;
         if (dialog.ShowDialog(Window.GetWindow(this)) != true) return;
-        var path = Path.GetFullPath(dialog.FileName);
+        WriteDockerfile(Path.GetFullPath(dialog.FileName), text);
+    }
+
+    /// <summary>Saves to the file the draft was last saved to; without one, asks where (Save as).</summary>
+    private void Save()
+    {
+        FlushCommit();
+        if (savedPath.Length == 0) { SaveAs(); return; }
+        var text = DockerfileModel.Render(doc);
+        // Keep what was on disk in local history first, in case the file changed outside the Creator.
+        if (File.Exists(savedPath) && new FileInfo(savedPath).Length <= 4 * 1024 * 1024)
+        {
+            var previous = File.ReadAllText(savedPath);
+            if (previous != text && previous != savedText) Host.History.Record("dockerfile", "Before saving " + savedPath + " from the Creator", new Dictionary<string, string> { ["files/dockerfile/previous/" + HistoryStore.SafeName(savedPath) + ".txt"] = previous });
+        }
+        WriteDockerfile(savedPath, text);
+    }
+
+    private void WriteDockerfile(string path, string text)
+    {
         if (Encoding.UTF8.GetByteCount(text) > DockerfileModel.MaxSourceBytes) throw new InvalidOperationException("The Dockerfile is larger than the 1 MiB limit.");
         var temporary = path + "." + Guid.NewGuid().ToString("N")[..8] + ".tmp";
         File.WriteAllText(temporary, text);
         File.Move(temporary, path, true);
         savedPath = path;
+        savedText = text;
         Host.History.Record("dockerfile", "Saved " + path + " from the Creator", new Dictionary<string, string> { ["files/dockerfile/" + HistoryStore.SafeName(path) + ".txt"] = text, ["files/creator/creator-draft.json"] = DockerfileModel.Serialize(doc) });
         UpdateSubtitle();
         Host.Notify.Success(Loc.Voice(Loc.T("Dockerfile saved to") + " " + path + ".", "Saved.", "儲存咗。"));
