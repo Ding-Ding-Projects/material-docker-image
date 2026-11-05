@@ -69,23 +69,50 @@ public sealed class ContextPluginsPanel : Border
         var shown = plugins.Where(p => search.Matches(p.SearchText)).OrderBy(p => p.Failed ? 0 : 1).ThenBy(p => p.Name, StringComparer.OrdinalIgnoreCase).ToList();
         if (plugins.Count == 0) { list.Children.Add(Ui.Caption("No plugins reported. Docker Desktop installs buildx and compose as CLI plugins; standalone installations may not have any.")); return; }
         if (shown.Count == 0) { list.Children.Add(Ui.Caption(search.Status.Length > 0 ? search.Status : "No plugins match the search.")); return; }
-        foreach (var p in shown) list.Children.Add(Row(p).Margin(0, 0, 0, 8));
+        list.Children.Add(HeaderRow());
+        foreach (var p in shown) list.Children.Add(Row(p));
     }
 
-    private static Border Row(ContextPluginEntry p)
+    private static readonly double[] Columns = [140, 110, 0, 120];
+
+    private static Grid TableGrid(params UIElement[] cells)
     {
-        var icon = Ui.Icon(p.Failed ? Icons.ErrorOutline : Icons.Extension, 22, true, p.Failed ? "Error" : "Primary");
-        var title = Ui.HStack(8, Ui.Text(p.Name.Length > 0 ? p.Name : "(unnamed)", 14, FontWeights.SemiBold, "OnSurface", false, false),
-            p.Version.Length > 0 ? Ui.Badge(p.Version, Tone.Neutral) : null,
-            p.Failed ? Ui.Badge(Loc.T("Failed to load"), Tone.Error) : null);
-        var body = Ui.VStack(4, title,
-            p.Description.Length > 0 || p.Vendor.Length > 0 ? Ui.Caption(string.Join(" · ", new[] { p.Description, p.Vendor.Length > 0 ? Loc.T("Vendor") + ": " + p.Vendor : "" }.Where(s => s.Length > 0))) : null,
-            p.Path.Length > 0 ? Ui.Mono(PageParts.Sanitize(p.Path), 12, "OnSurfaceVariant", true) : null,
+        var g = new Grid();
+        for (var i = 0; i < Columns.Length; i++)
+        {
+            if (i > 0) g.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+            g.ColumnDefinitions.Add(new ColumnDefinition { Width = Columns[i] == 0 ? new GridLength(1, GridUnitType.Star) : new GridLength(Columns[i]) });
+        }
+        for (var i = 0; i < cells.Length; i++) { Grid.SetColumn(cells[i], i * 2); g.Children.Add(cells[i]); }
+        return g;
+    }
+
+    private static FrameworkElement HeaderRow()
+    {
+        var row = TableGrid(Ui.Overline("Plugin"), Ui.Overline("Version"), Ui.Overline("Provides"), Ui.Overline("Status"));
+        row.Height = 36; row.Margin = new Thickness(8, 0, 8, 0);
+        foreach (UIElement c in row.Children) if (c is FrameworkElement f) f.VerticalAlignment = VerticalAlignment.Center;
+        return row;
+    }
+
+    private static FrameworkElement Row(ContextPluginEntry p)
+    {
+        var name = Ui.Mono(p.Name.Length > 0 ? p.Name : "(unnamed)", 13, "OnSurface");
+        name.FontWeight = FontWeights.SemiBold;
+        var version = Ui.Mono(p.Version, 12, "OnSurfaceVariant");
+        var detail = string.Join(" · ", new[] { p.Description, p.Vendor.Length > 0 ? Loc.T("Vendor") + ": " + p.Vendor : "" }.Where(s => s.Length > 0));
+        var provides = Ui.VStack(2,
+            Ui.Text(detail.Length > 0 ? detail : "-", 14, null, "OnSurfaceVariant", true, false),
+            p.Path.Length > 0 ? Ui.Mono(PageParts.Sanitize(p.Path), 11, "OnSurfaceVariant", true) : null,
             p.Failed ? Ui.Text(p.Error, 12, null, "Error", true, false) : null);
-        var row = new DockPanel();
-        row.Children.Add(icon.Dock(Dock.Left).Margin(0, 2, 12, 0));
-        icon.VerticalAlignment = VerticalAlignment.Top;
-        row.Children.Add(body);
-        return Ui.Card(row, 12, "SurfaceContainer", 12);
+        var chip = Ui.Badge(p.Failed ? Loc.T("Failed to load") : Loc.T("Enabled"), p.Failed ? Tone.Error : Tone.Success, false);
+        chip.HorizontalAlignment = HorizontalAlignment.Left;
+        var cells = new UIElement[] { name, version, provides, chip };
+        foreach (var c in cells) if (c is FrameworkElement f) f.VerticalAlignment = VerticalAlignment.Center;
+        var row = TableGrid(cells);
+        var host = new Border { Child = row, MinHeight = 52, Padding = new Thickness(8, 6, 8, 6), BorderThickness = new Thickness(0, 1, 0, 0) };
+        host.SetResourceReference(Border.BorderBrushProperty, "SurfaceHighest");
+        System.Windows.Automation.AutomationProperties.SetName(host, p.Name + (p.Version.Length > 0 ? " " + p.Version : "") + ", " + (p.Failed ? "failed to load" : "enabled"));
+        return host;
     }
 }

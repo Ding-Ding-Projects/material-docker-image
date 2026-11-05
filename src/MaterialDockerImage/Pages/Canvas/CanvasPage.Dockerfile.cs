@@ -55,7 +55,7 @@ public sealed partial class CanvasPage
             var (x, y) = positions[stage.Index];
             var isTarget = target.Length > 0 ? string.Equals(stage.Name, target, StringComparison.OrdinalIgnoreCase) : stage.Index == lastIndex;
             if (!graph.Stages.Any(s => s.Index < stage.Index && string.Equals(s.Name, stage.Base, StringComparison.OrdinalIgnoreCase)))
-                surface.AddLabel(x + 4, y - 22, stage.Base, "OnSurfaceVariant");
+                surface.AddBasePill(x, y - 36, stage.Base, 8);
             surface.AddNode(x, y, GraphSurface.NodeWidth, StageCard(stage, isTarget), $"Stage {stage.Name}" + (isTarget ? ", build target" : ""), StageKey(stage), () => SelectStage(stage), isTarget ? "SecondaryContainer" : "SurfaceContainer").Height = StageHeight;
         }
         var pairCounts = new Dictionary<(int, int), int>();
@@ -122,7 +122,7 @@ public sealed partial class CanvasPage
         if (stage.Instructions.Count > 4) lines.Add($"… {stage.Instructions.Count - 4} {Loc.T("more")}");
         var body = Ui.Mono(lines.Count == 0 ? Loc.T("(no instructions)") : string.Join("\n", lines), 12, isTarget ? "OnSecondaryContainer" : "OnSurfaceVariant", false);
         body.TextTrimming = TextTrimming.CharacterEllipsis;
-        var footer = Ui.Text($"{stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (stage.Platform.Length > 0 ? " · " + stage.Platform.Replace("--platform=", "") : ""), 12, null, isTarget ? "OnSecondaryContainer" : "Outline", false, false);
+        var footer = Ui.Text($"{Loc.T("Line")} {stage.Line + 1} · {stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (stage.Platform.Length > 0 ? " · " + stage.Platform.Replace("--platform=", "") : ""), 12, null, isTarget ? "OnSecondaryContainer" : "Outline", false, false);
         return Ui.VStack(8, header, body, footer);
     }
 
@@ -160,6 +160,7 @@ public sealed partial class CanvasPage
         if (graph == null) return;
         SyncSelection(StageKey(stage));
         inspector.Children.Clear();
+        inspectorActions.Content = null;
         var numbered = int.TryParse(stage.Name, out _);
         var alias = Ui.Input(stage.Name, "Alias", true);
         var baseImage = Ui.Input(stage.Base, "Base image", true);
@@ -175,10 +176,22 @@ public sealed partial class CanvasPage
         UIElement Relation(GraphEdge e, bool isIncoming)
         {
             var other = graph.Stages[isIncoming ? e.From : e.To];
-            var label = e.Label == "FROM" ? (isIncoming ? "FROM" : "base of") : "COPY --from";
-            var b = Ui.Button(other.Name, isIncoming ? Icons.ArrowBack : Icons.ArrowForward, ButtonKind.Text, () => SelectStage(other), false);
-            b.HorizontalAlignment = HorizontalAlignment.Left; b.MinHeight = 32; b.Height = 32;
-            return Ui.Columns(8, [1, 0], b, Ui.Mono(label, 12, "OnSurfaceVariant"));
+            var kind = e.Label == "FROM" ? (isIncoming ? "FROM" : "base of") : "COPY --from";
+            // Show the copied path as the design does; the link kind stays in the tooltip.
+            var detail = kind;
+            if (e.Label != "FROM" && isIncoming && CopyLabel(graph, e).Split('\n') is { Length: > 1 } parts) detail = parts[1];
+            var name = Ui.Mono(other.Name, 12, "OnSurface");
+            name.TextTrimming = TextTrimming.CharacterEllipsis;
+            var meta = Ui.Mono(detail, 12, "OnSurfaceVariant");
+            meta.TextTrimming = TextTrimming.CharacterEllipsis; meta.MaxWidth = 150;
+            var row = Ui.Card(Ui.Columns(8, [1, 0], name, meta), 0, "SurfaceContainer", 8);
+            row.Height = 36; row.Padding = new Thickness(12, 0, 12, 0); row.Cursor = System.Windows.Input.Cursors.Hand;
+            row.ToolTip = kind + " · " + other.Name;
+            System.Windows.Automation.AutomationProperties.SetName(row, other.Name + ", " + kind);
+            row.Focusable = true;
+            row.MouseLeftButtonUp += (_, _) => SelectStage(other);
+            row.KeyDown += (_, k) => { if (k.Key is System.Windows.Input.Key.Enter or System.Windows.Input.Key.Space) { SelectStage(other); k.Handled = true; } };
+            return row;
         }
 
         var target = BuildTarget();
@@ -211,7 +224,8 @@ public sealed partial class CanvasPage
         if (incoming.Count > 0) inspector.Children.Add(Section("Receives from", incoming.Select(e => Relation(e, true)).ToArray()));
         if (outgoing.Count > 0) inspector.Children.Add(Section("Feeds", outgoing.Select(e => Relation(e, false)).ToArray()));
         inspector.Children.Add(targetSwitch.Margin(0, 16, 0, 0));
-        inspector.Children.Add(Ui.Wrap(8, openSource, buildStage).Margin(0, 12, 0, 0));
+        var actionRow = Ui.Columns(8, [1, 1], openSource, buildStage);
+        inspectorActions.Content = actionRow;
         inspector.Children.Add(Section("Source lines", Ui.Card(sourceLines, 12, "SurfaceContainer", 12)));
     }
 

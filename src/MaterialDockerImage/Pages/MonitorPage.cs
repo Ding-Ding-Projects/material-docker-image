@@ -22,14 +22,17 @@ public sealed class MonitorPage : PageBase
     private readonly LiveChart cpuChart = new() { SeriesName = "CPU", SeriesBrushKey = "Primary", MinimumCeiling = 10, MinHeight = 220 };
     private readonly LiveChart memChart = new() { SeriesName = "Memory", SeriesBrushKey = "Tertiary", MinimumCeiling = 1024 * 1024, MinHeight = 160 };
     private readonly TextBlock subtitle;
-    private readonly TextBlock cpuTitle = Ui.Text("CPU", 16, FontWeights.SemiBold);
-    private readonly TextBlock cpuValue = Ui.Text("", 28, FontWeights.SemiBold, "Primary", false, false);
-    private readonly TextBlock cpuDetail = Ui.Caption("");
-    private readonly TextBlock memTitle = Ui.Text("Memory", 16, FontWeights.SemiBold);
-    private readonly TextBlock memDetail = Ui.Caption("");
+    private readonly TextBlock cpuTitle = Ui.Caption("CPU");
+    private readonly TextBlock cpuValue = Ui.Text("", 40, FontWeights.SemiBold, "OnSurface", false, false);
+    private readonly TextBlock cpuDetail = Ui.Text("", 12, null, "OnSurfaceVariant");
+    private readonly Border cpuDelta = new() { CornerRadius = new CornerRadius(12), Padding = new Thickness(10, 3, 10, 3), VerticalAlignment = VerticalAlignment.Bottom, Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
+    private readonly TextBlock cpuDeltaText = Ui.Text("", 12, null, "OnWarningContainer", false, false);
+    private readonly TextBlock memTitle = Ui.Caption("Memory");
+    private readonly TextBlock memValue = Ui.Text("", 24, FontWeights.SemiBold, "OnSurface", false, false);
+    private readonly TextBlock memDetail = Ui.Text("", 12, null, "OnSurfaceVariant", false, false);
     private readonly TextBlock stateText = Ui.Caption("");
     private readonly SearchFilter search = new("Search containers", 260);
-    private readonly StackPanel cards = new();
+    private readonly System.Windows.Controls.Primitives.UniformGrid cards = new() { Columns = 2, Margin = new Thickness(-6) };
     private readonly ContentControl cardsEmpty = new();
     private readonly Dictionary<string, ContainerStatCard> cardByName = new(StringComparer.Ordinal);
     private bool live = true;
@@ -43,32 +46,46 @@ public sealed class MonitorPage : PageBase
         timer.Tick += async (_, _) => await Tick();
         ApplyInterval();
         var intervalOptions = Intervals.Select(i => $"{i} s").ToList();
-        var interval = Ui.Segmented(intervalOptions, $"{CurrentInterval} s", v =>
+        var interval = Ui.Combo(intervalOptions, $"{CurrentInterval} s");
+        interval.MinWidth = 96;
+        interval.SelectionChanged += (_, _) =>
         {
+            if (interval.SelectedItem is not string v) return;
             var seconds = int.Parse(v.Split(' ')[0], CultureInfo.InvariantCulture);
             if (seconds == Host.Settings.MonitorIntervalSeconds) return;
             Host.Settings.MonitorIntervalSeconds = seconds;
             Host.SaveSettings($"Monitor sampling interval set to {seconds} s");
             ApplyInterval();
-        }, false);
-        // No fixed width: the segments size to their labels so the selected one keeps its check mark and text.
-        interval.HorizontalAlignment = HorizontalAlignment.Left;
+        };
+        interval.ToolTip = Loc.T("How often the page asks the engine for one stats reading of every running container. Shorter intervals give smoother charts and cost more engine work. Saved with your settings.");
         var liveToggle = Ui.Segmented(["Paused", "Live"], "Live", v => SetLive(v == "Live"));
         liveToggle.HorizontalAlignment = HorizontalAlignment.Left;
+        liveToggle.VerticalAlignment = VerticalAlignment.Bottom;
+        liveToggle.ToolTip = Loc.T("Live polls while this page is visible. Paused keeps the samples already taken and stops asking the engine. Polling also stops whenever you leave this page.");
+        System.Windows.Automation.AutomationProperties.SetName(liveToggle, Loc.T("Sampling"));
         var header = Ui.Header("Live monitor", "Live CPU, memory, network and disk from docker stats", out subtitle,
-            Ui.Field("Sampling interval", interval, "How often the page asks the engine for one stats reading of every running container. Shorter intervals give smoother charts and cost more engine work. Saved in settings.json as MonitorIntervalSeconds (default 2 s, built-in).", "2 s keeps 120 samples, about 4 minutes of history per container."),
-            Ui.Field("Sampling", liveToggle, "Live polls while this page is visible. Paused keeps the samples already taken and stops asking the engine. Polling also stops whenever you leave this page."),
+            Ui.Field("Sampling interval", interval),
+            liveToggle,
             Ui.AsyncIconButton(Icons.Refresh, "Take one sample now", () => Tick(force: true)));
 
         cpuChart.Format = v => v.ToString("0.0", CultureInfo.CurrentCulture) + "%";
         memChart.Format = v => Ui.FormatBytes(v);
-        var cpuCard = Ui.Card(Ui.Rows(8, [0, 1],
-            Ui.VStack(2, new DockPanel { Children = { cpuValue.Dock(Dock.Right), cpuTitle } }, cpuDetail),
-            cpuChart), 16, "SurfaceLow");
-        var memCard = Ui.Card(Ui.Rows(8, [0, 1],
-            Ui.VStack(2, memTitle, memDetail),
-            memChart), 16, "SurfaceLow");
-        var charts = Ui.Rows(16, [3, 2], cpuCard, memCard);
+        cpuDelta.Child = cpuDeltaText;
+        cpuDelta.SetResourceReference(Border.BackgroundProperty, "WarningContainer");
+        var cpuValues = Ui.HStack(10, cpuValue, cpuDelta);
+        cpuDetail.TextAlignment = TextAlignment.Right; cpuDetail.MaxWidth = 380; cpuDetail.VerticalAlignment = VerticalAlignment.Bottom;
+        var cpuHead = new DockPanel();
+        cpuHead.Children.Add(cpuDetail.Dock(Dock.Right));
+        cpuHead.Children.Add(Ui.VStack(2, cpuTitle, cpuValues));
+        var cpuCard = Ui.Card(Ui.Rows(8, [0, 1], cpuHead, cpuChart), 16, "SurfaceLow");
+        cpuCard.Padding = new Thickness(20, 16, 20, 12);
+        var memHead = new DockPanel();
+        memDetail.VerticalAlignment = VerticalAlignment.Bottom; memDetail.Margin = new Thickness(10, 0, 0, 3);
+        memHead.Children.Add(memDetail.Dock(Dock.Right));
+        memHead.Children.Add(memValue.Dock(Dock.Right));
+        memHead.Children.Add(memTitle);
+        var memCard = Ui.Card(Ui.Rows(6, [0, 1], memHead, memChart), 16, "SurfaceLow");
+        memCard.Padding = new Thickness(20, 16, 20, 12);
 
         search.Width = double.NaN;
         search.Changed += FilterCards;
@@ -76,11 +93,12 @@ public sealed class MonitorPage : PageBase
             Ui.Text("Containers", 16, FontWeights.SemiBold),
             search,
             new Grid { Children = { Ui.Scroll(cards), cardsEmpty } });
-        main = Ui.Columns(16, [1, -340], charts, side);
-        var body = Ui.Rows(8, [1, 0], main, stateText);
+        // Design: CPU card on top, then the memory chart beside a 2 x 2 grid of container cards.
+        main = Ui.Columns(12, [1, -520], memCard, side);
+        var body = Ui.Rows(8, [1, 0], Ui.Rows(12, [5, 4], cpuCard, main), stateText);
         Layout(header, body);
         IsVisibleChanged += (_, _) => UpdateTimer();
-        SizeChanged += (_, _) => main.ColumnDefinitions[2].Width = new GridLength(ActualWidth < 1100 ? 260 : 340);
+        SizeChanged += (_, _) => main.ColumnDefinitions[2].Width = new GridLength(ActualWidth < 1100 ? 340 : 520);
         SetCharts();
     }
 
@@ -142,7 +160,7 @@ public sealed class MonitorPage : PageBase
         {
             if (!cardByName.TryGetValue(name, out var card))
             {
-                card = new ContainerStatCard(name) { Margin = new Thickness(0, 0, 0, 10) };
+                card = new ContainerStatCard(name) { Margin = new Thickness(6) };
                 card.Picked += Pick;
                 cardByName[name] = card;
                 cards.Children.Add(card);
@@ -205,12 +223,26 @@ public sealed class MonitorPage : PageBase
         memChart.SetData(samples.Where(s => s.MemoryBytes.HasValue).Select(s => new ChartPoint(s.Time, s.MemoryBytes!.Value)).ToList(), state, text);
         cpuTitle.Text = Loc.T("CPU") + (focused != null ? " · " + focused : "");
         memTitle.Text = Loc.T("Memory") + (focused != null ? " · " + focused : "");
+        var cpuPoints = samples.Where(s => s.CpuPercent.HasValue).ToList();
+        cpuDelta.Visibility = Visibility.Collapsed;
+        if (cpuPoints.Count > 1)
+        {
+            var latest = cpuPoints[^1];
+            var earlier = cpuPoints.LastOrDefault(s => (latest.Time - s.Time).TotalSeconds >= 30);
+            if (earlier != null && Math.Abs(latest.CpuPercent!.Value - earlier.CpuPercent!.Value) >= 0.1)
+            {
+                var d = latest.CpuPercent!.Value - earlier.CpuPercent!.Value;
+                cpuDeltaText.Text = Loc.Line($"{(d >= 0 ? "+" : "-")}{Math.Abs(d):0.0} points in {(int)(latest.Time - earlier.Time).TotalSeconds} s");
+                cpuDelta.Visibility = Visibility.Visible;
+            }
+        }
         var cpu = samples.Where(s => s.CpuPercent.HasValue).Select(s => s.CpuPercent!.Value).ToList();
         cpuValue.Text = cpu.Count > 0 ? $"{cpu[^1]:0.0}%" : "";
         cpuDetail.Text = cpu.Count > 0 ? $"Average {cpu.Average():0.0}% · peak {cpu.Max():0.0}% over {cpu.Count} sample{(cpu.Count == 1 ? "" : "s")} · 100% equals one full CPU core" : Loc.T("No samples yet");
         var last = samples.Count > 0 ? samples[^1] : null;
-        memDetail.Text = last?.MemoryBytes is { } used
-            ? $"{Ui.FormatBytes(used)}" + (last.MemoryLimitBytes is { } limit ? $" of {Ui.FormatBytes(limit)} limit" : "") + (last.MemoryPercent is { } pct ? $" · {pct:0.0}%" : "")
+        memValue.Text = last?.MemoryBytes is { } used ? Ui.FormatBytes(used) : "";
+        memDetail.Text = last?.MemoryBytes != null
+            ? (last.MemoryLimitBytes is { } limit ? $"of {Ui.FormatBytes(limit)} limit" : "") + (last.MemoryPercent is { } pct ? (last.MemoryLimitBytes != null ? " · " : "") + $"{pct:0.0}%" : "")
             : Loc.T("No samples yet");
     }
 
