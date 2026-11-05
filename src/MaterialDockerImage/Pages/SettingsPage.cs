@@ -102,10 +102,10 @@ public sealed partial class SettingsPage : PageBase
         if (!force && twoColumns == two) return;
         twoColumns = two;
         columnA.Children.Clear(); columnB.Children.Clear();
-        masonry.Children.Clear(); masonry.ColumnDefinitions.Clear();
+        masonry.Children.Clear(); masonry.ColumnDefinitions.Clear(); masonry.RowDefinitions.Clear();
         masonry.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         masonry.Children.Add(columnA);
-        Grid.SetColumn(columnA, 0);
+        Grid.SetColumn(columnA, 0); Grid.SetRow(columnA, 0);
         if (!two)
         {
             foreach (var (card, _) in placed) { card.Margin = new Thickness(0, 0, 0, 16); columnA.Children.Add(card); }
@@ -115,9 +115,21 @@ public sealed partial class SettingsPage : PageBase
         masonry.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         masonry.Children.Add(columnB);
         Grid.SetColumn(columnB, 2);
+        // The Appearance studio needs the full width for its three panes, so its card spans both columns above the rest.
+        sectionCards.TryGetValue("Appearance", out var wide);
+        if (wide != null && placed.Any(p => p.Card == wide))
+        {
+            masonry.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            masonry.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            wide.Margin = new Thickness(0, 0, 0, 16);
+            masonry.Children.Add(wide); Grid.SetRow(wide, 0); Grid.SetColumn(wide, 0); Grid.SetColumnSpan(wide, 3);
+            Grid.SetRow(columnA, 1); Grid.SetRow(columnB, 1);
+        }
+        else { Grid.SetRow(columnB, 0); wide = null; }
         int a = 0, b = 0;
         foreach (var (card, weight) in placed)
         {
+            if (card == wide) continue;
             card.Margin = new Thickness(0, 0, 0, 16);
             if (a <= b) { columnA.Children.Add(card); a += weight; } else { columnB.Children.Add(card); b += weight; }
         }

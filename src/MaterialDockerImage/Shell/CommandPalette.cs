@@ -58,7 +58,7 @@ public sealed class CommandPalette
         string? LockOf(AppCommand command) => PaletteLocks.LockIdFor(command.Id) is { } id && host.IsLocked(id) ? id : null;
         void AskUnlock(AppCommand command, string id)
         {
-            _ = Shell.LockUi.UnlockThenAsync(id, Loc.T(command.Title), () => { });
+            _ = Shell.LockUi.UnlockThenAsync(id, Loc.Lead(command.Title), () => { });
             Fill();
         }
         var note = Ui.Caption("");
@@ -73,7 +73,7 @@ public sealed class CommandPalette
         void Fill()
         {
             results.Children.Clear(); runnable.Clear(); selected = 0;
-            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(CommandDescriptions.SearchText(Loc.T(c.Title), c.Title, c.Description is { } d ? Loc.T(d) : null, c.Description, c.Keywords, c.Group), LockOf(c) != null)));
+            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(CommandDescriptions.SearchText(Loc.Lead(c.Title), c.Title, c.Description is { } d ? Loc.T(d) : null, c.Description, c.Keywords, c.Group), LockOf(c) != null)));
             var shown = LockedResults.Apply(found, c => LockOf(c) != null, host.Settings.HideLockedInSearch, out var hidden);
             note.Text = LockedResults.HiddenStatement(hidden, Loc.T);
             note.Visibility = hidden > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -111,7 +111,7 @@ public sealed class CommandPalette
                         var chip = Ui.Badge(Loc.T(LockedResults.Marker), Tone.Warning);
                         row.Children.Add(chip.Dock(Dock.Right));
                     }
-                    var titleText = Loc.T(command.Title);
+                    var titleText = Loc.Lead(command.Title);
                     var sub = SubLine(command, search, titleText);
                     row.Children.Add(Ui.VStack(1, Highlighted(titleText, search, 14, "OnSurface"), Highlighted(sub, search, 12, "OnSurfaceVariant")));
                     if (lockId != null && command.Run == null)
@@ -124,7 +124,7 @@ public sealed class CommandPalette
                         var button = new Button { Style = (Style)Application.Current.FindResource("Btn.Base"), Content = row, HorizontalContentAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(12, 0, 12, 0), FontWeight = FontWeights.Normal, MinHeight = 52, Margin = new Thickness(0, 1, 0, 1) };
                         button.SetResourceReference(Control.BackgroundProperty, "SurfaceContainer");
                         button.SetResourceReference(Control.ForegroundProperty, "OnSurface");
-                        System.Windows.Automation.AutomationProperties.SetName(button, Loc.T(command.Title) + (lockId != null ? ", " + Loc.T("locked") : "") + (command.GestureText.Length > 0 ? ", shortcut " + command.GestureText : ""));
+                        System.Windows.Automation.AutomationProperties.SetName(button, Loc.Lead(command.Title) + (lockId != null ? ", " + Loc.T("locked") : "") + (command.GestureText.Length > 0 ? ", shortcut " + command.GestureText : ""));
                         System.Windows.Automation.AutomationProperties.SetHelpText(button, sub);
                         var c = command;
                         button.Click += (_, _) => Run(c);

@@ -100,7 +100,8 @@ internal sealed class SettingRows
     {
         var hidden = SchoolHiddenControls.HidesSetting(id, Host.Settings.SchoolMode);
         var provenance = value == null ? null : Ui.Text(ProvenanceText(value, format), 12, null, "Outline");
-        var title = new StackPanel { Orientation = Orientation.Horizontal };
+        // A wrap panel offers the label the row width, so a long (bilingual) label wraps instead of running out of the card.
+        var title = new WrapPanel();
         title.Children.Add(Ui.Text(label, 14, FontWeights.SemiBold));
         // Every saved setting gets an info icon: hand-written guidance when the row has it, otherwise a generic default-and-undo note.
         info ??= value == null ? null : InfoGuidance.ForSavedSetting(explanation, FormatDefault(value, format));
@@ -149,7 +150,7 @@ internal sealed class SettingRows
     /// Adds the lock button to a row's title. A locked row is read-only: its control is disabled and the note says how to unlock it.
     /// Unlocking asks for a confirmation. A lock is a speed bump for oneself, not security, and the confirmation says so.
     /// </summary>
-    private void AddLock(string id, string label, StackPanel title, TextBlock note, FrameworkElement control)
+    private void AddLock(string id, string label, Panel title, TextBlock note, FrameworkElement control)
     {
         Button? button = null;
         LockUi.SetClickTarget(control, id, label);

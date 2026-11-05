@@ -135,6 +135,8 @@ public static class CameraQrChecks
         {
             Check(MaterialDockerImage.Services.Loc.State("Created") == "已建立" && MaterialDockerImage.Services.Loc.T("Created") != "已建立", "the Created state chip uses state wording, not the column header");
             Check(MaterialDockerImage.Services.Loc.State("Running") == MaterialDockerImage.Services.Loc.T("Running"), "states without their own wording fall back to the plain translation");
+            Check(MaterialDockerImage.Services.Loc.Lead("Go to Containers") == "前往 " + MaterialDockerImage.Services.Loc.T("Containers"), "a palette title translates its known tail with the head");
+            Check(MaterialDockerImage.Services.Loc.Lead("Go to my-custom-thing") == "前往 my-custom-thing", "an unknown tail stays literal");
         }
         finally { MaterialDockerImage.Services.Loc.Language = before; }
         Check(MaterialDockerImage.Services.Loc.State("Created") == "Created", "English state chips keep their word");

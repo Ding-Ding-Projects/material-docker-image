@@ -187,10 +187,10 @@ public sealed partial class CreatorPage
     /// <summary>Capture mode only: opens the first RUN step of the selected stage, as the open-step view of the board shows.</summary>
     internal bool CaptureOpenStep()
     {
-        if (doc.Stages.Count == 0) return false;
-        var run = doc.Stages[selectedStage].Instructions.FirstOrDefault(i => i.Kind == InstructionKind.Run);
-        if (run == null) return false;
-        OpenStep(run, false);
+        var index = doc.Stages.FindIndex(s => s.Instructions.Any(i => i.Kind == InstructionKind.Run));
+        if (index < 0) return false;
+        if (index != selectedStage) { FlushCommit(); selectedStage = index; expanded = null; RebuildStageEditor(); UpdateStageButtons(); }
+        OpenStep(doc.Stages[index].Instructions.First(i => i.Kind == InstructionKind.Run), false);
         return true;
     }
 

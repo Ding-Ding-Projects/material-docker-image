@@ -132,5 +132,23 @@ public static partial class Loc
         yield return new("provenance unavailable", "冇來源資料");
         yield return new("Search commands, resources and settings", "搜尋指令、資源同設定");
         yield return new("state:Created", "已建立");
+        yield return new("Open command palette", "打開指令面板");
+        yield return new("Search open tabs", "搜尋打開咗嘅分頁");
+        yield return new("Close tabs containing text…", "閂晒標題有某段文字嘅分頁…");
+        yield return new("Close tabs not containing text…", "閂晒標題冇某段文字嘅分頁…");
+        yield return new("Show notification centre", "顯示通知中心");
+        yield return new("Accessibility tools", "無障礙工具");
+        yield return new("Refresh engine contexts", "重新整理引擎 context");
+        yield return new("Output panel open", "輸出面板已打開");
+        yield return new("No notifications", "冇通知");
+        yield return new("Create network…", "建立網絡…");
+        yield return new("Open appearance editor", "打開外觀編輯器");
+        yield return new("Edit appearance of the focused element…", "編輯焦點元素嘅外觀…");
+        yield return new("Undo appearance change", "復原外觀改動");
+        yield return new("Redo appearance change", "重做外觀改動");
+        yield return new("Motion level", "動態程度");
+        yield return new("Go to", "前往");
+        yield return new("Creator: start from", "Creator：由以下開始");
+        yield return new("Apply appearance preset:", "套用外觀預設：");
     }
 }

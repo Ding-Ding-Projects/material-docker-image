@@ -167,8 +167,16 @@ public static partial class Loc
         for (var count = Math.Min(words.Length - 1, 4); count >= 1; count--)
         {
             var head = string.Join(' ', words.Take(count));
+            var tail = string.Join(' ', words.Skip(count));
+            if (overrides.Count == 0 && Translate(head) is { } headCantonese)
+            {
+                // A tail that is itself a known phrase (a destination name, a preset) is translated with the head, so
+                // "Go to Containers" reads 前往 容器 rather than mixing languages; anything else stays literal.
+                var cantonese = headCantonese + " " + (Translate(tail) ?? tail);
+                return (SchoolMode ? "English" : Language) == "Cantonese" ? cantonese : text + " · " + cantonese;
+            }
             var translated = T(head);
-            if (translated != head) return translated + " " + string.Join(' ', words.Skip(count));
+            if (translated != head) return translated + " " + tail;
         }
         return text;
     }
