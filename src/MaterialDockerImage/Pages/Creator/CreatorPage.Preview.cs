@@ -184,6 +184,19 @@ public sealed partial class CreatorPage
     /// <summary>Capture mode only: opens Suggestions inside the first cache mount of the source so the documentation shows the popup.</summary>
     internal IEnumerable<System.Windows.Controls.Primitives.Popup> CaptureSuggestionPopups => preview.Suggestions?.OpenPopups ?? [];
 
+    /// <summary>Capture mode only: opens the first RUN step of the selected stage, as the open-step view of the board shows.</summary>
+    internal bool CaptureOpenStep()
+    {
+        if (doc.Stages.Count == 0) return false;
+        var run = doc.Stages[selectedStage].Instructions.FirstOrDefault(i => i.Kind == InstructionKind.Run);
+        if (run == null) return false;
+        OpenStep(run, false);
+        return true;
+    }
+
+    /// <summary>Capture mode only: returns to the stage overview.</summary>
+    internal void CaptureCloseStep() => CloseStep();
+
     internal bool CaptureSuggestionsDemo()
     {
         if (preview.Suggestions is not { } suggestions) return false;

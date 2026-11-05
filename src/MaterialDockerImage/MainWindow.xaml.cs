@@ -846,6 +846,7 @@ public partial class MainWindow : Window
         if (Page("Creator") is Pages.CreatorPage creator)
         {
             await Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+            if (creator.CaptureOpenStep()) { await Task.Delay(600); await Shot("creator-step"); creator.CaptureCloseStep(); }
             try { if (creator.CaptureSuggestionsDemo()) { await Task.Delay(400); await Shot("creator-suggestions", creator.CaptureSuggestionPopups.ToList()); } }
             catch (Exception e) when (e is InvalidOperationException or ArgumentException) { }
             Keyboard.ClearFocus();
