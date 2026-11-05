@@ -69,7 +69,7 @@ internal sealed class ImageInspector : Border
         Width = 520;
         Margin = new Thickness(16, 0, 0, 0);
         CornerRadius = new CornerRadius(16);
-        Padding = new Thickness(16);
+        Padding = new Thickness(20);
         SetResourceReference(BackgroundProperty, "SurfaceLow");
         Child = content;
         System.Windows.Automation.AutomationProperties.SetName(this, Loc.T("Selected image"));
@@ -140,7 +140,9 @@ internal sealed class ImageInspector : Border
 
         var layout = new DockPanel { LastChildFill = true };
         layout.Children.Add(Header(image).Dock(System.Windows.Controls.Dock.Top));
-        layout.Children.Add(((FrameworkElement)Actions(image)).Margin(0, 10, 0, 10).Dock(System.Windows.Controls.Dock.Top));
+        // Actions sit at the bottom of the card, as in the design; the tabs take the space between.
+        layout.Children.Add(((FrameworkElement)Actions(image)).Margin(0, 10, 0, 0).Dock(System.Windows.Controls.Dock.Bottom));
+        control.Margin = new Thickness(0, 12, 0, 0);
         layout.Children.Add(control);
         content.Content = layout;
     }

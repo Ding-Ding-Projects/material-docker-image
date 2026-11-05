@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MaterialDockerImage.Core;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
@@ -22,7 +24,9 @@ internal sealed partial class ContainerInspector : Border
     private readonly ContainerLogs logs = new();
     private readonly ContainerExec exec;
     private readonly Grid root = new();
-    private readonly WrapPanel tabsBar = new() { Margin = new Thickness(0, 12, 0, 12) };
+    // One row of equal-width tabs (44 high, no wrapping) under a hairline, as in the design.
+    private readonly Grid tabsGrid = new();
+    private readonly Border tabsBar = new() { BorderThickness = new Thickness(0, 0, 0, 1), Margin = new Thickness(0, 12, 0, 12) };
     private string tab = "Overview";
     private ContainerRow? current;
     private JsonElement? inspect;
@@ -42,12 +46,16 @@ internal sealed partial class ContainerInspector : Border
         SetResourceReference(BackgroundProperty, "SurfaceLow");
         System.Windows.Automation.AutomationProperties.SetName(this, Loc.T("Selected container"));
         var group = "inspector" + Guid.NewGuid().ToString("N");
+        tabsBar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
+        tabsBar.Child = tabsGrid;
         foreach (var name in Tabs)
         {
-            var radio = new RadioButton { Style = (Style)Application.Current.FindResource("Tab.Item"), GroupName = group, Content = Loc.T(name), IsChecked = name == tab, Padding = new Thickness(12, 0, 12, 0) };
+            var radio = new RadioButton { Template = TabTemplate(), GroupName = group, Content = new TextBlock { Text = Loc.T(name), TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13 }, IsChecked = name == tab, Padding = new Thickness(2, 0, 2, 0), ToolTip = Loc.T(name), Cursor = System.Windows.Input.Cursors.Hand, FocusVisualStyle = null };
             System.Windows.Automation.AutomationProperties.SetName(radio, Loc.T(name));
             radio.Checked += (_, _) => { tab = name; ShowTab(); };
-            tabsBar.Children.Add(radio);
+            tabsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            Grid.SetColumn(radio, tabsGrid.ColumnDefinitions.Count - 1);
+            tabsGrid.Children.Add(radio);
         }
         System.Windows.Automation.AutomationProperties.SetName(tabsBar, Loc.T("Container details"));
         var tabsScroll = tabsBar;
@@ -125,20 +133,72 @@ internal sealed partial class ContainerInspector : Border
             b.IsEnabled = enabled;
             return b;
         }
-        var buttons = new WrapPanel { Margin = new Thickness(0, 8, 0, 0) };
-        foreach (var b in new UIElement[]
+        // Lifecycle actions are round buttons on a SurfaceHigh fill; Remove is an outlined red button pushed to the right.
+        Button Round(Button b, string? foreground = null)
         {
-            Life(Icons.PlayArrow, "Start", () => page.LifecycleAsync("start", row), row.IsStopped),
-            Life(Icons.Stop, "Stop", () => page.LifecycleAsync("stop", row), row.IsRunning || row.IsRestarting),
-            Life(Icons.RestartAlt, "Restart", () => page.LifecycleAsync("restart", row), row.IsRunning || row.IsStopped),
-            row.IsPaused ? Life(Icons.PlayArrow, "Unpause", () => page.LifecycleAsync("unpause", row), true) : Life(Icons.Pause, "Pause", () => page.LifecycleAsync("pause", row), row.IsRunning),
-            Life(Icons.Bolt, "Kill", () => page.KillAsync(row), row.IsRunning || row.IsPaused || row.IsRestarting),
-            Ui.AsyncButton("Remove", Icons.Delete, ButtonKind.Text, () => page.RemoveOneAsync(row)),
-        }) buttons.Children.Add(b);
+            b.SetResourceReference(Control.BackgroundProperty, "SurfaceHigh");
+            b.SetResourceReference(Control.ForegroundProperty, foreground ?? "OnSurface");
+            return b;
+        }
+        var lifecycle = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        foreach (var b in new Button[]
+        {
+            Round(Life(Icons.PlayArrow, "Start", () => page.LifecycleAsync("start", row), row.IsStopped)),
+            Round(Life(Icons.Stop, "Stop", () => page.LifecycleAsync("stop", row), row.IsRunning || row.IsRestarting)),
+            Round(Life(Icons.RestartAlt, "Restart", () => page.LifecycleAsync("restart", row), row.IsRunning || row.IsStopped)),
+            row.IsPaused ? Round(Life(Icons.PlayArrow, "Unpause", () => page.LifecycleAsync("unpause", row), true)) : Round(Life(Icons.Pause, "Pause", () => page.LifecycleAsync("pause", row), row.IsRunning)),
+            Round(Life(Icons.Bolt, "Kill", () => page.KillAsync(row), row.IsRunning || row.IsPaused || row.IsRestarting), "Error"),
+        }) { b.Margin = new Thickness(0, 0, 4, 4); lifecycle.Children.Add(b); }
         var more = Ui.IconButton(Icons.MoreVert, "More container actions", () => { });
         more.Click += (_, _) => page.ShowMoreMenu(more, row);
-        buttons.Children.Add(more);
-        return Ui.VStack(0, Ui.Columns(8, [1, 0], title, Ui.Badge(row.StateLabel, row.StateTone)), buttons);
+        more.Margin = new Thickness(0, 0, 4, 4);
+        lifecycle.Children.Add(more);
+        var remove = Ui.AsyncButton("Remove", Icons.Delete, ButtonKind.Outlined, () => page.RemoveOneAsync(row));
+        remove.SetResourceReference(Control.ForegroundProperty, "Error");
+        remove.Margin = new Thickness(8, 0, 0, 4);
+        var buttons = new DockPanel { Margin = new Thickness(0, 8, 0, 0), LastChildFill = true };
+        buttons.Children.Add(remove.Dock(System.Windows.Controls.Dock.Right));
+        buttons.Children.Add(lifecycle);
+        var exec = Ui.Button("Exec", Icons.Terminal, ButtonKind.Tonal, () => SelectTab("Exec"));
+        exec.Height = exec.MinHeight = 36;
+        exec.Padding = new Thickness(14, 0, 14, 0);
+        exec.VerticalAlignment = VerticalAlignment.Top;
+        return Ui.VStack(0, Ui.Columns(8, [1, 0, 0], title, Ui.Badge(row.StateLabel, row.StateTone).Margin(0, 2, 0, 0), exec), buttons);
+    }
+
+    /// <summary>Shows a tab by name (the header's Exec button uses it) and keeps the tab row in step.</summary>
+    private void SelectTab(string name)
+    {
+        foreach (var radio in tabsGrid.Children.OfType<RadioButton>())
+            if (AutomationProperties.GetName(radio) == Loc.T(name)) { radio.IsChecked = true; return; }
+    }
+
+    /// <summary>A secondary tab: transparent, 3px Primary bar and Primary semibold text when selected.</summary>
+    private static ControlTemplate TabTemplate()
+    {
+        var template = new ControlTemplate(typeof(RadioButton));
+        var border = new FrameworkElementFactory(typeof(Border), "bar");
+        border.SetValue(FrameworkElement.HeightProperty, 44.0);
+        border.SetValue(Border.BackgroundProperty, Brushes.Transparent);
+        border.SetValue(Border.BorderThicknessProperty, new Thickness(0, 0, 0, 3));
+        border.SetValue(Border.BorderBrushProperty, Brushes.Transparent);
+        var content = new FrameworkElementFactory(typeof(ContentPresenter));
+        content.SetValue(FrameworkElement.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+        content.SetValue(FrameworkElement.VerticalAlignmentProperty, VerticalAlignment.Center);
+        border.AppendChild(content);
+        template.VisualTree = border;
+        var on = new Trigger { Property = System.Windows.Controls.Primitives.ToggleButton.IsCheckedProperty, Value = true };
+        on.Setters.Add(new Setter(Border.BorderBrushProperty, new DynamicResourceExtension("Primary"), "bar"));
+        on.Setters.Add(new Setter(Control.ForegroundProperty, new DynamicResourceExtension("Primary")));
+        on.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
+        template.Triggers.Add(on);
+        var hover = new Trigger { Property = UIElement.IsMouseOverProperty, Value = true };
+        hover.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("HoverLayer"), "bar"));
+        template.Triggers.Add(hover);
+        var focus = new Trigger { Property = UIElement.IsKeyboardFocusedProperty, Value = true };
+        focus.Setters.Add(new Setter(Border.BackgroundProperty, new DynamicResourceExtension("PressLayer"), "bar"));
+        template.Triggers.Add(focus);
+        return template;
     }
 
     private async Task LoadInspectAsync(ContainerRow row, int myVersion, int myInspect, bool quiet = false)

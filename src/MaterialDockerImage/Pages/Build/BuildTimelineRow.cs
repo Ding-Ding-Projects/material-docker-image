@@ -12,34 +12,42 @@ namespace MaterialDockerImage.Pages;
 /// </summary>
 public sealed class BuildTimelineRow : Border
 {
-    private const double BarWidth = 120;
+    private const double BarWidth = 180;
     private readonly BuildKitStep step;
     private readonly TextBlock icon = Ui.Icon(Icons.Pending, 18, true, "Primary");
     private readonly Border stage;
-    private readonly TextBlock stageText = Ui.Text("", 11, FontWeights.SemiBold, "OnPrimaryContainer", false, false);
-    private readonly TextBlock name = Ui.Mono("", 13, "OnSurface");
-    private readonly Border track = new() { Width = BarWidth, Height = 6, CornerRadius = new CornerRadius(3), VerticalAlignment = VerticalAlignment.Center };
-    private readonly Border fill = new() { Height = 6, CornerRadius = new CornerRadius(3), HorizontalAlignment = HorizontalAlignment.Left };
-    private readonly ProgressBar live = new() { IsIndeterminate = true, Height = 6, Width = BarWidth, VerticalAlignment = VerticalAlignment.Center };
-    private readonly TextBlock duration = Ui.Mono("", 12, "OnSurfaceVariant");
-    private readonly Border cachedBadge = Ui.Badge("CACHED", Tone.Tertiary);
-    private bool hover, isSelected;
+    private readonly TextBlock stageText = Ui.Text("", 11, FontWeights.SemiBold, "OnSurfaceVariant", false, false);
+    private readonly TextBlock name = Ui.Mono("", 12, "OnSurface");
+    private readonly Border track = new() { Height = 8, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center };
+    private readonly Border fill = new() { Height = 8, CornerRadius = new CornerRadius(4), HorizontalAlignment = HorizontalAlignment.Left };
+    private readonly ProgressBar live = new() { IsIndeterminate = true, Height = 6, VerticalAlignment = VerticalAlignment.Center };
+    private readonly TextBlock duration = Ui.Text("", 12, null, "OnSurfaceVariant", false, false);
+    private readonly Border cachedBadge;
+    private bool hover, isSelected, runningNow;
 
     public BuildTimelineRow(BuildKitStep step, Action activate)
     {
         this.step = step;
-        stage = new Border { Child = stageText, CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 2, 8, 2), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 10, 0) };
-        track.SetResourceReference(BackgroundProperty, "SurfaceHighest");
+        // Stage chip: 22 high, radius 6, quiet fill, left aligned in a 72px column.
+        stage = new Border { Child = stageText, Height = 22, CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+        stage.SetResourceReference(BackgroundProperty, "SurfaceHigh");
+        name.TextTrimming = TextTrimming.CharacterEllipsis;
+        name.VerticalAlignment = VerticalAlignment.Center;
+        track.SetResourceReference(BackgroundProperty, "SurfaceHigh");
         track.Child = fill;
-        duration.TextAlignment = TextAlignment.Right; duration.Width = 64;
-        cachedBadge.Margin = new Thickness(8, 0, 0, 0);
-        var barCell = new Grid { Width = BarWidth, Margin = new Thickness(12, 0, 8, 0) };
-        barCell.Children.Add(track); barCell.Children.Add(live);
-        var grid = Ui.Columns(0, [-30, 0, 1, 0, 0, -80], icon, stage, name, barCell, duration, cachedBadge);
+        duration.TextAlignment = TextAlignment.Right;
+        // One 180px cell holds either the CACHED badge or the duration bar, as in the design.
+        var badgeText = Ui.Text(Loc.T("CACHED"), 11, FontWeights.Bold, "OnTertiaryContainer", false, false);
+        cachedBadge = new Border { Child = badgeText, Height = 20, CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 0, 8, 0), HorizontalAlignment = HorizontalAlignment.Left, VerticalAlignment = VerticalAlignment.Center, Visibility = Visibility.Collapsed };
+        cachedBadge.SetResourceReference(BackgroundProperty, "TertiaryContainer");
+        var barCell = new Grid { Width = BarWidth };
+        barCell.Children.Add(track); barCell.Children.Add(live); barCell.Children.Add(cachedBadge);
+        var grid = Ui.Columns(10, [-22, -72, 1, -BarWidth, -52], icon, stage, name, barCell, duration);
         Child = grid;
-        Padding = new Thickness(8, 6, 8, 6);
-        CornerRadius = new CornerRadius(10);
-        Margin = new Thickness(0, 0, 0, 2);
+        Height = 34;
+        Padding = new Thickness(8, 0, 8, 0);
+        CornerRadius = new CornerRadius(8);
+        Margin = new Thickness(0);
         Focusable = true;
         Cursor = Cursors.Hand;
         FocusVisualStyle = null;
@@ -55,39 +63,40 @@ public sealed class BuildTimelineRow : Border
     public void Update(double now, double longest, bool selected)
     {
         isSelected = selected;
-        var (glyph, brush) = step.Status switch
+        var (glyph, brush, filled) = step.Status switch
         {
-            BuildKitStepStatus.Cached => (Icons.Cached, "Tertiary"),
-            BuildKitStepStatus.Done => (Icons.CheckCircle, "Success"),
-            BuildKitStepStatus.Error => (Icons.Error, "Error"),
-            BuildKitStepStatus.Canceled => (Icons.Cancel, "OnSurfaceVariant"),
-            _ => (Icons.Pending, "Primary")
+            BuildKitStepStatus.Cached => (Icons.Cached, "Tertiary", false),
+            BuildKitStepStatus.Done => (Icons.CheckCircle, "Success", true),
+            BuildKitStepStatus.Error => (Icons.Error, "Error", true),
+            BuildKitStepStatus.Canceled => (Icons.Cancel, "OnSurfaceVariant", true),
+            _ => (Icons.Pending, "Primary", false)
         };
         icon.Text = glyph;
+        icon.SetResourceReference(TextBlock.FontFamilyProperty, filled ? "IconFontFilled" : "IconFont");
         icon.SetResourceReference(TextBlock.ForegroundProperty, brush);
-        var label = step.Stage is { } s ? step.Index is { } i ? $"{s} {i}/{step.Total}" : s : step.Index is { } j ? $"{j}/{step.Total}" : "";
-        stageText.Text = label;
-        stage.Visibility = label.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         var internalStep = step.IsInternal || !step.IsInstruction;
-        stage.SetResourceReference(BackgroundProperty, internalStep ? "SurfaceHighest" : "PrimaryContainer");
-        stageText.SetResourceReference(TextBlock.ForegroundProperty, internalStep ? "OnSurfaceVariant" : "OnPrimaryContainer");
-        name.Text = $"#{step.Id}  {step.Name}";
-        name.SetResourceReference(TextBlock.ForegroundProperty, internalStep ? "OnSurfaceVariant" : "OnSurface");
-        var runningNow = step.Status == BuildKitStepStatus.Running;
+        var label = step.Stage is { Length: > 0 } s ? s : internalStep ? "internal" : "";
+        stageText.Text = label;
+        stage.Visibility = label.Length == 0 ? Visibility.Hidden : Visibility.Visible;
+        stage.ToolTip = step.Index is { } i ? $"{label} {i}/{step.Total}" : null;
+        name.Text = step.Name;
+        runningNow = step.Status == BuildKitStepStatus.Running;
+        name.SetResourceReference(TextBlock.ForegroundProperty, runningNow ? "OnSurface" : "OnSurfaceVariant");
+        var cached = step.Status == BuildKitStepStatus.Cached;
         live.Visibility = runningNow ? Visibility.Visible : Visibility.Collapsed;
-        track.Visibility = runningNow ? Visibility.Hidden : Visibility.Visible;
+        track.Visibility = runningNow || cached ? Visibility.Collapsed : Visibility.Visible;
+        cachedBadge.Visibility = cached ? Visibility.Visible : Visibility.Collapsed;
         var elapsed = step.Elapsed(now);
-        fill.Width = Math.Max(step.Status == BuildKitStepStatus.Cached ? 0 : 2, BarWidth * Math.Min(1, elapsed / longest));
-        fill.SetResourceReference(BackgroundProperty, step.Status switch { BuildKitStepStatus.Error => "Error", BuildKitStepStatus.Done => "Primary", _ => "Outline" });
-        duration.Text = step.Status == BuildKitStepStatus.Cached ? "0.0s" : BuildTimelineView.FormatSeconds(elapsed);
-        cachedBadge.Visibility = step.Status == BuildKitStepStatus.Cached ? Visibility.Visible : Visibility.Hidden;
+        fill.Width = Math.Max(2, BarWidth * Math.Min(1, elapsed / longest));
+        fill.SetResourceReference(BackgroundProperty, step.Status switch { BuildKitStepStatus.Error => "Error", BuildKitStepStatus.Running => "Primary", _ => "Outline" });
+        duration.Text = cached ? "0.0 s" : elapsed < 60 ? elapsed.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + " s" : BuildTimelineView.FormatSeconds(elapsed);
         System.Windows.Automation.AutomationProperties.SetName(this, $"{Loc.T("Step")} {step.Id}: {step.Name}, {Loc.T(step.Status.ToString())}, {duration.Text}");
         Paint();
     }
 
     private void Paint()
     {
-        var key = isSelected ? "SecondaryContainer" : hover || IsKeyboardFocused ? "HoverLayer" : null;
+        var key = isSelected ? "SecondaryContainer" : runningNow ? "SurfaceHigh" : hover || IsKeyboardFocused ? "HoverLayer" : null;
         if (key == null) Background = null; else SetResourceReference(BackgroundProperty, key);
     }
 }

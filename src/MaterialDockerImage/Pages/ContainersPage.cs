@@ -82,9 +82,16 @@ public sealed partial class ContainersPage : PageBase
         left.Children.Add(errorHost);
         left.Children.Add(table.At(1));
 
-        var body = Ui.SplitInspector(left, inspector, 1100, 420, summary: () => table.Focused is { } f ? $"{f.Name} · {f.Image} · {f.Status}" : null);
+        // One card holds the title, the filters and the table, as in the design; the inspector is its own card beside it.
+        var listCard = new DockPanel { LastChildFill = true };
+        header.Margin = new Thickness(4, 0, 0, 12);
+        listCard.Children.Add(header.Dock(System.Windows.Controls.Dock.Top));
+        listCard.Children.Add(left);
+        var listSurface = Ui.Card(listCard, 16, "SurfaceLow", 16);
+        var body = Ui.SplitInspector(listSurface, inspector, 1100, 420, summary: () => table.Focused is { } f ? $"{f.Name} · {f.Image} · {f.Status}" : null);
         table.FocusedChanged += _ => (body.Tag as Action)?.Invoke();
-        Layout(header, body);
+        Children.Clear(); RowDefinitions.Clear();
+        Children.Add(body);
     }
 
     public override async Task RefreshAsync()

@@ -45,9 +45,10 @@ public sealed partial class ImagesPage : PageBase
         table.EmptyMessage = Loc.T("This engine has no images yet. Pull one from a registry, load an archive, or build from a Dockerfile.");
         table.Column("Repository and tag", i => i.Name, 260)
              .Column("Image ID", i => i.ShortId, 120, true)
+             .Column("Platform", i => i.Platform.Length > 0 ? i.Platform : "—", 110)
              .Column("Size", i => i.Size, 90)
              .Column("Created", i => i.CreatedSince, 130)
-             .ChipColumn("Containers", i => i.Usage, i => i.Running > 0 ? Tone.Success : i.Total > 0 ? Tone.Primary : Tone.Neutral, 140)
+             .ChipColumn("Containers", i => i.Usage, i => i.Running > 0 ? Tone.Success : Tone.Neutral, 140)
              .Filter("Tagged", i => i.Tagged)
              .Filter("Dangling", i => i.Dangling)
              .Filter("Unused", i => i.Total == 0)
@@ -82,9 +83,16 @@ public sealed partial class ImagesPage : PageBase
 
         // The detail needs room for its tabs: beside the list from 1300 px, otherwise stacked below it.
         // On short windows it folds into a one-line summary with Show details (design/polish-2026-11/ImagesCompact.dc.html).
-        var body = Ui.SplitInspector(left, inspector, 1300, 520, summary: () => table.Focused is { } f ? $"{f.Name} · {f.ShortId} · {f.Size}" : null);
+        // One card holds the title, the tiles, the filters and the table, as in the design; the inspector is its own 340px card beside it.
+        var listCard = new DockPanel { LastChildFill = true };
+        header.Margin = new Thickness(4, 0, 0, 12);
+        listCard.Children.Add(header.Dock(System.Windows.Controls.Dock.Top));
+        listCard.Children.Add(left);
+        var listSurface = Ui.Card(listCard, 16, "SurfaceLow", 16);
+        var body = Ui.SplitInspector(listSurface, inspector, 1300, 340, summary: () => table.Focused is { } f ? $"{f.Name} · {f.ShortId} · {f.Size}" : null);
         table.FocusedChanged += _ => (body.Tag as Action)?.Invoke();
-        Layout(header, body);
+        Children.Clear(); RowDefinitions.Clear();
+        Children.Add(body);
     }
 
     public override async Task RefreshAsync()
@@ -112,6 +120,7 @@ public sealed partial class ImagesPage : PageBase
             var mine = used.Where(c => i.UsedBy(c.Image)).ToList();
             return i with { Total = mine.Count, Running = mine.Count(c => c.State == "running") };
         }).ToList();
+        rows = await WithPlatformsAsync(rows, context);
         reloading = true;
         try { table.SetItems(rows); }
         finally { reloading = false; }
@@ -120,6 +129,35 @@ public sealed partial class ImagesPage : PageBase
         var total = unique.Sum(r => ImageRow.ParseSize(r.Size));
         subtitle.Text = Loc.Line($"{rows.Count} {(rows.Count == 1 ? "image" : "images")} · {unique.Count} unique IDs · {Ui.FormatBytes(total)} · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
         UpdateStats(rows);
+    }
+
+    /// <summary>Adds the os/architecture of every image with one docker image inspect call; a failed read leaves the column empty.</summary>
+    private static async Task<List<ImageRow>> WithPlatformsAsync(List<ImageRow> rows, string? context)
+    {
+        var ids = rows.Select(r => r.Id).Where(id => id.Length > 0).Distinct().Take(300).ToList();
+        if (ids.Count == 0) return rows;
+        try
+        {
+            var args = new List<string> { "image", "inspect", "--format", "{{.Id}}|{{.Os}}/{{.Architecture}}{{if .Variant}}/{{.Variant}}{{end}}" };
+            args.AddRange(ids);
+            var result = await Host.Read(args, context);
+            if (!result.Success) return rows;
+            var map = new List<(string Id, string Platform)>();
+            foreach (var line in result.StandardOutput.Split('
+', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var bar = line.LastIndexOf('|');
+                if (bar > 0) map.Add((line[..bar].Replace("sha256:", "", StringComparison.Ordinal), line[(bar + 1)..]));
+            }
+            // The list may show a short ID while inspect prints the full one, so match on the shared prefix.
+            return rows.Select(r =>
+            {
+                var id = r.Id.Replace("sha256:", "", StringComparison.Ordinal);
+                var hit = id.Length == 0 ? default : map.FirstOrDefault(m => m.Id.StartsWith(id, StringComparison.Ordinal) || id.StartsWith(m.Id, StringComparison.Ordinal));
+                return hit.Platform is { Length: > 0 } p ? r with { Platform = p } : r;
+            }).ToList();
+        }
+        catch (Exception e) when (e is InvalidOperationException or ArgumentException or System.ComponentModel.Win32Exception) { return rows; }
     }
 
     private void UpdateStats(IReadOnlyList<ImageRow> rows)
