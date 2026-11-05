@@ -139,7 +139,7 @@ public sealed partial class ImagesPage
         if (result?.Success == true) Host.Notify.Info($"Archive written to {path}. Load it on another engine with Load archive.");
     }
 
-    private async Task RemoveOneAsync(ImageRow image)
+    internal async Task RemoveOneAsync(ImageRow image)
     {
         if (!EnsureCurrent()) return;
         var inUse = image.Total > 0 ? $"\n\n{image.Usage} container(s) use this image; the engine refuses removal while they exist." : "";
