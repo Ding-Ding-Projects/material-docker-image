@@ -24,8 +24,8 @@ public sealed class SetupPage : PageBase
     ];
     private readonly SetupSteps steps;
     private readonly StackPanel stepper = new() { Orientation = Orientation.Horizontal };
-    private readonly TextBlock title = Ui.Title("", 26);
-    private readonly TextBlock intro = Ui.Caption("");
+    private readonly TextBlock title = Ui.Title("", 28);
+    private readonly TextBlock intro = Ui.Text("", 14, null, "OnSurfaceVariant");
     private readonly TextBlock summary = Ui.Caption("");
     private readonly ContentControl stepHost = new() { Focusable = false };
     private readonly Button back, skip, next, finish;
@@ -38,7 +38,7 @@ public sealed class SetupPage : PageBase
     {
         steps = new SetupSteps(UpdateNav);
         views = [steps.Detect(), steps.Context(), steps.Folder(), steps.Personalize()];
-        back = Ui.Button("Back", Icons.ArrowBack, ButtonKind.Text, () => Go(step - 1));
+        back = Ui.Button("Back", Icons.ArrowBack, ButtonKind.Outlined, () => Go(step - 1));
         skip = Ui.Button("Skip for now", null, ButtonKind.Text, () => { if (step < 3) Go(step + 1); else Finish(); });
         next = Ui.Button("Next", Icons.ArrowForward, ButtonKind.Filled, () => Go(step + 1));
         finish = Ui.Button("Finish", Icons.Check, ButtonKind.Filled, Finish);
@@ -47,14 +47,15 @@ public sealed class SetupPage : PageBase
         var footer = new DockPanel();
         footer.Children.Add(actions.Dock(Dock.Right));
         footer.Children.Add(summary);
-        var card = Ui.Card(Ui.VStack(20,
-            Ui.Text(Loc.T("Welcome to") + " " + Host.Settings.DisplayName, 14, FontWeights.SemiBold, "Primary", true, false),
+        var card = Ui.Card(Ui.VStack(24,
+            Ui.Text(Loc.T("Welcome to") + " " + Host.Settings.DisplayName, 13, null, "OnSurfaceVariant", true, false),
             Ui.VStack(6, title, intro),
             Ui.Scroll(stepper, true),
             stepHost,
             Ui.Divider(),
             footer), 32, "SurfaceLow", 28);
-        card.MaxWidth = 960;
+        card.Padding = new Thickness(36, 32, 36, 28);
+        card.MaxWidth = 880;
         card.HorizontalAlignment = HorizontalAlignment.Center;
         var header = Ui.Header("Setup", "Setup only reads from Docker and saves your choices for this app. It never installs or changes system services.", out _);
         Layout(header, Ui.Scroll(card.Margin(0, 0, 8, 24)));

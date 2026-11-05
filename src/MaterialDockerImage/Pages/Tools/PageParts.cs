@@ -29,7 +29,7 @@ internal static class PageParts
             foreach (var a in actions) { if (a is FrameworkElement fe) fe.Margin = new Thickness(8, 2, 0, 2); wrap.Children.Add(a); }
             head.Children.Add(wrap.At(0, 1));
         }
-        return Ui.Card(Ui.VStack(14, head, body), 20, "SurfaceLow", 16);
+        return Ui.Card(Ui.VStack(12, head, body), 16, "SurfaceLow", 16);
     }
 
     /// <summary>Two columns side by side when wide enough, stacked otherwise.</summary>

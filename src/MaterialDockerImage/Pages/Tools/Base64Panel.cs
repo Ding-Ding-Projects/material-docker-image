@@ -91,7 +91,7 @@ internal sealed class Base64Panel
         var open = Ui.Button("Open file…", Icons.FolderOpen, ButtonKind.Text, () => _ = Ui.RunGuarded(input, OpenFileAsync));
         var clearFile = Ui.Button("Clear", Icons.Close, ButtonKind.Text, ClearInput);
         var convert = Ui.AsyncButton("Convert", Icons.PlayArrow, ButtonKind.Tonal, () => ConvertAsync(true));
-        var save = Ui.Button("Save as file…", Icons.Save, ButtonKind.Tonal, Save);
+        var save = Ui.Button("Save as file…", Icons.Save, ButtonKind.Outlined, Save);
         var copy = Ui.Button("Copy", Icons.ContentCopy, ButtonKind.Filled, Copy);
 
         var options = new WrapPanel();

@@ -114,7 +114,7 @@ public sealed class CommandPalette
             else if (e.Key == Key.Enter && selected < runnable.Count) { Run(runnable[selected].Command); e.Handled = true; }
         };
         var size = Ui.Switch("Full window", fullWindow, v => { host.Settings.PaletteFullWindow = v; host.SaveSettings(null); close!(); Open(v); });
-        var footer = Ui.Columns(12, [1, 0], Ui.Caption("Enter runs · Up and Down move · Escape closes · Alt+R opens the regex builder"), size);
+        var footer = Ui.Columns(12, [1, 0], Hints(), size);
         Fill();
         close = overlay.Show(Ui.VStack(12, search, note, scroller, Ui.Divider(), footer), fullWindow ? 1000 : 720, null, VerticalAlignment.Top, fullWindow ? .92 : .8);
         search.Box.Focus();
@@ -123,5 +123,28 @@ public sealed class CommandPalette
             SearchBuilderPopover.ApplyActionToField(search, start);
             search.Dispatcher.BeginInvoke(() => search.OpenBuilder(), System.Windows.Threading.DispatcherPriority.Loaded);
         }
+    }
+
+    private static FrameworkElement Hints()
+    {
+        FrameworkElement Key(string text)
+        {
+            var chip = new Border { CornerRadius = new CornerRadius(6), BorderThickness = new Thickness(1), Padding = new Thickness(6, 1, 6, 1), Margin = new Thickness(0, 0, 6, 0), Child = Ui.Text(text, 12, null, "OnSurfaceVariant", false, false) };
+            chip.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
+            return chip;
+        }
+        FrameworkElement Group(string[] keys, string label)
+        {
+            var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 0, 16, 0) };
+            foreach (var k in keys) row.Children.Add(Key(k));
+            row.Children.Add(Ui.Text(label, 12, null, "OnSurfaceVariant", false, false));
+            return row;
+        }
+        var wrap = new WrapPanel();
+        wrap.Children.Add(Group(["Enter"], Loc.T("to run")));
+        wrap.Children.Add(Group(["Up", "Down"], Loc.T("to move")));
+        wrap.Children.Add(Group(["Esc"], Loc.T("to close")));
+        wrap.Children.Add(Group(["Alt+R"], Loc.T("regex builder")));
+        return wrap;
     }
 }

@@ -23,11 +23,11 @@ public sealed class SystemPage : PageBase
     {
         cleanup = new CleanupPanel(() => SnapshotContext, () => IsCurrent, RefreshAsync);
         var header = Ui.Header("System", "Disk usage, cleanup and engine information", out subtitle,
-            Ui.AsyncButton("Measure again", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
-        var usageBlock = Ui.VStack(8, Ui.Text("Disk usage", 18, FontWeights.SemiBold), usageState, usageCards);
+            Ui.AsyncButton("Measure again", Icons.Refresh, ButtonKind.Outlined, RefreshAsync));
+        var usageBlock = Ui.VStack(8, usageCards, usageState);
         columns = Ui.Columns(16, [3, 2], cleanup, engine);
         columns.VerticalAlignment = VerticalAlignment.Top;
-        var body = Ui.Scroll(Ui.VStack(16, usageBlock, columns).Margin(0, 0, 8, 16));
+        var body = Ui.Scroll(Ui.VStack(12, usageBlock, columns).Margin(0, 0, 8, 16));
         Layout(header, body);
         SizeChanged += (_, _) => ResizeCards();
     }
@@ -120,13 +120,24 @@ public sealed class SystemPage : PageBase
             if (CliValues.ParseSize(reclaimSize) is { } rc) reclaim += rc;
             var icon = type switch { "Images" => Icons.Layers, "Containers" => Icons.DeployedCode, "Local Volumes" => Icons.Database, "Build Cache" => Icons.Construction, _ => Icons.Storage };
             var count = CliValues.Str(row, "TotalCount"); var active = CliValues.Str(row, "Active");
-            var card = Ui.Card(Ui.VStack(6,
-                Ui.HStack(8, Ui.Icon(icon, 20, false, "Primary"), Ui.Text(type, 14, FontWeights.SemiBold, "OnSurface", false, false)),
-                Ui.Text(size.Length > 0 ? size : "—", 26, FontWeights.SemiBold, "OnSurface", false, false),
-                Ui.Caption($"{count} total · {active} active"),
-                Ui.Text(reclaimable.Length > 0 ? $"Reclaimable {reclaimable}" : "Reclaimable not reported", 13, null, "Tertiary", true, false)), 16, "SurfaceLow");
+            var label = type switch { "Local Volumes" => "Volumes", "Build Cache" => "Build cache", _ => type };
+            var unit = type switch { "Images" => "images", "Containers" => "containers", "Local Volumes" => "volumes", _ => "entries" };
+            var share = CliValues.ParseSize(size) is { } used && CliValues.ParseSize(reclaimSize) is { } free && used > 0 ? Math.Clamp(free / used, 0, 1) : 0;
+            var track = new Border { Height = 6, CornerRadius = new CornerRadius(3) };
+            track.SetResourceReference(Border.BackgroundProperty, "SurfaceHighest");
+            var fill = new Border { Height = 6, CornerRadius = new CornerRadius(3), HorizontalAlignment = HorizontalAlignment.Left };
+            fill.SetResourceReference(Border.BackgroundProperty, "Warning");
+            var bar = new Grid { Height = 6 };
+            bar.Children.Add(track); bar.Children.Add(fill);
+            bar.SizeChanged += (_, e) => fill.Width = e.NewSize.Width * share;
+            var header = Ui.Columns(8, [0, 1, 0], Ui.Icon(icon, 20, false, "Primary"), Ui.Text(label, 14, FontWeights.SemiBold, "OnSurface", false, false), Ui.Text($"{count} {unit}", 12, null, "OnSurfaceVariant", false, false));
+            var card = Ui.Card(Ui.VStack(8,
+                header,
+                Ui.Text(size.Length > 0 ? size : "—", 28, FontWeights.SemiBold, "OnSurface", false, false),
+                bar,
+                Ui.Text(reclaimable.Length > 0 ? $"{reclaimable} reclaimable · {active} active" : "Reclaimable not reported", 12, null, "OnSurfaceVariant", true, false)), 16, "SurfaceLow");
             card.Margin = new Thickness(0, 0, 12, 12);
-            System.Windows.Automation.AutomationProperties.SetName(card, $"{type}: {size}, {count} total, {active} active, reclaimable {reclaimable}");
+            System.Windows.Automation.AutomationProperties.SetName(card, $"{label}: {size}, {count} total, {active} active, reclaimable {reclaimable}");
             usageCards.Children.Add(card);
         }
         usageTotal = parsedTotal ? total : null;

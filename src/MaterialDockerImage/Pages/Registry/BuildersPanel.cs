@@ -62,12 +62,12 @@ internal sealed class BuildersPanel
             .RowAction("Remove builder…", Icons.Delete, RemoveAsync, "Del", true);
         Table.Activated += b => _ = InspectAsync(b, false);
         Table.MinHeight = 260; Table.MaxHeight = 480;
-        var create = Ui.AsyncButton("Create builder", Icons.Add, ButtonKind.Tonal, CreateAsync);
+        var create = Ui.AsyncButton("Create builder", Icons.Add, ButtonKind.Filled, CreateAsync);
         var refresh = Ui.AsyncIconButton(Icons.Refresh, "Refresh builders", RefreshAsync);
         var selected = Ui.HStack(8,
             Ui.AsyncButton("Inspect", Icons.Info, ButtonKind.Text, () => WithFocused(b => InspectAsync(b, false))),
             Ui.AsyncButton("Disk usage", Icons.DataUsage, ButtonKind.Text, () => WithFocused(DiskUsageAsync)),
-            Ui.AsyncButton("Prune cache", Icons.CleaningServices, ButtonKind.Text, () => WithFocused(PruneAsync)),
+            Ui.AsyncButton("Prune cache", Icons.CleaningServices, ButtonKind.Outlined, () => WithFocused(PruneAsync)),
             Ui.AsyncButton("Remove", Icons.Delete, ButtonKind.Text, () => WithFocused(RemoveAsync)));
         var note = Ui.Caption("The default builder is not changed here: this page never runs docker buildx use, because that changes the global default for every tool. Choosing a builder per build will belong to Build and is not implemented yet.");
         var body = Ui.VStack(12, state, Table, new WrapPanel { Children = { selected } }, note, Ui.Card(Ui.VStack(8, detailTitle, detail), 12, "SurfaceContainer", 12));

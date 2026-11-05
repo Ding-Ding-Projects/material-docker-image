@@ -11,6 +11,7 @@ public sealed class DiagnosticsPage : PageBase
     public override string Key => "Diagnostics";
     private readonly List<DiagnosticCheck> checks = DiagnosticChecks.Create();
     private readonly StackPanel rows = new();
+    private readonly WrapPanel pills = new();
     private readonly TextBlock summary = Ui.Caption("Checks have not run yet.");
     private readonly TextBlock smokeState = Ui.Caption("");
     private readonly EventsPanel events;
@@ -22,14 +23,14 @@ public sealed class DiagnosticsPage : PageBase
     {
         events = new EventsPanel(() => SnapshotContext);
         checkSearch.Changed += Render;
-        var export = Ui.Button("Export sanitized report", Icons.FileExport, ButtonKind.Tonal, () => DiagnosticReport.Preview(checks, SnapshotContext));
+        var export = Ui.Button("Export sanitized report", Icons.FileExport, ButtonKind.Outlined, () => DiagnosticReport.Preview(checks, SnapshotContext));
         var all = Ui.AsyncButton("Run all checks", Icons.PlayArrow, ButtonKind.Filled, RunAllAsync);
-        var header = Ui.Header("Diagnostics", "Read-only checks. Nothing on your system is changed by the checks.", out _, export, all);
-        var checksCard = PageParts.Section("Checks", null, Ui.VStack(10, Ui.Columns(12, [0, 1], checkSearch, summary), rows));
+        var header = Ui.Header("Diagnostics", "Read-only checks. Nothing on your system is changed.", out _, export, all);
+        var checksCard = PageParts.Section("Checks", null, Ui.VStack(10, Ui.Columns(12, [0, 1], checkSearch, summary), pills, rows));
         var smoke = PageParts.Section("Smoke test (optional)", "Pulls and runs hello-world, then removes the container. This one does change the engine.",
             Ui.VStack(8, Ui.Caption("The container gets a unique label and name, so only that container is removed. The hello-world image stays in the image list; remove it from Images if you do not want it."), smokeState),
             Ui.AsyncButton("Run hello-world smoke test…", Icons.Science, ButtonKind.Tonal, SmokeAsync));
-        var body = Ui.Scroll(Ui.VStack(16, PageParts.Responsive(checksCard, events.Card, 1250, 1.1, 1), smoke).Margin(0, 0, 8, 16));
+        var body = Ui.Scroll(Ui.VStack(12, PageParts.Responsive(checksCard, events.Card, 1250, 1.1, 1), smoke).Margin(0, 0, 8, 16));
         Layout(header, body);
         IsVisibleChanged += (_, _) => { if (!IsVisible) { events.Stop("Stopped because the page was hidden"); runAll?.Cancel(); } };
         Render();
@@ -51,6 +52,13 @@ public sealed class DiagnosticsPage : PageBase
             rows.Children.Add(Row(check));
         if (rows.Children.Count == 0) rows.Children.Add(Ui.Caption(checkSearch.Status.Length > 0 ? checkSearch.Status : "No checks match the search."));
         int Count(CheckStatus s) => checks.Count(c => c.Status == s);
+        pills.Children.Clear();
+        if (checks.Any(c => c.Status != CheckStatus.NotRun))
+        {
+            pills.Children.Add(Ui.Badge($"{Count(CheckStatus.Passed)} passed", Tone.Success, false).Margin(0, 0, 8, 0));
+            pills.Children.Add(Ui.Badge($"{Count(CheckStatus.Warning)} warning", Count(CheckStatus.Warning) > 0 ? Tone.Warning : Tone.Neutral, false).Margin(0, 0, 8, 0));
+            pills.Children.Add(Ui.Badge($"{Count(CheckStatus.Failed)} failed", Count(CheckStatus.Failed) > 0 ? Tone.Error : Tone.Neutral, false));
+        }
         var ran = checks.Where(c => c.RanAt != null).Select(c => c.RanAt!.Value).DefaultIfEmpty().Max();
         summary.Text = checks.All(c => c.Status == CheckStatus.NotRun) ? Loc.T("Checks have not run yet.")
             : $"{Count(CheckStatus.Passed)} passed · {Count(CheckStatus.Warning)} warning · {Count(CheckStatus.Failed)} failed · {Count(CheckStatus.NotRun)} not run" + (ran != default ? $" · last run {ran.ToLocalTime():HH:mm:ss}" : "");
@@ -86,9 +94,9 @@ public sealed class DiagnosticsPage : PageBase
             expanders[check.Id] = expander;
             stack.Children.Add(expander.Margin(34, 0, 0, 0));
         }
-        var card = Ui.Card(stack, 12, "SurfaceContainer", 12);
-        card.Margin = new Thickness(0, 0, 0, 8);
-        return card;
+        var line = new Border { Child = stack, Padding = new Thickness(8, 10, 8, 10), MinHeight = 64, BorderThickness = new Thickness(0, 0, 0, 1) };
+        line.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
+        return line;
     }
 
     private async Task RunAsync(DiagnosticCheck check, CancellationToken token)

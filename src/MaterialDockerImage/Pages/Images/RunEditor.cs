@@ -137,7 +137,7 @@ internal sealed partial class RunEditor
     private void Open()
     {
         var head = Ui.Columns(8, [1, 0],
-            Ui.VStack(2, Ui.Text(Loc.T("Run container from") + " " + image, 20, FontWeights.SemiBold, "OnSurface", true, false), imageFacts),
+            Ui.VStack(2, Ui.Text(Loc.T("Run container from") + " " + image, 24, FontWeights.Normal, "OnSurface", true, false), imageFacts),
             Ui.IconButton(Icons.Close, "Close", () => close?.Invoke()));
 
         var form = new StackPanel { Margin = new Thickness(0, 0, 12, 0) };
@@ -153,7 +153,7 @@ internal sealed partial class RunEditor
         AddSection(form, "Advanced", Icons.Tune, BuildAdvanced());
         var formScroll = Ui.Scroll(form);
 
-        var nav = new ListBox { Width = 200, Margin = new Thickness(0, 0, 16, 0) };
+        var nav = new ListBox { Width = 232, Margin = new Thickness(0, 0, 16, 0) };
         System.Windows.Automation.AutomationProperties.SetName(nav, Loc.T("Sections"));
         foreach (var key in sections.Keys)
         {
@@ -197,7 +197,7 @@ internal sealed partial class RunEditor
         root.AddHandler(Selector.SelectionChangedEvent, new SelectionChangedEventHandler((_, e) => { if (e.OriginalSource != nav) Update(); }));
 
         var shell = new ScrollViewer { Content = root, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
-        close = Host.Overlay.Show(shell, 980);
+        close = Host.Overlay.Show(shell, 1140);
         Update();
         _ = LoadDetailsAsync();
     }

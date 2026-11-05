@@ -40,7 +40,7 @@ public sealed class CleanupPanel : Border
     {
         boundContext = context; isCurrent = current; afterPrune = refresh;
         CornerRadius = new CornerRadius(16);
-        Padding = new Thickness(16);
+        Padding = new Thickness(20);
         SetResourceReference(BackgroundProperty, "SurfaceLow");
         categories =
         [
@@ -52,40 +52,44 @@ public sealed class CleanupPanel : Border
             new() { Id = "volumes", Label = "Unused volumes", Note = "Volumes may hold databases and uploads. Removing them deletes that data permanently. docker volume prune -f", Danger = true },
         ];
         allVolumes = Ui.Check("Include all unused named volumes (--all)", false, _ => UpdateSummary());
-        allVolumes.Margin = new Thickness(36, 6, 0, 0);
+        allVolumes.Margin = new Thickness(30, 0, 0, 10);
         resultsCard = Ui.Card(Ui.VStack(6, Ui.Overline("Last cleanup result"), results), 12, "SurfaceContainer", 12);
         resultsCard.Visibility = Visibility.Collapsed;
 
         var list = new StackPanel();
-        foreach (var c in categories)
+        for (var index = 0; index < categories.Count; index++)
         {
-            var category = c;
-            var box = Ui.Check(c.Label, c.Selected, v => { category.Selected = v; UpdateSummary(); });
-            box.VerticalAlignment = VerticalAlignment.Top;
-            c.Box = box;
-            var text = Ui.VStack(2, Ui.Text(c.Label, 14, FontWeights.SemiBold, c.Danger ? "Error" : "OnSurface"), Ui.Caption(c.Note));
+            var category = categories[index];
+            var box = Ui.Check(category.Label, category.Selected, v => { category.Selected = v; UpdateSummary(); });
+            box.VerticalAlignment = VerticalAlignment.Center;
+            category.Box = box;
+            var shortNote = category.Note.Contains(" docker ") ? category.Note[..category.Note.LastIndexOf(" docker ", StringComparison.Ordinal)] : category.Note;
+            var noteBlock = category.Danger
+                ? new DockPanel { Children = { Ui.Icon(Icons.Warning, 14, true, "Warning").Margin(0, 0, 4, 0).Dock(Dock.Left), Ui.Text("Unused volumes may hold databases. Removing them deletes that data.", 12, null, "Warning", true, true) } }
+                : (UIElement)Ui.Text(shortNote, 12, null, "OnSurfaceVariant", true, false);
+            var text = Ui.VStack(2, Ui.Text(category.Label, 14, null, "OnSurface"), noteBlock);
             box.Content = text;
-            System.Windows.Automation.AutomationProperties.SetName(box, Loc.T(c.Label));
-            System.Windows.Automation.AutomationProperties.SetHelpText(box, c.Note);
-            var row = Ui.Columns(12, [1, 0], box, c.SizeText);
+            System.Windows.Automation.AutomationProperties.SetName(box, Loc.T(category.Label));
+            System.Windows.Automation.AutomationProperties.SetHelpText(box, category.Note);
+            var row = Ui.Columns(12, [1, 0], box, category.SizeText);
+            row.MinHeight = 52;
+            category.SizeText.VerticalAlignment = VerticalAlignment.Center;
             var container = Ui.VStack(0, row);
-            if (c.Id == "build") Ui.Add(container, Ui.Field("Build cache age", buildAge, "Limits build cache removal to records last used before this age, using --filter until=24h or until=168h. Any age removes all unused build cache.", "docker builder prune -f --filter until=24h").Margin(36, 8, 0, 0), 0);
-            if (c.Id == "volumes")
-            {
-                var warn = Ui.Card(new DockPanel { Children = { Ui.Icon(Icons.Warning, 18, true, "OnErrorContainer").Margin(0, 0, 8, 0).Dock(Dock.Left), Ui.Text("Off by default. Without --all only anonymous unused volumes are removed; with --all every unused named volume is removed too.", 13, null, "OnErrorContainer", true, true) } }, 10, "ErrorContainer", 12).Margin(36, 8, 0, 0);
-                Ui.Add(container, warn, 0);
-                Ui.Add(container, allVolumes, 0);
-            }
-            var card = Ui.Card(container, 12, c.Danger ? "SurfaceContainer" : "SurfaceLow", 12);
-            Ui.Add(list, card, 6);
+            if (category.Id == "volumes") Ui.Add(container, allVolumes, 0);
+            var line = new Border { Child = container, BorderThickness = new Thickness(0, 0, 0, index < categories.Count - 1 ? 1 : 0) };
+            line.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
+            list.Children.Add(line);
         }
         buildAge.SelectionChanged += (_, _) => UpdateSummary();
         var prune = Ui.AsyncButton("Prune…", Icons.CleaningServices, ButtonKind.Danger, PruneAsync);
         var footer = Ui.Columns(12, [1, 0], summary, prune);
+        var ageRow = Ui.HStack(8, Ui.Caption("Build cache older than"), buildAge);
+        ageRow.Margin = new Thickness(0, 0, 0, 0);
+        buildAge.Height = 32; buildAge.MinWidth = 150;
+        System.Windows.Automation.AutomationProperties.SetName(buildAge, Loc.T("Build cache age"));
         Child = Ui.VStack(12,
-            Ui.Text("Clean up", 18, FontWeights.SemiBold),
-            Ui.Caption("Choose exactly what to remove. Nothing is removed until you confirm."),
-            list, footer, resultsCard);
+            Ui.VStack(4, Ui.Text("Clean up", 18, FontWeights.SemiBold), Ui.Caption("Choose exactly what to remove. Nothing is removed until you confirm.")),
+            list, ageRow, footer, resultsCard);
         UpdateSummary();
     }
 

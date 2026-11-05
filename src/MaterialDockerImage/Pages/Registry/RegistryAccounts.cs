@@ -78,7 +78,7 @@ internal sealed class RegistryAccounts
             var row = new DockPanel { Margin = new Thickness(0, 4, 0, 4) };
             row.Children.Add(Ui.Icon(Icons.Cloud, 20, false, "Primary").Margin(0, 0, 12, 0).Dock(Dock.Left));
             var e = entry;
-            var signOut = Ui.AsyncButton("Sign out", Icons.Logout, ButtonKind.Text, () => SignOutAsync(e.Registry));
+            var signOut = Ui.AsyncButton("Sign out", null, ButtonKind.Text, () => SignOutAsync(e.Registry));
             // Every row has the same visible label, so the accessible name carries the registry.
             AutomationProperties.SetName(signOut, Loc.T("Sign out of") + " " + e.Registry);
             row.Children.Add(signOut.Dock(Dock.Right));

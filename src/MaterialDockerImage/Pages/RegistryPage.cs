@@ -18,9 +18,9 @@ public sealed class RegistryPage : PageBase
         hub = new HubSearch(() => IsCurrent, () => SnapshotContext);
         builders = new BuildersPanel(() => IsCurrent, () => SnapshotContext);
         var header = Ui.Header("Registry", "Registry sign-in, Docker Hub search and buildx builders for the selected engine context", out _,
-            Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
+            Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Outlined, RefreshAsync));
         var top = PageParts.Responsive(accounts.SignedInCard, accounts.SignInCard, 1000);
-        var body = Ui.Scroll(Ui.VStack(16, top, hub.Card, builders.Card).Margin(0, 0, 8, 16));
+        var body = Ui.Scroll(Ui.VStack(12, top, hub.Card, builders.Card).Margin(0, 0, 8, 16));
         Layout(header, body);
     }
 
