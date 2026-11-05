@@ -11,20 +11,24 @@ using MaterialDockerImage.UI;
 namespace MaterialDockerImage.Pages;
 
 /// <summary>
-/// The Suggestions popup: a list of matches (icon, label with matched characters in bold, detail, version badge)
-/// and a documentation pane for the selected item. Nothing in it is focusable, so the editor keeps keyboard focus;
-/// the editor forwards Up, Down, Page Up, Page Down, Tab, Enter and Escape.
+/// The Suggestions popup: a signature note with the required parts in bold, then a two-pane card with the matches
+/// (icon, label with matched characters in bold, a short tag) and the documentation of the selected item. Nothing in it
+/// is focusable, so the editor keeps keyboard focus; the editor forwards Up, Down, Page Up, Page Down, Tab, Enter and Escape.
 /// </summary>
 public sealed class EditorSuggestionsList
 {
-    private const double RowHeight = 30;
+    private const double RowHeight = 34;
+    private const double CardHeight = 260;
+    private const double ListPadding = 6;
     public Popup Popup { get; }
-    private readonly StackPanel rows = new();
+    private readonly StackPanel rows = new() { Margin = new Thickness(0, ListPadding, 0, ListPadding) };
     private readonly ScrollViewer scroller;
-    private readonly StackPanel doc = new() { Width = 280 };
+    private readonly StackPanel doc = new();
     private readonly Border docPane;
-    private readonly TextBlock header = Ui.Mono("", 12, "OnSurfaceVariant", true);
+    private readonly TextBlock header = Ui.Mono("", 12, "OnSurfaceVariant", false);
+    private readonly Border signature;
     private readonly List<Border> rowViews = new();
+    private readonly List<(TextBlock Icon, TextBlock Label)> rowInk = new();
     private IReadOnlyList<SuggestionMatch> matches = Array.Empty<SuggestionMatch>();
     private DockerfileSyntaxVersion? syntax;
     private bool dockerfile;
@@ -38,37 +42,63 @@ public sealed class EditorSuggestionsList
 
     public EditorSuggestionsList()
     {
-        scroller = new ScrollViewer { Content = rows, MaxHeight = RowHeight * 10, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false, Width = 360 };
-        header.Margin = new Thickness(10, 6, 10, 6);
-        header.MaxWidth = 340;
-        var listColumn = new DockPanel();
-        listColumn.Children.Add(header.Dock(Dock.Top));
-        listColumn.Children.Add(scroller);
-        docPane = new Border { Child = new ScrollViewer { Content = doc, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, Focusable = false, MaxHeight = RowHeight * 10 + 30 }, Padding = new Thickness(12, 10, 12, 10), BorderThickness = new Thickness(1, 0, 0, 0) };
-        docPane.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
-        docPane.SetResourceReference(Border.BackgroundProperty, "SurfaceContainer");
-        var grid = new Grid();
+        // Two panes of fixed size, as on the design board: the matches (340) and the documentation of the selected one (420).
+        scroller = new ScrollViewer { Content = rows, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
+        var listColumn = new Border { Child = scroller, Width = 340, BorderThickness = new Thickness(0, 0, 1, 0) };
+        listColumn.SetResourceReference(Border.BorderBrushProperty, "SurfaceHighest");
+        docPane = new Border { Child = new ScrollViewer { Content = doc, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false }, Padding = new Thickness(16, 14, 16, 14), Width = 420 };
+        var grid = new Grid { Height = CardHeight };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.Children.Add(listColumn);
         grid.Children.Add(docPane.At(0, 1));
-        var card = new Border { Child = grid, CornerRadius = new CornerRadius(12), BorderThickness = new Thickness(1), ClipToBounds = true, Margin = new Thickness(0, 0, 14, 14), Effect = Ui.Elevation(16, 4, .3) };
+        var card = new Border { Child = grid, CornerRadius = new CornerRadius(12), ClipToBounds = true, Effect = Ui.Elevation(16, 4, .3) };
         card.SetResourceReference(Border.BackgroundProperty, "SurfaceHigh");
-        card.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
         AutomationProperties.SetName(card, Loc.T("Suggestions"));
-        Popup = new Popup { Child = card, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative };
+        // The signature of the instruction or option sits above the list as its own note.
+        signature = SignatureNote(header);
+        signature.HorizontalAlignment = HorizontalAlignment.Left;
+        signature.Margin = new Thickness(0, 0, 0, 8);
+        signature.MaxWidth = 760;
+        var stack = new StackPanel { Margin = new Thickness(0, 0, 14, 14) };
+        stack.Children.Add(signature);
+        stack.Children.Add(card);
+        Popup = new Popup { Child = stack, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative };
     }
 
-    public void Show(IReadOnlyList<SuggestionMatch> items, string signature, DockerfileSyntaxVersion? declared, bool isDockerfile)
+    /// <summary>The 30 px signature note: surface-highest, radius 8, monospace 12 (also used by the editor's hint popup).</summary>
+    public static Border SignatureNote(UIElement content)
+    {
+        var note = new Border { Child = content, MinHeight = 30, CornerRadius = new CornerRadius(8), Padding = new Thickness(12, 4, 12, 4), Effect = Ui.Elevation(12, 4, .4) };
+        note.SetResourceReference(Border.BackgroundProperty, "SurfaceHighest");
+        if (content is FrameworkElement element) element.VerticalAlignment = VerticalAlignment.Center;
+        AutomationProperties.SetName(note, Loc.T("Suggestion hint"));
+        return note;
+    }
+
+    /// <summary>Fills a text block with a signature; required placeholders (outside square brackets) are bold.</summary>
+    public static void FillSignature(TextBlock target, string text)
+    {
+        target.Inlines.Clear();
+        foreach (var part in SuggestionPresentation.Signature(text))
+        {
+            var run = new Run(part.Text);
+            if (part.Required) { run.FontWeight = FontWeights.Bold; run.SetResourceReference(TextElement.ForegroundProperty, "OnSurface"); }
+            target.Inlines.Add(run);
+        }
+    }
+
+    public void Show(IReadOnlyList<SuggestionMatch> items, string signatureText, DockerfileSyntaxVersion? declared, bool isDockerfile)
     {
         var previous = Selected?.Item;
         matches = items;
         syntax = declared;
         dockerfile = isDockerfile;
-        header.Text = signature;
-        header.Visibility = signature.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
+        FillSignature(header, signatureText);
+        signature.Visibility = signatureText.Length > 0 ? Visibility.Visible : Visibility.Collapsed;
         rows.Children.Clear();
         rowViews.Clear();
+        rowInk.Clear();
         for (var i = 0; i < items.Count; i++)
         {
             var row = BuildRow(items[i], i);
@@ -93,7 +123,8 @@ public sealed class EditorSuggestionsList
         Select(next, true);
     }
 
-    public int PageSize => Math.Max(1, (int)(scroller.MaxHeight / RowHeight) - 1);
+    private static double VisibleHeight => CardHeight - 2 * ListPadding;
+    public int PageSize => Math.Max(1, (int)(VisibleHeight / RowHeight) - 1);
 
     private void Select(int index, bool announce)
     {
@@ -101,13 +132,17 @@ public sealed class EditorSuggestionsList
         SelectedIndex = Math.Clamp(index, 0, matches.Count - 1);
         for (var i = 0; i < rowViews.Count; i++)
         {
-            if (i == SelectedIndex) rowViews[i].SetResourceReference(Border.BackgroundProperty, "SecondaryContainer");
+            var on = i == SelectedIndex;
+            if (on) rowViews[i].SetResourceReference(Border.BackgroundProperty, "SecondaryContainer");
             else rowViews[i].Background = Brushes.Transparent;
+            var picker = matches[i].Item.Kind == SuggestionKind.Picker;
+            rowInk[i].Icon.SetResourceReference(TextBlock.ForegroundProperty, on ? "OnSecondaryContainer" : picker ? "Primary" : "Tertiary");
+            rowInk[i].Label.SetResourceReference(TextBlock.ForegroundProperty, on ? "OnSecondaryContainer" : "OnSurface");
         }
         // Scroll the selected row into view without moving focus.
         var top = SelectedIndex * RowHeight;
         if (top < scroller.VerticalOffset) scroller.ScrollToVerticalOffset(top);
-        else if (top + RowHeight > scroller.VerticalOffset + scroller.MaxHeight) scroller.ScrollToVerticalOffset(top + RowHeight - scroller.MaxHeight);
+        else if (top + RowHeight > scroller.VerticalOffset + VisibleHeight) scroller.ScrollToVerticalOffset(top + RowHeight - VisibleHeight);
         RenderDoc(matches[SelectedIndex].Item);
         if (announce) SelectionChanged?.Invoke(matches[SelectedIndex]);
     }
@@ -115,42 +150,45 @@ public sealed class EditorSuggestionsList
     private Border BuildRow(SuggestionMatch match, int index)
     {
         var item = match.Item;
-        var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis };
-        label.SetResourceReference(TextBlock.FontFamilyProperty, item.Kind == SuggestionKind.Picker ? "TextFont" : "MonoFont");
-        label.SetResourceReference(TextBlock.ForegroundProperty, "OnSurface");
-        label.FontSize = 13;
+        var picker = item.Kind == SuggestionKind.Picker;
+        var label = new TextBlock { VerticalAlignment = VerticalAlignment.Center, TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13 };
+        label.SetResourceReference(TextBlock.FontFamilyProperty, picker ? "TextFont" : "MonoFont");
+        // Matched characters are bold in the primary colour.
         var bold = new HashSet<int>(match.Positions);
         var display = item.Label.Replace("\n", " ");
         var runStart = 0;
         for (var i = 1; i <= display.Length; i++)
         {
             if (i < display.Length && bold.Contains(i) == bold.Contains(runStart)) continue;
-            label.Inlines.Add(new Run(display[runStart..i]) { FontWeight = bold.Contains(runStart) ? FontWeights.Bold : FontWeights.Normal });
+            var run = new Run(display[runStart..i]);
+            if (bold.Contains(runStart)) { run.FontWeight = FontWeights.Bold; run.SetResourceReference(TextElement.ForegroundProperty, "Primary"); }
+            label.Inlines.Add(run);
             runStart = i;
         }
-        var detail = Ui.Text(item.Detail, 12, null, "OnSurfaceVariant", false, false);
-        detail.TextTrimming = TextTrimming.CharacterEllipsis;
-        detail.MaxWidth = 130;
-        detail.VerticalAlignment = VerticalAlignment.Center;
-        detail.Margin = new Thickness(8, 0, 0, 0);
+        // A picker row says what it opens; its detail joins the label because its tag is the Enter key.
+        if (picker && item.Detail.Length > 0) label.Inlines.Add(new Run(" · " + item.Detail));
         var grid = new Grid { Height = RowHeight };
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(32) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-        var icon = Ui.Icon(IconFor(item.Kind), 16, false, item.Kind == SuggestionKind.Picker ? "Primary" : "OnSurfaceVariant");
+        var icon = Ui.Icon(SuggestionPresentation.Icon(item), 18, false, picker ? "Primary" : "Tertiary");
         icon.VerticalAlignment = VerticalAlignment.Center;
+        icon.HorizontalAlignment = HorizontalAlignment.Left;
         grid.Children.Add(icon);
         grid.Children.Add(label.At(0, 1));
-        grid.Children.Add(detail.At(0, 2));
-        if (item.Badge.Length > 0)
+        var tagText = SuggestionPresentation.RowTag(item);
+        if (tagText.Length > 0)
         {
-            var badge = Ui.Badge(item.Badge, item.NeedsSyntaxUpgrade ? Tone.Warning : Tone.Neutral);
-            badge.Margin = new Thickness(6, 0, 0, 0);
-            badge.VerticalAlignment = VerticalAlignment.Center;
-            grid.Children.Add(badge.At(0, 3));
+            var warns = SuggestionPresentation.RowTagWarns(item);
+            var tagLabel = Ui.Text(picker ? Loc.T(tagText) : tagText, 11, null, warns ? "OnError" : "OnSurfaceVariant", false, false);
+            tagLabel.MaxWidth = 130;
+            var tag = new Border { Child = tagLabel, CornerRadius = new CornerRadius(8), Padding = new Thickness(8, 2, 8, 2), Margin = new Thickness(8, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            tag.SetResourceReference(Border.BackgroundProperty, warns ? "Error" : "SurfaceHighest");
+            tag.ToolTip = tagText;
+            grid.Children.Add(tag.At(0, 2));
         }
-        var row = new Border { Child = grid, Padding = new Thickness(8, 0, 10, 0), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = false };
+        rowInk.Add((icon, label));
+        var row = new Border { Child = grid, Padding = new Thickness(12, 0, 12, 0), Background = Brushes.Transparent, Cursor = Cursors.Hand, Focusable = false };
         AutomationProperties.SetName(row, AccessibleName(item));
         row.MouseLeftButtonUp += (_, e) => { Select(index, false); Accepted?.Invoke(matches[index]); e.Handled = true; };
         return row;
@@ -168,22 +206,31 @@ public sealed class EditorSuggestionsList
         SuggestionKind.Key => Loc.T("key"), _ => Loc.T("picker"),
     };
 
-    public static string IconFor(SuggestionKind kind) => kind switch
-    {
-        SuggestionKind.Instruction => Icons.Code, SuggestionKind.Directive => Icons.Settings, SuggestionKind.Flag => Icons.Tune,
-        SuggestionKind.Value => Icons.Label, SuggestionKind.Stage => Icons.Layers, SuggestionKind.Variable => Icons.DataObject,
-        SuggestionKind.Image => Icons.Inventory2, SuggestionKind.Path => Icons.FolderOpen, SuggestionKind.Snippet => Icons.TextFields,
-        SuggestionKind.Key => Icons.Key, _ => Icons.Edit,
-    };
+    /// <summary>The row icon of a suggestion kind (pickers and paths are refined by <see cref="SuggestionPresentation.Icon"/>).</summary>
+    public static string IconFor(SuggestionKind kind) => SuggestionPresentation.Icon(new SuggestionItem("", "", kind));
 
     private void RenderDoc(SuggestionItem item)
     {
         doc.Children.Clear();
-        doc.Children.Add(Ui.Mono(item.Label.Replace("\n", " "), 13, "OnSurface", true));
-        if (item.Detail.Length > 0) doc.Children.Add(Ui.Text(item.Detail, 12, null, "OnSurfaceVariant").Margin(0, 2, 0, 0));
-        if (item.Doc.Length > 0) doc.Children.Add(Ui.Text(item.Doc, 13).Margin(0, 8, 0, 0));
+        var title = Ui.Mono(item.Label.Replace("\n", " "), 15, "OnSurface", true);
+        title.FontWeight = FontWeights.SemiBold;
+        title.Margin = new Thickness(0, 0, 8, 4);
+        var chipText = Ui.Text(SuggestionPresentation.DocChip(item, KindName), 11, FontWeights.SemiBold, "OnSecondaryContainer", false, false);
+        chipText.MaxWidth = 360;
+        var chip = new Border { Child = chipText, MinHeight = 22, CornerRadius = new CornerRadius(11), Padding = new Thickness(8, 0, 8, 0), Margin = new Thickness(0, 0, 0, 4), VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left };
+        chip.SetResourceReference(Border.BackgroundProperty, "SecondaryContainer");
+        var head = new WrapPanel();
+        head.Children.Add(title);
+        head.Children.Add(chip);
+        doc.Children.Add(head);
+        if (item.Doc.Length > 0) doc.Children.Add(Ui.Text(item.Doc, 13, null, "OnSurfaceVariant").Margin(0, 6, 0, 0));
         if (item.Example.Length > 0)
-            doc.Children.Add(Ui.Card(Ui.VStack(4, Ui.Overline("Example"), Ui.Mono(item.Example, 12, "OnSurface", true)), 8, "SurfaceHigh", 8).Margin(0, 10, 0, 0));
+        {
+            var example = new Border { Child = Ui.Mono(item.Example, 12, "OnSurface", true), CornerRadius = new CornerRadius(8), Padding = new Thickness(12, 10, 12, 10), Margin = new Thickness(0, 4, 0, 0) };
+            example.SetResourceReference(Border.BackgroundProperty, "SurfaceLow");
+            doc.Children.Add(Ui.Overline("Example").Margin(0, 10, 0, 0));
+            doc.Children.Add(example);
+        }
         if (item.MinSyntax != null && dockerfile)
         {
             var text = Loc.T("Needs") + " # syntax=docker/dockerfile:" + item.MinSyntax + " " + Loc.T("or newer") + (item.LabsMinSyntax != null ? " (" + item.LabsMinSyntax + "-labs " + Loc.T("before that") + ")" : "") + ".";
@@ -192,7 +239,7 @@ public sealed class EditorSuggestionsList
                     + " " + Loc.T("After inserting, press Ctrl+Enter to add or upgrade the header.");
             doc.Children.Add(Ui.Text(text, 12, null, item.NeedsSyntaxUpgrade ? "Warning" : "OnSurfaceVariant").Margin(0, 10, 0, 0));
         }
-        if (item.Kind == SuggestionKind.Picker) doc.Children.Add(Ui.Caption("Press Enter or Tab to open it. Escape returns to the editor.").Margin(0, 10, 0, 0));
+        if (item.Kind == SuggestionKind.Picker) doc.Children.Add(Ui.Text("Press Enter or Tab to open it. Escape returns to the editor.", 12, null, "OnSurfaceVariant").Margin(0, 10, 0, 0));
         docPane.Visibility = Visibility.Visible;
     }
 }

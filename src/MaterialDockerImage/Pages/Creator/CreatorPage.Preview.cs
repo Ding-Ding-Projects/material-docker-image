@@ -90,22 +90,95 @@ public sealed partial class CreatorPage
         previewTabs.Items.Add(dockerfileTab);
         previewTabs.Items.Add(new TabItem { Header = ".dockerignore", Content = BuildIgnorePanel().Margin(0, 10, 0, 0) });
         previewTabs.Items.Add(BuildComposeTab());
-        var previewTop = Ui.Columns(4, [1, 0, 0], Ui.Text("Live preview", 16, FontWeights.SemiBold), buildCommand, copy);
+        System.Windows.Automation.AutomationProperties.SetName(previewTabs, Loc.T("Preview files"));
+        // The copy action sits at the right end of the tab strip, as on the design board.
+        var tabActions = Ui.HStack(0, buildCommand, copy);
+        tabActions.HorizontalAlignment = HorizontalAlignment.Right;
+        tabActions.VerticalAlignment = VerticalAlignment.Top;
+        foreach (var b in new[] { buildCommand, copy }) { b.Width = b.Height = b.MinHeight = 36; b.FontSize = 20; }
+        var tabsHost = new Grid();
+        tabsHost.Children.Add(previewTabs);
+        tabsHost.Children.Add(tabActions);
+
+        // .dockerignore presets at the foot of the preview: a ticked preset has all its patterns listed.
+        presetChips.Margin = new Thickness(0, 6, 0, 0);
+        var presetsFooter = new Border { Child = Ui.VStack(0, Ui.Overline(".dockerignore presets"), presetChips), BorderThickness = new Thickness(0, 1, 0, 0), Padding = new Thickness(0, 12, 0, 0), Margin = new Thickness(0, 12, 0, 0) };
+        presetsFooter.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
         var previewPanel = new DockPanel();
-        previewPanel.Children.Add(previewTop.Dock(System.Windows.Controls.Dock.Top));
-        previewPanel.Children.Add(Ui.Divider().Margin(0, 6, 0, 0).Dock(System.Windows.Controls.Dock.Top));
-        previewPanel.Children.Add(previewTabs);
-        var previewCard = Ui.Card(previewPanel, 16, "SurfaceLow", 16);
+        previewPanel.Children.Add(presetsFooter.Dock(System.Windows.Controls.Dock.Bottom));
+        previewPanel.Children.Add(tabsHost);
+        RefreshPresetChips();
 
-        var checksHeader = Ui.Columns(8, [1, 0], Ui.Text("Checks", 16, FontWeights.SemiBold), checksCount);
         checksCount.VerticalAlignment = VerticalAlignment.Center;
-        checksHeader.Margin = new Thickness(0, 0, 0, 10);
-        var checksPanel = new DockPanel();
-        checksPanel.Children.Add(checksHeader.Dock(System.Windows.Controls.Dock.Top));
-        checksPanel.Children.Add(Ui.Scroll(checks));
-        var checksCard = Ui.Card(checksPanel, 16, "SurfaceLow", 16);
+        checksCount.Cursor = System.Windows.Input.Cursors.Hand;
+        checksCount.MouseLeftButtonUp += (_, _) => OpenChecks();
+        return Ui.Card(previewPanel, 16, "SurfaceLow", 16);
+    }
 
-        return Ui.Rows(16, [5, 2], previewCard, checksCard);
+    // ----------------------------------------------------------------- checks popup (header Check button)
+
+    private System.Windows.Controls.Primitives.Popup? checksPopup;
+    private StackPanel? checksContent;
+
+    /// <summary>Runs the checks on the current draft and shows them with their fixes under the Check button.</summary>
+    private void OpenChecks()
+    {
+        if (textDirty) { parseTimer.Stop(); ApplyPreviewText(); }
+        FlushCommit();
+        RefreshChecks();
+        if (checksPopup is { IsOpen: true }) { checksPopup.IsOpen = false; return; }
+        if (checksContent == null)
+        {
+            var countCopy = new TextBlock { FontSize = 13, VerticalAlignment = VerticalAlignment.Center };
+            countCopy.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
+            checksContent = Ui.VStack(12, Ui.Columns(8, [1, 0], Ui.Text("Checks", 16, FontWeights.SemiBold), countCopy), checks);
+            checksCountCopy = countCopy;
+        }
+        if (checksContent.Parent is ScrollViewer old) old.Content = null;
+        UpdateChecksCountCopy();
+        checksPopup = Ui.ShowPopup(checkButton, checksContent, 460);
+    }
+
+    private TextBlock? checksCountCopy;
+
+    private void UpdateChecksCountCopy()
+    {
+        if (checksCountCopy != null) checksCountCopy.Text = ((TextBlock)checksCount.Child).Text;
+    }
+
+    // ----------------------------------------------------------------- .dockerignore preset chips
+
+    private readonly WrapPanel presetChips = new();
+
+    private void RefreshPresetChips()
+    {
+        presetChips.Children.Clear();
+        foreach (var name in Dockerignore.Presets.Keys)
+        {
+            var patterns = Dockerignore.Presets[name];
+            var on = patterns.All(doc.IgnorePatterns.Contains);
+            var chip = Ui.Chip(name, on, _ => { });
+            chip.Height = 32;
+            chip.Margin = new Thickness(0, 6, 6, 0);
+            chip.ToolTip = (on ? Loc.T("Listed. Click to remove these patterns:") : Loc.T("Adds the patterns that are missing:")) + " " + string.Join("  ", patterns);
+            var preset = name;
+            chip.Click += (_, _) => Ui.Guard(() => TogglePreset(preset));
+            presetChips.Children.Add(chip);
+        }
+    }
+
+    private void TogglePreset(string name)
+    {
+        var patterns = Dockerignore.Presets[name];
+        if (!patterns.All(doc.IgnorePatterns.Contains)) { AddIgnorePreset(name); return; }
+        FlushCommit();
+        // Patterns shared with another fully listed preset stay, so switching one preset off never breaks another.
+        var keep = Dockerignore.Presets.Where(p => p.Key != name && p.Value.All(doc.IgnorePatterns.Contains)).SelectMany(p => p.Value).ToHashSet();
+        var removed = patterns.Where(p => !keep.Contains(p)).ToList();
+        doc.IgnorePatterns.RemoveAll(removed.Contains);
+        ignoreBound = null;
+        Changed();
+        Host.Notify.Info($"{Loc.T("Removed")} {removed.Count} {Loc.T(removed.Count == 1 ? "pattern" : "patterns")}: {string.Join(", ", removed)}. {Loc.T("Undo restores them.")}");
     }
 
     /// <summary>Capture mode only: opens Suggestions inside the first cache mount of the source so the documentation shows the popup.</summary>
@@ -362,6 +435,8 @@ public sealed partial class CreatorPage
         foreach (var warning in parseWarnings) checks.Children.Add(ParseNoteRow(warning));
         foreach (var result in results) checks.Children.Add(CheckRow(result));
         if (results.Count == 0 && parseWarnings.Count == 0) checks.Children.Add(Ui.Caption("No checks apply yet."));
+        UpdateChecksCountCopy();
+        checkButton.ToolTip = Loc.T("Runs the checks on the draft and lists the results with their fixes.") + " " + ((TextBlock)checksCount.Child).Text;
     }
 
     private UIElement ParseNoteRow(string warning)
@@ -451,6 +526,7 @@ public sealed partial class CreatorPage
     private void Reveal(LintResult result)
     {
         if (result.StageIndex < 0 || result.StageIndex >= doc.Stages.Count) return;
+        if (checksPopup != null) checksPopup.IsOpen = false;
         FlushCommit();
         selectedStage = result.StageIndex;
         var list = doc.Stages[selectedStage].Instructions;

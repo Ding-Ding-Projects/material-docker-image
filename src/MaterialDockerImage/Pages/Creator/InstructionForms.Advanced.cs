@@ -20,10 +20,40 @@ public sealed partial class InstructionForm
 
     private void Rebuild() => Dispatcher.BeginInvoke(Build);
 
+    /// <summary>
+    /// RUN, in the order of the design board: mounts, then network and security side by side, then the heredoc switch
+    /// and the script (or the shell or exec command).
+    /// </summary>
     private IEnumerable<UIElement> RunFields(DockerInstruction i)
     {
         DockerfileModel.MigrateLegacyMounts(i);
-        yield return Ui.Switch("Use heredoc", i.Heredoc, on =>
+        yield return new CreatorMountEditor(i.Mounts, changed);
+
+        var networkNames = new[] { "Default", "None", "Host" };
+        var network = i.Network.Trim().ToLowerInvariant() switch { "none" => "None", "host" => "Host", _ => "Default" };
+        var networkNote = Ui.Caption(i.Network.Trim() == "host" ? "Host networking needs the network.host entitlement: start the builder with it and build with --allow network.host." : "");
+        networkNote.Visibility = i.Network.Trim() == "host" ? Visibility.Visible : Visibility.Collapsed;
+        var networkField = Ui.Field("Network", Ui.Segmented(networkNames, network, v =>
+        {
+            i.Network = v switch { "None" => "none", "Host" => "host", _ => i.Network.Trim() == "default" ? "default" : "" };
+            changed();
+            Rebuild();
+        }), "Network for this step (--network). None blocks downloads so the step can only use files already in the build; Host uses the build machine's network.", "--network=none pip install --find-links wheels app");
+        var insecure = string.Equals(i.Security.Trim(), "insecure", StringComparison.OrdinalIgnoreCase);
+        var warning = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(Icons.Warning, 20, true, "OnWarningContainer"),
+            Ui.Text("Insecure mode runs this step without the sandbox, like docker run --privileged. The builder must allow the security.insecure entitlement and the build must pass --allow security.insecure; add a comment above the step that says why it is needed.", 13, null, "OnWarningContainer")), 12, "WarningContainer", 12);
+        warning.Visibility = insecure ? Visibility.Visible : Visibility.Collapsed;
+        var securityField = Ui.Field("Security", Ui.Segmented(["Sandbox", "Insecure"], insecure ? "Insecure" : "Sandbox", v =>
+        {
+            i.Security = v == "Insecure" ? "insecure" : i.Security.Trim() == "sandbox" ? "sandbox" : "";
+            changed();
+            Rebuild();
+        }), "Security mode for this step (--security). Sandbox is the default.", "--security=insecure");
+        yield return Ui.Columns(12, [1, 1], networkField, securityField);
+        if (i.Network.Trim() == "host") yield return networkNote;
+        if (insecure) yield return warning;
+
+        var heredocSwitch = Ui.Switch("Heredoc script", i.Heredoc, on =>
         {
             if (on && !i.Heredoc)
             {
@@ -34,10 +64,12 @@ public sealed partial class InstructionForm
             i.Heredoc = on;
             changed();
             Rebuild();
-        }, "Writes the step as a multi-line script (RUN <<EOF … EOF) instead of joining commands with && and backslashes.");
+        }, "Write several commands as one RUN script instead of joining them with && and backslashes.");
+        heredocSwitch.ToolTip = Loc.T("Writes the step as a multi-line script (RUN <<EOF … EOF) instead of joining commands with && and backslashes.");
+        yield return heredocSwitch;
         if (i.Heredoc)
         {
-            var script = Ui.CodeBox(i.HeredocBody, 110);
+            var script = Ui.CodeBox(i.HeredocBody, 160);
             script.TextChanged += (_, _) => { i.HeredocBody = script.Text; changed(); };
             yield return Ui.Field("Script", script, "Each line runs in order. Start with set -e (or a shebang such as #!/usr/bin/env python3) so a failing line stops the build.", "set -ex\napt-get update\napt-get install -y --no-install-recommends curl");
             yield return Ui.Columns(12, [1, 1],
@@ -51,34 +83,11 @@ public sealed partial class InstructionForm
             if (i.ExecForm) yield return Ui.Field("Arguments", new ListRows(i.Arguments, "Argument", "Add argument", changed), "Program and arguments, one per row. No shell processing happens.", "/usr/local/bin/setup\n--quiet");
             else
             {
-                var command = Ui.CodeBox(i.Command, 72);
+                var command = Ui.CodeBox(i.Command, 96);
                 command.TextChanged += (_, _) => { i.Command = command.Text; changed(); };
-                yield return Ui.Field("Command", command, "Shell command. For several lines end each line with a backslash, join commands with &&, or switch on Use heredoc.", "apt-get update && \\\n    apt-get install -y --no-install-recommends curl && \\\n    rm -rf /var/lib/apt/lists/*");
+                yield return Ui.Field("Command", command, "Shell command. For several lines end each line with a backslash, join commands with &&, or switch on Heredoc script.", "apt-get update && \\\n    apt-get install -y --no-install-recommends curl && \\\n    rm -rf /var/lib/apt/lists/*");
             }
         }
-        yield return Ui.Field("Mounts", new CreatorMountEditor(i.Mounts, changed),
-            "Filesystems available to this step only (--mount). cache keeps package downloads between builds, bind reads files from the context or another stage without copying them, tmpfs gives scratch space, secret and ssh pass credentials that never enter the image.",
-            "type=cache,target=/root/.npm\ntype=bind,source=package.json,target=package.json\ntype=secret,id=npmrc,target=/root/.npmrc");
-        var networkNames = new[] { "Default", "None", "Host" };
-        var network = i.Network.Trim().ToLowerInvariant() switch { "none" => "None", "host" => "Host", _ => "Default" };
-        var networkNote = Ui.Caption(i.Network.Trim() == "host" ? "Host networking needs the network.host entitlement: start the builder with it and build with --allow network.host." : "");
-        networkNote.Visibility = i.Network.Trim() == "host" ? Visibility.Visible : Visibility.Collapsed;
-        yield return Ui.Field("Network", Ui.VStack(6, Ui.Segmented(networkNames, network, v =>
-        {
-            i.Network = v switch { "None" => "none", "Host" => "host", _ => i.Network.Trim() == "default" ? "default" : "" };
-            changed();
-            Rebuild();
-        }), networkNote), "Network for this step (--network). None blocks downloads so the step can only use files already in the build; Host uses the build machine's network.", "--network=none pip install --find-links wheels app");
-        var insecure = string.Equals(i.Security.Trim(), "insecure", StringComparison.OrdinalIgnoreCase);
-        var warning = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(Icons.Warning, 20, true, "OnWarningContainer"),
-            Ui.Text("Insecure mode runs this step without the sandbox, like docker run --privileged. The builder must allow the security.insecure entitlement and the build must pass --allow security.insecure; add a comment above the step that says why it is needed.", 13, null, "OnWarningContainer")), 12, "WarningContainer", 12);
-        warning.Visibility = insecure ? Visibility.Visible : Visibility.Collapsed;
-        yield return Ui.Field("Security", Ui.VStack(8, Ui.Segmented(["Sandbox", "Insecure"], insecure ? "Insecure" : "Sandbox", v =>
-        {
-            i.Security = v == "Insecure" ? "insecure" : i.Security.Trim() == "sandbox" ? "sandbox" : "";
-            changed();
-            Rebuild();
-        }), warning), "Security mode for this step (--security). Sandbox is the default.", "--security=insecure");
     }
 
     /// <summary>The shell/exec segmented control shared by RUN, CMD, ENTRYPOINT and HEALTHCHECK.</summary>

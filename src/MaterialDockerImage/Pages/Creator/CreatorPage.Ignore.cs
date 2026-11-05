@@ -7,7 +7,7 @@ using Microsoft.Win32;
 
 namespace MaterialDockerImage.Pages;
 
-/// <summary>The .dockerignore tab (presets, pattern rows, a live check against a context folder) and the compose.yaml tab.</summary>
+/// <summary>The .dockerignore tab (pattern rows; the presets are at the foot of the preview, a live check against a context folder) and the compose.yaml tab.</summary>
 public sealed partial class CreatorPage
 {
     private readonly ContentControl ignoreRowsHost = new();
@@ -26,14 +26,6 @@ public sealed partial class CreatorPage
 
     private FrameworkElement BuildIgnorePanel()
     {
-        var presets = new WrapPanel();
-        foreach (var name in Dockerignore.Presets.Keys)
-        {
-            var b = Ui.Button(name, Icons.Add, ButtonKind.Outlined, () => AddIgnorePreset(name), false);
-            b.ToolTip = Loc.T("Adds the patterns that are missing:") + " " + string.Join("  ", Dockerignore.Presets[name]);
-            b.MinHeight = 32; b.Height = 32; b.Padding = new Thickness(10, 0, 12, 0); b.Margin = new Thickness(0, 0, 6, 6);
-            presets.Children.Add(b);
-        }
         var choose = Ui.Button("Choose folder…", Icons.FolderOpen, ButtonKind.Text, ChooseIgnoreContext);
         var check = Ui.AsyncButton("Check context", Icons.FactCheck, ButtonKind.Tonal, CheckIgnoreAsync);
         check.ToolTip = Loc.T("Lists which files in the context folder the patterns exclude (first 2000 entries). Nothing is sent to Docker.");
@@ -46,8 +38,6 @@ public sealed partial class CreatorPage
         UpdateIgnoreContextText();
         var stack = Ui.VStack(12,
             Ui.Caption("Patterns follow Docker's rules: * stays within one folder, ** spans folders, ? is one character, a leading ! re-includes, and the last matching line wins. Paths are relative to the context root."),
-            Ui.Wrap(0, Ui.Overline("Presets"), Ui.InfoButton("Presets", "Adds common patterns for a language. Patterns already listed are skipped.", "Node.js: node_modules, npm-debug.log*, dist, coverage")),
-            presets,
             Ui.Field("Patterns", ignoreRowsHost, "One pattern per row; rows starting with # are comments. The order matters for ! exceptions.", "**/*.log\n!keep.log\nnode_modules/\n/build"),
             Ui.Divider(),
             Ui.Overline("Context folder"),
