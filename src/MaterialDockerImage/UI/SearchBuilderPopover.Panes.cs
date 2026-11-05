@@ -161,19 +161,27 @@ internal sealed partial class SearchBuilderPopover
         paneHosts[pane].Visibility = visible ? Visibility.Visible : Visibility.Collapsed;
     }
 
-    /// <summary>Sizes the card to the window: up to 1300 by 800, centred on the window, on the side of the field with more room.</summary>
+    /// <summary>Sizes the card to the window: up to 1300 by 800, leaving a margin on every side. The builder has its own
+    /// Pattern panel, so it is centred on the window and may cover the field it edits.</summary>
     private void SizeToWindow()
     {
         var window = Window.GetWindow(field);
         var windowWidth = window?.ActualWidth ?? 960;
         var windowHeight = window?.ActualHeight ?? 720;
         card.Width = Math.Min(MaxCardWidth, Math.Max(320, windowWidth - 48));
-        var top = 0.0;
-        if (window != null && window.IsAncestorOf(field)) top = field.TranslatePoint(new Point(0, 0), window).Y;
-        var below = windowHeight - (top + field.ActualHeight) - 40;
-        var above = top - 40;
-        card.Height = Math.Min(MaxCardHeight, Math.Max(300, Math.Max(below, above)));
+        card.Height = Math.Min(MaxCardHeight, Math.Max(300, windowHeight - 80));
         UpdatePanes();
+    }
+
+    /// <summary>Vertical offset, in device pixels relative to the field, that centres the card on the window.</summary>
+    private double CenteredTop()
+    {
+        var window = Window.GetWindow(field);
+        if (window == null || !window.IsAncestorOf(field)) return field.ActualHeight + 4;
+        var fieldTop = field.TranslatePoint(new Point(0, 0), window).Y;
+        var total = card.Height + card.Margin.Top + card.Margin.Bottom;
+        var dpi = PresentationSource.FromVisual(field)?.CompositionTarget?.TransformToDevice.M22 ?? 1.0;
+        return Math.Max(-fieldTop, (window.ActualHeight - total) / 2 - fieldTop) * dpi;
     }
 
     /// <summary>Horizontal offset, in device pixels relative to the field, that centres the card on the window.</summary>

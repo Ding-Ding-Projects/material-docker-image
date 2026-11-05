@@ -850,6 +850,20 @@ public partial class MainWindow : Window
             catch (Exception e) when (e is InvalidOperationException or ArgumentException) { }
             Keyboard.ClearFocus();
         }
+        Navigate("Images");
+        if (Page("Images") is Pages.ImagesPage imagesPage)
+        {
+            if (imagesPage.CaptureDetail()) { await Task.Delay(3000); await Shot("image-detail"); imagesPage.CloseDetail(); }
+            imagesPage.CaptureSearch.RegexMode = true;
+            imagesPage.CaptureSearch.Query = "^(alpine|debian):";
+            imagesPage.CaptureSearch.OpenBuilder();
+            await Task.Delay(800);
+            if (imagesPage.CaptureSearch.BuilderPopup is { } builderPopup) await Shot("regex-builder", [builderPopup]);
+            imagesPage.CaptureSearch.CloseBuilder();
+            imagesPage.CaptureSearch.Query = "";
+            imagesPage.CaptureSearch.RegexMode = false;
+            Keyboard.ClearFocus();
+        }
         Navigate("Containers");
         OpenPalette();
         await Shot("command-palette");

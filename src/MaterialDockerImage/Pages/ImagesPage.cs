@@ -100,6 +100,12 @@ public sealed partial class ImagesPage : PageBase
     }
 
     /// <summary>Replaces the list with the full-page detail of one image (design/workspace-redesign-2026-11/project/ImagesV2.dc.html).</summary>
+    /// <summary>Capture mode only: opens the full detail of the first listed image, if there is one.</summary>
+    internal bool CaptureDetail() { if (table.Items.FirstOrDefault() is not { } first) return false; OpenDetail(first); return true; }
+
+    /// <summary>Capture mode only: the list's search field, whose builder is captured open.</summary>
+    internal SearchFilter CaptureSearch => table.Search;
+
     internal void OpenDetail(ImageRow image)
     {
         var view = new ImageDetailView(this, image, CloseDetail) { Focusable = true, FocusVisualStyle = null };

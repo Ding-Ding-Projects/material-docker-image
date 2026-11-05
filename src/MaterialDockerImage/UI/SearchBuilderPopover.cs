@@ -198,6 +198,8 @@ internal sealed partial class SearchBuilderPopover
     public void Focus() => card.Dispatcher.BeginInvoke(() => { pattern.Focus(); Keyboard.Focus(pattern); pattern.CaretIndex = pattern.Text.Length; }, DispatcherPriority.Input);
 
     /// <summary>Closes the popover and returns focus to the field. Clicking elsewhere closes it without moving focus.</summary>
+    /// <summary>The popup that holds the builder card (capture mode draws it on top of the window).</summary>
+    internal Popup Popup => popup;
     public void Close() { returnFocus = true; if (popup.IsOpen) popup.IsOpen = false; }
 
     private void OnClosed()
@@ -212,9 +214,10 @@ internal sealed partial class SearchBuilderPopover
         Closed?.Invoke(returnFocus);
     }
 
-    /// <summary>Below the field when it fits, otherwise above it (WPF picks the first placement that stays on screen).</summary>
+    /// <summary>Centred on the window first; then below or above the field (WPF picks the first placement that stays on screen).</summary>
     private CustomPopupPlacement[] Place(Size popupSize, Size targetSize, Point offset) =>
     [
+        new(new Point(CenteredOffset(), CenteredTop()), PopupPrimaryAxis.None),
         new(new Point(CenteredOffset(), targetSize.Height + 4), PopupPrimaryAxis.Horizontal),
         new(new Point(CenteredOffset(), -popupSize.Height - 4), PopupPrimaryAxis.Horizontal),
         new(new Point(0, targetSize.Height + 4), PopupPrimaryAxis.Horizontal),

@@ -141,6 +141,9 @@ public sealed class SearchFilter : Border
         BuilderStateChanged?.Invoke();
     }
 
+    /// <summary>The open builder's popup, or null.</summary>
+    internal System.Windows.Controls.Primitives.Popup? BuilderPopup => builder?.Popup;
+
     /// <summary>Closes this field's builder, if it is open, without moving focus.</summary>
     public void CloseBuilder() => builder?.Close();
 
