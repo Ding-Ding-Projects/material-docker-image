@@ -59,6 +59,7 @@ public static class CommandDescriptions
         ["containers.run"] = "Start a new container from a local image",
         ["containers.refresh"] = "Reload the container list from the engine",
         ["containers.prune"] = "Delete every stopped container after you confirm",
+        ["containers.restart-selected"] = "Restart the container focused in the Containers list",
         ["contexts.create"] = "Add an engine endpoint over SSH, TCP or TLS",
         ["contexts.import"] = "Add a context from an exported archive",
         ["creator.import"] = "Parse a Dockerfile from disk into editable stages",

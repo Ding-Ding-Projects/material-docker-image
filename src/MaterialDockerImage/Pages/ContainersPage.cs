@@ -23,6 +23,9 @@ public sealed partial class ContainersPage : PageBase
     public override bool Busy => refreshing || refreshAgain;
     private bool reloading;
 
+    // Counts from the last successful list, for the command palette; null until a list has loaded.
+    private (int Running, int Total, int Stopped)? loadedCounts;
+
     /// <summary>The engine context the current list was loaded from.</summary>
     internal string? Context => SnapshotContext;
 
@@ -107,6 +110,7 @@ public sealed partial class ContainersPage : PageBase
                 errorHost.Content = Ui.Card(Ui.Columns(10, [0, 1, 0], Ui.Icon(Icons.Error, 20, true, "OnErrorContainer"), Ui.Text(Loc.T("Containers could not be listed:") + " " + e.Message, 13, null, "OnErrorContainer", true, false), Ui.Button("Open Diagnostics", null, ButtonKind.Text, () => Host.Navigate("Diagnostics"))), 12, "ErrorContainer", 12).Margin(0, 0, 0, 8);
                 subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
                 table.SetItems([]);
+                loadedCounts = null;
                 return;
             }
             if (context != SnapshotContext) { refreshAgain = true; return; }
@@ -119,6 +123,7 @@ public sealed partial class ContainersPage : PageBase
             inspector.Show(table.Focused);
             var running = list.Count(c => c.IsRunning);
             var paused = list.Count(c => c.IsPaused);
+            loadedCounts = (running, list.Count, list.Count(c => c.IsStopped));
             subtitle.Text = Loc.Line($"{list.Count} {(list.Count == 1 ? "container" : "containers")} · {running} running · {paused} paused · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
         }
         finally
@@ -131,9 +136,15 @@ public sealed partial class ContainersPage : PageBase
     public override IEnumerable<AppCommand> PageCommands() =>
     [
         new AppCommand { Id = "containers.run", Title = "Run container…", Group = "Containers", Icon = Icons.PlayArrow, Keywords = "create start new", Run = () => _ = Guarded(RunContainerAsync) },
-        new AppCommand { Id = "containers.refresh", Title = "Refresh containers", Group = "Containers", Icon = Icons.Refresh, Run = () => _ = SafeRefresh() },
-        new AppCommand { Id = "containers.prune", Title = "Remove all stopped containers…", Group = "Containers", Icon = Icons.CleaningServices, Keywords = "prune cleanup", Run = () => _ = Guarded(PruneAsync) },
+        new AppCommand { Id = "containers.refresh", Title = "Refresh containers", Group = "Containers", Icon = Icons.Refresh, Run = () => _ = SafeRefresh(), Status = PaletteSummary },
+        new AppCommand { Id = "containers.prune", Title = "Remove all stopped containers…", Group = "Containers", Icon = Icons.CleaningServices, Keywords = "prune cleanup", Run = () => _ = Guarded(PruneAsync),
+            Status = () => loadedCounts is { } n ? PaletteLiveLines.StoppedContainers(n.Stopped) : null },
+        new AppCommand { Id = "containers.restart-selected", Title = "Restart the selected container", Group = "Containers", Icon = Icons.RestartAlt, Keywords = "restart reboot selected focused",
+            CanRun = () => table.Focused != null, Run = () => { if (table.Focused is { } c) _ = Guarded(() => LifecycleAsync("restart", c)); },
+            Status = () => table.Focused is { } c ? PaletteLiveLines.SelectedContainer(c.Name, c.Status) : null },
     ];
+
+    internal override string? PaletteSummary() => loadedCounts is { } n ? PaletteLiveLines.Containers(n.Running, n.Total) : null;
 
     private static async Task Guarded(Func<Task> action)
     {

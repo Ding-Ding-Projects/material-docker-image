@@ -45,5 +45,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/OtpQrImport.cs" Link="OtpQrImport.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/CameraQrScan.cs" Link="CameraQrScan.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Pages/Canvas/CanvasRouting.cs" Link="CanvasRouting.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/Pages/Canvas/CanvasBuildFooters.cs" Link="CanvasBuildFooters.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/PaletteLiveLines.cs" Link="PaletteLiveLines.cs"/>
   </ItemGroup>
 </Project>

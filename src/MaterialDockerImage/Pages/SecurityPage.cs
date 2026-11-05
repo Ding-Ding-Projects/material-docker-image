@@ -191,13 +191,17 @@ public sealed partial class SecurityPage : PageBase
         return false;
     }
 
+    /// <summary>Images analyzed this session out of the loaded list, for the command palette; null until the list has loaded.</summary>
+    internal override string? PaletteSummary() =>
+        loaded ? PaletteLiveLines.Security(baseRows.Count(r => ScoutSessionCache.Get(SnapshotContext, r.Id) is { Succeeded: true }), baseRows.Count) : null;
+
     public override IEnumerable<AppCommand> PageCommands() =>
     [
         new AppCommand { Id = "security.scanAll", Title = "Scan all images with Docker Scout", Group = "Security", Icon = Icons.Security, Keywords = "vulnerabilities cve scout analyze", Run = () => { Host.Navigate("Security"); _ = Guarded(ScanAllAsync); } },
         new AppCommand { Id = "security.scanSelected", Title = "Scan selected image with Docker Scout", Group = "Security", Icon = Icons.ManageSearch, Keywords = "vulnerabilities cve scout analyze", Run = () => { Host.Navigate("Security"); _ = Guarded(ScanSelectedAsync); } },
         new AppCommand { Id = "security.export", Title = "Export security findings…", Group = "Security", Icon = Icons.FileExport, Keywords = "cve json csv report", Run = () => Ui.Guard(ExportFindings) },
         new AppCommand { Id = "security.cancel", Title = "Cancel security scan", Group = "Security", Icon = Icons.Cancel, Keywords = "stop scout", CanRun = () => scanCancellation != null, Run = CancelScan },
-        new AppCommand { Id = "security.refresh", Title = "Refresh security", Group = "Security", Icon = Icons.Refresh, Run = () => _ = SafeRefresh() },
+        new AppCommand { Id = "security.refresh", Title = "Refresh security", Group = "Security", Icon = Icons.Refresh, Run = () => _ = SafeRefresh(), Status = PaletteSummary },
     ];
 
     private static async Task Guarded(Func<Task> action)

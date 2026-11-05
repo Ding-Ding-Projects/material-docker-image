@@ -93,6 +93,7 @@ public sealed class SwarmPage : PageBase
         loaded.Clear();
         deployStack.IsEnabled = createService.IsEnabled = false;
         var r = await Host.Read(["info", "--format", "{{json .Swarm}}"], SnapshotContext);
+        swarmRead = true;
         if (!r.Success)
         {
             state = null;
@@ -145,9 +146,13 @@ public sealed class SwarmPage : PageBase
         await views[name].LoadAsync();
     }
 
+    // True once docker info has been read for swarm state (successfully or not); the palette shows nothing before that.
+    private bool swarmRead;
+    internal override string? PaletteSummary() => !swarmRead ? null : PaletteLiveLines.Swarm(state?.IsActive, state?.IsManager == true, state?.Nodes ?? 0);
+
     public override IEnumerable<AppCommand> PageCommands() =>
     [
-        new AppCommand { Id = "swarm.refresh", Title = "Refresh swarm", Group = "Swarm", Icon = Icons.Refresh, Keywords = "swarm services stacks nodes", Run = () => { Host.Navigate("Swarm"); _ = SafeRefresh(); } },
+        new AppCommand { Id = "swarm.refresh", Title = "Refresh swarm", Group = "Swarm", Icon = Icons.Refresh, Keywords = "swarm services stacks nodes", Run = () => { Host.Navigate("Swarm"); _ = SafeRefresh(); }, Status = PaletteSummary },
         new AppCommand { Id = "swarm.service.create", Title = "Create swarm service…", Group = "Swarm", Icon = Icons.Add, Keywords = "docker service create replicas", CanRun = () => state?.IsManager == true, Run = () => { Host.Navigate("Swarm"); SwarmServiceForm.Show(() => SnapshotContext, () => IsCurrent, () => LoadTabAsync("Services")); } },
     ];
 }

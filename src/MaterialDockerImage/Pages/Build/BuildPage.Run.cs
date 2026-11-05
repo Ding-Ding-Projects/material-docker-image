@@ -52,9 +52,13 @@ public sealed partial class BuildPage
         var context = Host.Context;
         tabs.SelectedItem = runTab;
         var label = call switch { BuildKitCall.Check => "BuildKit check", BuildKitCall.Outline => "BuildKit outline", BuildKitCall.Targets => "BuildKit targets", _ => "Build image" };
+        // The text and target being built, so Canvas can show this run's results only while the editor still holds that text.
+        var builtHash = CanvasBuildFooters.Hash(editor.Text);
+        var builtTarget = (options.Target.Text ?? "").Trim();
         try
         {
             var result = await runner.RunAsync(label, args, context, null, string.Join(", ", summary.Tags));
+            if (call == BuildKitCall.Build && result != null) RecordForCanvas(builtHash, builtTarget, result, summary.Tags.FirstOrDefault() ?? "", context);
             if (result?.Success != true) return result;
             timeline.SetResult(call switch
             {
@@ -71,6 +75,18 @@ public sealed partial class BuildPage
         {
             if (metadataFile != null) try { File.Delete(metadataFile); } catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
         }
+    }
+
+    /// <summary>Hands the per-step results of a finished build to Canvas. Only Dockerfile instructions (steps with a position) are kept.</summary>
+    private void RecordForCanvas(string sourceHash, string target, CommandResult result, string tag, string? context)
+    {
+        var steps = timeline.Progress.Steps.Where(s => s.IsInstruction && !s.IsInternal).Select(s => new BuildStepFact(s.Stage, s.Index ?? 0, s.Total ?? 0, s.Status switch
+        {
+            BuildKitStepStatus.Cached => "cached", BuildKitStepStatus.Done => "done", BuildKitStepStatus.Error => "error",
+            BuildKitStepStatus.Canceled => "canceled", _ => "running"
+        }, s.Seconds)).ToList();
+        var reference = timeline.Progress.ImageNames.FirstOrDefault() ?? tag;
+        CanvasBuildFooters.Record(new CanvasBuildRun(sourceHash, target, DateTimeOffset.Now, result.Success, result.Cancelled, steps, reference, context ?? ""));
     }
 
     /// <summary>Reads the metadata file buildx wrote. It holds digests and references only, never secrets.</summary>

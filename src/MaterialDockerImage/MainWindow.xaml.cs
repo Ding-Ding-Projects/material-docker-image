@@ -697,7 +697,9 @@ public partial class MainWindow : Window
         foreach (var d in Destinations.All)
         {
             var key = d.Key;
-            c.Register(new AppCommand { Id = "go." + key, Title = "Go to " + key, Group = "Destinations", Icon = d.Icon, Keywords = d.Description, Gesture = number <= 9 && d.OnRail ? new KeyGesture(Key.D0 + number, ModifierKeys.Control) : null, Run = () => Navigate(key) });
+            c.Register(new AppCommand { Id = "go." + key, Title = "Go to " + key, Group = "Destinations", Icon = d.Icon, Keywords = d.Description, Gesture = number <= 9 && d.OnRail ? new KeyGesture(Key.D0 + number, ModifierKeys.Control) : null, Run = () => Navigate(key),
+                // Reads only a page that already exists; the palette never creates a page or runs docker for its second line.
+                Status = () => pages.TryGetValue(key, out var created) ? created.PaletteSummary() : null });
             if (d.OnRail) number++;
         }
         c.Register(new AppCommand { Id = "set.theme", Title = "Theme", Group = "Settings", Icon = Icons.Palette, Keywords = "dark light appearance", LiveControl = () => host.Lockable("theme", Ui.Segmented(["System", "Light", "Dark"], settings.Theme, v => { settings.Theme = v; host.SaveSettings("Theme set to " + v); })) });
@@ -868,6 +870,11 @@ public partial class MainWindow : Window
         Navigate("Containers");
         OpenPalette();
         await Shot("command-palette");
+        host.Overlay.CloseAll();
+        // The destination rows with live second lines read from the pages loaded above.
+        palette?.Open(false, null, "Go to");
+        await Task.Delay(400);
+        await Shot("command-palette-live");
         host.Overlay.CloseAll();
         Navigate("System");
         _ = host.Overlay.SuperConfirmAsync("Remove unused data", "Super confirmation preview captured for documentation. Nothing is removed unless both keys are on and the slider reaches the end.", ["Stopped containers", "Dangling images", "Unused networks", "Build cache"]);

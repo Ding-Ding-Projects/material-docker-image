@@ -14,6 +14,9 @@ public sealed class AppCommand
     /// <summary>One-line English description shown under the title in the palette and searched with it. Filled from
     /// <see cref="UI.CommandDescriptions"/> at registration when the command does not set its own.</summary>
     public string? Description { get; set; }
+    /// <summary>Optional live second line built from state a page already holds (counts, the selected item). Returns
+    /// null when there is nothing loaded yet; the palette then shows <see cref="Description"/>. Must never run docker.</summary>
+    public Func<string?>? Status { get; set; }
     public KeyGesture? Gesture { get; init; }
     public Func<bool>? CanRun { get; init; }
     public Action? Run { get; init; }

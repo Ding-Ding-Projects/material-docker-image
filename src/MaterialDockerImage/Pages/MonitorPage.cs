@@ -248,9 +248,12 @@ public sealed class MonitorPage : PageBase
 
     public override void OnShown() => UpdateTimer();
 
+    /// <summary>Sampling state and the last real sample, for the command palette; null until a sample has been read.</summary>
+    internal override string? PaletteSummary() => history.LastSuccess is { } last ? PaletteLiveLines.Monitor(live, CurrentInterval, history.Current.Count, last) : null;
+
     public override IEnumerable<AppCommand> PageCommands() =>
     [
-        new AppCommand { Id = "monitor.pause", Title = "Pause or resume live monitor", Group = "Monitor", Icon = Icons.Pause, Keywords = "stats live charts", Run = () => { Host.Navigate("Monitor"); SetLive(!live); } },
+        new AppCommand { Id = "monitor.pause", Title = "Pause or resume live monitor", Group = "Monitor", Icon = Icons.Pause, Keywords = "stats live charts", Run = () => { Host.Navigate("Monitor"); SetLive(!live); }, Status = PaletteSummary },
         new AppCommand { Id = "monitor.sample", Title = "Take one stats sample now", Group = "Monitor", Icon = Icons.Monitoring, Keywords = "stats cpu memory", Run = () => { Host.Navigate("Monitor"); _ = Tick(force: true); } },
     ];
 }

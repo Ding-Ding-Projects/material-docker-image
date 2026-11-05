@@ -104,6 +104,7 @@ public sealed class ComposePage : PageBase, IDirtyAware
             entries.Add(new ComposeEntry(dir, File.Exists(path) ? "file · not running" : "file missing", [path], false, true));
         }
         var running = listed.Count(e => e.StatusTone == Tone.Success);
+        loadedCounts = error != null ? null : (listed.Count, running, entries.Count - listed.Count);
         subtitle.Text = Loc.Line(error != null
             ? Loc.T("docker compose ls failed:") + " " + error
             : $"{listed.Count} project{(listed.Count == 1 ? "" : "s")} reported by the engine · {running} running · {entries.Count - listed.Count} recent file{(entries.Count - listed.Count == 1 ? "" : "s")} · context {context ?? "current"}");
@@ -166,9 +167,13 @@ public sealed class ComposePage : PageBase, IDirtyAware
         finally { switching = false; }
     }
 
+    // Project counts from the last successful docker compose ls, for the command palette; null until one has loaded.
+    private (int Projects, int Running, int Recent)? loadedCounts;
+    internal override string? PaletteSummary() => loadedCounts is { } n ? PaletteLiveLines.Compose(n.Projects, n.Running, n.Recent) : null;
+
     public override IEnumerable<AppCommand> PageCommands() =>
     [
         new AppCommand { Id = "compose.open", Title = "Open Compose file…", Group = "Compose", Icon = Icons.FolderOpen, Keywords = "yaml docker-compose", Run = () => { Host.Navigate("Compose"); projects.Browse(); } },
-        new AppCommand { Id = "compose.refresh", Title = "Refresh Compose projects", Group = "Compose", Icon = Icons.Refresh, Keywords = "compose ls", Run = () => { Host.Navigate("Compose"); _ = SafeRefresh(); } },
+        new AppCommand { Id = "compose.refresh", Title = "Refresh Compose projects", Group = "Compose", Icon = Icons.Refresh, Keywords = "compose ls", Run = () => { Host.Navigate("Compose"); _ = SafeRefresh(); }, Status = PaletteSummary },
     ];
 }

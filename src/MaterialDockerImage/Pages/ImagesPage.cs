@@ -125,6 +125,11 @@ public sealed partial class ImagesPage : PageBase
         Dispatcher.BeginInvoke(() => table.Focus(), System.Windows.Threading.DispatcherPriority.Input);
     }
 
+    // Count and total size of the last successful list, for the command palette; null until a list has loaded.
+    private (int Count, double Bytes)? loadedSummary;
+    internal override string? PaletteSummary() => loadedSummary is { } s ? PaletteLiveLines.Images(s.Count, Ui.FormatBytes(s.Bytes)) : null;
+    private string? SelectedImageLine() => table.Focused is { } i ? PaletteLiveLines.SelectedImage(i.Name, i.Size) : null;
+
     public override async Task RefreshAsync()
     {
         var context = SnapshotContext;
@@ -141,6 +146,7 @@ public sealed partial class ImagesPage : PageBase
             subtitle.Text = Loc.T("Could not reach the engine on context") + " " + (context ?? "default") + ".";
             table.SetItems([]);
             UpdateStats([]);
+            loadedSummary = null;
             return;
         }
         errorHost.Content = null;
@@ -157,6 +163,7 @@ public sealed partial class ImagesPage : PageBase
         inspector.Show(table.Focused);
         var unique = rows.GroupBy(r => r.Id).Select(g => g.First()).ToList();
         var total = unique.Sum(r => ImageRow.ParseSize(r.Size));
+        loadedSummary = (rows.Count, total);
         subtitle.Text = Loc.Line($"{rows.Count} {(rows.Count == 1 ? "image" : "images")} · {unique.Count} unique IDs · {Ui.FormatBytes(total)} · context {context ?? "default"} · refreshed {DateTime.Now:HH:mm:ss}");
         UpdateStats(rows);
     }
@@ -219,11 +226,11 @@ public sealed partial class ImagesPage : PageBase
         new AppCommand { Id = "images.load", Title = "Load image archive…", Group = "Images", Icon = Icons.Upload, Keywords = "tar load", Run = () => _ = Guarded(LoadArchiveAsync) },
         new AppCommand { Id = "images.import", Title = "Import tarball as image…", Group = "Images", Icon = Icons.Input, Keywords = "filesystem import", Run = () => _ = Guarded(ImportAsync) },
         new AppCommand { Id = "images.prune", Title = "Prune dangling images…", Group = "Images", Icon = Icons.CleaningServices, Keywords = "cleanup remove untagged", Run = () => _ = Guarded(PruneAsync) },
-        new AppCommand { Id = "images.retag", Title = "Retag selected image to multiple tags…", Group = "Images", Icon = Icons.Tag, Keywords = "tag many names", Run = () => _ = Guarded(() => table.Focused is { } i ? RetagManyAsync(i) : NoSelection()) },
-        new AppCommand { Id = "images.pushRepository", Title = "Push all tags of selected repository…", Group = "Images", Icon = Icons.CloudSync, Keywords = "upload all-tags registry", Run = () => _ = Guarded(() => table.Focused is { } i ? PushRepositoryAsync(i) : NoSelection()) },
-        new AppCommand { Id = "images.copyPull", Title = "Copy pull command of selected image", Group = "Images", Icon = Icons.ContentCopy, Keywords = "clipboard docker pull", Run = () => { if (table.Focused is { } i) CopyPullCommand(i); else _ = NoSelection(); } },
-        new AppCommand { Id = "images.openDetail", Title = "Open details of selected image", Group = "Images", Icon = Icons.OpenInFull, Keywords = "layers platforms full view", Run = () => { if (table.Focused is { } i) OpenDetail(i); else _ = NoSelection(); } },
-        new AppCommand { Id = "images.refresh", Title = "Refresh images", Group = "Images", Icon = Icons.Refresh, Run = () => _ = SafeRefresh() },
+        new AppCommand { Id = "images.retag", Title = "Retag selected image to multiple tags…", Group = "Images", Icon = Icons.Tag, Keywords = "tag many names", Run = () => _ = Guarded(() => table.Focused is { } i ? RetagManyAsync(i) : NoSelection()), Status = SelectedImageLine },
+        new AppCommand { Id = "images.pushRepository", Title = "Push all tags of selected repository…", Group = "Images", Icon = Icons.CloudSync, Keywords = "upload all-tags registry", Run = () => _ = Guarded(() => table.Focused is { } i ? PushRepositoryAsync(i) : NoSelection()), Status = SelectedImageLine },
+        new AppCommand { Id = "images.copyPull", Title = "Copy pull command of selected image", Group = "Images", Icon = Icons.ContentCopy, Keywords = "clipboard docker pull", Run = () => { if (table.Focused is { } i) CopyPullCommand(i); else _ = NoSelection(); }, Status = SelectedImageLine },
+        new AppCommand { Id = "images.openDetail", Title = "Open details of selected image", Group = "Images", Icon = Icons.OpenInFull, Keywords = "layers platforms full view", Run = () => { if (table.Focused is { } i) OpenDetail(i); else _ = NoSelection(); }, Status = SelectedImageLine },
+        new AppCommand { Id = "images.refresh", Title = "Refresh images", Group = "Images", Icon = Icons.Refresh, Run = () => _ = SafeRefresh(), Status = PaletteSummary },
     ];
 
     private static Task NoSelection()

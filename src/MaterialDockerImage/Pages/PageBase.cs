@@ -50,6 +50,10 @@ public abstract class PageBase : Grid
     /// <summary>Commands this page adds to the command palette.</summary>
     public virtual IEnumerable<AppCommand> PageCommands() => [];
 
+    /// <summary>Live second line for this destination's "Go to" palette row, from state the page already loaded.
+    /// Null until the page has loaded something; never starts a docker command.</summary>
+    internal virtual string? PaletteSummary() => null;
+
     /// <summary>Optional element the palette teleports to for a settings or command id.</summary>
     public virtual FrameworkElement? FindTarget(string id) => null;
 

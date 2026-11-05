@@ -987,6 +987,7 @@ count += LadderChecks.Run();
 count += LockPolicyChecks.Run();
 count += LockExtraChecks.Run();
 count += SchedulesChecks.Run();
+count += LiveLinesChecks.Run();
 count += RegexRemainingChecks.Run();
 count += PasskeyQrChecks.Run();
 count += CameraQrChecks.Run();

@@ -56,6 +56,7 @@ public static partial class Loc
         yield return new("Start a new container from a local image", "用本機映像開一個新容器");
         yield return new("Reload the container list from the engine", "由引擎重新載入容器清單");
         yield return new("Delete every stopped container after you confirm", "你確認之後刪晒所有已停止嘅容器");
+        yield return new("Restart the container focused in the Containers list", "重新啟動容器清單入面揀咗嗰個容器");
         yield return new("Add an engine endpoint over SSH, TCP or TLS", "經 SSH、TCP 或 TLS 加一個引擎端點");
         yield return new("Add a context from an exported archive", "由匯出咗嘅封存檔加返一個引擎環境");
         yield return new("Parse a Dockerfile from disk into editable stages", "將磁碟上嘅 Dockerfile 拆成可以編輯嘅階段");

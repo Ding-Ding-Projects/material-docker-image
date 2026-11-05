@@ -138,6 +138,8 @@ public sealed partial class CanvasPage : PageBase
         body.Children.Add(Ui.Card(inspectorBody, 20, "SurfaceLow", 16).At(0, 4));
         Layout(header, body);
         ShowInspectorHint("Select a stage or resource to inspect it.");
+        // A finished build (or the image size read after it) redraws the stage footers.
+        CanvasBuildFooters.Changed += () => Dispatcher.BeginInvoke(() => { if (view == View.Dockerfile && graph != null) DrawDockerfile(); });
     }
 
     public override async Task RefreshAsync()

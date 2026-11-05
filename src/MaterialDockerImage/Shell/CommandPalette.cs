@@ -15,7 +15,8 @@ public sealed class CommandPalette
     public CommandPalette(AppHost host, OverlayHost overlay) { this.host = host; this.overlay = overlay; }
 
     /// <param name="start">When given (from an action file or the command line), the palette's search field is filled in with it and its builder opens. Nothing is searched or replaced.</param>
-    public void Open(bool fullWindow, RegexSearchAction? start = null)
+    /// <param name="query">Optional plain-text query the search field starts with (used by capture mode).</param>
+    public void Open(bool fullWindow, RegexSearchAction? start = null, string? query = null)
     {
         Action? close = null;
         var search = new SearchFilter("Type a command, destination or setting", fullWindow ? 900 : 640);
@@ -73,7 +74,10 @@ public sealed class CommandPalette
         void Fill()
         {
             results.Children.Clear(); runnable.Clear(); selected = 0;
-            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(CommandDescriptions.SearchText(Loc.Lead(c.Title), c.Title, c.Description is { } d ? Loc.T(d) : null, c.Description, c.Keywords, c.Group), LockOf(c) != null)));
+            // Live second lines are read once per fill from state the pages already hold; they are searched with the static description.
+            var liveLines = new Dictionary<AppCommand, string?>();
+            foreach (var c in host.Commands.All) liveLines[c] = LiveText(c);
+            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(PaletteLiveLines.SearchText(CommandDescriptions.SearchText(Loc.Lead(c.Title), c.Title, c.Description is { } d ? Loc.T(d) : null, c.Description, c.Keywords, c.Group), liveLines[c]), LockOf(c) != null)));
             var shown = LockedResults.Apply(found, c => LockOf(c) != null, host.Settings.HideLockedInSearch, out var hidden);
             note.Text = LockedResults.HiddenStatement(hidden, Loc.T);
             note.Visibility = hidden > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -112,7 +116,7 @@ public sealed class CommandPalette
                         row.Children.Add(chip.Dock(Dock.Right));
                     }
                     var titleText = Loc.Lead(command.Title);
-                    var sub = SubLine(command, search, titleText);
+                    var sub = SubLine(command, search, titleText, liveLines[command]);
                     row.Children.Add(Ui.VStack(1, Highlighted(titleText, search, 14, "OnSurface"), Highlighted(sub, search, 12, "OnSurfaceVariant")));
                     if (lockId != null && command.Run == null)
                     {
@@ -154,6 +158,7 @@ public sealed class CommandPalette
         Fill();
         close = overlay.Show(Ui.VStack(12, search, Ui.Columns(12, [1, 0], chipRow, count), note, scroller, Ui.Divider(), footer), fullWindow ? 1000 : 720, null, VerticalAlignment.Top, fullWindow ? .92 : .8);
         search.Box.Focus();
+        if (query != null && start == null) search.Query = query;
         if (start != null)
         {
             SearchBuilderPopover.ApplyActionToField(search, start);
@@ -165,13 +170,24 @@ public sealed class CommandPalette
     /// Second line under a title: the command's one-line description (the group when it has none), plus the matching
     /// keyword when the query hit hidden keywords rather than the visible title or description.
     /// </summary>
-    private static string SubLine(AppCommand command, SearchFilter search, string titleText)
+    private static string SubLine(AppCommand command, SearchFilter search, string titleText, string? live)
     {
-        var line = CommandDescriptions.SubLine(command.Description is { } d ? Loc.T(d) : null, Loc.T(command.Group));
+        var description = command.Description is { } d ? Loc.T(d) : null;
+        var line = PaletteLiveLines.Choose(live, description, Loc.T(command.Group));
         if (!search.IsActive || Spans(search, titleText).Count > 0 || Spans(search, line).Count > 0) return line;
+        // The query matched the description that the live line replaced: show the description so the match is visible.
+        if (live != null && description != null && Spans(search, description).Count > 0) return description;
         foreach (var word in command.Keywords.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             if (Spans(search, word).Count > 0) return line + " · " + Loc.T("matches") + " “" + word + "”";
         return line;
+    }
+
+    /// <summary>The command's live second line, or null. A failing status reader never breaks the palette.</summary>
+    private static string? LiveText(AppCommand command)
+    {
+        if (command.Status == null) return null;
+        try { return command.Status() is { Length: > 0 } text ? text : null; }
+        catch (Exception e) when (e is InvalidOperationException or ArgumentException or FormatException) { return null; }
     }
 
     /// <summary>Character ranges of the current query inside the text, in plain or regular expression mode. Empty when the pattern is invalid or slow.</summary>

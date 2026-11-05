@@ -51,6 +51,10 @@ public sealed partial class CanvasPage
         surface.Clear(width, height);
         var target = BuildTarget();
         var lastIndex = graph.Stages.Count - 1;
+        // Footers come only from a real build of exactly this text in this session; an edit since then hides them.
+        var run = CanvasBuildFooters.Latest;
+        var footers = CanvasBuildFooters.Map(graph.Stages.Select(s => (s.Index, s.Name)).ToList(), run, source);
+        if (run != null && footers.Count > 0) ReadBuiltImageSize(run);
         // Links that turn into a stage's top or bottom edge, grouped so several entries spread along that edge.
         var entries = graph.Edges.Where(e => e.From != e.To && e.From < rects.Count && e.To < rects.Count && rects[e.To].X > rects[e.From].Right)
             .GroupBy(e => (e.To, rects[e.From].CenterY < rects[e.To].Y)).ToDictionary(g => g.Key, g => g.ToList());
@@ -61,7 +65,7 @@ public sealed partial class CanvasPage
             // Design: when a link enters the stage from above, the base-image pill moves left so the arrow stays clear.
             if (!graph.Stages.Any(s => s.Index < stage.Index && string.Equals(s.Name, stage.Base, StringComparison.OrdinalIgnoreCase)))
                 surface.AddBasePill(entries.ContainsKey((stage.Index, true)) ? r.X - 26 : r.X, r.Y - 36, stage.Base, 8);
-            surface.AddNode(r.X, r.Y, GraphSurface.NodeWidth, StageCard(stage, isTarget, LastLine(stage)), $"Stage {stage.Name}" + (isTarget ? ", build target" : ""), StageKey(stage), () => SelectStage(stage), isTarget ? "SurfaceHighest" : "SurfaceContainer").Height = StageHeight;
+            surface.AddNode(r.X, r.Y, GraphSurface.NodeWidth, StageCard(stage, isTarget, LastLine(stage), footers.GetValueOrDefault(stage.Index)), $"Stage {stage.Name}" + (isTarget ? ", build target" : ""), StageKey(stage), () => SelectStage(stage), isTarget ? "SurfaceHighest" : "SurfaceContainer").Height = StageHeight;
         }
         // Elbow connectors: FROM links run down a column, COPY --from links turn into the receiving stage.
         var pairCounts = new Dictionary<(int, int), int>();
@@ -97,7 +101,23 @@ public sealed partial class CanvasPage
     /// <summary>The target stage chosen in the Build page; empty when none is set (the final stage is built).</summary>
     private static string BuildTarget() => Host.HandOff.TryGetValue("Build.CurrentTarget", out var value) && value is Func<string> get ? get() : "";
 
-    private static FrameworkElement StageCard(DockerStage stage, bool isTarget, int lastLine)
+    private CanvasBuildRun? sizeRequested;
+
+    /// <summary>Reads the size of the image a successful build produced, once per build, with docker image inspect.</summary>
+    private void ReadBuiltImageSize(CanvasBuildRun run)
+    {
+        if (!run.Success || run.ImageBytes != null || run.Reference.Length == 0 || ReferenceEquals(sizeRequested, run) || Host.IsCapture) return;
+        sizeRequested = run;
+        PageTasks.Fire(async () =>
+        {
+            Core.DockerService.ValidateOperand(run.Reference, "image reference");
+            var r = await Host.Read(["image", "inspect", "--format", "{{.Size}}", run.Reference], run.Context.Length > 0 ? run.Context : null);
+            if (r.Success && long.TryParse(r.StandardOutput.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var bytes))
+                CanvasBuildFooters.SetImageBytes(run, bytes);
+        });
+    }
+
+    private static FrameworkElement StageCard(DockerStage stage, bool isTarget, int lastLine, StageBuildFooter? built)
     {
         var title = Ui.HStack(8, Ui.Icon(Icons.Layers, 20, true, "Primary"), Ui.Text(stage.Name, 16, FontWeights.SemiBold, "OnSurface", false, false));
         // Design: the header shows the stage's line span; the build target carries a Target chip instead.
@@ -109,6 +129,15 @@ public sealed partial class CanvasPage
         var body = Ui.Mono(lines.Count == 0 ? Loc.T("(no instructions)") : string.Join("\n", lines), 12, "OnSurfaceVariant", false);
         body.TextTrimming = TextTrimming.CharacterEllipsis;
         var footer = Ui.Text((isTarget ? span + " · " : "") + $"{stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (stage.Platform.Length > 0 ? " · " + stage.Platform.Replace("--platform=", "") : ""), 12, null, "OnSurfaceVariant", false, false);
+        if (built != null)
+        {
+            // The latest build of this exact text: result, duration or cache use, and when it ran. Never shown for edited text.
+            footer.Text = built.Text;
+            footer.TextTrimming = TextTrimming.CharacterEllipsis;
+            footer.ToolTip = built.Text + "\n" + built.Detail;
+            if (built.Outcome == "failed") footer.SetResourceReference(TextBlock.ForegroundProperty, "Error");
+            System.Windows.Automation.AutomationProperties.SetHelpText(footer, built.Text + ". " + built.Detail);
+        }
         return Ui.VStack(8, header, body, footer);
     }
 

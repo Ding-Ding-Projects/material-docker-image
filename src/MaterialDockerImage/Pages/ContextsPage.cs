@@ -30,6 +30,9 @@ public sealed class ContextsPage : PageBase
     private readonly Dictionary<string, ContextProbe> probes = new(StringComparer.Ordinal);
     private CancellationTokenSource? probing;
     private string? cliCurrent;
+    // Whether the last docker context ls succeeded; null until the page has listed once. Read by the command palette.
+    private bool? listed;
+    internal override string? PaletteSummary() => listed is { } ok ? PaletteLiveLines.Contexts(actions.WindowContext, ok) : null;
 
     public ContextsPage()
     {
@@ -110,6 +113,7 @@ public sealed class ContextsPage : PageBase
     {
         probing?.Cancel();
         var r = await ContextActions.ReadLocal(["context", "ls", "--format", "{{json .}}"]);
+        listed = r.Success;
         if (!r.Success)
         {
             entries = new();
