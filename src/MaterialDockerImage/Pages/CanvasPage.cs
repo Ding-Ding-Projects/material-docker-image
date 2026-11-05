@@ -26,6 +26,9 @@ public sealed partial class CanvasPage : PageBase
     private readonly Border warning;
     private readonly TextBlock warningText = Ui.Text("", 13, null, "OnWarningContainer");
     private readonly Grid graphHost = new();
+    private readonly GraphMinimap minimap;
+    private readonly Button minimapToggle;
+    private bool minimapWanted = true;
     private FrameworkElement? emptyState;
     private View view = View.Dockerfile;
     private readonly List<GraphObject> objectItems = new();
@@ -53,17 +56,41 @@ public sealed partial class CanvasPage : PageBase
         var reset = Ui.IconButton(Icons.CenterFocusStrong, "Actual size", () => surface.SetZoom(1));
         zoomText.MinWidth = 44; zoomText.TextAlignment = TextAlignment.Center;
         surface.ZoomChanged += z => zoomText.Text = $"{z:P0}";
-        var zoomBar = Ui.HStack(0, zoomOut, zoomText, zoomIn, fit, reset);
+        minimap = new GraphMinimap(surface);
+        minimapToggle = Ui.IconButton(Icons.VisibilityOff, "Hide minimap (M)", ToggleMinimap);
+        var zoomBar = Ui.HStack(0, zoomOut, zoomText, zoomIn, fit, reset, minimapToggle);
         zoomBar.HorizontalAlignment = HorizontalAlignment.Right;
-        var toolbarRow = Ui.Columns(8, [1, 0], segmented, zoomBar);
-        // Design: the toolbar is a 56 px strip with a 1 px divider inside the centre card.
-        var toolbar = new Border { Child = toolbarRow, Height = 56, Padding = new Thickness(16, 0, 10, 0), BorderThickness = new Thickness(0, 0, 0, 1) };
+        // Design: the toolbar is a 56 px strip with a 1 px divider inside the centre card. When the centre card is too
+        // narrow for the view switch and the zoom controls side by side, the zoom controls move to a second row.
+        var toolbarRow = new Grid();
+        toolbarRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        toolbarRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        toolbarRow.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        toolbarRow.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        toolbarRow.Children.Add(segmented);
+        toolbarRow.Children.Add(zoomBar);
+        var toolbar = new Border { Child = toolbarRow, MinHeight = 56, Padding = new Thickness(16, 6, 10, 6), BorderThickness = new Thickness(0, 0, 0, 1) };
         toolbar.SetResourceReference(Border.BorderBrushProperty, "SurfaceHighest");
         toolbarRow.VerticalAlignment = VerticalAlignment.Center;
+        void PlaceZoomBar(double available)
+        {
+            zoomBar.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+            var stacked = available > 0 && available < segmented.Width + 8 + zoomBar.DesiredSize.Width;
+            Grid.SetRow(zoomBar, stacked ? 1 : 0);
+            Grid.SetColumn(zoomBar, stacked ? 0 : 1);
+            zoomBar.HorizontalAlignment = stacked ? HorizontalAlignment.Left : HorizontalAlignment.Right;
+            zoomBar.Margin = new Thickness(stacked ? 0 : 8, stacked ? 8 : 0, 0, 0);
+        }
+        toolbar.SizeChanged += (_, e) => PlaceZoomBar(e.NewSize.Width - 26);
+        PlaceZoomBar(0);
 
         warning = Ui.Card(Ui.Columns(10, [0, 1], Ui.Icon(Icons.Warning, 20, true, "OnWarningContainer"), warningText), 12, "WarningContainer", 12);
         warning.Visibility = Visibility.Collapsed;
         graphHost.Children.Add(surface);
+        graphHost.Children.Add(minimap);
+        // The minimap would cover too much of a small graph area (narrow windows), so it steps aside there.
+        graphHost.SizeChanged += (_, _) => UpdateMinimap();
+        surface.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.M && e.OriginalSource is not TextBox && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.None) { ToggleMinimap(); e.Handled = true; } };
         var centreInner = new DockPanel();
         centreInner.Children.Add(toolbar.Dock(System.Windows.Controls.Dock.Top));
         warning.Margin = new Thickness(8, 8, 8, 0);
@@ -139,6 +166,25 @@ public sealed partial class CanvasPage : PageBase
         emptyState = element == null ? null : Ui.Card(element, 24, "SurfaceLowest", 16);
         surface.Visibility = element == null ? Visibility.Visible : Visibility.Hidden;
         if (emptyState != null) graphHost.Children.Add(emptyState);
+        UpdateMinimap();
+    }
+
+    private void ToggleMinimap()
+    {
+        minimapWanted = !minimapWanted;
+        var name = Loc.T(minimapWanted ? "Hide minimap (M)" : "Show minimap (M)");
+        minimapToggle.Content = minimapWanted ? Icons.VisibilityOff : Icons.Visibility;
+        minimapToggle.ToolTip = name;
+        System.Windows.Automation.AutomationProperties.SetName(minimapToggle, name);
+        UpdateMinimap();
+    }
+
+    private void UpdateMinimap()
+    {
+        var roomy = graphHost.ActualWidth <= 0 || (graphHost.ActualWidth >= 420 && graphHost.ActualHeight >= 280);
+        minimap.Visibility = minimapWanted && roomy && emptyState == null ? Visibility.Visible : Visibility.Collapsed;
+        // The toggle only acts when there is room for the minimap and a graph to show.
+        minimapToggle.IsEnabled = roomy && emptyState == null;
     }
 
     private void SetWarning(string? text)

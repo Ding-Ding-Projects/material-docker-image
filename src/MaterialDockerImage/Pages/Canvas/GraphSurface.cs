@@ -9,13 +9,18 @@ using MaterialDockerImage.UI;
 namespace MaterialDockerImage.Pages;
 
 /// <summary>
-/// Zoomable, pannable drawing surface for node graphs. Nodes are focusable cards; edges are curved connectors with
-/// an arrowhead and a label. Ctrl+wheel or +/- zooms, middle-drag or drag on the background pans, arrow keys scroll,
+/// Zoomable, pannable drawing surface for node graphs. Nodes are focusable cards; edges are orthogonal elbow connectors
+/// with rounded corners, an arrowhead and a label. Ctrl+wheel or +/- zooms, middle-drag or drag on the background pans, arrow keys scroll,
 /// 0 fits the graph.
 /// </summary>
 public sealed class GraphSurface : Border
 {
-    public const double NodeWidth = 240;
+    public const double NodeWidth = 250;
+    /// <summary>Corner radius of elbow connectors.</summary>
+    public const double ConnectorRadius = 12;
+    /// <summary>Inner padding of the scroll area around the drawing, in screen pixels.</summary>
+    public const double ScrollPadding = 8;
+    private int edgeCount;
     private readonly Canvas canvas = new() { Focusable = true, ClipToBounds = false };
     private readonly ScaleTransform scale = new(1, 1);
     private readonly ScrollViewer scroll;
@@ -33,8 +38,9 @@ public sealed class GraphSurface : Border
         canvas.LayoutTransform = scale;
         canvas.FocusVisualStyle = null;
         System.Windows.Automation.AutomationProperties.SetName(canvas, Loc.T("Graph canvas. Arrow keys scroll, plus and minus zoom, 0 fits."));
-        scroll = new ScrollViewer { Content = canvas, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, CanContentScroll = false, Focusable = false, Padding = new Thickness(8) };
+        scroll = new ScrollViewer { Content = canvas, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, CanContentScroll = false, Focusable = false, Padding = new Thickness(ScrollPadding) };
         Child = scroll;
+        scroll.ScrollChanged += (_, _) => RaiseViewChanged();
         scroll.PreviewMouseWheel += (_, e) => { if (Keyboard.Modifiers == ModifierKeys.Control) { Zoom(e.Delta > 0 ? 1.1 : 1 / 1.1); e.Handled = true; } };
         canvas.MouseDown += (_, e) =>
         {
@@ -81,6 +87,7 @@ public sealed class GraphSurface : Border
     {
         scale.ScaleX = scale.ScaleY = Math.Clamp(value, .25, 2.5);
         ZoomChanged?.Invoke(scale.ScaleX);
+        RaiseViewChanged();
     }
 
     public void Fit()
@@ -94,6 +101,8 @@ public sealed class GraphSurface : Border
     {
         canvas.Children.Clear(); nodes.Clear();
         canvas.Width = width; canvas.Height = height;
+        edgeCount = 0;
+        RaiseViewChanged();
     }
 
     /// <summary>Adds a node card. The returned border is focusable; Enter, Space or a click calls <paramref name="select"/>.</summary>
@@ -111,6 +120,7 @@ public sealed class GraphSurface : Border
         Panel.SetZIndex(card, 2);
         canvas.Children.Add(card);
         nodes.Add((card, key));
+        RaiseViewChanged();
         return card;
     }
 
@@ -125,47 +135,113 @@ public sealed class GraphSurface : Border
             node.Padding = new Thickness(on ? 13 : 14, on ? 11 : 12, on ? 13 : 14, on ? 11 : 12);
             if (on) node.BringIntoView();
         }
+        highlighted = key;
+        RaiseViewChanged();
     }
+
+    // ----------------------------------------------------------------- view model for the minimap
+
+    private object? highlighted;
+    private bool viewChangePending;
+
+    /// <summary>Raised (coalesced, at render priority) whenever nodes, zoom or the scroll position change.</summary>
+    public event Action? ViewChanged;
+
+    private void RaiseViewChanged()
+    {
+        if (viewChangePending) return;
+        viewChangePending = true;
+        Dispatcher.BeginInvoke(() => { viewChangePending = false; ViewChanged?.Invoke(); }, System.Windows.Threading.DispatcherPriority.Render);
+    }
+
+    /// <summary>Size of the drawing in content (unzoomed) coordinates.</summary>
+    public GraphRect ContentBounds => new(0, 0, double.IsNaN(canvas.Width) ? 0 : canvas.Width, double.IsNaN(canvas.Height) ? 0 : canvas.Height);
+
+    /// <summary>Number of connectors currently drawn.</summary>
+    public int EdgeCount => edgeCount;
+
+    /// <summary>Every node rectangle in content coordinates, with whether it is the highlighted one.</summary>
+    public IEnumerable<(GraphRect Bounds, bool Highlighted)> NodeBounds() =>
+        nodes.Select(n => (new GraphRect(Canvas.GetLeft(n.Node), Canvas.GetTop(n.Node), n.Node.Width,
+            double.IsNaN(n.Node.Height) ? Math.Max(40, n.Node.ActualHeight) : n.Node.Height), Equals(n.Key, highlighted)));
+
+    /// <summary>The part of the drawing visible in the scroll viewport, in content coordinates.</summary>
+    public GraphRect VisibleContent => CanvasRouting.VisibleContent(scroll.HorizontalOffset, scroll.VerticalOffset, scroll.ViewportWidth, scroll.ViewportHeight, ZoomLevel, ScrollPadding);
+
+    /// <summary>Scrolls so the given content point sits in the middle of the viewport (as far as the extent allows).</summary>
+    public void CenterOn(GraphPoint content)
+    {
+        var (h, v) = CanvasRouting.ScrollToCenter(content, scroll.ViewportWidth, scroll.ViewportHeight, ZoomLevel, ScrollPadding);
+        scroll.ScrollToHorizontalOffset(h);
+        scroll.ScrollToVerticalOffset(v);
+    }
+
+    /// <summary>Scrolls by screen pixels.</summary>
+    public void PanBy(double dx, double dy)
+    {
+        scroll.ScrollToHorizontalOffset(scroll.HorizontalOffset + dx);
+        scroll.ScrollToVerticalOffset(scroll.VerticalOffset + dy);
+    }
+
+    public void ScrollHome() => scroll.ScrollToHome();
 
     public Border? NodeFor(object key) => nodes.FirstOrDefault(n => Equals(n.Key, key)).Node;
 
-    /// <summary>Adds a curved connector from (x1,y1) to (x2,y2) with an arrowhead and an optional label box.</summary>
-    public void AddEdge(Point from, Point to, string label, string brush = "Outline", bool dashed = false, double labelOffset = 0)
+    /// <summary>Adds an elbow connector from the right side of one node to the left side of another (runtime view).</summary>
+    public void AddEdge(Point from, Point to, string label, string brush = "Outline", bool dashed = false, double labelOffset = 0) =>
+        AddRoute(CanvasRouting.Elbow(new(from.X, from.Y), PortSide.Right, new(to.X, to.Y), PortSide.Left), label, brush, labelOffset);
+
+    /// <summary>
+    /// Draws an orthogonal route with rounded corners, an arrowhead pointing along the final segment, and an optional
+    /// label pill. A second label line (for example a copied path) is drawn as plain text on the other side of the run.
+    /// </summary>
+    public void AddRoute(IReadOnlyList<GraphPoint> points, string label, string brush = "Outline", double labelOffset = 0)
     {
-        var dx = Math.Max(40, Math.Abs(to.X - from.X) / 2);
-        var figure = new PathFigure { StartPoint = from };
-        figure.Segments.Add(new BezierSegment(new Point(from.X + dx, from.Y), new Point(to.X - dx, to.Y), to, true));
-        var path = new System.Windows.Shapes.Path { Data = new PathGeometry([figure]), StrokeThickness = 2, IsHitTestVisible = false };
+        if (points.Count < 2) return;
+        var figure = new PathFigure { StartPoint = new Point(points[0].X, points[0].Y) };
+        foreach (var segment in CanvasRouting.Round(points, ConnectorRadius))
+        {
+            var end = new Point(segment.End.X, segment.End.Y);
+            if (segment.IsArc) figure.Segments.Add(new ArcSegment(end, new Size(segment.Radius, segment.Radius), 0, false, segment.Clockwise ? SweepDirection.Clockwise : SweepDirection.Counterclockwise, true));
+            else figure.Segments.Add(new LineSegment(end, true));
+        }
+        var path = new System.Windows.Shapes.Path { Data = new PathGeometry([figure]), StrokeThickness = 2, IsHitTestVisible = false, StrokeLineJoin = PenLineJoin.Round };
         path.SetResourceReference(Shape.StrokeProperty, brush);
-        // Design: connectors are solid 2 px lines; the pill label carries the kind of link.
+        // Design: connectors are solid 2 px orthogonal lines; the pill label carries the kind of link.
         canvas.Children.Add(path);
-        var arrow = new Polygon { Points = new PointCollection([to, new Point(to.X - 9, to.Y - 5), new Point(to.X - 9, to.Y + 5)]), IsHitTestVisible = false };
+        var tip = new Point(points[^1].X, points[^1].Y);
+        var (dx, dy) = CanvasRouting.EndDirection(points);
+        var back = new Point(tip.X - dx * 10, tip.Y - dy * 10);
+        var arrow = new Polygon { Points = new PointCollection([tip, new Point(back.X - dy * 6, back.Y + dx * 6), new Point(back.X + dy * 6, back.Y - dx * 6)]), IsHitTestVisible = false };
         arrow.SetResourceReference(Shape.FillProperty, brush);
         canvas.Children.Add(arrow);
+        edgeCount++;
         if (label.Length == 0) return;
         var tertiary = brush == "Tertiary";
         var lines = label.Split('\n');
         var text = Ui.Mono(lines[0], 12, tertiary ? "OnTertiaryContainer" : brush);
         text.FontWeight = FontWeights.SemiBold;
-        var box = new Border { Child = text, CornerRadius = new CornerRadius(13), Padding = new Thickness(10, 3, 10, 3), MaxWidth = 220, IsHitTestVisible = false };
+        text.VerticalAlignment = VerticalAlignment.Center;
+        var box = new Border { Child = text, CornerRadius = new CornerRadius(13), Height = 26, Padding = new Thickness(10, 0, 10, 0), MaxWidth = 220, IsHitTestVisible = false };
         box.SetResourceReference(BackgroundProperty, tertiary ? "TertiaryContainer" : "SurfaceHighest");
-        if (lines.Length > 1)
-        {
-            var path2 = Ui.Text(lines[1], 11, null, "OnSurfaceVariant", false, false);
-            Canvas.SetLeft(path2, Math.Min(from.X, to.X) + 12);
-            Canvas.SetTop(path2, (from.Y + to.Y) / 2 + 12 + labelOffset);
-            Panel.SetZIndex(path2, 1);
-            canvas.Children.Add(path2);
-        }
-        box.Loaded += (_, _) =>
-        {
-            Canvas.SetLeft(box, (from.X + to.X) / 2 - box.ActualWidth / 2);
-            Canvas.SetTop(box, (from.Y + to.Y) / 2 - box.ActualHeight / 2 + labelOffset);
-        };
-        Canvas.SetLeft(box, (from.X + to.X) / 2 - 40);
-        Canvas.SetTop(box, (from.Y + to.Y) / 2 - 10 + labelOffset);
+        var (anchor, horizontal) = CanvasRouting.LabelAnchor(points);
+        // A route that ends travelling upward enters its target from below: keep the pill under the run, like the board.
+        var below = horizontal && dy < 0;
+        double boxLeft, boxTop;
+        if (horizontal) { boxLeft = anchor.X; boxTop = below ? anchor.Y + 6 : anchor.Y - 28; }
+        else { boxLeft = anchor.X + 14; boxTop = anchor.Y - 13; }
+        boxTop += labelOffset;
+        Canvas.SetLeft(box, boxLeft); Canvas.SetTop(box, boxTop);
         Panel.SetZIndex(box, 1);
         canvas.Children.Add(box);
+        if (lines.Length > 1)
+        {
+            var detail = Ui.Text(lines[1], 11, null, "OnSurfaceVariant", false, false);
+            Canvas.SetLeft(detail, horizontal ? anchor.X : boxLeft);
+            Canvas.SetTop(detail, (horizontal ? (below ? anchor.Y - 20 : anchor.Y + 6) : boxTop + 30) + (horizontal ? labelOffset : 0));
+            Panel.SetZIndex(detail, 1);
+            canvas.Children.Add(detail);
+        }
     }
 
     /// <summary>Dashed base-image pill (28 high, 14 radius) with a 2 px connector down to the stage it feeds.</summary>

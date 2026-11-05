@@ -8,7 +8,7 @@ namespace MaterialDockerImage.Pages;
 /// <summary>Dockerfile view: stages laid out by dependency depth, FROM and COPY --from connectors, and the stage inspector.</summary>
 public sealed partial class CanvasPage
 {
-    private const double StageHeight = 176, ColumnGap = 110, RowGap = 56, GraphMargin = 40;
+    private const double StageHeight = 176, ColumnGap = 180, RowGap = 96, GraphMargin = 40;
     private DockerGraph? graph;
     private string graphSource = "";
 
@@ -46,27 +46,37 @@ public sealed partial class CanvasPage
             return;
         }
         SetEmpty(null);
-        LayoutStages(graph, out var positions, out var width, out var height);
+        var rects = CanvasRouting.LayeredLayout(graph.Stages.Count, graph.Edges.Select(e => (e.From, e.To, e.Label == "FROM")).ToList(),
+            GraphSurface.NodeWidth, StageHeight, ColumnGap, RowGap, GraphMargin, GraphMargin + 36, out var width, out var height);
         surface.Clear(width, height);
         var target = BuildTarget();
         var lastIndex = graph.Stages.Count - 1;
+        // Links that turn into a stage's top or bottom edge, grouped so several entries spread along that edge.
+        var entries = graph.Edges.Where(e => e.From != e.To && e.From < rects.Count && e.To < rects.Count && rects[e.To].X > rects[e.From].Right)
+            .GroupBy(e => (e.To, rects[e.From].CenterY < rects[e.To].Y)).ToDictionary(g => g.Key, g => g.ToList());
         foreach (var stage in graph.Stages)
         {
-            var (x, y) = positions[stage.Index];
+            var r = rects[stage.Index];
             var isTarget = target.Length > 0 ? string.Equals(stage.Name, target, StringComparison.OrdinalIgnoreCase) : stage.Index == lastIndex;
+            // Design: when a link enters the stage from above, the base-image pill moves left so the arrow stays clear.
             if (!graph.Stages.Any(s => s.Index < stage.Index && string.Equals(s.Name, stage.Base, StringComparison.OrdinalIgnoreCase)))
-                surface.AddBasePill(x, y - 36, stage.Base, 8);
-            surface.AddNode(x, y, GraphSurface.NodeWidth, StageCard(stage, isTarget), $"Stage {stage.Name}" + (isTarget ? ", build target" : ""), StageKey(stage), () => SelectStage(stage), isTarget ? "SecondaryContainer" : "SurfaceContainer").Height = StageHeight;
+                surface.AddBasePill(entries.ContainsKey((stage.Index, true)) ? r.X - 26 : r.X, r.Y - 36, stage.Base, 8);
+            surface.AddNode(r.X, r.Y, GraphSurface.NodeWidth, StageCard(stage, isTarget, LastLine(stage)), $"Stage {stage.Name}" + (isTarget ? ", build target" : ""), StageKey(stage), () => SelectStage(stage), isTarget ? "SurfaceHighest" : "SurfaceContainer").Height = StageHeight;
         }
+        // Elbow connectors: FROM links run down a column, COPY --from links turn into the receiving stage.
         var pairCounts = new Dictionary<(int, int), int>();
         foreach (var edge in graph.Edges)
         {
-            var (fx, fy) = positions[edge.From];
-            var (tx, ty) = positions[edge.To];
+            if (edge.From == edge.To || edge.From >= rects.Count || edge.To >= rects.Count) continue;
+            var from = rects[edge.From]; var to = rects[edge.To];
             var n = pairCounts.TryGetValue((edge.From, edge.To), out var c) ? c : 0;
             pairCounts[(edge.From, edge.To)] = n + 1;
+            var neighbours = !rects.Where((r, i) => i != edge.From && i != edge.To && Math.Abs(r.X - from.X) < 1 && r.Y > from.Y && r.Y < to.Y).Any();
+            var group = entries.TryGetValue((edge.To, from.CenterY < to.Y), out var list) ? list : null;
+            var entryIndex = group?.IndexOf(edge) ?? 0;
+            var route = CanvasRouting.StageRoute(from, to, neighbours, Math.Max(0, entryIndex), group?.Count ?? 1, n * 18);
             var label = edge.Label == "FROM" ? "FROM " + graph.Stages[edge.From].Name : CopyLabel(graph, edge);
-            surface.AddEdge(new Point(fx + GraphSurface.NodeWidth, fy + StageHeight / 2 + n * 18 - 9), new Point(tx - 2, ty + StageHeight / 2 + n * 18 - 9), label, edge.Label == "FROM" ? "Primary" : "Tertiary", edge.Label != "FROM", n * 28);
+            surface.AddRoute(route, label, edge.Label == "FROM" ? "Primary" : "Tertiary", n * 28);
         }
         var items = new List<GraphObject>();
         foreach (var stage in graph.Stages)
@@ -87,42 +97,18 @@ public sealed partial class CanvasPage
     /// <summary>The target stage chosen in the Build page; empty when none is set (the final stage is built).</summary>
     private static string BuildTarget() => Host.HandOff.TryGetValue("Build.CurrentTarget", out var value) && value is Func<string> get ? get() : "";
 
-    private static void LayoutStages(DockerGraph graph, out Dictionary<int, (double X, double Y)> positions, out double width, out double height)
+    private static FrameworkElement StageCard(DockerStage stage, bool isTarget, int lastLine)
     {
-        var depth = new int[graph.Stages.Count];
-        // Edges always point from an earlier or any resolved stage; iterate to a fixed point (bounded by stage count).
-        for (var pass = 0; pass < graph.Stages.Count; pass++)
-        {
-            var changed = false;
-            foreach (var edge in graph.Edges)
-                if (edge.From != edge.To && depth[edge.To] < depth[edge.From] + 1 && depth[edge.From] + 1 < graph.Stages.Count) { depth[edge.To] = depth[edge.From] + 1; changed = true; }
-            if (!changed) break;
-        }
-        positions = new();
-        var rows = new Dictionary<int, int>();
-        foreach (var stage in graph.Stages)
-        {
-            var d = depth[stage.Index];
-            var row = rows.TryGetValue(d, out var r) ? r : 0;
-            rows[d] = row + 1;
-            positions[stage.Index] = (GraphMargin + d * (GraphSurface.NodeWidth + ColumnGap), GraphMargin + 24 + row * (StageHeight + RowGap));
-        }
-        var columns = depth.Length == 0 ? 1 : depth.Max() + 1;
-        var maxRows = rows.Count == 0 ? 1 : rows.Values.Max();
-        width = GraphMargin * 2 + columns * GraphSurface.NodeWidth + (columns - 1) * ColumnGap;
-        height = GraphMargin * 2 + 24 + maxRows * StageHeight + (maxRows - 1) * RowGap;
-    }
-
-    private static FrameworkElement StageCard(DockerStage stage, bool isTarget)
-    {
-        var title = Ui.HStack(8, Ui.Icon(Icons.Layers, 20, true, isTarget ? "OnSecondaryContainer" : "Primary"), Ui.Text(stage.Name, 16, FontWeights.SemiBold, isTarget ? "OnSecondaryContainer" : "OnSurface", false, false));
-        var badge = isTarget ? Ui.Badge(Loc.T("Target"), Tone.Primary) : Ui.Badge($"{Loc.T("Line")} {stage.Line + 1}");
+        var title = Ui.HStack(8, Ui.Icon(Icons.Layers, 20, true, "Primary"), Ui.Text(stage.Name, 16, FontWeights.SemiBold, "OnSurface", false, false));
+        // Design: the header shows the stage's line span; the build target carries a Target chip instead.
+        var span = lastLine > stage.Line ? $"{Loc.T("Lines")} {stage.Line + 1}–{lastLine + 1}" : $"{Loc.T("Line")} {stage.Line + 1}";
+        FrameworkElement badge = isTarget ? Ui.Badge(Loc.T("Target"), Tone.Primary) : Ui.Text(span, 12, null, "OnSurfaceVariant", false, false);
         var header = Ui.Columns(8, [1, 0], title, badge);
         var lines = stage.Instructions.Take(4).Select(l => Shorten(l, 34)).ToList();
         if (stage.Instructions.Count > 4) lines.Add($"… {stage.Instructions.Count - 4} {Loc.T("more")}");
-        var body = Ui.Mono(lines.Count == 0 ? Loc.T("(no instructions)") : string.Join("\n", lines), 12, isTarget ? "OnSecondaryContainer" : "OnSurfaceVariant", false);
+        var body = Ui.Mono(lines.Count == 0 ? Loc.T("(no instructions)") : string.Join("\n", lines), 12, "OnSurfaceVariant", false);
         body.TextTrimming = TextTrimming.CharacterEllipsis;
-        var footer = Ui.Text($"{Loc.T("Line")} {stage.Line + 1} · {stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (stage.Platform.Length > 0 ? " · " + stage.Platform.Replace("--platform=", "") : ""), 12, null, isTarget ? "OnSecondaryContainer" : "Outline", false, false);
+        var footer = Ui.Text((isTarget ? span + " · " : "") + $"{stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (stage.Platform.Length > 0 ? " · " + stage.Platform.Replace("--platform=", "") : ""), 12, null, "OnSurfaceVariant", false, false);
         return Ui.VStack(8, header, body, footer);
     }
 
@@ -141,6 +127,9 @@ public sealed partial class CanvasPage
         "HEALTHCHECK" => Icons.Stethoscope, "VOLUME" => Icons.Database, "WORKDIR" => Icons.FolderOpen, _ => Icons.Code
     };
     private static string Shorten(string text, int max) => text.Length > max ? text[..(max - 1)] + "…" : text;
+
+    /// <summary>The source line of the stage's last instruction (the FROM line when it has none).</summary>
+    private int LastLine(DockerStage stage) => stage.Instructions.Count == 0 ? stage.Line : FindLine(stage, stage.Instructions[^1]);
 
     private int FindLine(DockerStage stage, string instruction)
     {
@@ -224,7 +213,9 @@ public sealed partial class CanvasPage
         if (incoming.Count > 0) inspector.Children.Add(Section("Receives from", incoming.Select(e => Relation(e, true)).ToArray()));
         if (outgoing.Count > 0) inspector.Children.Add(Section("Feeds", outgoing.Select(e => Relation(e, false)).ToArray()));
         inspector.Children.Add(targetSwitch.Margin(0, 16, 0, 0));
-        var actionRow = Ui.Columns(8, [1, 1], openSource, buildStage);
+        // Side by side when the inspector is wide enough, otherwise stacked, so neither label is cut.
+        openSource.Margin = new Thickness(0, 0, 8, 8); buildStage.Margin = new Thickness(0, 0, 0, 8);
+        var actionRow = new WrapPanel { Children = { openSource, buildStage } };
         inspectorActions.Content = actionRow;
         inspector.Children.Add(Section("Source lines", Ui.Card(sourceLines, 12, "SurfaceContainer", 12)));
     }

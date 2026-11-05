@@ -44,5 +44,6 @@
     <Compile Include="../../src/MaterialDockerImage/UI/SchoolPasskey.cs" Link="SchoolPasskey.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/OtpQrImport.cs" Link="OtpQrImport.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/CameraQrScan.cs" Link="CameraQrScan.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/Pages/Canvas/CanvasRouting.cs" Link="CanvasRouting.cs"/>
   </ItemGroup>
 </Project>
