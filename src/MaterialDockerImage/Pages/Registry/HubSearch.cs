@@ -41,10 +41,10 @@ internal sealed class HubSearch
             EmptyMessage = Loc.T("Type a term and press Search. Results come from docker search; nothing is shown until the engine answers."),
             Key = r => r.Name
         };
-        Table.Column("Name", r => r.Name, 220, true)
+        Table.Column("Name", r => r.Name, 170, true)
             .ChipColumn("Official", r => r.Official ? "Official" : "Community", r => r.Official ? Tone.Success : Tone.Neutral, 110)
             .Column("Stars", r => r.StarsText, 70)
-            .Column("Description", r => r.Description, 380)
+            .Column("Description", r => r.Description, 260)
             .Filter("Official", r => r.Official)
             .RowAction("Pull…", Icons.CloudDownload, PullAsync, "Enter")
             .RowAction("Copy name", Icons.ContentCopy, r => { ActionSounds.Copy(r.Name); return Task.CompletedTask; })
@@ -55,9 +55,8 @@ internal sealed class HubSearch
         var go = Ui.AsyncButton("Search", Icons.Search, ButtonKind.Filled, SearchAsync);
         var bar = new DockPanel();
         bar.Children.Add(go.Dock(Dock.Right).Margin(8, 0, 0, 0));
-        bar.Children.Add(officialOnly.Dock(Dock.Right).Margin(12, 0, 0, 0));
         bar.Children.Add(term);
-        Card = PageParts.Section("Search Docker Hub", "docker search --limit 25", Ui.VStack(12, Ui.Field("Search term", bar, "A word to search for in Docker Hub repository names and descriptions. docker search returns at most 25 results here. Turning on Official images only adds --filter is-official=true.", "postgres"), state, Table));
+        Card = PageParts.Section("Search Docker Hub", "docker search --limit 25", Ui.VStack(12, Ui.Field("Search term", bar, "A word to search for in Docker Hub repository names and descriptions. docker search returns at most 25 results here. Turning on Official images only adds --filter is-official=true.", "postgres"), officialOnly, state, Table));
     }
 
     public async Task SearchAsync()

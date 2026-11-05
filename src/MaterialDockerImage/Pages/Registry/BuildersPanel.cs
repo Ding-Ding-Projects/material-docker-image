@@ -50,10 +50,10 @@ internal sealed class BuildersPanel
             EmptyMessage = "docker buildx ls returned no builders, or buildx is not installed. Diagnostics checks buildx availability.",
             Key = b => b.Name
         };
-        Table.Column("Name", b => b.Name + (b.Current ? " (default)" : ""), 200, true)
-            .Column("Driver", b => b.Driver, 140)
+        Table.Column("Name", b => b.Name + (b.Current ? " (default)" : ""), 150, true)
+            .Column("Driver", b => b.Driver, 110)
             .ChipColumn("Status", b => b.Status, b => b.Status.Equals("running", StringComparison.OrdinalIgnoreCase) ? Tone.Success : b.Status.Equals("inactive", StringComparison.OrdinalIgnoreCase) ? Tone.Neutral : Tone.Warning, 110)
-            .Column("Platforms", b => b.Platforms, 320)
+            .Column("Platforms", b => b.Platforms, 220)
             .Filter("Running", b => b.Status.Equals("running", StringComparison.OrdinalIgnoreCase))
             .RowAction("Inspect", Icons.Info, b => InspectAsync(b, false), "Enter")
             .RowAction("Inspect and start (bootstrap)", Icons.PlayArrow, b => InspectAsync(b, true))

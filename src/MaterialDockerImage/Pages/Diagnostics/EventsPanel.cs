@@ -52,11 +52,13 @@ internal sealed class EventsPanel
     private readonly Func<string?> snapshot;
     private readonly List<EngineEvent> all = new();
     private readonly ObservableCollection<EngineEvent> shown = new();
-    private readonly ListView list = new() { MinHeight = 260, MaxHeight = 520 };
+    private readonly ListView list = new() { MinHeight = 260, MaxHeight = 640 };
     private readonly SearchFilter search = new("Search events", 240);
     private readonly Dictionary<string, ToggleButton> chips = new();
     private readonly TextBlock status = Ui.Caption("Not streaming. Start to follow engine events as they happen.");
     private readonly ToggleButton toggle;
+    private readonly ToggleButton pause;
+    private readonly List<EngineEvent> held = new();
     private readonly StringBuilder partial = new();
     private CancellationTokenSource? stream;
     private DateTimeOffset? since;
@@ -72,6 +74,10 @@ internal sealed class EventsPanel
         System.Windows.Automation.AutomationProperties.SetName(toggle, Loc.T("Stream events"));
         toggle.Checked += (_, _) => Start();
         toggle.Unchecked += (_, _) => Stop("Stopped");
+        pause = new ToggleButton { Style = (Style)Application.Current.FindResource("Chip"), Content = Loc.T("Pause") };
+        System.Windows.Automation.AutomationProperties.SetName(pause, Loc.T("Pause the list; events keep arriving and are added when you resume"));
+        pause.Checked += (_, _) => UpdateStatus();
+        pause.Unchecked += (_, _) => { foreach (var e in held) AddNow(e); held.Clear(); UpdateStatus(); };
         var filters = new WrapPanel();
         foreach (var type in new[] { "container", "image", "network", "volume" })
         {
@@ -84,7 +90,7 @@ internal sealed class EventsPanel
         var view = new GridView();
         view.Columns.Add(Column("Time", nameof(EngineEvent.WhenText), 80));
         view.Columns.Add(Column("Type", nameof(EngineEvent.Type), 100));
-        view.Columns.Add(Column("Action", nameof(EngineEvent.Action), 140));
+        view.Columns.Add(Column("Action", nameof(EngineEvent.Action), 140, true));
         view.Columns.Add(Column("Target", nameof(EngineEvent.Target), 420));
         list.View = view;
         list.ItemsSource = shown;
@@ -96,13 +102,31 @@ internal sealed class EventsPanel
         var bar = new WrapPanel();
         bar.Children.Add(search.Margin(0, 0, 12, 6));
         bar.Children.Add(filters);
-        Card = PageParts.Section("Events", "docker events · keeps the last 1,000 · stops when you leave this page", Ui.VStack(10, bar, list, status), toggle);
+        Card = PageParts.Section("Events", "docker events · keeps the last 1,000 · stops when you leave this page", Ui.VStack(10, bar, list, status), pause, toggle);
     }
 
-    private static GridViewColumn Column(string header, string path, double width)
+    /// <summary>Colours an event action by what it means: green for starts and health, amber for pause, red for stop and destroy.</summary>
+    private sealed class ActionBrush : System.Windows.Data.IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
+        {
+            var action = (value as string ?? "").ToLowerInvariant();
+            var key = action.StartsWith("exec_die", StringComparison.Ordinal) ? "OnSurfaceVariant"
+                : action.StartsWith("die") || action.StartsWith("destroy") || action.StartsWith("kill") || action.StartsWith("oom") || action.StartsWith("remove") || action.StartsWith("delete") ? "Error"
+                : action.StartsWith("pause") || action.StartsWith("unpause") || action.StartsWith("health_status: unhealthy") ? "Warning"
+                : action.StartsWith("start") || action.StartsWith("exec_start") || action.StartsWith("health_status") || action.StartsWith("create") ? "Success"
+                : action.StartsWith("pull") || action.StartsWith("connect") || action.StartsWith("tag") || action.StartsWith("mount") ? "Primary"
+                : "OnSurface";
+            return Application.Current.TryFindResource(key) as System.Windows.Media.Brush ?? System.Windows.Media.Brushes.Gray;
+        }
+        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture) => System.Windows.Data.Binding.DoNothing;
+    }
+
+    private static GridViewColumn Column(string header, string path, double width, bool colour = false)
     {
         var factory = new FrameworkElementFactory(typeof(TextBlock));
         factory.SetBinding(TextBlock.TextProperty, new System.Windows.Data.Binding(path));
+        if (colour) factory.SetBinding(TextBlock.ForegroundProperty, new System.Windows.Data.Binding(path) { Converter = new ActionBrush() });
         factory.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
         factory.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont");
         factory.SetValue(TextBlock.FontSizeProperty, 12.5);
@@ -126,10 +150,17 @@ internal sealed class EventsPanel
     private void UpdateStatus()
     {
         var head = stream != null ? $"Streaming since {since?.ToLocalTime():HH:mm:ss} on {snapshot() ?? "the current context"}" : state;
+        if (pause.IsChecked == true) head += $" · paused, {held.Count} waiting";
         status.Text = $"{head} · {received} received · {all.Count} kept · {shown.Count} shown" + (search.Status.Length > 0 ? " · " + search.Status : "");
     }
 
     private void Add(EngineEvent e)
+    {
+        if (pause.IsChecked == true) { held.Add(e); UpdateStatus(); return; }
+        AddNow(e);
+    }
+
+    private void AddNow(EngineEvent e)
     {
         all.Insert(0, e);
         if (all.Count > Limit) { var dropped = all[^1]; all.RemoveAt(all.Count - 1); shown.Remove(dropped); }

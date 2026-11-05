@@ -30,7 +30,9 @@ public sealed class DiagnosticsPage : PageBase
         var smoke = PageParts.Section("Smoke test (optional)", "Pulls and runs hello-world, then removes the container. This one does change the engine.",
             Ui.VStack(8, Ui.Caption("The container gets a unique label and name, so only that container is removed. The hello-world image stays in the image list; remove it from Images if you do not want it."), smokeState),
             Ui.AsyncButton("Run hello-world smoke test…", Icons.Science, ButtonKind.Tonal, SmokeAsync));
-        var body = Ui.Scroll(Ui.VStack(12, PageParts.Responsive(checksCard, events.Card, 1250, 1.1, 1), smoke).Margin(0, 0, 8, 16));
+        // Two columns as on the Diagnostics board: checks with the smoke test on the left, the events stream on the right.
+        var left = Ui.VStack(12, checksCard, smoke);
+        var body = PageColumns.Fit(1100, 16, (left, 1.1), (events.Card, 1));
         Layout(header, body);
         IsVisibleChanged += (_, _) => { if (!IsVisible) { events.Stop("Stopped because the page was hidden"); runAll?.Cancel(); } };
         Render();
