@@ -48,14 +48,14 @@ public sealed partial class ComposeProjectPanel : Grid
             actions.Children.Add(b.Margin(8, 4, 0, 4));
             return b;
         }
-        Act("Logs", Icons.Terminal, ButtonKind.Text, () => LogsAsync(null), false);
+        Act("Logs", Icons.Terminal, ButtonKind.Outlined, () => LogsAsync(null), false);
         Act("Config", Icons.DataObject, ButtonKind.Text, ConfigAsync, true);
-        Act("Build", Icons.Construction, ButtonKind.Text, () => Simple("Build", true, "build"), true);
-        Act("Pull", Icons.CloudDownload, ButtonKind.Text, () => Simple("Pull", true, "pull"), true);
+        Act("Build", Icons.Construction, ButtonKind.Outlined, () => Simple("Build", true, "build"), true);
+        Act("Pull", Icons.CloudDownload, ButtonKind.Outlined, () => Simple("Pull", true, "pull"), true);
         Act("Start", Icons.PlayArrow, ButtonKind.Text, () => Simple("Start", false, "start"), false);
         Act("Stop", Icons.Stop, ButtonKind.Text, () => Simple("Stop", false, "stop"), false);
         Act("Restart", Icons.RestartAlt, ButtonKind.Tonal, () => Simple("Restart", false, "restart"), false);
-        Act("Down", Icons.Stop, ButtonKind.Outlined, DownAsync, false);
+        Act("Down", Icons.Stop, ButtonKind.Tonal, DownAsync, false);
         Act("Up", Icons.PlayArrow, ButtonKind.Filled, () => UpAsync(null), true);
         BuildTools();
 
@@ -89,7 +89,7 @@ public sealed partial class ComposeProjectPanel : Grid
             Ui.HStack(8, Ui.Overline("Inspect and tools")).Margin(0, 6, 0, 0), tools);
         var servicesHeader = new DockPanel();
         servicesHeader.Children.Add(runningText.Dock(Dock.Right));
-        servicesHeader.Children.Add(Ui.Text("Services", 16, FontWeights.SemiBold));
+        servicesHeader.Children.Add(Ui.Text("Services", 14, FontWeights.SemiBold));
         lastActionCard = Ui.Card(Ui.VStack(6, lastActionTitle, new ScrollViewer { Content = lastAction, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }), 12, "SurfaceContainer", 12);
         lastActionCard.Visibility = Visibility.Collapsed;
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

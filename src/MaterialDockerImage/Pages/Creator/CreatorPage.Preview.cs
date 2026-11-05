@@ -23,7 +23,7 @@ public sealed partial class CreatorPage
     private TextFindBar previewFind = null!;
     private readonly CreatorSyntaxMirror mirror = new();
     private readonly StackPanel checks = new();
-    private readonly TextBlock checksCount = Ui.Caption("");
+    private readonly Border checksCount = Ui.Badge("", Tone.Success, false);
     private readonly DispatcherTimer parseTimer = new() { Interval = TimeSpan.FromMilliseconds(300) };
     private readonly DispatcherTimer caretTimer = new() { Interval = TimeSpan.FromMilliseconds(150) };
     private CheckBox? syntaxSwitch, colourSwitch;
@@ -90,13 +90,15 @@ public sealed partial class CreatorPage
         previewTabs.Items.Add(dockerfileTab);
         previewTabs.Items.Add(new TabItem { Header = ".dockerignore", Content = BuildIgnorePanel().Margin(0, 10, 0, 0) });
         previewTabs.Items.Add(BuildComposeTab());
-        var previewTop = Ui.Columns(4, [1, 0, 0], Ui.Text("Source", 16, FontWeights.SemiBold), buildCommand, copy);
+        var previewTop = Ui.Columns(4, [1, 0, 0], Ui.Text("Live preview", 16, FontWeights.SemiBold), buildCommand, copy);
         var previewPanel = new DockPanel();
         previewPanel.Children.Add(previewTop.Dock(System.Windows.Controls.Dock.Top));
+        previewPanel.Children.Add(Ui.Divider().Margin(0, 6, 0, 0).Dock(System.Windows.Controls.Dock.Top));
         previewPanel.Children.Add(previewTabs);
         var previewCard = Ui.Card(previewPanel, 16, "SurfaceLow", 16);
 
         var checksHeader = Ui.Columns(8, [1, 0], Ui.Text("Checks", 16, FontWeights.SemiBold), checksCount);
+        checksCount.VerticalAlignment = VerticalAlignment.Center;
         checksHeader.Margin = new Thickness(0, 0, 0, 10);
         var checksPanel = new DockPanel();
         checksPanel.Children.Add(checksHeader.Dock(System.Windows.Controls.Dock.Top));
@@ -352,7 +354,11 @@ public sealed partial class CreatorPage
         var results = DockerfileLint.Check(doc);
         var problems = DockerfileLint.CountProblems(results);
         var errors = results.Count(r => r.Severity == LintSeverity.Error);
-        checksCount.Text = problems == 0 && parseWarnings.Count == 0 ? Loc.T("All clear") : errors > 0 ? $"{errors} {Loc.T(errors == 1 ? "error" : "errors")} · {problems} {Loc.T("to review")}" : $"{problems + parseWarnings.Count} {Loc.T("to review")}";
+        var clear = problems == 0 && parseWarnings.Count == 0;
+        ((TextBlock)checksCount.Child).Text = clear ? Loc.T("All clear") : errors > 0 ? $"{errors} {Loc.T(errors == 1 ? "error" : "errors")} · {problems} {Loc.T("to review")}" : $"{problems + parseWarnings.Count} {Loc.T("to review")}";
+        var (countBackground, countForeground) = Ui.ToneKeys(clear ? Tone.Success : errors > 0 ? Tone.Error : Tone.Warning);
+        checksCount.SetResourceReference(Border.BackgroundProperty, countBackground);
+        ((TextBlock)checksCount.Child).SetResourceReference(TextBlock.ForegroundProperty, countForeground);
         foreach (var warning in parseWarnings) checks.Children.Add(ParseNoteRow(warning));
         foreach (var result in results) checks.Children.Add(CheckRow(result));
         if (results.Count == 0 && parseWarnings.Count == 0) checks.Children.Add(Ui.Caption("No checks apply yet."));
@@ -414,17 +420,18 @@ public sealed partial class CreatorPage
             _ => (Icons.CheckCircle, "Success")
         };
         var title = Ui.Text(result.Title, 14, FontWeights.SemiBold);
-        var message = Ui.Text(result.Message, 13, null, "OnSurfaceVariant");
+        var message = Ui.Text(result.Message, 12, null, "OnSurfaceVariant");
         var id = result.Id + (DockerfileLint.BuildKitName(result.Id) is { } check ? " (" + check + ")" : "");
         var where = result.StageIndex >= 0 && result.StageIndex < doc.Stages.Count
             ? Ui.Text($"{id} · {(doc.Stages[result.StageIndex].Name.Trim().Length > 0 ? doc.Stages[result.StageIndex].Name.Trim() : "stage " + result.StageIndex)}" + (result.InstructionIndex >= 0 ? $" · {Loc.T("step")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false)
             : Ui.Text(id + (result.InstructionIndex >= 0 ? $" · {Loc.T("global")} {result.InstructionIndex + 1}" : ""), 12, null, "Outline", false, false);
-        var text = Ui.VStack(2, title, message, where);
+        var text = Ui.VStack(2, title, message);
+        text.ToolTip = where.Text; // the check id, stage and step; the row itself stays as quiet as the design
         var actions = new StackPanel { VerticalAlignment = VerticalAlignment.Top };
         if (result.Fix != null)
         {
-            var fix = Ui.Button(result.Fix.Label, null, ButtonKind.Tonal, () => PageTasks.Fire(() => ApplyFixAsync(result)), false);
-            fix.MinHeight = 32; fix.Height = 32; fix.Padding = new Thickness(12, 0, 12, 0);
+            var fix = Ui.Button(result.Fix.Label, null, ButtonKind.Outlined, () => PageTasks.Fire(() => ApplyFixAsync(result)), false);
+            fix.MinHeight = 32; fix.Height = 32; fix.Padding = new Thickness(12, 0, 12, 0); fix.FontSize = 13;
             fix.ToolTip = Loc.T("Apply this fix to the draft. Undo reverts it.");
             actions.Children.Add(fix);
         }

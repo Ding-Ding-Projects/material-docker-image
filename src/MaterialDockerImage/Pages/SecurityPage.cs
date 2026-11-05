@@ -20,10 +20,11 @@ public sealed partial class SecurityPage : PageBase
     private readonly TextBlock subtitle;
     private readonly ContentControl banner = new();
     private FrameworkElement? severityStrip;
-    private readonly ImageStatTile criticalTile = new("Critical", Icons.GppBad, Tone.Error);
-    private readonly ImageStatTile highTile = new("High", Icons.Warning, Tone.Warning);
-    private readonly ImageStatTile mediumTile = new("Medium", Icons.Report, Tone.Tertiary);
-    private readonly ImageStatTile lowTile = new("Low", Icons.Info, Tone.Neutral);
+    private readonly SecurityStatTile criticalTile = new("Critical", Icons.GppBad, "ErrorContainer", "OnErrorContainer");
+    private readonly SecurityStatTile highTile = new("High", Icons.Warning, "Error", "OnError");
+    private readonly SecurityStatTile mediumTile = new("Medium", Icons.Report, "WarningContainer", "OnWarningContainer");
+    private readonly SecurityStatTile lowTile = new("Low", Icons.Info, "TertiaryContainer", "OnTertiaryContainer");
+    private readonly SecurityStatTile fixableTile = new("Fixable", Icons.CheckCircle, "SuccessContainer", "OnSuccessContainer");
     private List<SecurityImageRow> baseRows = [];
     private bool loaded;
     private bool reloading;
@@ -68,12 +69,12 @@ public sealed partial class SecurityPage : PageBase
         // page so the list below always keeps its rows.
         var bannerScroll = new ScrollViewer { Content = banner, VerticalScrollBarVisibility = ScrollBarVisibility.Auto, HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
         SizeChanged += (_, _) => bannerScroll.MaxHeight = Math.Max(120, ActualHeight * 0.25);
-        severityStrip = ImageStatTile.Strip(criticalTile, highTile, mediumTile, lowTile);
+        severityStrip = SecurityStatTile.Strip(criticalTile, highTile, mediumTile, lowTile, fixableTile);
         var top = Ui.VStack(0, bannerScroll, severityStrip, progressCard);
         var split = Ui.SplitInspector(table, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
         table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
         var body = new Grid();
-        ImageStatTile.CompactBelow(body, 600, criticalTile, highTile, mediumTile, lowTile);
+        SecurityStatTile.CompactBelow(body, 600, criticalTile, highTile, mediumTile, lowTile, fixableTile);
         body.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         body.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         body.Children.Add(top);
@@ -163,6 +164,7 @@ public sealed partial class SecurityPage : PageBase
         highTile.Set(N(total.High), Detail(ScoutSeverity.High));
         mediumTile.Set(N(total.Medium), Detail(ScoutSeverity.Medium));
         lowTile.Set(N(total.Low), total.Unspecified > 0 ? $"{total.Unspecified} more unrated" : Detail(ScoutSeverity.Low));
+        fixableTile.Set(N(total.Fixable), results.Count == 0 ? "no images analyzed yet" : $"vulnerabilities with a fixed version, across {results.Count} analyzed");
     }
 
     internal bool EnsureCurrentForAction()
