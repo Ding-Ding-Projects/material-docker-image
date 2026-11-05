@@ -28,6 +28,8 @@ public sealed class NetworkCreatePanel : Border
     private Func<IReadOnlyList<string>> existingSubnets = () => [];
     public event Action? Closed;
     public Func<IReadOnlyList<string>, string, Task<bool>>? Create { get; set; }
+    /// <summary>Focuses the name field when the panel opens.</summary>
+    public void FocusName() => name.Focus();
 
     public NetworkCreatePanel()
     {
@@ -46,7 +48,7 @@ public sealed class NetworkCreatePanel : Border
         {
             var args = Args(out var problem);
             if (args == null) { error.Text = problem ?? ""; return; }
-            if (Create != null && await Create(args, name.Text.Trim())) Reset();
+            if (Create != null && await Create(args, name.Text.Trim())) { Reset(); Closed?.Invoke(); }
         });
         Child = Ui.Scroll(Ui.VStack(14,
             title,

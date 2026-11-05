@@ -42,26 +42,31 @@ public sealed class VolumesView : Grid
             .Filter("Unused", v => !v.InUse)
             .Filter("Anonymous", v => v.Anonymous)
             .RowAction("Inspect", Icons.DataObject, InspectAsync, "Enter")
-            .RowAction("Back up…", Icons.Backup, v => Stale() ? Task.CompletedTask : VolumeBackupDialog.ShowAsync(v, context, isCurrent))
-            .RowAction("Restore into…", Icons.Restore, v => { if (!Stale()) VolumeRestoreDialog.Show(v.Name, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing); return Task.CompletedTask; })
+            .RowAction("Back up…", Icons.Backup, v => { if (!Stale()) OpenTransfer(v.Name, false); return Task.CompletedTask; })
+            .RowAction("Restore into…", Icons.Restore, v => { if (!Stale()) OpenTransfer(v.Name, true); return Task.CompletedTask; })
             .RowAction("Clone…", Icons.FilterNone, v => VolumeRestoreDialog.CloneAsync(v, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing))
             .RowAction("Copy name", Icons.ContentCopy, v => { ActionSounds.Copy(v.Name); return Task.CompletedTask; })
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
         table.Activated += v => _ = Guarded(() => InspectAsync(v));
-        var create = Ui.Button("Create volume", Icons.Add, ButtonKind.Filled, () => VolumeCreateForm.Show(context, isCurrent, () => Reload?.Invoke() ?? Task.CompletedTask));
         var prune = Ui.AsyncButton("Prune…", Icons.CleaningServices, ButtonKind.Outlined, PruneAsync);
-        var backup = Ui.AsyncButton("Back up…", Icons.Backup, ButtonKind.Tonal, () => table.Focused is { } v ? (Stale() ? Task.CompletedTask : VolumeBackupDialog.ShowAsync(v, context, isCurrent)) : SelectFirst());
-        var restore = Ui.Button("Restore from archive…", Icons.Restore, ButtonKind.Tonal, () => { if (!Stale()) VolumeRestoreDialog.Show(table.Focused?.Name, table.Items.Select(i => i.Name).ToList(), context, isCurrent, ReloadOrNothing); });
-        var toolbar = Ui.Wrap(8, create, backup, restore, prune);
+        var backup = Ui.Button("Back up…", Icons.Backup, ButtonKind.Tonal, () => { if (table.Focused is { } v) { if (!Stale()) OpenTransfer(v.Name, false); } else SelectFirst(); });
+        var restore = Ui.Button("Restore from archive…", Icons.Restore, ButtonKind.Tonal, () => { if (!Stale()) OpenTransfer(table.Focused?.Name, true); });
+        var toolbar = Ui.Wrap(8, backup, restore, prune);
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         Children.Add(toolbar);
         Children.Add(table.At(1));
     }
 
+    /// <summary>Opens the Back up volume dialog on its Backup or Restore tab.</summary>
+    private void OpenTransfer(string? volume, bool restore) => VolumeTransferDialog.Show(table.Items, volume, restore, context, isCurrent, ReloadOrNothing);
+
+    /// <summary>Opens the create volume dialog (the page header's primary action).</summary>
+    public void ShowCreate() { if (!Stale()) VolumeCreateForm.Show(context, isCurrent, () => Reload?.Invoke() ?? Task.CompletedTask); }
+
     private Task ReloadOrNothing() => Reload?.Invoke() ?? Task.CompletedTask;
-    private static Task SelectFirst() { Host.Notify.Info("Select a volume to back up first."); return Task.CompletedTask; }
+    private static void SelectFirst() => Host.Notify.Info("Select a volume to back up first.");
 
     private static async Task Guarded(Func<Task> action)
     {

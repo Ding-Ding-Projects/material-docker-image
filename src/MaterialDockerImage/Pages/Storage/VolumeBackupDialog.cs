@@ -75,57 +75,114 @@ public static class VolumeTransferChecks
     }
 }
 
-/// <summary>Backup of one volume into a .tar.gz on a folder through a short-lived helper container.</summary>
+/// <summary>Backup of one volume into a .tar.gz archive through a short-lived helper container (the Backup tab of the transfer dialog).</summary>
 public static class VolumeBackupDialog
 {
     private static AppHost Host => AppHost.Current;
+    private static readonly string DefaultFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Docker volume backups");
 
-    public static async Task ShowAsync(VolumeRow volume, Func<string?> context, Func<bool> isCurrent)
+    internal static TransferPanel BuildPanel(IReadOnlyList<VolumeRow> volumes, string? selected, Func<string?> context, Func<bool> isCurrent)
     {
-        var running = await VolumeTransferChecks.RunningUsersAsync(volume.Name, context());
-        var folder = Ui.Input(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Docker volume backups"), "Destination folder", true);
-        var archive = Ui.Input(VolumeArchiveCommands.SuggestedArchiveName(volume.Name), "Archive name", true);
+        var volume = Ui.Combo(volumes.Select(v => v.Name).OrderBy(n => n, StringComparer.OrdinalIgnoreCase), selected ?? volumes.FirstOrDefault()?.Name);
+        var autoName = true;
+        var archive = Ui.Input(Path.Combine(DefaultFolder, VolumeArchiveCommands.SuggestedArchiveName(volume.Text)), "Destination archive", true);
+        var browse = Ui.IconButton(Icons.FolderOpen, "Choose the destination archive", () =>
+        {
+            if (PageKit.PickSavePath(Path.GetFileName(archive.Text), "Volume archives|*.tar.gz;*.tgz;*.tar|All files|*.*") is { } p) { autoName = false; archive.Text = p; }
+        });
         var image = Ui.Input(VolumeArchiveCommands.DefaultHelperImage, "Helper image", true);
+        var info = Ui.Card(Ui.Columns(10, [-18, 1], Ui.Icon(Icons.Info, 18, false, "OnSurfaceVariant"),
+            Ui.Text("Runs a short-lived helper container that mounts the volume read-only and writes a tar.gz into the archive's folder. The helper image is pulled once if missing.", 13, null, "OnSurfaceVariant")), 12, "SurfaceContainerHigh", 12);
+        var running = new List<string>();
         var stop = false;
-        var stopSwitch = Ui.Switch("Stop containers using this volume during backup", false, v => stop = v,
-            running.Count == 0 ? "No running container uses this volume." : "Stops and afterwards starts: " + string.Join(", ", running) + ". Gives a consistent copy of databases and other files that change while running.");
-        stopSwitch.IsEnabled = running.Count > 0;
+        var stopSwitch = Ui.Switch("Pause containers using this volume", false, v => stop = v);
+        var stopNote = Ui.Caption("");
         var preview = Ui.Mono("", 12, "OnSurfaceVariant", true);
+        string? Problem(out string dir, out string name)
+        {
+            var path = archive.Text.Trim();
+            dir = Path.GetDirectoryName(path) ?? ""; name = Path.GetFileName(path);
+            return (volume.Text.Length == 0 ? "Choose a volume." : null) ?? VolumeArchiveCommands.ValidateHostFolder(dir) ?? VolumeArchiveCommands.ValidateArchiveName(name) ?? VolumeArchiveCommands.ValidateImage(image.Text.Trim());
+        }
         void Update()
         {
-            var problem = VolumeArchiveCommands.ValidateHostFolder(folder.Text.Trim()) ?? VolumeArchiveCommands.ValidateArchiveName(archive.Text.Trim()) ?? VolumeArchiveCommands.ValidateImage(image.Text.Trim());
-            preview.Text = problem ?? PageKit.Preview(VolumeArchiveCommands.Backup(volume.Name, folder.Text.Trim(), archive.Text.Trim(), image.Text.Trim()), context());
+            var problem = Problem(out var dir, out var name);
+            preview.Text = problem ?? PageKit.Preview(VolumeArchiveCommands.Backup(volume.Text, dir, name, image.Text.Trim()), context());
         }
-        folder.TextChanged += (_, _) => Update(); archive.TextChanged += (_, _) => Update(); image.TextChanged += (_, _) => Update();
-        var body = Ui.VStack(14,
-            Ui.Card(Ui.HStack(10, Ui.Icon(Icons.Backup, 22, true, "Primary"), Ui.VStack(2, Ui.Mono(volume.Name, 14, "OnSurface", true), Ui.Caption($"{volume.Driver} · {volume.Size} · used by {volume.UsedByText}"))), 12, "SurfaceContainer", 12),
-            Ui.Field("Destination folder", VolumeTransferChecks.FolderPicker(folder, "Choose the destination folder"), "Bind-mounted into the helper container at /backup. The path is resolved on the engine host: on Docker Desktop that is this computer.", "C:\\Backups\\docker"),
-            Ui.Field("Archive name", archive, "Created in the destination folder. .tar.gz and .tgz are compressed; .tar is not.", "pgdata-20261103.tar.gz"),
-            Ui.Field("Helper image", image, "A small image with sh and tar that runs once with --rm and no network. It is pulled if missing.", "busybox:1.36"),
-            stopSwitch,
-            Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12),
-            Ui.Caption("Bind paths are on the engine host. Backups of remote engines are written on the remote machine."));
-        Update();
-        PageKit.Dialog("Back up volume", "Creates a compressed archive of every file in the volume.", body, "Back up", async () =>
+        async Task RefreshUsersAsync()
         {
-            var dir = folder.Text.Trim(); var name = archive.Text.Trim(); var helper = image.Text.Trim();
-            if ((VolumeArchiveCommands.ValidateHostFolder(dir) ?? VolumeArchiveCommands.ValidateArchiveName(name) ?? VolumeArchiveCommands.ValidateImage(helper)) is { } problem) return problem;
-            if (!isCurrent()) return PageKit.StaleMessage(context());
-            if (!await VolumeTransferChecks.ConfirmHostPathsAsync(context(), dir)) return "Canceled: the folder would be resolved on the remote engine host.";
-            var (local, _) = await VolumeTransferChecks.EngineLocationAsync(context());
-            var target = Path.Combine(dir, name);
-            if (local)
+            var name = volume.Text;
+            var users = name.Length == 0 ? [] : await VolumeTransferChecks.RunningUsersAsync(name, context());
+            if (name != volume.Text) return;
+            running = users;
+            stopSwitch.IsEnabled = running.Count > 0;
+            if (running.Count == 0) { stop = false; stopSwitch.IsChecked = false; }
+            stopNote.Text = running.Count == 0 ? Loc.T("No running container uses this volume.") : string.Join(", ", running) + " " + Loc.T("will be stopped, then started again after the copy.");
+        }
+        volume.SelectionChanged += (_, _) =>
+        {
+            if (autoName && volume.Text.Length > 0) archive.Text = Path.Combine(Path.GetDirectoryName(archive.Text.Trim()) is { Length: > 0 } d ? d : DefaultFolder, VolumeArchiveCommands.SuggestedArchiveName(volume.Text));
+            Update();
+            _ = RefreshUsersAsync();
+        };
+        archive.TextChanged += (_, _) => { if (archive.IsKeyboardFocusWithin) autoName = false; Update(); };
+        image.TextChanged += (_, _) => Update();
+        stopSwitch.IsEnabled = false;
+        stopNote.Text = Loc.T("Checking running containers…");
+        _ = RefreshUsersAsync();
+        Update();
+        var advanced = new Expander
+        {
+            Header = new TextBlock { Text = Loc.T("Helper image and command") },
+            Content = Ui.VStack(10,
+                Ui.Field("Helper image", image, "A small image with sh and tar that runs once with --rm and no network. It is pulled if missing.", "busybox:1.36"),
+                Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12))
+        };
+        var body = Ui.VStack(14,
+            Ui.Field("Volume", volume, "The volume to copy. It is mounted read-only in the helper container."),
+            Ui.Field("Destination archive", Ui.Columns(8, [1, 0], archive, browse), "Full path of the .tar.gz, .tgz or .tar to create. The folder is bind-mounted into the helper container at /backup and resolved on the engine host: on Docker Desktop that is this computer.", "C:\\Backups\\docker\\pgdata-20261103.tar.gz"),
+            info,
+            Ui.VStack(2, stopSwitch, stopNote),
+            advanced,
+            Ui.Caption("Backups of remote engines are written on the remote machine."));
+
+        return new TransferPanel
+        {
+            Body = body,
+            ActionLabel = "Back up",
+            Apply = async status =>
             {
-                Directory.CreateDirectory(dir);
-                if (File.Exists(target) && !await Host.Overlay.ConfirmAsync("Replace the existing archive?", $"{target} already exists and is overwritten by the backup.", "Replace", true)) return "Choose another archive name.";
+                if (Problem(out var dir, out var name) is { } problem) return problem;
+                var vol = volume.Text; var helper = image.Text.Trim();
+                if (!isCurrent()) return PageKit.StaleMessage(context());
+                if (!await VolumeTransferChecks.ConfirmHostPathsAsync(context(), dir)) return "Canceled: the folder would be resolved on the remote engine host.";
+                var (local, _) = await VolumeTransferChecks.EngineLocationAsync(context());
+                var target = Path.Combine(dir, name);
+                if (local)
+                {
+                    Directory.CreateDirectory(dir);
+                    if (File.Exists(target) && !await Host.Overlay.ConfirmAsync("Replace the existing archive?", $"{target} already exists and is overwritten by the backup.", "Replace", true)) return "Choose another archive name.";
+                }
+                var args = VolumeArchiveCommands.Backup(vol, Path.GetFullPath(dir), name, helper);
+                // The helper reports no percentage, so the bar stays indeterminate and the line shows what has really been written.
+                var started = DateTime.UtcNow;
+                var timer = new System.Windows.Threading.DispatcherTimer { Interval = TimeSpan.FromMilliseconds(500) };
+                void Tick()
+                {
+                    var written = local && File.Exists(target) ? " · " + Ui.FormatBytes(new FileInfo(target).Length) + " " + Loc.T("written") : "";
+                    status(Loc.T("Writing archive") + written + " · " + (int)(DateTime.UtcNow - started).TotalSeconds + " s");
+                }
+                timer.Tick += (_, _) => { try { Tick(); } catch (IOException) { } };
+                Tick(); timer.Start();
+                Core.CommandResult? result;
+                try { result = await VolumeTransferChecks.WithStoppedAsync(stop ? running : [], context(), () => Host.Execute("Back up volume " + vol, args, boundContext: context())); }
+                finally { timer.Stop(); }
+                if (result?.Success != true) return PageKit.Failure(result);
+                var size = local && File.Exists(target) ? Ui.FormatBytes(new FileInfo(target).Length) : null;
+                Host.Notify.Success(size != null ? $"Backup of {vol} written to {target} ({size})." : $"Backup of {vol} written on the engine host at {target}. Its size cannot be read from this computer.");
+                if (!Host.IsCapture) Host.History.Record("storage", $"Backed up volume {vol} to {target}" + (size != null ? $" ({size})" : ""));
+                return null;
             }
-            var args = VolumeArchiveCommands.Backup(volume.Name, Path.GetFullPath(dir), name, helper);
-            var result = await VolumeTransferChecks.WithStoppedAsync(stop ? running : [], context(), () => Host.Execute("Back up volume " + volume.Name, args, boundContext: context()));
-            if (result?.Success != true) return PageKit.Failure(result);
-            var size = local && File.Exists(target) ? Ui.FormatBytes(new FileInfo(target).Length) : null;
-            Host.Notify.Success(size != null ? $"Backup of {volume.Name} written to {target} ({size})." : $"Backup of {volume.Name} written on the engine host at {target}. Its size cannot be read from this computer.");
-            if (!Host.IsCapture) Host.History.Record("storage", $"Backed up volume {volume.Name} to {target}" + (size != null ? $" ({size})" : ""));
-            return null;
-        }, width: 640);
+        };
     }
 }

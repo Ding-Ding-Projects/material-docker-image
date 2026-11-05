@@ -36,9 +36,8 @@ public sealed class SwarmStacksView : SwarmTabView
             .Column("Mode", s => s.Mode, 100)
             .Column("Image", s => s.Image, 240, true)
             .Column("Ports", s => s.Ports, 160, true);
-        var deploy = Ui.AsyncButton("Deploy stack…", Icons.RocketLaunch, ButtonKind.Filled, DeployAsync);
         var right = Ui.Card(Ui.Rows(10, [0, 1], servicesTitle, services), 16, "SurfaceLow", 16);
-        LayoutWith(Ui.Wrap(8, deploy), Ui.SplitInspector(table, right, 1150, 520));
+        LayoutContent(Ui.SplitInspector(table, right, 1150, 520));
     }
 
     public override async Task LoadAsync()
@@ -76,7 +75,7 @@ public sealed class SwarmStacksView : SwarmTabView
         }
     }
 
-    private async Task DeployAsync()
+    public async Task DeployAsync()
     {
         if (Stale()) return;
         var file = Ui.Input("", "Compose file", true);
