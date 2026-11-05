@@ -13,9 +13,12 @@ namespace MaterialDockerImage.Pages;
 internal sealed record StudioContrastCheck(string Role, string Name, string Against, double Need)
 {
     private static Color Resolve(string key) => Application.Current?.TryFindResource(key) is SolidColorBrush b ? b.Color : Colors.Transparent;
-    public double Ratio()
+    public double Ratio() => Ratio(Resolve);
+
+    /// <summary>The ratio with colours from any source, such as a candidate scheme that is not applied.</summary>
+    public double Ratio(Func<string, Color> resolve)
     {
-        var fore = Resolve(Role); var back = Resolve(Against);
+        var fore = resolve(Role); var back = resolve(Against);
         // A translucent role is read as it appears over its background.
         var flat = Theme.Mix(back, Color.FromRgb(fore.R, fore.G, fore.B), fore.A / 255.0);
         return Theme.ContrastRatio(flat, back);
@@ -44,10 +47,10 @@ public sealed partial class SettingsPage
     {
         var effective = Motion.EffectiveLevel;
         return Motion.WindowsAnimationsOff ? Loc.T("Windows animation effects are off (Settings, Accessibility, Visual effects), so this app does not animate either. Turn them on in Windows to see motion.")
-            : S.ReducedMotion ? Loc.T("Reduced motion is on, so everything snaps to its final state instantly.")
-            : S.LowStimulation ? Loc.T("Low stimulation is on, so everything snaps to its final state instantly.")
+            : S.ReducedMotion ? Loc.T("Reduced motion is on: nothing moves, and pages change with a short fade only.")
+            : S.LowStimulation ? Loc.T("Low stimulation is on: nothing moves, and pages change with a short fade only.")
             : effective == "Off" ? Loc.T("Motion is off: every change appears instantly.")
-            : effective == "Reduced" ? Loc.T("Reduced: every change appears instantly, with no movement.")
+            : effective == "Reduced" ? Loc.T("Reduced: nothing moves, and pages change with a short fade only.")
             : effective == "Expressive" ? Loc.T("Expressive: longer, bouncier Material motion with larger travel.")
             : Loc.T("Standard Material 3 motion: emphasized easing, 50 to 600 ms.");
     }
@@ -219,11 +222,16 @@ public sealed partial class SettingsPage
         StudioLock(speed, "motionspeed");
         syncs.Add(() => { var now = AppearanceRuntime.Current.MotionSpeed; if (Math.Abs(speed.Value - now) > 0.001) speed.Value = now; });
         var speedRow = Ui.Columns(10, [-64, 1, -52], Ui.Text("Speed", 13, null, "OnSurfaceVariant", false), speed, speedText);
+        var transitions = StudioTransitionCards(syncs, preview);
+        Action redrawCurve = () => { };
+        var springRow = StudioSpringRow(syncs, () => redrawCurve());
 
         var curve = new StudioEasingCurve();
         var timing = Ui.Text("", 12, null, "OnSurfaceVariant");
         var note = Ui.Caption("");
         var chosen = EasingTokens[0];
+        const string springName = "Spring";
+        var springChosen = false;
         var chips = new WrapPanel();
         var chipList = new List<ToggleButton>();
         void Draw()
@@ -231,8 +239,19 @@ public sealed partial class SettingsPage
             var effective = Motion.EffectiveLevel;
             var animates = AppearanceMotion.Animates(effective);
             var ms = AppearanceMotion.Duration(AppearanceMotion.Medium2, effective, AppearanceRuntime.Current.MotionSpeed);
-            var description = animates ? $"{Loc.T("Easing curve")}: {Loc.T(chosen.Name)}" : Loc.T("Motion is not running, so changes snap to their final state.");
-            curve.Show(chosen.Token, animates, description);
+            if (springChosen)
+            {
+                var bounce = AppearanceRuntime.Current.SpringBounce;
+                var applies = AppearanceSpring.Applies(effective, bounce);
+                var overshoot = AppearanceSpring.Overshoot(bounce) * 100;
+                var springText = $"{Loc.T("Spring easing")}: {bounce}% {Loc.T("bounce")}, {overshoot:0}% {Loc.T("overshoot")}" + (applies ? "" : ". " + Loc.T("Used only at the Expressive level; this shows what it would do."));
+                curve.ShowSamples(AppearanceSpring.Sample(bounce, 48), springText);
+            }
+            else
+            {
+                var description = animates ? $"{Loc.T("Easing curve")}: {Loc.T(chosen.Name)}" : Loc.T("Motion is not running, so changes snap to their final state.");
+                curve.Show(chosen.Token, animates, description);
+            }
             timing.Text = animates ? $"{Loc.T("A medium transition now lasts")} {ms:0} ms." : Loc.T("Motion is not running, so changes snap to their final state.");
             note.Text = MotionNoteText();
         }
@@ -242,8 +261,8 @@ public sealed partial class SettingsPage
             ToggleButton? chip = null;
             chip = Ui.Chip(t.Name, t.Name == chosen.Name, on =>
             {
-                if (!on) { if (chosen.Name == t.Name && chip != null) chip.IsChecked = true; return; }
-                chosen = t;
+                if (!on) { if (!springChosen && chosen.Name == t.Name && chip != null) chip.IsChecked = true; return; }
+                chosen = t; springChosen = false;
                 foreach (var other in chipList) if (other != chip && other.IsChecked == true) other.IsChecked = false;
                 Draw();
             });
@@ -252,13 +271,26 @@ public sealed partial class SettingsPage
             chipList.Add(chip);
             chips.Children.Add(chip);
         }
+        ToggleButton? springChip = null;
+        springChip = Ui.Chip(springName, false, on =>
+        {
+            if (!on) { if (springChosen && springChip != null) springChip.IsChecked = true; return; }
+            springChosen = true;
+            foreach (var other in chipList) if (other != springChip && other.IsChecked == true) other.IsChecked = false;
+            Draw();
+        });
+        springChip.Margin = new Thickness(0, 0, 6, 6);
+        springChip.ToolTip = Loc.T("Shows the spring curve Expressive motion uses for movement, with the current spring bounce.");
+        chipList.Add(springChip);
+        chips.Children.Add(springChip);
+        redrawCurve = Draw;
         Draw();
         syncs.Add(Draw);
-        var left = Ui.VStack(8, speedRow, timing, Ui.Overline("Easing tokens"), chips);
+        var left = Ui.VStack(8, speedRow, springRow, timing, Ui.Overline("Easing tokens"), chips);
         var detail = new StudioReflow(460, 16, [1, -200], left, curve);
         var demo = Ui.Button("Play motion demo", Icons.PlayArrow, ButtonKind.Text, preview.PlayDemo);
         demo.HorizontalAlignment = HorizontalAlignment.Left;
-        return StudioPanel(Ui.VStack(12, levels, note, detail, demo), Icons.AutoAwesomeMotion, "Motion", reduced);
+        return StudioPanel(Ui.VStack(12, levels, note, Ui.Overline("Page and tab transition"), transitions, detail, demo), Icons.AutoAwesomeMotion, "Motion", reduced);
     }
 
     // ----- Shape, density and type -----

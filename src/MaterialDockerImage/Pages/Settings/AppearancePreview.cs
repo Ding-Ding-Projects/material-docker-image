@@ -56,7 +56,7 @@ public sealed class AppearancePreview : Border
 
         var snackRow = new DockPanel();
         snackRow.Children.Add(Ui.Icon(Icons.Info, 16, true, "OnPrimaryContainer").Margin(0, 0, 8, 0).Dock(Dock.Left));
-        snackRow.Children.Add(Ui.Text("Notifications arrive with the chosen motion", 12, null, "OnPrimaryContainer"));
+        snackRow.Children.Add(Ui.Text("Pages change with the chosen transition", 12, null, "OnPrimaryContainer"));
         snackbar = new Border { Child = snackRow, Padding = new Thickness(12, 10, 12, 10) };
         snackbar.SetResourceReference(Border.BackgroundProperty, "PrimaryContainer");
         snackbar.SetResourceReference(Border.CornerRadiusProperty, "RadiusMedium");
@@ -67,10 +67,13 @@ public sealed class AppearancePreview : Border
         Child = Ui.Rows(0, [0, 1], bar, body);
     }
 
+    /// <summary>Plays the chosen page transition on the preview's content, as a page change would.</summary>
+    public void PlayTransition() => Motion.PageTransition(stage, true);
+
     /// <summary>Plays a short demonstration of the current motion settings on the preview.</summary>
     public void PlayDemo()
     {
-        Motion.SharedAxis(stage, MotionAxis.Y, true);
+        Motion.PageTransition(stage, true);
         Motion.Stagger(stage.Children.OfType<UIElement>());
         progress.Value = 0;
         Motion.SmoothProgress(progress, 64);

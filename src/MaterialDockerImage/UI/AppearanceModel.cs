@@ -115,6 +115,8 @@ public sealed class AppearanceState
     public bool Rainbow { get; set; }
     public string MotionLevel { get; set; } = "Standard";
     public double MotionSpeed { get; set; } = 1;
+    public string TransitionPattern { get; set; } = AppearanceTransitions.Default;
+    public int SpringBounce { get; set; } = AppearanceSpring.Default;
 
     public static readonly string[] Themes = ["System", "Light", "Dark"];
     public static readonly string[] Densities = ["Compact", "Comfortable", "Spacious"];
@@ -136,7 +138,8 @@ public sealed class AppearanceState
         {
             Theme = s.Theme, Seed = s.SeedColor, Roles = new Dictionary<string, string>(s.RoleOverrides ?? new(), StringComparer.Ordinal), RadiusScale = s.CornerScale, Density = s.Density,
             UiFont = s.UiFontFamily ?? "", MonoFont = s.MonoFontFamily ?? "", FontSize = s.FontSize, HeadingWeight = s.HeadingWeight, RailIcons = s.RailIconStyle ?? "Outline",
-            Elevation = s.ElevationScale, SurfaceTint = s.SurfaceTint, Rainbow = s.RainbowAccent, MotionLevel = s.MotionLevel ?? "Standard", MotionSpeed = s.MotionSpeed
+            Elevation = s.ElevationScale, SurfaceTint = s.SurfaceTint, Rainbow = s.RainbowAccent, MotionLevel = s.MotionLevel ?? "Standard", MotionSpeed = s.MotionSpeed,
+            TransitionPattern = s.TransitionPattern ?? AppearanceTransitions.Default, SpringBounce = s.SpringBounce
         };
         state.Normalize();
         return state;
@@ -148,6 +151,7 @@ public sealed class AppearanceState
         s.Theme = Theme; s.SeedColor = Seed; s.RoleOverrides = new Dictionary<string, string>(Roles, StringComparer.Ordinal); s.CornerScale = RadiusScale; s.Density = Density;
         s.UiFontFamily = UiFont; s.MonoFontFamily = MonoFont; s.FontSize = FontSize; s.HeadingWeight = HeadingWeight; s.RailIconStyle = RailIcons;
         s.ElevationScale = Elevation; s.SurfaceTint = SurfaceTint; s.RainbowAccent = Rainbow; s.MotionLevel = MotionLevel; s.MotionSpeed = MotionSpeed;
+        s.TransitionPattern = TransitionPattern; s.SpringBounce = SpringBounce;
     }
 
     private static double Clamp(double v, double min, double max, double fallback) => double.IsFinite(v) ? Math.Clamp(v, min, max) : fallback;
@@ -168,6 +172,8 @@ public sealed class AppearanceState
         SurfaceTint = Math.Round(Clamp(SurfaceTint, 0, 1, 0), 2);
         if (!AppearanceMotion.Levels.Contains(MotionLevel)) MotionLevel = "Standard";
         MotionSpeed = Math.Round(Clamp(MotionSpeed, 0.5, 2, 1), 2);
+        if (!AppearanceTransitions.IsKnown(TransitionPattern)) TransitionPattern = AppearanceTransitions.Default;
+        SpringBounce = AppearanceSpring.Clamp(SpringBounce);
     }
 
     private static string CleanFont(string? font) => font is { Length: > 0 and <= 100 } f && !f.Any(char.IsControl) ? f.Trim() : "";
@@ -200,6 +206,8 @@ public sealed class AppearanceState
         if (!HeadingWeights.Contains(HeadingWeight)) problems.Add("Heading weight must be 400, 500, 600, 700 or 800.");
         if (!RailIconStyles.Contains(RailIcons)) problems.Add("Rail icons must be Outline or Filled.");
         if (!AppearanceMotion.Levels.Contains(MotionLevel)) problems.Add("Motion level must be Off, Reduced, Standard or Expressive.");
+        if (!AppearanceTransitions.IsKnown(TransitionPattern)) problems.Add($"Transition pattern must be one of {string.Join(", ", AppearanceTransitions.Patterns)}.");
+        if (SpringBounce < AppearanceSpring.Minimum || SpringBounce > AppearanceSpring.Maximum) problems.Add("Spring bounce must be between 0 and 100.");
         foreach (var (font, name) in new[] { (UiFont, "UI font"), (MonoFont, "Mono font") })
             if (font == null || font.Length > 100 || font.Any(char.IsControl)) problems.Add(name + " must be a font name of at most 100 characters.");
         return problems;
@@ -223,11 +231,12 @@ public sealed class AppearanceState
         return state;
     }
 
-    /// <summary>Copies the look of another state but keeps this state's motion choices (presets never change motion).</summary>
+    /// <summary>Copies the look of another state but keeps this state's motion choices: level, speed, transition pattern and spring bounce (presets never change motion).</summary>
     public AppearanceState WithLookOf(AppearanceState look)
     {
         var next = look.Clone();
         next.MotionLevel = MotionLevel; next.MotionSpeed = MotionSpeed;
+        next.TransitionPattern = TransitionPattern; next.SpringBounce = SpringBounce;
         return next;
     }
 }

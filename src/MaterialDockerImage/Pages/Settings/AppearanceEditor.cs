@@ -149,7 +149,35 @@ public sealed partial class SettingsPage
         syncs.Add(() => { var now = AppearanceRuntime.Current.MotionSpeed; if (Math.Abs(speed.Value - now) > 0.001) speed.Value = now; });
         rows.Add("motionspeed", "Motion speed", "Speeds animations up (up to 2x, shorter) or slows them down (down to 0.5x, longer).",
             Resettable(Ui.HStack(12, speed, speedText), "motion speed", (m, d) => m.MotionSpeed = d.MotionSpeed), s => s.MotionSpeed, null, false, v => $"{v:0.00}x");
-        rows.Add("motion", "Reduced motion", "Turns off all animations; the interface snaps to each final state.",
+        var patternNames = AppearanceTransitions.Patterns.Select(AppearanceTransitions.Name).ToList();
+        rows.Add("transition", "Transition pattern", "How pages and tabs change: shared axis, fade through, container transform or slide.",
+            Resettable(Synced(new StudioChoice(patternNames, () => AppearanceTransitions.Name(AppearanceRuntime.Current.TransitionPattern), v =>
+            {
+                var pattern = AppearanceTransitions.Patterns.First(p => AppearanceTransitions.Name(p) == v);
+                Look("transition pattern set to " + v, m => m.TransitionPattern = pattern);
+                preview.PlayTransition();
+            }), syncs), "transition pattern", (m, d) => m.TransitionPattern = d.TransitionPattern),
+            s => AppearanceTransitions.Name(s.TransitionPattern),
+            "Shared axis moves the new page along the direction of travel, fade through fades it in while it grows slightly, container transform grows it out of a smaller container and slide brings it in from the side. With motion Off nothing animates; with Reduced, Reduced motion or Low stimulation nothing moves and pages change with a short fade only. Presets never change it.", true);
+        var bounceText = Ui.Text($"{a.SpringBounce}%", 13, null, "OnSurfaceVariant", false, false);
+        var bounce = StepSlider(AppearanceSpring.Minimum, AppearanceSpring.Maximum, a.SpringBounce, 5);
+        bounce.ValueChanged += (_, _) => { bounceText.Text = $"{bounce.Value:0}%"; if (!studioSyncing) Look($"spring bounce set to {bounce.Value:0}%", m => m.SpringBounce = (int)Math.Round(bounce.Value), true); };
+        var bounceNote = Ui.Caption("");
+        var bounceControl = Resettable(Ui.HStack(12, bounce, bounceText), "spring bounce", (m, d) => m.SpringBounce = d.SpringBounce);
+        void SyncBounce()
+        {
+            var now = AppearanceRuntime.Current.SpringBounce;
+            if (Math.Abs(bounce.Value - now) > 0.001) bounce.Value = now;
+            var blocked = SpringBlockedReason();
+            bounceControl.IsEnabled = blocked == null;
+            bounceNote.Text = blocked ?? $"{Loc.T("Expressive movement overshoots by up to")} {AppearanceSpring.Overshoot(now) * 100:0}% {Loc.T("before it settles.")}";
+        }
+        SyncBounce();
+        syncs.Add(SyncBounce);
+        rows.Add("springbounce", "Spring bounce", "How far Expressive movement overshoots before it settles, from 0% (no overshoot) to 100% (about 20% past the target).",
+            Ui.VStack(6, bounceControl, bounceNote), s => s.SpringBounce,
+            "Only Expressive motion uses the spring: it replaces the emphasized easing for movement and scale (opacity never bounces). At every other level, and whenever Reduced motion, Low stimulation or the Windows animation setting stops movement, the slider is disabled and explains why.", true, v => v is int b ? $"{b}%" : "");
+        rows.Add("motion", "Reduced motion", "Turns off movement: the interface snaps to each final state and pages change with a short fade only.",
             ReducedMotionToggle(syncs, Note), s => s.ReducedMotion);
         var demoState = Ui.Caption("");
         var play = Ui.Button("Play motion demo", Icons.PlayArrow, ButtonKind.Tonal, () =>

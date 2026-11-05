@@ -53,6 +53,20 @@ public sealed class CubicBezierEase : EasingFunctionBase
 }
 
 /// <summary>
+/// The spring easing of Expressive motion (<see cref="AppearanceSpring"/>): an ease-out curve that overshoots its end by an
+/// amount set with the Spring bounce setting, then settles. The bounce is a dependency property so it survives freezing.
+/// </summary>
+public sealed class SpringEase : EasingFunctionBase
+{
+    public static readonly DependencyProperty BounceProperty = DependencyProperty.Register(nameof(Bounce), typeof(int), typeof(SpringEase), new PropertyMetadata(AppearanceSpring.Default));
+    public int Bounce { get => (int)GetValue(BounceProperty); set => SetValue(BounceProperty, value); }
+    public SpringEase() => EasingMode = EasingMode.EaseIn; // EaseIn runs the curve exactly as defined.
+    public SpringEase(int bounce) : this() => Bounce = bounce;
+    protected override double EaseInCore(double t) => AppearanceSpring.Ease(t, Bounce);
+    protected override Freezable CreateInstanceCore() => new SpringEase();
+}
+
+/// <summary>
 /// Material 3 motion for the whole app. Every helper snaps to the final state when motion is Off or Reduced, when
 /// Reduced motion or Low stimulation is on, when Windows client-area animations are off, and in capture mode.
 /// Animations use FillBehavior.Stop and end on the element's normal value, so an interrupted animation can never
@@ -85,6 +99,18 @@ public static class Motion
     public static bool Enabled => AppearanceMotion.Animates(EffectiveLevel);
     public static bool Expressive => EffectiveLevel == "Expressive";
     public static bool WindowsAnimationsOff { get { try { return !SystemParameters.ClientAreaAnimation; } catch (InvalidOperationException) { return false; } } }
+
+    /// <summary>
+    /// The easing for movement and scale: the given emphasized curve, or the spring curve when motion is Expressive and the
+    /// Spring bounce setting is above 0%. Opacity never uses the spring.
+    /// </summary>
+    public static IEasingFunction Spatial(IEasingFunction emphasized)
+    {
+        var bounce = Settings?.SpringBounce ?? 0;
+        if (!AppearanceSpring.Applies(EffectiveLevel, bounce)) return emphasized;
+        var spring = new SpringEase(bounce); spring.Freeze();
+        return spring;
+    }
 
     /// <summary>A duration token scaled by level and speed.</summary>
     public static TimeSpan Duration(int token) => TimeSpan.FromMilliseconds(AppearanceMotion.Duration(token, EffectiveLevel, Settings?.MotionSpeed ?? 1));
@@ -133,6 +159,7 @@ public static class Motion
         element.BeginAnimation(UIElement.OpacityProperty, From(fromOpacity, 1, d, Standard, delay));
         if (Transforms(element) is not { } parts) return;
         var (scale, move) = parts;
+        ease = Spatial(ease);
         if (Math.Abs(fromScale - 1) > 0.001)
         {
             scale.BeginAnimation(ScaleTransform.ScaleXProperty, From(fromScale, 1, d, ease, delay));
@@ -143,6 +170,31 @@ public static class Motion
     }
 
     // ----- Transition patterns -----
+
+    /// <summary>
+    /// The page and tab transition the person chose in Appearance (shared axis, fade through, container transform or slide).
+    /// Off snaps; Reduced, Reduced motion and Low stimulation get a short fade with no movement; captures never animate.
+    /// </summary>
+    public static void PageTransition(UIElement element, bool forward) => PlayPlan(element, AppearanceTransitions.For(Settings?.TransitionPattern, EffectiveLevel, forward, Settings?.MotionSpeed ?? 1));
+
+    /// <summary>Runs one transition plan (used by page changes and by the studio's pattern demonstration).</summary>
+    public static void PlayPlan(UIElement element, AppearanceTransitions.Plan plan)
+    {
+        Snap(element);
+        if (!plan.Animates || plan.DurationMs <= 0) return;
+        var d = TimeSpan.FromMilliseconds(plan.DurationMs);
+        element.BeginAnimation(UIElement.OpacityProperty, From(plan.FromOpacity, 1, d, Standard));
+        if (!plan.Moves || Transforms(element) is not { } parts) return;
+        var ease = plan.Spatial ? Spatial(Emphasized) : Standard;
+        var (scale, move) = parts;
+        if (Math.Abs(plan.FromScale - 1) > 0.001)
+        {
+            scale.BeginAnimation(ScaleTransform.ScaleXProperty, From(plan.FromScale, 1, d, ease));
+            scale.BeginAnimation(ScaleTransform.ScaleYProperty, From(plan.FromScale, 1, d, ease));
+        }
+        if (Math.Abs(plan.Dx) > 0.01) move.BeginAnimation(TranslateTransform.XProperty, From(plan.Dx, 0, d, ease));
+        if (Math.Abs(plan.Dy) > 0.01) move.BeginAnimation(TranslateTransform.YProperty, From(plan.Dy, 0, d, ease));
+    }
 
     /// <summary>Fade through: the incoming content fades in while growing slightly (unrelated destinations).</summary>
     public static void FadeThrough(UIElement element) => Enter(element, 0, Expressive ? 0.88 : 0.94, 0, 0, AppearanceMotion.Medium2, EmphasizedDecelerate);

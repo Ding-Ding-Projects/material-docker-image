@@ -9,7 +9,7 @@ namespace MaterialDockerImage.Services;
 /// Attaches motion to control templates without storyboards, so every effect checks the motion level at the moment it
 /// runs and snaps when motion is off. Set on a template part, for example
 /// <c>m:MotionAttached.Effect="Ripple"</c>. Effects: Ripple (state layer pulse on press), RailPill (selection grows from
-/// the centre), SwitchThumb (thumb slides between ends), Reveal (expander content), TabContent (shared axis between tabs).
+/// the centre), SwitchThumb (thumb slides between ends), Reveal (expander content), TabContent (the chosen page transition between tabs).
 /// </summary>
 public static class MotionAttached
 {
@@ -59,7 +59,7 @@ public static class MotionAttached
                 {
                     if (!ReferenceEquals(args.OriginalSource, tabs)) return; // selection changes bubble up from lists inside tabs
                     var now = tabs.SelectedIndex;
-                    if (now >= 0 && last >= 0 && now != last) Motion.SharedAxis(element, MotionAxis.X, now > last);
+                    if (now >= 0 && last >= 0 && now != last) Motion.PageTransition(element, now > last);
                     last = now;
                 };
                 break;
