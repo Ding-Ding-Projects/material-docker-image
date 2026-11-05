@@ -14,16 +14,28 @@ using Microsoft.Win32;
 
 namespace MaterialDockerImage.UI;
 
-/// <summary>One displayed row. Cells hold display text; Tones hold optional chip tones for chip columns.</summary>
+/// <summary>
+/// One displayed row. Cells hold display text (the primary line of a two-line column); Seconds hold the secondary
+/// caption line of two-line columns ("" elsewhere); Labels hold each cell's accessible text; Tones hold chip tones.
+/// </summary>
 public sealed class TableRow<T> : INotifyPropertyChanged
 {
-    public TableRow(T item, string[] cells, string[] tones) { Item = item; Cells = cells; Tones = tones; }
+    public TableRow(T item, string[] cells, string[] tones) : this(item, cells, tones, new string[cells.Length]) { }
+    public TableRow(T item, string[] cells, string[] tones, string[] seconds)
+    {
+        Item = item; Cells = cells; Tones = tones;
+        Seconds = seconds.Select(s => s ?? "").ToArray();
+        Labels = cells.Select((c, i) => TableCells.Label(c, i < Seconds.Length ? Seconds[i] : "")).ToArray();
+    }
     public T Item { get; }
     public string[] Cells { get; }
     public string[] Tones { get; }
-    public string SearchText => string.Join(" ", Cells);
-    /// <summary>List items are announced by ToString(); read the visible cells rather than the type name.</summary>
-    public override string ToString() => string.Join(", ", Cells.Where(c => !string.IsNullOrWhiteSpace(c)));
+    public string[] Seconds { get; }
+    public string[] Labels { get; }
+    public string[] SearchFields => TableCells.SearchFields(Cells, Seconds);
+    public string SearchText => string.Join(" ", SearchFields);
+    /// <summary>List items are announced by ToString(); read the visible cells (both lines of two-line cells) rather than the type name.</summary>
+    public override string ToString() => string.Join(", ", Labels.Where(c => !string.IsNullOrWhiteSpace(c)));
     public event PropertyChangedEventHandler? PropertyChanged;
 }
 
@@ -39,7 +51,9 @@ public sealed class ToneBrushConverter : IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
-public sealed record TableColumn<T>(string Header, Func<T, string> Text, double Width, bool Mono = false, Func<T, Tone>? Chip = null);
+/// <param name="Secondary">For a two-line column, the caption line under the primary text.</param>
+/// <param name="SecondaryHeader">For a two-line column, the header the secondary line exports under.</param>
+public sealed record TableColumn<T>(string Header, Func<T, string> Text, double Width, bool Mono = false, Func<T, Tone>? Chip = null, Func<T, string>? Secondary = null, string? SecondaryHeader = null);
 
 /// <summary>
 /// Shared collection surface: search with regex builder, filter chips, multi-select with honest select-all scope,
@@ -161,13 +175,61 @@ public sealed class DataTable<T> : Grid
         AddCheckColumn();
     }
 
+    private GridViewColumn? checkColumn;
+
     private void AddCheckColumn()
     {
         var factory = new FrameworkElementFactory(typeof(CheckBox));
         factory.SetBinding(System.Windows.Controls.Primitives.ToggleButton.IsCheckedProperty, new Binding("IsSelected") { RelativeSource = new RelativeSource(RelativeSourceMode.FindAncestor, typeof(ListViewItem), 1), Mode = BindingMode.TwoWay });
         factory.SetValue(FocusableProperty, false);
-        factory.SetValue(AutomationProperties.NameProperty, "Select row");
-        view.Columns.Add(new GridViewColumn { Width = 48, CellTemplate = new DataTemplate { VisualTree = factory }, Header = "" });
+        factory.SetValue(AutomationProperties.NameProperty, Loc.T("Select row"));
+        checkColumn = new GridViewColumn { Width = 48, CellTemplate = new DataTemplate { VisualTree = factory }, Header = "" };
+        view.Columns.Insert(0, checkColumn);
+    }
+
+    /// <summary>Whether the leading checkbox column for multi-select is shown. On by default; selection by click,
+    /// Shift, Ctrl and Ctrl+A keeps working without it, and the bulk bar still appears for a multi-row selection.</summary>
+    public bool ShowCheckColumn => checkColumn != null;
+
+    /// <summary>Shows or hides the leading checkbox column for this table.</summary>
+    public DataTable<T> CheckColumn(bool show)
+    {
+        if (show && checkColumn == null) AddCheckColumn();
+        else if (!show && checkColumn != null) { view.Columns.Remove(checkColumn); checkColumn = null; }
+        return this;
+    }
+
+    /// <summary>
+    /// A column with a primary line and a secondary caption line under it (a container name over its image, a
+    /// repository:tag over its digest). Both lines end in an ellipsis when narrow; the cell's accessible name and tooltip
+    /// carry both; search matches either line; exports split the lines into this header and <paramref name="secondaryHeader"/>.
+    /// </summary>
+    public DataTable<T> TwoLineColumn(string header, Func<T, string> primary, Func<T, string> secondary, double width = 220, string? secondaryHeader = null, bool monoSecondary = false)
+    {
+        var index = columns.Count;
+        columns.Add(new(header, primary, width, false, null, secondary, secondaryHeader ?? TableCells.DefaultSecondaryHeader(header)));
+        var stack = new FrameworkElementFactory(typeof(StackPanel));
+        stack.SetValue(StackPanel.OrientationProperty, Orientation.Vertical);
+        stack.SetValue(VerticalAlignmentProperty, VerticalAlignment.Center);
+        stack.SetValue(MarginProperty, new Thickness(0, 4, 0, 4));
+        stack.SetBinding(ToolTipProperty, new Binding($"Labels[{index}]"));
+        stack.SetBinding(AutomationProperties.NameProperty, new Binding($"Labels[{index}]"));
+        var top = new FrameworkElementFactory(typeof(TextBlock));
+        top.SetBinding(TextBlock.TextProperty, new Binding($"Cells[{index}]"));
+        top.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+        top.SetValue(TextBlock.TextWrappingProperty, TextWrapping.NoWrap);
+        var bottom = new FrameworkElementFactory(typeof(TextBlock));
+        bottom.SetBinding(TextBlock.TextProperty, new Binding($"Seconds[{index}]"));
+        bottom.SetValue(TextBlock.TextTrimmingProperty, TextTrimming.CharacterEllipsis);
+        bottom.SetValue(TextBlock.TextWrappingProperty, TextWrapping.NoWrap);
+        bottom.SetValue(TextBlock.FontSizeProperty, 12.0);
+        bottom.SetValue(MarginProperty, new Thickness(0, 1, 0, 0));
+        bottom.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
+        if (monoSecondary) { bottom.SetResourceReference(TextBlock.FontFamilyProperty, "MonoFont"); bottom.SetValue(TextBlock.FontSizeProperty, 11.5); }
+        stack.AppendChild(top);
+        stack.AppendChild(bottom);
+        view.Columns.Add(new GridViewColumn { Header = Loc.T(header), Width = width, CellTemplate = new DataTemplate { VisualTree = stack } });
+        return this;
     }
 
     public DataTable<T> Column(string header, Func<T, string> text, double width = 140, bool mono = false)
@@ -301,8 +363,8 @@ public sealed class DataTable<T> : Grid
         foreach (var item in all)
         {
             if (active.Any(f => !f.Predicate(item))) continue;
-            var row = new TableRow<T>(item, columns.Select(c => c.Text(item) ?? "").ToArray(), columns.Select(c => c.Chip?.Invoke(item).ToString() ?? "").ToArray());
-            if (!Search.MatchesFields(row.Cells)) continue;
+            var row = new TableRow<T>(item, columns.Select(c => c.Text(item) ?? "").ToArray(), columns.Select(c => c.Chip?.Invoke(item).ToString() ?? "").ToArray(), columns.Select(c => c.Secondary?.Invoke(item) ?? "").ToArray());
+            if (!Search.MatchesFields(row.SearchFields)) continue;
             rows.Add(row);
         }
         var filtered = all.Count > 0 && rows.Count == 0;
@@ -363,7 +425,8 @@ public sealed class DataTable<T> : Grid
     }
 
     public string Render(string format) =>
-        TableExport.Render(format, Name2, columns.Select(c => c.Header).ToList(), rows.Select(r => r.Cells).ToList(), DateTimeOffset.Now);
+        TableExport.Render(format, Name2, TableCells.ExportHeaders(columns.Select(c => (c.Header, c.Secondary != null ? c.SecondaryHeader : null)).ToList()),
+            rows.Select(r => TableCells.ExportRow(r.Cells, r.Seconds, columns.Select(c => c.Secondary != null).ToList())).ToList(), DateTimeOffset.Now);
 
     private void Export(string format)
     {
