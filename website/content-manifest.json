@@ -92,7 +92,7 @@
     },
     {
       "path": "docs/features/regex-parity.md",
-      "sha256": "1e3702d0faa03f4aeccc4bfc6a962a8f94faa9d5c0e340e16de4055d70a07415"
+      "sha256": "ea511de22b7b0d266e0fcedea42f24ff4f233948ee1050ffb0d590f91735af9a"
     },
     {
       "path": "docs/features/resources.md",
@@ -100,7 +100,7 @@
     },
     {
       "path": "docs/features/search-and-regex.md",
-      "sha256": "3f6f4a54748daf3d0039a09cbe7e32784009daea9352e9eab69855972ec1185a"
+      "sha256": "910c50bae335317720fa5324859f9eba3ea7e5b1b5f69ad4d16c416fc97af2e0"
     },
     {
       "path": "docs/features/settings-safety.md",
