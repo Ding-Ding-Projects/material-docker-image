@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using MaterialDockerImage.Services;
 using MaterialDockerImage.UI;
@@ -23,7 +24,8 @@ public sealed class SetupPage : PageBase
         "Choose how the app looks and which language it uses."
     ];
     private readonly SetupSteps steps;
-    private readonly StackPanel stepper = new() { Orientation = Orientation.Horizontal };
+    private readonly Grid stepper = new();
+    private readonly ContentControl recap = new() { Focusable = false };
     private readonly TextBlock title = Ui.Title("", 28);
     private readonly TextBlock intro = Ui.Text("", 14, null, "OnSurfaceVariant");
     private readonly TextBlock summary = Ui.Caption("");
@@ -50,7 +52,8 @@ public sealed class SetupPage : PageBase
         var card = Ui.Card(Ui.VStack(24,
             Ui.Text(Loc.T("Welcome to") + " " + Host.Settings.DisplayName, 13, null, "OnSurfaceVariant", true, false),
             Ui.VStack(6, title, intro),
-            Ui.Scroll(stepper, true),
+            stepper,
+            recap,
             stepHost,
             Ui.Divider(),
             footer), 32, "SurfaceLow", 28);
@@ -95,34 +98,56 @@ public sealed class SetupPage : PageBase
         intro.Text = Loc.T(StepIntros[step]);
         stepHost.Content = views[step];
         stepper.Children.Clear();
+        stepper.ColumnDefinitions.Clear();
         detectedShown = steps.Detected;
         for (var i = 0; i < StepNames.Length; i++)
         {
+            stepper.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             var done = i < step || (i == 0 && steps.Detected);
             var now = i == step;
+            var bar = new Border { Height = 4, CornerRadius = new CornerRadius(2) };
+            bar.SetResourceReference(Border.BackgroundProperty, i <= step ? "Primary" : "SurfaceHighest");
             var dot = new Border { Width = 28, Height = 28, CornerRadius = new CornerRadius(14) };
-            dot.SetResourceReference(Border.BackgroundProperty, done && !now ? "SuccessContainer" : now ? "Primary" : "SurfaceHighest");
-            dot.Child = done && !now ? Ui.Icon(Icons.Check, 18, false, "OnSuccessContainer") : Ui.Text((i + 1).ToString(), 13, FontWeights.SemiBold, now ? "OnPrimary" : "OnSurfaceVariant", false, false);
+            dot.SetResourceReference(Border.BackgroundProperty, done && !now ? "SuccessContainer" : now ? "PrimaryContainer" : "SurfaceHighest");
+            dot.Child = done && !now ? Ui.Icon(Icons.Check, 18, false, "OnSuccessContainer") : Ui.Text((i + 1).ToString(), 13, FontWeights.SemiBold, now ? "OnPrimaryContainer" : "OnSurfaceVariant", false, false);
             if (dot.Child is TextBlock t) t.HorizontalAlignment = HorizontalAlignment.Center;
             var label = Ui.Text(StepNames[i], 13, now ? FontWeights.SemiBold : FontWeights.Normal, i > step ? "OnSurfaceVariant" : "OnSurface", false);
-            var content = Ui.HStack(8, dot, label);
+            var content = new DockPanel { LastChildFill = true };
+            content.Children.Add(dot.Dock(Dock.Left));
+            label.Margin = new Thickness(8, 0, 0, 0);
+            content.Children.Add(label);
             var index = i;
-            var button = new Button { Style = (Style)Application.Current.FindResource("Btn.Text"), Content = content, Padding = new Thickness(8, 0, 12, 0), Margin = new Thickness(0, 0, 4, 0) };
+            var button = new Button { Style = (Style)Application.Current.FindResource("Btn.Text"), Content = content, HorizontalContentAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(0, 4, 4, 4), Margin = new Thickness(0) };
             System.Windows.Automation.AutomationProperties.SetName(button, $"Step {i + 1} of 4: {Loc.T(StepNames[i])}" + (now ? ", current" : done ? ", done" : ""));
             button.Click += (_, _) => Go(index);
-            stepper.Children.Add(button);
-            if (i < StepNames.Length - 1)
-            {
-                var bar = new Border { Width = 32, Height = 2, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 4, 0) };
-                bar.SetResourceReference(Border.BackgroundProperty, i < step ? "Primary" : "SurfaceHighest");
-                stepper.Children.Add(bar);
-            }
+            var column = Ui.VStack(8, bar, button);
+            column.Margin = new Thickness(i == 0 ? 0 : 4, 0, i == StepNames.Length - 1 ? 0 : 4, 0);
+            Grid.SetColumn(column, i);
+            stepper.Children.Add(column);
         }
         UpdateNav();
     }
 
+    /// <summary>Compact recap of the detection result, kept visible on the later steps with a way to run it again.</summary>
+    private void UpdateRecap()
+    {
+        if (step == 0 || !steps.Detected || steps.DetectFacts.Count == 0) { recap.Content = null; recap.Visibility = Visibility.Collapsed; return; }
+        var head = Ui.Columns(8, [0, 1, 0],
+            Ui.Icon(Icons.CheckCircle, 18, true, "Success"),
+            Ui.Text(Loc.T("Step 1 · Docker detected"), 14, FontWeights.SemiBold, "OnSurface", false, false),
+            Ui.Button("Run again", null, ButtonKind.Text, () => _ = steps.DetectAsync()));
+        var facts = new UniformGrid { Columns = steps.DetectFacts.Count };
+        foreach (var (label, value) in steps.DetectFacts)
+            facts.Children.Add(Ui.VStack(2, Ui.Text(label, 12, null, "OnSurfaceVariant", false), Ui.Mono(value, 12)).Margin(0, 0, 8, 0));
+        var card = Ui.Card(Ui.VStack(8, head, facts), 12, "SurfaceLow", 12);
+        card.Padding = new Thickness(14, 12, 14, 12);
+        recap.Content = card;
+        recap.Visibility = Visibility.Visible;
+    }
+
     private void UpdateNav()
     {
+        UpdateRecap();
         if (stepper.Children.Count > 0 && step == 0 && steps.Detected != detectedShown) { detectedShown = steps.Detected; Render(); return; }
         back.Visibility = step > 0 ? Visibility.Visible : Visibility.Collapsed;
         next.Visibility = step < 3 ? Visibility.Visible : Visibility.Collapsed;

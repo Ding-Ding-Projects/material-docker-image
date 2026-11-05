@@ -128,9 +128,30 @@ public sealed class OverlayHost : Grid
         Action? close = null;
         var key1 = Ui.Switch("Key 1", false, _ => { });
         var key2 = Ui.Switch("Key 2", false, _ => { });
-        var slider = new Slider { Minimum = 0, Maximum = 100, Value = 0, IsEnabled = false, IsMoveToPointEnabled = false };
+        key1.Content = null; key2.Content = null;
+        var slider = new Slider { Minimum = 0, Maximum = 100, Value = 0, IsEnabled = false, IsMoveToPointEnabled = false, Height = 56, Tag = Loc.T("Slide to confirm"), Template = PillSliderTemplate() };
         AutomationProperties.SetName(slider, Loc.T("Slide to confirm"));
-        var state = Ui.Caption("Turn on both keys to unlock the slider.");
+        AutomationProperties.SetHelpText(slider, Loc.T("Drag the slider all the way across to confirm. This extra step stops a destructive action from happening by accident."));
+        var state = Ui.Text("Turn on both keys to unlock the slider.", 12, null, "OnSurfaceVariant");
+        // A key card: tonal when off, filled container when on. Clicking the card toggles its switch.
+        Border keyCard(string label, CheckBox box)
+        {
+            var icon = Ui.Icon(Icons.Key, 20, false, "OnSurfaceVariant");
+            var name = Ui.Text(label, 14, FontWeights.SemiBold, "OnSurface", false);
+            var card = new Border { Height = 56, CornerRadius = new CornerRadius(16), Padding = new Thickness(14, 0, 14, 0), Child = Ui.Columns(10, [0, 1, 0], icon, name, box), Cursor = Cursors.Hand };
+            card.SetResourceReference(Border.BackgroundProperty, "SurfaceLow");
+            card.MouseLeftButtonDown += (_, e) => { if (!IsInside(e.OriginalSource as DependencyObject, box)) { box.IsChecked = box.IsChecked != true; e.Handled = true; } };
+            void Paint()
+            {
+                var on = box.IsChecked == true;
+                card.SetResourceReference(Border.BackgroundProperty, on ? "PrimaryContainer" : "SurfaceLow");
+                icon.SetResourceReference(TextBlock.ForegroundProperty, on ? "OnPrimaryContainer" : "OnSurfaceVariant");
+                name.SetResourceReference(TextBlock.ForegroundProperty, on ? "OnPrimaryContainer" : "OnSurface");
+            }
+            box.Checked += (_, _) => Paint(); box.Unchecked += (_, _) => Paint();
+            return card;
+        }
+        var card1 = keyCard("Key 1", key1); var card2 = keyCard("Key 2", key2);
         void Update()
         {
             var both = key1.IsChecked == true && key2.IsChecked == true;
@@ -144,19 +165,55 @@ public sealed class OverlayHost : Grid
             if (slider.Value >= 100 && key1.IsChecked == true && key2.IsChecked == true) { state.Text = Loc.T("Confirmed."); done.TrySetResult(true); close!(); }
         };
         slider.LostMouseCapture += (_, _) => { if (slider.Value < 100) slider.Value = 0; };
-        var list = Ui.VStack(4, affected.Take(40).Select(a => (UIElement)Ui.Mono("• " + a, 13, "OnSurface", true)).ToArray());
-        if (affected.Count > 40) list.Children.Add(Ui.Caption(Loc.T("…and {0} more.").Replace("{0}", (affected.Count - 40).ToString())));
-        var exit = Ui.Button("Emergency exit", Icons.ExitToApp, ButtonKind.Outlined, () => { done.TrySetResult(false); close!(); });
+        var list = Ui.VStack(6, affected.Take(40).Select(a => (UIElement)Ui.Text(a, 13, null, "OnSurface", true, false)).ToArray());
+        if (affected.Count > 40) list.Children.Add(Ui.Text(Loc.T("…and {0} more.").Replace("{0}", (affected.Count - 40).ToString()), 13, null, "OnSurfaceVariant", true, false).Margin(0, 6, 0, 0));
+        var exit = Ui.Button("Emergency exit", Icons.ExitToApp, ButtonKind.Tonal, () => { done.TrySetResult(false); close!(); });
         var emoji = Loc.Emoji("danger");
-        var body = Ui.VStack(14,
+        var escKey = new Border { CornerRadius = new CornerRadius(6), BorderThickness = new Thickness(1), Padding = new Thickness(6, 1, 6, 1), Margin = new Thickness(6, 0, 6, 0), Child = Ui.Text("Esc", 12, null, "OnSurfaceVariant", false, false), VerticalAlignment = VerticalAlignment.Center };
+        escKey.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
+        var escHint = new WrapPanel { VerticalAlignment = VerticalAlignment.Center };
+        escHint.Children.Add(Ui.Text("Press", 12, null, "OnSurfaceVariant", false)); escHint.Children.Add(escKey); escHint.Children.Add(Ui.Text("to cancel without changing anything.", 12, null, "OnSurfaceVariant", false));
+        var warn = Ui.Icon(Icons.Warning, 26, true, "Error");
+        warn.VerticalAlignment = VerticalAlignment.Top; warn.Margin = new Thickness(0, 2, 0, 0);
+        var head = Ui.Columns(12, [0, 1], warn, Ui.VStack(4,
             Ui.Text((emoji.Length > 0 ? emoji + " " : "") + Loc.T(title), 22, FontWeights.SemiBold, "OnSurface", true, false),
-            Ui.Text(Loc.T(action), 14, null, "OnSurfaceVariant", true, false),
-            Ui.Card(Ui.VStack(6, Ui.Overline("Affected"), list), 12, "SurfaceHigh", 12),
-            Ui.Columns(16, [1, 1], key1, key2),
-            Ui.Field("Slide to confirm", slider, "Drag the slider all the way across to confirm. This extra step stops a destructive action from happening by accident."), state,
-            Ui.Columns(8, [1, 0], Ui.Caption("Escape or Emergency exit cancels without changing anything."), exit));
+            Ui.Text(Loc.T(action), 13, null, "OnSurfaceVariant", true, false)));
+        var affectedCard = Ui.Card(Ui.VStack(6, Ui.Overline("Affected"), list), 12, "SurfaceLow", 12);
+        affectedCard.Padding = new Thickness(16, 12, 16, 12);
+        var body = Ui.VStack(16,
+            head,
+            affectedCard,
+            Ui.Columns(10, [1, 1], card1, card2),
+            Ui.VStack(6, slider, state),
+            Ui.Columns(12, [1, 0], escHint, exit));
         close = Show(body, 560, () => done.TrySetResult(false));
         exit.Loaded += (_, _) => exit.Focus();
         return done.Task;
     }
+
+    private static bool IsInside(DependencyObject? node, DependencyObject ancestor)
+    {
+        for (; node != null; node = node is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(node) : LogicalTreeHelper.GetParent(node))
+            if (ReferenceEquals(node, ancestor)) return true;
+        return false;
+    }
+
+    /// <summary>Pill-shaped slide-to-confirm track: 56 px tall, dashed outline while locked, a 48 px round thumb that carries a lock glyph. Behaviour is the ordinary Slider's.</summary>
+    private static ControlTemplate PillSliderTemplate() => (ControlTemplate)System.Windows.Markup.XamlReader.Parse(
+        "<ControlTemplate xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation' xmlns:x='http://schemas.microsoft.com/winfx/2006/xaml' TargetType='Slider'>" +
+        "<Grid Height='56'>" +
+        "<Border x:Name='pill' CornerRadius='28' Background='{DynamicResource SurfaceLow}'/>" +
+        "<Rectangle x:Name='edge' RadiusX='28' RadiusY='28' Stroke='{DynamicResource Outline}' StrokeThickness='1' StrokeDashArray='4 3'/>" +
+        "<TextBlock x:Name='lbl' Text='{TemplateBinding Tag}' HorizontalAlignment='Center' VerticalAlignment='Center' Foreground='{DynamicResource OnSurfaceVariant}'/>" +
+        "<Track x:Name='PART_Track' Margin='4,0,4,0' Height='48' VerticalAlignment='Center'>" +
+        "<Track.DecreaseRepeatButton><RepeatButton Focusable='False' Command='Slider.DecreaseLarge'><RepeatButton.Template><ControlTemplate TargetType='RepeatButton'><Border Background='Transparent'/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.DecreaseRepeatButton>" +
+        "<Track.IncreaseRepeatButton><RepeatButton Focusable='False' Command='Slider.IncreaseLarge'><RepeatButton.Template><ControlTemplate TargetType='RepeatButton'><Border Background='Transparent'/></ControlTemplate></RepeatButton.Template></RepeatButton></Track.IncreaseRepeatButton>" +
+        "<Track.Thumb><Thumb Width='48' Height='48'><Thumb.Template><ControlTemplate TargetType='Thumb'>" +
+        "<Grid><Ellipse x:Name='dot' Fill='{DynamicResource SurfaceHighest}'/><TextBlock x:Name='glyph' Text='&#xE899;' FontFamily='{DynamicResource IconFont}' FontSize='22' HorizontalAlignment='Center' VerticalAlignment='Center' Foreground='{DynamicResource OnSurfaceVariant}'/></Grid>" +
+        "<ControlTemplate.Triggers><Trigger Property='IsEnabled' Value='True'><Setter TargetName='dot' Property='Fill' Value='{DynamicResource Primary}'/><Setter TargetName='glyph' Property='Foreground' Value='{DynamicResource OnPrimary}'/><Setter TargetName='glyph' Property='Text' Value='&#xE898;'/></Trigger></ControlTemplate.Triggers>" +
+        "</ControlTemplate></Thumb.Template></Thumb></Track.Thumb>" +
+        "</Track>" +
+        "</Grid>" +
+        "<ControlTemplate.Triggers><Trigger Property='IsKeyboardFocused' Value='True'><Setter TargetName='edge' Property='Stroke' Value='{DynamicResource Primary}'/></Trigger><Trigger Property='IsEnabled' Value='True'><Setter TargetName='edge' Property='StrokeDashArray' Value='{x:Null}'/><Setter TargetName='lbl' Property='Foreground' Value='{DynamicResource OnSurface}'/></Trigger></ControlTemplate.Triggers>" +
+        "</ControlTemplate>");
 }

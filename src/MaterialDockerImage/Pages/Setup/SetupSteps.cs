@@ -16,6 +16,8 @@ internal sealed class SetupSteps
     private readonly Action changed;
     public bool Detected { get; private set; }
     public string? DetectSummary { get; private set; }
+    /// <summary>Label and value pairs from the last successful detection, shown again as a recap on later steps.</summary>
+    public IReadOnlyList<(string Label, string Value)> DetectFacts { get; private set; } = [];
 
     // Step 1
     private readonly StackPanel detectBody = new();
@@ -61,6 +63,7 @@ internal sealed class SetupSteps
         {
             Detected = false;
             DetectSummary = null;
+            DetectFacts = [];
             detectBody.Children.Add(Status(Icons.Error, "Error", "Docker CLI not found",
                 r.ExitCode == -1 ? "The docker command could not be started. Install Docker Desktop (or another Docker-compatible engine with its CLI), make sure docker.exe is on PATH, then run detection again." : $"docker exited with code {r.ExitCode}.",
                 r.StandardError));
@@ -69,6 +72,7 @@ internal sealed class SetupSteps
         {
             Detected = false;
             DetectSummary = null;
+            DetectFacts = [];
             detectBody.Children.Add(Status(Icons.Warning, "Warning", $"Docker CLI {client} found, engine not reachable",
                 "The CLI works, but the engine did not answer. Start Docker Desktop (or your engine service) and wait until it reports that it is running, or pick a different context in step 2. Then run detection again.",
                 r.StandardError));
@@ -78,7 +82,8 @@ internal sealed class SetupSteps
             Detected = true;
             DetectSummary = $"Docker CLI {client} · Engine {server} · API {api}";
             var grid = new WrapPanel();
-            foreach (var (label, value) in new[] { ("Docker CLI", client), ("Engine", server), ("Engine API", api), ("Engine OS", Part("Server", "Os") + "/" + Part("Server", "Arch")) })
+            DetectFacts = [("Docker CLI", client), ("Engine", server), ("Engine API", api), ("Engine OS", Part("Server", "Os") + "/" + Part("Server", "Arch"))];
+            foreach (var (label, value) in DetectFacts)
                 grid.Children.Add(Ui.VStack(2, Ui.Overline(label), Ui.Mono(value, 14)).Margin(0, 0, 28, 8));
             detectBody.Children.Add(Status(Icons.CheckCircle, "Success", "Docker detected", $"Context: {Host.Context ?? "CLI default"}", null));
             detectBody.Children.Add(grid);
