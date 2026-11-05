@@ -28,7 +28,7 @@ A native Windows WPF workspace for Docker: build images, create Dockerfiles step
 
 ## Screenshots
 
-All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine, run 42017259445 at source `fcf1a24` ([inventory](evidence/inventory.json), [earlier sets](evidence/screenshots-archive.md)). Light-theme and 960 x 720 minimum-size captures of every screen are in [`evidence/screenshots`](evidence/screenshots).
+All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine, run 42042876831 at source `c2c535c` ([inventory](evidence/inventory.json), [earlier sets](evidence/screenshots-archive.md)). Light-theme and 960 x 720 minimum-size captures of every screen are in [`evidence/screenshots`](evidence/screenshots).
 
 | | |
 | --- | --- |
