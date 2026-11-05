@@ -56,19 +56,35 @@ public sealed class ComposeSourceEditor : Grid
         save.ToolTip = Loc.T("Save to the exact loaded path (Ctrl+S)");
         saveAs = Ui.AsyncButton("Save as…", Icons.Download, ButtonKind.Outlined, SaveAsAsync);
         var findNext = Ui.IconButton(Icons.ExpandMore, "Next match (Enter or F3)", () => Find(false));
-        var title = new DockPanel();
+        var copyFile = Ui.IconButton(Icons.ContentCopy, "Copy file", () => { if (editor.Text.Length > 0) ActionSounds.Copy(editor.Text); });
+        var openExternal = Ui.AsyncIconButton(Icons.OpenInNew, "Open in editor", OpenExternalAsync);
+        // Header row as in the design: file name, state, then copy and open-in-editor icon buttons.
+        var title = new DockPanel { Height = 48, Margin = new Thickness(16, 0, 8, 0) };
+        title.Children.Add(openExternal.Dock(Dock.Right));
+        title.Children.Add(copyFile.Dock(Dock.Right));
+        stateBadge.Margin = new Thickness(8, 0, 6, 0);
         title.Children.Add(stateBadge.Dock(Dock.Right));
         title.Children.Add(Ui.HStack(8, Ui.Icon(Icons.Description, 20, false, "Primary"), fileName));
+        fileName.VerticalAlignment = VerticalAlignment.Center;
         var tools = Ui.Wrap(8, search, findNext, save, saveAs);
+        RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        Children.Add(Ui.VStack(2, title, pathText));
-        Children.Add(tools.At(1).Margin(0, 10, 0, 2));
-        Children.Add(editor.At(2));
-        Children.Add(validation.At(3).Margin(2, 6, 0, 0));
+        Children.Add(title);
+        Children.Add(Ui.Divider().At(1));
+        Children.Add(tools.At(2).Margin(16, 10, 16, 2));
+        Children.Add(editor.At(3).Margin(12, 4, 12, 0));
+        Children.Add(validation.At(4).Margin(16, 6, 16, 12));
         UpdateState();
+    }
+
+    private async Task OpenExternalAsync()
+    {
+        if (loadedPath.Length == 0) { Host.Notify.Info("No file loaded."); return; }
+        var problem = await ExternalEditor.OpenAsync(loadedPath, Host.Settings.ExternalEditor);
+        if (problem != null) Host.Notify.Error(problem);
     }
 
     private void Find(bool backwards) { var message = TextFind.Next(editor, search, ref lastFind, backwards); if (message != null) Host.Notify.Info(message); }
@@ -121,6 +137,7 @@ public sealed class ComposeSourceEditor : Grid
     {
         fileName.Text = loadedPath.Length == 0 ? Loc.T("No file loaded") : Path.GetFileName(loadedPath);
         pathText.Text = loadedPath;
+        fileName.ToolTip = loadedPath.Length > 0 ? loadedPath : null;
         save.IsEnabled = saveAs.IsEnabled = loadedPath.Length > 0;
         var (text, tone) = loadedPath.Length == 0 ? ("No file", Tone.Neutral)
             : IsDirty ? ("Unsaved changes", Tone.Warning)

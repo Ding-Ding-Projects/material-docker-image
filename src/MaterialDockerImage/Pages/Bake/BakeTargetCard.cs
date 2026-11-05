@@ -23,8 +23,8 @@ public sealed class BakeTargetCard : Border
         Target = target;
         check = new CheckBox { VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 10, 0) };
         System.Windows.Automation.AutomationProperties.SetName(check, Loc.T("Select target") + " " + target.Name);
-        check.Checked += (_, _) => SelectionChanged?.Invoke();
-        check.Unchecked += (_, _) => SelectionChanged?.Invoke();
+        check.Checked += (_, _) => { Paint(); SelectionChanged?.Invoke(); };
+        check.Unchecked += (_, _) => { Paint(); SelectionChanged?.Invoke(); };
 
         var dockerfile = target.Dockerfile.Length > 0 ? target.Dockerfile : "Dockerfile";
         var sourcePath = target.Context.Length > 0 && target.Context != "." ? target.Context.TrimEnd('/', Path.DirectorySeparatorChar) + "/" + dockerfile : dockerfile;
@@ -78,8 +78,9 @@ public sealed class BakeTargetCard : Border
 
     private void Paint()
     {
-        SetResourceReference(BackgroundProperty, focused || hover || IsKeyboardFocused ? "SurfaceHigh" : "SurfaceContainer");
-        SetResourceReference(BorderBrushProperty, inGroup || focused ? "Primary" : hover || IsKeyboardFocused ? "SurfaceHigh" : "SurfaceContainer");
+        SetResourceReference(BackgroundProperty, focused || hover || IsKeyboardFocused || IsChecked ? "SurfaceHigh" : "SurfaceContainer");
+        // A selected target is outlined like the design's checked card; the focused one also gets the raised surface.
+        SetResourceReference(BorderBrushProperty, inGroup || focused || IsChecked ? "Primary" : hover || IsKeyboardFocused ? "SurfaceHigh" : "SurfaceContainer");
     }
 
     private static Border PlatformChip(string platform)
