@@ -998,6 +998,7 @@ count += RegexFlavorVersionToolChecks.Run();
 count += RegexAutomationChecks.Run();
 count += CanvasRoutingChecks.Run();
 count += CreatorV2Checks.Run();
+count += LayerSourceRecommendationChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

@@ -39,9 +39,11 @@ public sealed class BuildRunner
 
     /// <summary>
     /// Runs one buildx command. <paramref name="workingDirectory"/> is used by bake so relative contexts resolve from
-    /// the bake file's folder. Returns the real result, or null when nothing ran.
+    /// the bake file's folder. <paramref name="dockerfilePath"/> and <paramref name="dockerfileSource"/> record the saved
+    /// Dockerfile of an image build so the Images layer table can relate history rows to its lines. Returns the real
+    /// result, or null when nothing ran.
     /// </summary>
-    public async Task<CommandResult?> RunAsync(string label, IReadOnlyList<string> args, string? context, string? workingDirectory = null, string reference = "")
+    public async Task<CommandResult?> RunAsync(string label, IReadOnlyList<string> args, string? context, string? workingDirectory = null, string reference = "", string dockerfilePath = "", string dockerfileSource = "")
     {
         if (Host.Busy || active != null) { Host.Notify.Warning("Another operation is active. Cancel it or wait for its actual result."); return null; }
         active = this;
@@ -70,7 +72,7 @@ public sealed class BuildRunner
             if (!Host.IsCapture) Host.History.Record("operation", $"{label} · {status} · context {context ?? "current"}");
             BuildSessionHistory.Add(new BuildSessionEntry(label, reference, started, watch.Elapsed.TotalSeconds,
                 result.Cancelled ? "Canceled" : result.Success ? "Completed" : "Failed", Timeline.Progress.ResultDigest ?? "",
-                Timeline.Progress.CachedCount, Timeline.Progress.InstructionCount, context ?? ""));
+                Timeline.Progress.CachedCount, Timeline.Progress.InstructionCount, context ?? "") { DockerfilePath = dockerfilePath, DockerfileSource = dockerfileSource });
             if (result.Cancelled) Host.Notify.Warning(Loc.Voice($"{label} was canceled. Refresh before retrying.", "Stopped.", "停咗。"));
             else if (result.Success) Host.Notify.Success(Loc.Voice($"{label} completed.", "Done!", "搞掂！"));
             else Host.Notify.Error(Loc.Voice($"{label} failed with exit code {result.ExitCode}. The timeline and output panel have the details.", "That did not work.", "出事喇。"));
@@ -120,7 +122,13 @@ public sealed class BuildRunner
 }
 
 /// <summary>A build started from this application in this session.</summary>
-public sealed record BuildSessionEntry(string Label, string Reference, DateTimeOffset Started, double Seconds, string Status, string Digest, int Cached, int Instructions, string Context);
+public sealed record BuildSessionEntry(string Label, string Reference, DateTimeOffset Started, double Seconds, string Status, string Digest, int Cached, int Instructions, string Context)
+{
+    /// <summary>The saved Dockerfile the build used; empty for bakes and other calls.</summary>
+    public string DockerfilePath { get; init; } = "";
+    /// <summary>The Dockerfile text at the time of the build (memory only, like the rest of the session history).</summary>
+    public string DockerfileSource { get; init; } = "";
+}
 
 /// <summary>Builds and bakes started in this session, newest first (memory only, never persisted).</summary>
 public static class BuildSessionHistory

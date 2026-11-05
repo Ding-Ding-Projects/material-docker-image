@@ -54,7 +54,8 @@ public sealed partial class BuildPage
         var label = call switch { BuildKitCall.Check => "BuildKit check", BuildKitCall.Outline => "BuildKit outline", BuildKitCall.Targets => "BuildKit targets", _ => "Build image" };
         try
         {
-            var result = await runner.RunAsync(label, args, context, null, string.Join(", ", summary.Tags));
+            var built = call == BuildKitCall.Build;
+            var result = await runner.RunAsync(label, args, context, null, string.Join(", ", summary.Tags), built ? dockerfilePath : "", built ? editor.Text : "");
             if (result?.Success != true) return result;
             timeline.SetResult(call switch
             {
