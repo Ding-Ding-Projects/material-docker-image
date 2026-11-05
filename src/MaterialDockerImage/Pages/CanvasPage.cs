@@ -90,7 +90,15 @@ public sealed partial class CanvasPage : PageBase
         graphHost.Children.Add(minimap);
         // The minimap would cover too much of a small graph area (narrow windows), so it steps aside there.
         graphHost.SizeChanged += (_, _) => UpdateMinimap();
-        surface.PreviewKeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.M && e.OriginalSource is not TextBox && System.Windows.Input.Keyboard.Modifiers == System.Windows.Input.ModifierKeys.None) { ToggleMinimap(); e.Handled = true; } };
+        // M works wherever focus is in the graph area, the minimap included; a hidden minimap hands focus back to the graph.
+        graphHost.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key != System.Windows.Input.Key.M || e.OriginalSource is TextBox || System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.None) return;
+            var hadFocus = minimap.IsKeyboardFocusWithin;
+            ToggleMinimap();
+            if (hadFocus && minimap.Visibility != Visibility.Visible) surface.Focus();
+            e.Handled = true;
+        };
         var centreInner = new DockPanel();
         centreInner.Children.Add(toolbar.Dock(System.Windows.Controls.Dock.Top));
         warning.Margin = new Thickness(8, 8, 8, 0);

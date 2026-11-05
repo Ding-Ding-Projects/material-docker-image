@@ -22,6 +22,9 @@ public abstract class PageBase : Grid
     {
         SnapshotContext = Host.Context; SnapshotGeneration = Host.Generation;
         Host.ContextChanged += () => { SnapshotContext = Host.Context; SnapshotGeneration = Host.Generation; if (IsVisible) _ = SafeRefresh(); else loadedOnce = false; };
+        // A build, run or removal elsewhere can change what this page lists (a rebuild gives an image a new ID), so a page
+        // that is not on screen reloads when it is next shown instead of acting on a stale row.
+        Host.OperationEnded += () => { if (!IsVisible) loadedOnce = false; };
     }
 
     /// <summary>Loads real data. Called on first show, on engine context change and from Refresh buttons.</summary>

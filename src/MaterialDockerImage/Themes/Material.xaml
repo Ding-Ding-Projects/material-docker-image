@@ -986,7 +986,7 @@
               <!-- One row of tabs, as in the design: a narrow pane scrolls the strip sideways instead of wrapping it onto more rows. -->
               <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Focusable="False"><StackPanel Orientation="Horizontal" IsItemsHost="True" KeyboardNavigation.TabNavigation="Once" KeyboardNavigation.DirectionalNavigation="Cycle"/></ScrollViewer>
             </Border>
-            <ContentPresenter ContentSource="SelectedContent" m:MotionAttached.Effect="TabContent"/>
+            <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" m:MotionAttached.Effect="TabContent"/>
           </DockPanel>
         </ControlTemplate>
       </Setter.Value>

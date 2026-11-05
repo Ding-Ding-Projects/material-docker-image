@@ -32,7 +32,10 @@ public sealed class DockerProcessRunner(int captureLimit = 2 * 1024 * 1024) : ID
     {
         if (captureLimit < 1024) throw new ArgumentOutOfRangeException(nameof(captureLimit));
         cancellationToken.ThrowIfCancellationRequested();
-        var start = new ProcessStartInfo(executable) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = standardInput != null, CreateNoWindow = true };
+        // The docker CLI writes UTF-8 (box drawing, bullets, non-English names) regardless of the console code page.
+        var utf8 = new System.Text.UTF8Encoding(false);
+        var start = new ProcessStartInfo(executable) { UseShellExecute = false, RedirectStandardOutput = true, RedirectStandardError = true, RedirectStandardInput = standardInput != null, CreateNoWindow = true, StandardOutputEncoding = utf8, StandardErrorEncoding = utf8 };
+        if (standardInput != null) start.StandardInputEncoding = utf8;
         if (workingDirectory is not null) start.WorkingDirectory = workingDirectory;
         foreach (var argument in arguments) start.ArgumentList.Add(argument);
         using var process = new Process { StartInfo = start };

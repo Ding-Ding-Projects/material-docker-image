@@ -99,4 +99,17 @@ public sealed class GraphMinimap : Border
         Canvas.SetLeft(frame, view.X); Canvas.SetTop(frame, view.Y);
         map.Children.Add(frame);
     }
+
+    /// <summary>A border has no automation peer of its own, so without this the minimap's name, help text and keyboard
+    /// focus would not reach screen readers or UI Automation.</summary>
+    protected override System.Windows.Automation.Peers.AutomationPeer OnCreateAutomationPeer() => new MinimapPeer(this);
+
+    private sealed class MinimapPeer(GraphMinimap owner) : System.Windows.Automation.Peers.FrameworkElementAutomationPeer(owner)
+    {
+        protected override System.Windows.Automation.Peers.AutomationControlType GetAutomationControlTypeCore() => System.Windows.Automation.Peers.AutomationControlType.Pane;
+        protected override string GetClassNameCore() => nameof(GraphMinimap);
+        protected override bool IsControlElementCore() => true;
+        protected override bool IsContentElementCore() => true;
+        protected override bool IsKeyboardFocusableCore() => true;
+    }
 }

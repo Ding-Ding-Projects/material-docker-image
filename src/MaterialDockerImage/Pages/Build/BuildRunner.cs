@@ -92,6 +92,7 @@ public sealed class BuildRunner
             cancellation.Dispose(); cancellation = null;
             active = null;
             ActiveChanged?.Invoke(false);
+            Host.RaiseOperationEnded();
         }
     }
 

@@ -6,6 +6,8 @@ if (args.Length == 1 && args[0] == "--docker-smoke") return await DockerSmoke.Ru
 if (args.Length > 0)
 {
     if (args[0] == "fixture-output") { Console.Write(new string('x', 24000)); Console.Error.Write(new string('e', 17000)); return 7; }
+    // Raw UTF-8 bytes, as the docker CLI writes them whatever the console code page is.
+    if (args[0] == "fixture-utf8") { using var raw = Console.OpenStandardOutput(); raw.Write(System.Text.Encoding.UTF8.GetBytes("│ Size: 3.8 MB • alpine é")); using var err = Console.OpenStandardError(); err.Write(System.Text.Encoding.UTF8.GetBytes("✗ failed")); return 0; }
     if (args[0] == "fixture-wait") { Console.Write("ready"); Console.Out.Flush(); await Task.Delay(30000); return 0; }
     return 4;
 }
@@ -52,6 +54,13 @@ var executable = Environment.ProcessPath ?? throw new Exception("Missing executa
 var prefix = Path.GetFileNameWithoutExtension(executable).Equals("dotnet",StringComparison.OrdinalIgnoreCase) ? new[]{typeof(RecordingRunner).Assembly.Location} : Array.Empty<string>();
 var result = await transport.RunAsync(executable,prefix.Append("fixture-output").ToArray(),null,null,default);
 Check(result.ExitCode==7 && result.Truncated && result.StandardOutput.Length==1024 && result.StandardError.Length==1024,"Transport must drain both streams, bound capture and retain exit status.");
+// The app has no console and gets the legacy code page; force one here so the check means the same thing.
+var consoleEncoding = Console.OutputEncoding;
+try { Console.OutputEncoding = System.Text.Encoding.Latin1; } catch (IOException) { }
+CommandResult utf8;
+try { utf8 = await transport.RunAsync(executable,prefix.Append("fixture-utf8").ToArray(),null,null,default); }
+finally { try { Console.OutputEncoding = consoleEncoding; } catch (IOException) { } }
+Check(utf8.StandardOutput=="│ Size: 3.8 MB • alpine é" && utf8.StandardError=="✗ failed","Transport must decode the CLI's UTF-8 output whatever the console code page is.");
 using var cancellation = new CancellationTokenSource();
 var ready = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 var progress = new InlineProgress(output => { if(output.Text.Contains("ready")) ready.TrySetResult(); });

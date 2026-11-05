@@ -18,7 +18,18 @@ public static class PaletteTableChecks
         count = 0;
         Descriptions();
         TwoLineCells();
+        TabContentAutomation();
         return count;
+    }
+
+    /// <summary>WPF exposes a tab page to screen readers only through a content presenter named PART_SelectedContentHost;
+    /// without the name every tab page's content is missing from the automation tree.</summary>
+    static void TabContentAutomation()
+    {
+        var theme = Path.Combine(SourceRoot() ?? "", "Themes", "Material.xaml");
+        var text = File.Exists(theme) ? File.ReadAllText(theme) : "";
+        var template = Regex.Match(text, @"<ControlTemplate TargetType=""TabControl"">.*?</ControlTemplate>", RegexOptions.Singleline).Value;
+        Check(template.Contains(@"x:Name=""PART_SelectedContentHost""") && template.Contains(@"ContentSource=""SelectedContent"""), "the tab control template exposes tab page content to UI Automation");
     }
 
     static string? SourceRoot()

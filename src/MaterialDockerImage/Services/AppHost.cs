@@ -33,6 +33,10 @@ public sealed class AppHost
     private CancellationTokenSource? operation;
     public bool Busy => operation != null;
     public event Action<bool>? BusyChanged;
+    /// <summary>Raised when a foreground operation ends, whatever its result: engine state may have changed, so pages
+    /// that are not on screen reload the next time they are shown.</summary>
+    public event Action? OperationEnded;
+    public void RaiseOperationEnded() => OperationEnded?.Invoke();
     /// <summary>Hand-off slots between destinations (for example Creator to Build, Images to Run).</summary>
     public Dictionary<string, object> HandOff { get; } = new(StringComparer.Ordinal);
 
@@ -146,6 +150,7 @@ public sealed class AppHost
         {
             operation.Dispose(); operation = null;
             BusyChanged?.Invoke(false);
+            OperationEnded?.Invoke();
         }
     }
 

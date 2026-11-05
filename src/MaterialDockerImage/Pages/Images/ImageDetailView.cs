@@ -150,8 +150,15 @@ internal sealed class ImageDetailView : DockPanel
         CommandResult inspect, history;
         try
         {
-            inspect = await Host.Read(["image", "inspect", image.Id], context);
-            history = await Host.Read(["image", "history", "--no-trunc", "--format", "{{json .}}", image.Id], context);
+            // The row's ID can be gone when the tag was rebuilt since the list loaded; the tag then names the new image.
+            var target = image.Id;
+            inspect = await Host.Read(["image", "inspect", target], context);
+            if (!inspect.Success && image.Tagged)
+            {
+                var byTag = await Host.Read(["image", "inspect", image.Reference], context);
+                if (byTag.Success) { inspect = byTag; target = image.Reference; _ = page.SafeRefresh(); }
+            }
+            history = await Host.Read(["image", "history", "--no-trunc", "--format", "{{json .}}", target], context);
         }
         catch (Exception e) when (e is ArgumentException or InvalidOperationException or IOException)
         {
