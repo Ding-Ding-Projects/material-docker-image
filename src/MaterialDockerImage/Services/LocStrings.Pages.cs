@@ -32,6 +32,7 @@ public static partial class Loc
         foreach (var pair in PageCantoneseCanvasMap()) yield return pair;
         foreach (var pair in PageCantoneseLiveLines()) yield return pair;
         foreach (var pair in PageCantoneseAppearanceMotion()) yield return pair;
+        foreach (var pair in PageCantoneseCreatorSteps()) yield return pair;
         foreach (var pair in PageCantoneseImageRecommendations()) yield return pair;
         foreach (var pair in PageCantoneseCreatorV2()) yield return pair;
         foreach (var pair in PageCantoneseAppearanceStudio()) yield return pair;

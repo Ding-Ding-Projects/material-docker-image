@@ -112,6 +112,15 @@ public sealed class EditorSuggestionsList
         Popup.IsOpen = true;
     }
 
+    /// <summary>Selects the row whose label is <paramref name="label"/> (used by capture mode); false when it is not listed.</summary>
+    internal bool SelectLabel(string label)
+    {
+        var index = matches.ToList().FindIndex(m => m.Item.Label == label);
+        if (index < 0) return false;
+        Select(index, false);
+        return true;
+    }
+
     public void Close() { Popup.IsOpen = false; matches = Array.Empty<SuggestionMatch>(); SelectedIndex = -1; }
 
     public void Move(int delta)
@@ -230,6 +239,13 @@ public sealed class EditorSuggestionsList
             example.SetResourceReference(Border.BackgroundProperty, "SurfaceLow");
             doc.Children.Add(Ui.Overline("Example").Margin(0, 10, 0, 0));
             doc.Children.Add(example);
+        }
+        var valuesLine = SuggestionPresentation.ValuesLine(item, Loc.T);
+        if (valuesLine.Length > 0)
+        {
+            var values = Ui.Text(valuesLine, 12, null, "OnSurfaceVariant", true, false).Margin(0, 10, 0, 0);
+            System.Windows.Automation.AutomationProperties.SetName(values, valuesLine);
+            doc.Children.Add(values);
         }
         if (item.MinSyntax != null && dockerfile)
         {

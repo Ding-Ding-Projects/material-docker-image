@@ -46,6 +46,9 @@ public sealed class EditorSuggestions
     private Point hoverPoint;
     internal bool PickerOpen { get; set; }
 
+    /// <summary>Capture mode only: selects a listed suggestion by its label so its documentation shows.</summary>
+    internal bool CaptureSelect(string label) => list.SelectLabel(label);
+
     private EditorSuggestions(TextBox box, EditorSuggestionLanguage language, Func<string?> contextFolder)
     {
         Box = box; Language = language; ContextFolder = contextFolder;
@@ -341,6 +344,7 @@ public sealed class EditorSuggestions
         if (item.Detail.Length > 0) hoverBody.Children.Add(Ui.Mono(item.Detail, 12, "OnSurfaceVariant", true).Margin(0, 2, 0, 0));
         if (item.Doc.Length > 0) hoverBody.Children.Add(Ui.Text(item.Doc, 13).Margin(0, 6, 0, 0));
         if (item.Example.Length > 0) hoverBody.Children.Add(Ui.Mono(item.Example, 12, "OnSurfaceVariant", true).Margin(0, 6, 0, 0));
+        if (SuggestionPresentation.ValuesLine(item, Loc.T) is { Length: > 0 } valuesLine) hoverBody.Children.Add(Ui.Text(valuesLine, 12, null, "OnSurfaceVariant", true, false).Margin(0, 6, 0, 0));
         if (item.MinSyntax != null) hoverBody.Children.Add(Ui.Text(Loc.T("Needs") + " # syntax=docker/dockerfile:" + item.MinSyntax + " " + Loc.T("or newer."), 12, null, "OnSurfaceVariant").Margin(0, 6, 0, 0));
         hover.HorizontalOffset = hoverPoint.X + 4;
         hover.VerticalOffset = hoverPoint.Y + 18;

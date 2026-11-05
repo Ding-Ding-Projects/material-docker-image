@@ -98,15 +98,16 @@ public sealed partial class CreatorPage
             {
                 var op = Ui.Mono(row.Keyword, 12, "Tertiary");
                 op.FontWeight = FontWeights.SemiBold;
-                var arg = Ui.Mono(row.Argument, 12, "OnSurface");
-                arg.ToolTip = row.Argument;
+                var arg = row.Name.Length > 0 ? Ui.Text(row.Name, 12, FontWeights.SemiBold, "OnSurface", false, false) : Ui.Mono(row.Argument, 12, "OnSurface");
+                arg.TextTrimming = TextTrimming.CharacterEllipsis;
+                arg.ToolTip = row.Name.Length > 0 ? row.Name + " · " + row.Keyword + " " + row.Argument : row.Argument;
                 var grid = new Grid();
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(96) });
                 grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
                 grid.Children.Add(op);
                 grid.Children.Add(arg.At(0, 1));
                 var item = new ListBoxItem { Content = grid, Tag = row.InstructionIndex, MinHeight = 36, Padding = new Thickness(10, 0, 10, 0) };
-                System.Windows.Automation.AutomationProperties.SetName(item, row.Keyword + " " + row.Argument);
+                System.Windows.Automation.AutomationProperties.SetName(item, (row.Name.Length > 0 ? row.Name + ", " : "") + row.Keyword + " " + row.Argument);
                 outlineList.Items.Add(item);
                 var on = row.InstructionIndex >= 0 && row.InstructionIndex < stage.Instructions.Count && stage.Instructions[row.InstructionIndex] == expanded;
                 if (on) outlineList.SelectedItem = item;

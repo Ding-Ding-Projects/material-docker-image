@@ -89,6 +89,11 @@ public sealed class DockerInstruction
     public string Retries { get; set; } = "";
     /// <summary>HEALTHCHECK NONE.</summary>
     public bool Disabled { get; set; }
+    /// <summary>
+    /// The user's name for this step, stored in the Dockerfile as a "# step: name" comment directly above the
+    /// instruction. Empty means the step has no name and no such line is written.
+    /// </summary>
+    public string StepName { get; set; } = "";
 
     public DockerInstruction Clone() => DockerfileModel.Clone(this);
 }
@@ -260,7 +265,18 @@ public static class DockerfileModel
         return sb.ToString();
     }
 
+    /// <summary>
+    /// Renders one instruction. A named step is preceded by its "# step: name" comment line, so the name stays in the
+    /// Dockerfile and the parser attaches it back to the same instruction.
+    /// </summary>
     public static string RenderInstruction(DockerInstruction i)
+    {
+        var body = RenderInstructionBody(i);
+        return DockerfileStepNames.HasName(i) ? DockerfileStepNames.Line(i.StepName) + "\n" + body : body;
+    }
+
+    /// <summary>Renders the instruction itself, without the step name comment.</summary>
+    public static string RenderInstructionBody(DockerInstruction i)
     {
         switch (i.Kind)
         {
@@ -274,7 +290,7 @@ public static class DockerfileModel
             case InstructionKind.StopSignal:
                 return Keyword(i.Kind) + " " + i.Value.Trim();
             case InstructionKind.OnBuild:
-                return "ONBUILD " + (i.Inner != null ? RenderInstruction(i.Inner) : i.Value.Trim());
+                return "ONBUILD " + (i.Inner != null ? RenderInstructionBody(i.Inner) : i.Value.Trim());
             case InstructionKind.Copy:
             case InstructionKind.Add:
             {
@@ -400,7 +416,7 @@ public static class DockerfileModel
     {
         if (i.Kind == InstructionKind.Comment) return i.Value.Replace("\r\n", "\n").Split('\n')[0];
         if (i.Kind == InstructionKind.Raw) return Shorten(i.Value.Replace("\r\n", "\n").Split('\n')[0], 120);
-        var text = RenderInstruction(i);
+        var text = RenderInstructionBody(i);
         var first = text.Split('\n')[0];
         var space = first.IndexOf(' ');
         var rest = space < 0 ? "" : first[(space + 1)..];
@@ -675,8 +691,15 @@ public static class DockerfileModel
 
         DockerfileStage? stage = null;
         List<DockerInstruction> Target() => stage?.Instructions ?? document.Preamble;
+        (string Name, int Line)? pendingStep = null;
         void Emit(DockerInstruction instruction, int first, int last)
         {
+            if (pendingStep is { } step && instruction.Kind != InstructionKind.Comment)
+            {
+                instruction.StepName = step.Name;
+                first = step.Line;
+                pendingStep = null;
+            }
             var list = Target();
             map.Add(new DockerfileLineSpan(stage == null ? -1 : document.Stages.Count - 1, list.Count, first, Math.Max(first, last)));
             list.Add(instruction);
@@ -695,6 +718,14 @@ public static class DockerfileModel
                     var text = lines[index].Trim()[1..];
                     comment.Add(text.StartsWith(' ') ? text[1..] : text);
                     index++;
+                }
+                // A "# step: name" line directly above an instruction names that instruction instead of being a comment.
+                if (DockerfileStepNames.Parse(lines[index - 1]) is { } stepName && DockerfileStepNames.CanName(lines, index))
+                {
+                    comment.RemoveAt(comment.Count - 1);
+                    if (comment.Count > 0) Emit(new DockerInstruction { Kind = InstructionKind.Comment, Value = string.Join("\n", comment) }, commentStart, index - 2);
+                    pendingStep = (stepName, index - 1);
+                    continue;
                 }
                 Emit(new DockerInstruction { Kind = InstructionKind.Comment, Value = string.Join("\n", comment) }, commentStart, index - 1);
                 continue;

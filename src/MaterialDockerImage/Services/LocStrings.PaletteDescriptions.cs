@@ -62,6 +62,7 @@ public static partial class Loc
         yield return new("Parse a Dockerfile from disk into editable stages", "將磁碟上嘅 Dockerfile 拆成可以編輯嘅階段");
         yield return new("Find the language and build files in a folder and draft a Dockerfile", "認出資料夾用咩語言同建立檔，起個 Dockerfile 草稿");
         yield return new("Copy the docker buildx build command for this draft", "複製呢份草稿嘅 docker buildx build 指令");
+        yield return new("Name the open Creator step; the name is kept as a # step: comment above it", "幫工房打開咗嘅步驟改名；個名會以 # step: 註解留喺佢上面");
         yield return new("Send the Creator draft to the Build page", "將工房草稿送去建立頁");
         yield return new("Check the engine connection, versions and health", "檢查引擎連線、版本同健康狀況");
         yield return new("Preview and save a report with secrets removed", "預覽同儲存一份已經剷走機密嘅報告");

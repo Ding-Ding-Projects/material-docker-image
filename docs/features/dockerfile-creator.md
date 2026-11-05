@@ -25,6 +25,8 @@ Each instruction is a card with its keyword, a summary and a hint. Click a card 
 - `ENTRYPOINT` and `CMD` in exec form with one field per argument.
 - `HEALTHCHECK` with command, interval, timeout, retries and start period.
 
+Any step except a comment can have a name, such as "Install dependencies". Choose Rename step in the step menu, press F2 on a card or in the open step, double-click the open step's title, or run "Creator: rename the open step" from the command palette; Enter saves, Escape cancels and an empty name removes it. The name replaces the kind title ("Run commands") in the open step, appears above the summary on the card and replaces the argument in the outline. It is stored in the Dockerfile itself as an ordinary comment directly above the instruction, `# step: Install dependencies`, so the file stays valid for every builder and the name survives saving, reopening and editing the source by hand. The parser attaches a `# step:` line only when the next line is the instruction (not a blank line, another comment or `FROM`); other comments above it stay separate comment cards. Renaming patches only that one line, keeps CRLF line endings, and undo and redo cover it. The Node.js starter names its two build steps.
+
 The `RUN` form follows the order mounts, network and security, then the Heredoc script switch and the script or command. Fields are validated as you type. Move steps with the arrow buttons or Alt+Up and Alt+Down; duplicate or delete them from the card or its context menu. Add instruction opens a searchable list, and quick-add chips insert a cached `RUN`, a `HEALTHCHECK`, a non-root `USER` or an `EXPOSE`.
 
 ## Live, editable source

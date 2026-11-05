@@ -1010,6 +1010,7 @@ count += RegexFlavorVersionToolChecks.Run();
 count += RegexAutomationChecks.Run();
 count += CanvasRoutingChecks.Run();
 count += CreatorV2Checks.Run();
+count += CreatorStepChecks.Run();
 count += AppearanceMotionChecks.Run();
 count += LayerSourceRecommendationChecks.Run();
 

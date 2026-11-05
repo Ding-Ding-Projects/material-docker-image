@@ -5,15 +5,38 @@ using System.Linq;
 namespace MaterialDockerImage.UI;
 
 /// <summary>A flag of a Dockerfile instruction with the minimum docker/dockerfile frontend that supports it.</summary>
-public sealed record DockerfileFlagInfo(string Name, bool TakesValue, string Doc, string Example, string? MinSyntax = null, string? LabsMin = null, bool Repeatable = false, string[]? Values = null)
+public sealed record DockerfileFlagInfo(string Name, bool TakesValue, string Doc, string Example, string? MinSyntax = null, string? LabsMin = null, bool Repeatable = false, string[]? Values = null, DockerfileValueSet? Allowed = null)
 {
     /// <summary>The text inserted for the flag: "--name=" for valued flags, "--name" for switches.</summary>
     public string Insert => "--" + Name + (TakesValue ? "=" : "");
+
+    /// <summary>The values offered after "--name=": the fixed set when the reference defines one, otherwise the suggestions.</summary>
+    public IReadOnlyList<string> Offered => Allowed?.Values ?? Values ?? [];
+}
+
+/// <summary>
+/// A fixed set of allowed values for an option, as the Dockerfile reference enumerates it (for example cache mount
+/// sharing: shared, private or locked). Options whose values are open (paths, durations, IDs) have no set.
+/// </summary>
+public sealed record DockerfileValueSet(string[] Values, string? Default = null)
+{
+    /// <summary>"shared (default) · private · locked": every value, the default followed by <paramref name="defaultMarker"/>.</summary>
+    public string Line(string defaultMarker = "(default)") =>
+        string.Join(" · ", Values.Select(v => v == Default ? v + " " + defaultMarker : v));
+
+    public bool Contains(string value) => Values.Contains(value, StringComparer.Ordinal);
 }
 
 public sealed record DockerfileInstructionInfo(string Name, string Signature, string Doc, string Example, DockerfileFlagInfo[] Flags);
 
-public sealed record DockerfileMountOption(string Key, string Doc, string[] Values);
+public sealed record DockerfileMountOption(string Key, string Doc, string[] Values, DockerfileValueSet? Allowed = null, string[]? Aliases = null)
+{
+    /// <summary>The values offered after "key=": the fixed set when the reference defines one, otherwise the suggestions.</summary>
+    public IReadOnlyList<string> Offered => Allowed?.Values ?? Values;
+
+    /// <summary>True for the key itself or one of its documented short forms (ro for readonly, rw for readwrite).</summary>
+    public bool Matches(string key) => Key.Equals(key, StringComparison.OrdinalIgnoreCase) || (Aliases?.Any(a => a.Equals(key, StringComparison.OrdinalIgnoreCase)) ?? false);
+}
 
 /// <summary>
 /// Reference data for Dockerfile suggestions, taken from the Dockerfile reference option tables (minimum frontend
@@ -22,6 +45,27 @@ public sealed record DockerfileMountOption(string Key, string Doc, string[] Valu
 public static class DockerfileCompletionData
 {
     private static readonly string[] Bool = ["true", "false"];
+
+    /// <summary>A boolean option of the reference: true or false, false unless written.</summary>
+    public static readonly DockerfileValueSet BoolFalse = new(Bool, "false");
+
+    /// <summary>A boolean option without a single default (its default depends on the source, for example ADD --unpack).</summary>
+    public static readonly DockerfileValueSet BoolAny = new(Bool);
+
+    /// <summary>RUN --network modes.</summary>
+    public static readonly DockerfileValueSet NetworkModes = new(["default", "none", "host"], "default");
+
+    /// <summary>RUN --security modes.</summary>
+    public static readonly DockerfileValueSet SecurityModes = new(["sandbox", "insecure"], "sandbox");
+
+    /// <summary>RUN --mount type values.</summary>
+    public static readonly DockerfileValueSet MountTypeSet = new(["bind", "cache", "tmpfs", "secret", "ssh"], "bind");
+
+    /// <summary>Cache mount sharing modes.</summary>
+    public static readonly DockerfileValueSet CacheSharing = new(["shared", "private", "locked"], "shared");
+
+    /// <summary>The # escape= parser directive: backslash (default) or backtick.</summary>
+    public static readonly DockerfileValueSet EscapeCharacters = new(["\\", "`"], "\\");
 
     public static readonly DockerfileInstructionInfo[] Instructions =
     [
@@ -34,8 +78,8 @@ public static class DockerfileCompletionData
             "RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt",
             [
                 new("mount", true, "Mounts a bind, cache, tmpfs, secret or ssh source for this RUN only. Repeatable.", "--mount=type=cache,target=/root/.npm", "1.2", Repeatable: true),
-                new("network", true, "Network for this RUN: default, none (no network) or host (needs the network.host entitlement).", "--network=none", "1.3", Values: ["default", "none", "host"]),
-                new("security", true, "sandbox (default) or insecure, which runs with elevated privileges and needs the security.insecure entitlement.", "--security=insecure", "1.20", Values: ["sandbox", "insecure"]),
+                new("network", true, "Network for this RUN: default, none (no network) or host (needs the network.host entitlement).", "--network=none", "1.3", Allowed: NetworkModes),
+                new("security", true, "sandbox (default) or insecure, which runs with elevated privileges and needs the security.insecure entitlement.", "--security=insecure", "1.20", Allowed: SecurityModes),
                 new("device", true, "Attaches a CDI device (name[,required]). Needs BuildKit 0.20 or newer and the device entitlement.", "--device=vendor.com/gpu=all", "1.27", "1.14", Repeatable: true),
             ]),
         new("CMD", "CMD [\"executable\", \"param\"...] | CMD <command>",
@@ -59,10 +103,10 @@ public static class DockerfileCompletionData
             [
                 new("chown", true, "Owner of the copied files: user, user:group, uid or uid:gid.", "--chown=app:app"),
                 new("chmod", true, "Permissions of the copied files in octal (and symbolic from 1.14).", "--chmod=755", "1.2"),
-                new("link", false, "Copies into an independent layer so it can be reused when earlier layers change.", "--link", "1.4", Values: Bool),
+                new("link", false, "Copies into an independent layer so it can be reused when earlier layers change.", "--link", "1.4", Allowed: BoolFalse),
                 new("checksum", true, "Verifies a remote source: sha256:<hex> for HTTP, a commit SHA prefix for Git.", "--checksum=sha256:24454f8…", "1.6"),
-                new("keep-git-dir", false, "Keeps the .git directory when adding a Git repository.", "--keep-git-dir=true", "1.1", Values: Bool),
-                new("unpack", false, "Controls archive extraction (remote archives are not unpacked by default).", "--unpack=true", "1.17", Values: Bool),
+                new("keep-git-dir", false, "Keeps the .git directory when adding a Git repository.", "--keep-git-dir=true", "1.1", Allowed: BoolFalse),
+                new("unpack", false, "Controls archive extraction (remote archives are not unpacked by default).", "--unpack=true", "1.17", Allowed: BoolAny),
                 new("exclude", true, "Skips sources matching a pattern. Repeatable.", "--exclude=*.md", "1.19", "1.7", Repeatable: true),
             ]),
         new("COPY", "COPY [--from=<stage|image>] [--chown=<user>] [--chmod=<perms>] [--link] [--parents] [--exclude=<pattern>] <src>... <dest>",
@@ -72,8 +116,8 @@ public static class DockerfileCompletionData
                 new("from", true, "Copies from an earlier stage, an image or a named build context instead of the build context.", "--from=build"),
                 new("chown", true, "Owner of the copied files: user, user:group, uid or uid:gid.", "--chown=app:app"),
                 new("chmod", true, "Permissions of the copied files in octal; symbolic forms such as u=rwX need 1.14.", "--chmod=644", "1.2"),
-                new("link", false, "Copies into an independent layer so it can be reused when earlier layers change.", "--link", "1.4", Values: Bool),
-                new("parents", false, "Keeps the parent directories of each source (use ./ in the source to pick the pivot).", "--parents", "1.20", "1.7", Values: Bool),
+                new("link", false, "Copies into an independent layer so it can be reused when earlier layers change.", "--link", "1.4", Allowed: BoolFalse),
+                new("parents", false, "Keeps the parent directories of each source (use ./ in the source to pick the pivot).", "--parents", "1.20", "1.7", Allowed: BoolFalse),
                 new("exclude", true, "Skips sources matching a pattern. Repeatable.", "--exclude=**/*.test.js", "1.19", "1.7", Repeatable: true),
             ]),
         new("ENTRYPOINT", "ENTRYPOINT [\"executable\", \"param\"...] | ENTRYPOINT <command>",
@@ -139,8 +183,8 @@ public static class DockerfileCompletionData
         [
             new("id", "Cache identifier. Defaults to the target path.", []),
             new("target", "Mount path inside the build container.", CacheTargets),
-            new("sharing", "How concurrent builds share the cache: shared (default), private or locked.", ["shared", "private", "locked"]),
-            new("readonly", "Mounts read-only (also ro).", Bool),
+            new("sharing", "How concurrent builds share the cache: shared (default), private or locked.", [], CacheSharing),
+            new("readonly", "Mounts read-only (also ro).", [], BoolFalse, ["ro"]),
             new("from", "Stage or image used as the cache base.", []),
             new("source", "Subpath in the from source.", []),
             new("mode", "Permissions of a new cache folder. Default 0755.", ["0755", "0777", "0700"]),
@@ -157,7 +201,7 @@ public static class DockerfileCompletionData
             new("id", "Secret ID passed with docker build --secret id=…", []),
             new("target", "File path. Default /run/secrets/<id>.", []),
             new("env", "Exposes the secret as this environment variable instead of a file (1.10 or newer).", []),
-            new("required", "Fails the build when the secret is missing. Default false.", Bool),
+            new("required", "Fails the build when the secret is missing. Default false.", [], BoolFalse),
             new("mode", "File permissions. Default 0400.", ["0400", "0440", "0444"]),
             new("uid", "Owner user ID. Default 0.", ["0", "1000", "65532"]),
             new("gid", "Owner group ID. Default 0.", ["0", "1000", "65532"]),
@@ -166,19 +210,43 @@ public static class DockerfileCompletionData
         [
             new("id", "SSH agent or key ID passed with --ssh. Default \"default\".", ["default"]),
             new("target", "Socket path. Default /run/buildkit/ssh_agent.N.", []),
-            new("required", "Fails the build when the agent is missing. Default false.", Bool),
+            new("required", "Fails the build when the agent is missing. Default false.", [], BoolFalse),
             new("mode", "Socket permissions. Default 0600.", ["0600"]),
             new("uid", "Owner user ID. Default 0.", ["0", "1000", "65532"]),
             new("gid", "Owner group ID. Default 0.", ["0", "1000", "65532"]),
         ],
         _ =>
         [
-            new("target", "Mount path inside the build container (also dst, destination).", []),
-            new("source", "Path in the from source. Default is its root.", []),
+            new("target", "Mount path inside the build container (also dst, destination).", [], null, ["dst", "destination"]),
+            new("source", "Path in the from source. Default is its root.", [], null, ["src"]),
             new("from", "Stage, image or named context to bind. Default is the build context.", []),
-            new("readwrite", "Allows writes (discarded after the RUN). Also rw.", Bool),
+            new("readwrite", "Allows writes (discarded after the RUN). Also rw.", [], BoolFalse, ["rw"]),
         ],
     };
+
+    /// <summary>The option of a mount type named by <paramref name="key"/> or one of its short forms; null when unknown.</summary>
+    public static DockerfileMountOption? FindMountOption(string type, string key) =>
+        MountOptions(type).FirstOrDefault(o => o.Matches(key));
+
+    /// <summary>
+    /// The fixed set of allowed values for a value written after <paramref name="key"/>= in a --mount of the given type
+    /// (type itself included); null when the reference leaves the value open.
+    /// </summary>
+    public static DockerfileValueSet? MountAllowed(string type, string key) =>
+        key.Equals("type", StringComparison.OrdinalIgnoreCase) ? MountTypeSet : FindMountOption(type, key)?.Allowed;
+
+    /// <summary>The fixed set of allowed values of an instruction flag, or null when its values are open.</summary>
+    public static DockerfileValueSet? FlagAllowed(string? keyword, string flag)
+    {
+        var info = keyword == null ? null : Find(keyword);
+        var match = info?.Flags.FirstOrDefault(f => f.Name.Equals(flag, StringComparison.OrdinalIgnoreCase))
+            ?? Instructions.SelectMany(i => i.Flags).FirstOrDefault(f => f.Name.Equals(flag, StringComparison.OrdinalIgnoreCase) && f.Allowed != null);
+        return match?.Allowed;
+    }
+
+    /// <summary>The fixed set of a parser directive's values (only escape has one); null otherwise.</summary>
+    public static DockerfileValueSet? DirectiveAllowed(string name) =>
+        name.Equals("escape", StringComparison.OrdinalIgnoreCase) ? EscapeCharacters : null;
 
     /// <summary>Well-known cache folders of common package managers and compilers.</summary>
     public static readonly string[] CacheTargets =

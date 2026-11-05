@@ -205,7 +205,14 @@ public sealed partial class CreatorPage
         if (at < 0) return false;
         preview.Box.Focus();
         preview.Box.CaretIndex = at + "--mount=type=cache,".Length;
-        suggestions.Open(true);
+        // Moving the caret selects the stage of that line and rebuilds the editor; open the list once that has settled.
+        Dispatcher.BeginInvoke(() =>
+        {
+            preview.Box.Focus();
+            suggestions.Open(true);
+            // Show an option whose values are a fixed set, so the documentation includes its Values line.
+            suggestions.CaptureSelect("sharing=");
+        }, System.Windows.Threading.DispatcherPriority.ApplicationIdle);
         return true;
     }
 

@@ -30,7 +30,6 @@ public sealed record EditorValueSpan(EditorValueKind Kind, int Start, int Length
 public static class DockerfileValueKinds
 {
     private static readonly Regex SecretNameRx = new(@"(?i)(pass(word|wd)?|secret|token|api[_-]?key|private[_-]?key|access[_-]?key|credential|auth)", RegexOptions.CultureInvariant);
-    private static readonly string[] Bool = ["true", "false"];
 
     public static bool LooksSecret(string name) => name.Length > 0 && SecretNameRx.IsMatch(name);
 
@@ -62,9 +61,9 @@ public static class DockerfileValueKinds
                 "chown" => Span(EditorValueKind.User, "Owner"),
                 "platform" => Span(EditorValueKind.Platform, "Platform"),
                 "interval" or "timeout" or "start-period" or "start-interval" when keyword == "HEALTHCHECK" => Span(EditorValueKind.Duration, "Health check " + flag.Replace('-', ' ')),
-                "network" => Span(EditorValueKind.Choice, "Network") with { Options = ["default", "none", "host"] },
-                "security" => Span(EditorValueKind.Choice, "Security") with { Options = ["sandbox", "insecure"] },
-                "link" or "parents" or "keep-git-dir" or "unpack" => Span(EditorValueKind.Choice, "--" + flag) with { Options = Bool },
+                "network" => Span(EditorValueKind.Choice, "Network") with { Options = DockerfileCompletionData.NetworkModes.Values },
+                "security" => Span(EditorValueKind.Choice, "Security") with { Options = DockerfileCompletionData.SecurityModes.Values },
+                _ when DockerfileCompletionData.FlagAllowed(keyword, flag) is { } allowed => Span(EditorValueKind.Choice, "--" + flag) with { Options = allowed.Values },
                 _ => null,
             };
         }
@@ -129,9 +128,9 @@ public static class DockerfileValueKinds
             EditorValueSpan Span(EditorValueKind kind, string label) => new(kind, vs, v.Length, v, label) { KnownUsers = users };
             return key switch
             {
-                "type" => Span(EditorValueKind.Choice, "Mount type") with { Options = DockerfileCompletionData.MountTypes.Select(m => m.Key).ToArray() },
-                "sharing" => Span(EditorValueKind.Choice, "Cache sharing") with { Options = ["shared", "private", "locked"] },
-                "readonly" or "ro" or "rw" or "readwrite" or "required" => Span(EditorValueKind.Choice, key) with { Options = Bool },
+                "type" => Span(EditorValueKind.Choice, "Mount type") with { Options = DockerfileCompletionData.MountTypeSet.Values },
+                "sharing" => Span(EditorValueKind.Choice, "Cache sharing") with { Options = DockerfileCompletionData.CacheSharing.Values },
+                _ when DockerfileCompletionData.MountAllowed(type, key) is { } allowed => Span(EditorValueKind.Choice, key) with { Options = allowed.Values },
                 "mode" => Span(EditorValueKind.Chmod, "Mount mode"),
                 "uid" or "gid" => Span(EditorValueKind.User, "Mount " + key) with { Options = ["numeric"] },
                 "source" or "src" when type == "bind" && !hasFrom => Span(EditorValueKind.Path, "Bind mount source") with { ContextOnly = true },

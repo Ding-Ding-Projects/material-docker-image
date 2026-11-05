@@ -355,7 +355,15 @@ public sealed partial class CreatorPage
         var summary = Ui.Mono(DockerfileModel.Summary(instruction), 13, "OnSurface", false);
         summary.ToolTip = summary.Text;
         var hint = Ui.Caption(DockerfileModel.Hint(instruction));
-        var text = Ui.VStack(2, summary, hint);
+        StackPanel text;
+        if (DockerfileStepNames.HasName(instruction))
+        {
+            var name = Ui.Text(DockerfileStepNames.Clean(instruction.StepName), 14, FontWeights.SemiBold, "OnSurface", false, false);
+            name.TextTrimming = TextTrimming.CharacterEllipsis;
+            name.ToolTip = name.Text;
+            text = Ui.VStack(2, name, summary, hint);
+        }
+        else text = Ui.VStack(2, summary, hint);
 
         // One overflow button holds every step action (also on the keyboard and the context menu).
         var more = Ui.IconButton(Icons.MoreVert, "More step actions");
@@ -377,7 +385,7 @@ public sealed partial class CreatorPage
             HighlightLines(instruction);
         };
         card.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
-        System.Windows.Automation.AutomationProperties.SetName(card, $"{Loc.T("Step")} {index + 1}: {keyword} {summary.Text}");
+        System.Windows.Automation.AutomationProperties.SetName(card, $"{Loc.T("Step")} {index + 1}: " + (DockerfileStepNames.HasName(instruction) ? DockerfileStepNames.Clean(instruction.StepName) + ", " : "") + $"{keyword} {summary.Text}");
         card.ToolTip = Loc.T("Click or press Enter to edit this step.");
         card.PreviewKeyDown += (_, e) =>
         {
@@ -386,6 +394,7 @@ public sealed partial class CreatorPage
             else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { MoveStep(list, instruction, 1); e.Handled = true; }
             else if (e.OriginalSource == card && key == System.Windows.Input.Key.Enter) { OpenStep(instruction, true); e.Handled = true; }
             else if (e.OriginalSource == card && key == System.Windows.Input.Key.Delete) { DeleteStep(list, instruction); e.Handled = true; }
+            else if (e.OriginalSource == card && key == System.Windows.Input.Key.F2 && Keyboard.Modifiers == ModifierKeys.None) { RenameStep(instruction); e.Handled = true; }
         };
         card.MouseLeftButtonUp += (_, e) => { if (e.OriginalSource is DependencyObject d && IsInsideButton(d, card)) return; OpenStep(instruction, true); e.Handled = true; };
         card.ContextMenu = StepMenu(list, instruction);
@@ -409,6 +418,9 @@ public sealed partial class CreatorPage
         var open = expanded == instruction;
         menu.Items.Add(Ui.MenuItem(open ? "Done editing" : "Edit", Icons.Edit, () => { if (open) CloseStep(); else OpenStep(instruction, true); }, "Enter"));
         menu.Items.Add(Ui.MenuItem("Edit as text", Icons.Code, () => EditAsText(instruction)));
+        var rename = Ui.MenuItem("Rename step", Icons.Edit, () => RenameStep(instruction), "F2");
+        rename.IsEnabled = DockerfileStepNames.CanBeNamed(instruction);
+        menu.Items.Add(rename);
         menu.Items.Add(Ui.MenuItem("Move up", Icons.ExpandLess, () => MoveStep(list, instruction, -1), "Alt+Up"));
         menu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => MoveStep(list, instruction, 1), "Alt+Down"));
         menu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => DuplicateStep(list, instruction)));
@@ -416,10 +428,30 @@ public sealed partial class CreatorPage
         menu.Opened += (_, _) =>
         {
             var index = list.IndexOf(instruction);
-            ((MenuItem)menu.Items[2]).IsEnabled = index > 0;
-            ((MenuItem)menu.Items[3]).IsEnabled = index >= 0 && index < list.Count - 1;
+            ((MenuItem)menu.Items[3]).IsEnabled = index > 0;
+            ((MenuItem)menu.Items[4]).IsEnabled = index >= 0 && index < list.Count - 1;
         };
         return menu;
+    }
+
+    /// <summary>Opens the step (when it is not open yet) and shows its name field in the header.</summary>
+    private void RenameStep(DockerInstruction instruction)
+    {
+        if (!DockerfileStepNames.CanBeNamed(instruction)) return;
+        if (expanded != instruction) OpenStep(instruction, false);
+        Dispatcher.BeginInvoke(() => beginRename?.Invoke(), System.Windows.Threading.DispatcherPriority.Loaded);
+    }
+
+    /// <summary>Stores the new name (empty removes it) as one undo step.</summary>
+    private void ApplyStepName(DockerInstruction instruction, string name)
+    {
+        FlushCommit();
+        if (!DockerfileStepNames.Rename(instruction, name)) return;
+        Changed();
+        Host.Notify.Info(DockerfileStepNames.HasName(instruction)
+            ? Loc.T("Step renamed. The name is saved as a # step: comment above the instruction.")
+            : Loc.T("Step name removed."));
+        FocusCard(instruction);
     }
 
     private void OpenStep(DockerInstruction instruction, bool focus)
@@ -482,6 +514,8 @@ public sealed partial class CreatorPage
     private WrapPanel quickChips = null!;
     private TextBlock? focusHint;
     private Border? focusHead;
+    /// <summary>Shows the name field of the open step's header.</summary>
+    private Action? beginRename;
 
     private string StepLine(List<DockerInstruction> list, DockerInstruction instruction) =>
         $"{Loc.T("Step")} {list.IndexOf(instruction) + 1} / {list.Count}" + (ReferenceEquals(list, doc.Preamble) ? " · " + Loc.T("global") : "") + " · " + Loc.T(DockerfileModel.Hint(instruction));
@@ -495,7 +529,47 @@ public sealed partial class CreatorPage
         pillText.FontWeight = FontWeights.Bold;
         var pill = new Border { Child = pillText, Height = 28, CornerRadius = new CornerRadius(8), Padding = new Thickness(10, 0, 10, 0), VerticalAlignment = VerticalAlignment.Center };
         pill.SetResourceReference(Border.BackgroundProperty, neutral ? "SurfaceHighest" : "TertiaryContainer");
-        var title = Ui.Text(DockerfileOutline.Title(instruction.Kind), 16, FontWeights.SemiBold, "OnSurface", false);
+        var named = DockerfileStepNames.HasName(instruction);
+        var title = Ui.Text(DockerfileStepNames.Title(instruction), 16, FontWeights.SemiBold, "OnSurface", false, !named);
+        title.TextTrimming = TextTrimming.CharacterEllipsis;
+        title.ToolTip = named ? Loc.T(DockerfileOutline.Title(instruction.Kind)) + " · " + Loc.T("Double-click or press F2 to rename") : Loc.T("Double-click or press F2 to name this step");
+        var nameBox = Ui.Input(DockerfileStepNames.Clean(instruction.StepName), "Step name");
+        nameBox.MaxLength = DockerfileStepNames.MaxLength;
+        nameBox.Visibility = Visibility.Collapsed;
+        nameBox.FontSize = 15;
+        nameBox.ToolTip = Loc.T("Enter saves, Escape cancels. Leave it empty to remove the name.");
+        var renaming = false;
+        void EndRename(bool save)
+        {
+            if (!renaming) return;
+            renaming = false;
+            var text = nameBox.Text;
+            nameBox.Visibility = Visibility.Collapsed;
+            title.Visibility = Visibility.Visible;
+            if (save) ApplyStepName(instruction, text);
+            else focusHead?.Focus();
+        }
+        void BeginRename()
+        {
+            if (!DockerfileStepNames.CanBeNamed(instruction)) return;
+            renaming = true;
+            nameBox.Text = DockerfileStepNames.Clean(instruction.StepName);
+            title.Visibility = Visibility.Collapsed;
+            nameBox.Visibility = Visibility.Visible;
+            nameBox.Focus();
+            nameBox.SelectAll();
+        }
+        beginRename = BeginRename;
+        nameBox.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key == System.Windows.Input.Key.Enter) { EndRename(true); e.Handled = true; }
+            else if (e.Key == System.Windows.Input.Key.Escape) { EndRename(false); e.Handled = true; }
+        };
+        nameBox.LostKeyboardFocus += (_, _) => EndRename(true);
+        title.MouseLeftButtonDown += (_, e) => { if (e.ClickCount == 2) { BeginRename(); e.Handled = true; } };
+        var titleHost = new Grid();
+        titleHost.Children.Add(title);
+        titleHost.Children.Add(nameBox);
         focusHint = Ui.Text(StepLine(list, instruction), 12, null, "OnSurfaceVariant", false, false);
         focusHint.ToolTip = focusHint.Text;
         var index = list.IndexOf(instruction);
@@ -507,11 +581,11 @@ public sealed partial class CreatorPage
         var menu = StepMenu(list, instruction);
         more.Click += (_, _) => { menu.PlacementTarget = more; menu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; menu.IsOpen = true; };
         foreach (var b in new[] { previous, next, collapse, more }) { b.Width = b.Height = b.MinHeight = 36; b.FontSize = 20; }
-        var head = Ui.Columns(10, [0, 1, 0, 0, 0, 0], pill, Ui.VStack(2, title, focusHint), previous, next, collapse, more);
+        var head = Ui.Columns(10, [0, 1, 0, 0, 0, 0], pill, Ui.VStack(2, titleHost, focusHint), previous, next, collapse, more);
         focusHead = new Border { Child = head, Focusable = true, Padding = new Thickness(0, 0, 0, 14), Background = System.Windows.Media.Brushes.Transparent };
         focusHead.FocusVisualStyle = (Style)Application.Current.FindResource("FocusRing");
         focusHead.ContextMenu = menu;
-        System.Windows.Automation.AutomationProperties.SetName(focusHead, $"{keyword} · {Loc.T(DockerfileOutline.Title(instruction.Kind))} · {StepLine(list, instruction)}");
+        System.Windows.Automation.AutomationProperties.SetName(focusHead, $"{keyword} · {(named ? DockerfileStepNames.Clean(instruction.StepName) : Loc.T(DockerfileOutline.Title(instruction.Kind)))} · {StepLine(list, instruction)}");
 
         var form = new InstructionForm(instruction, ReferenceEquals(list, doc.Preamble) ? () => Array.Empty<string>() : EarlierStageNames, Touched);
         var panel = new DockPanel();
@@ -522,7 +596,8 @@ public sealed partial class CreatorPage
             var key = e.Key == System.Windows.Input.Key.System ? e.SystemKey : e.Key;
             if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Up) { MoveStep(list, instruction, -1); e.Handled = true; }
             else if (Keyboard.Modifiers == ModifierKeys.Alt && key == System.Windows.Input.Key.Down) { MoveStep(list, instruction, 1); e.Handled = true; }
-            else if (key == System.Windows.Input.Key.Escape && Keyboard.Modifiers == ModifierKeys.None && !InOpenDropDown()) { CloseStep(); e.Handled = true; }
+            else if (key == System.Windows.Input.Key.Escape && Keyboard.Modifiers == ModifierKeys.None && !InOpenDropDown() && !renaming) { CloseStep(); e.Handled = true; }
+            else if (key == System.Windows.Input.Key.F2 && Keyboard.Modifiers == ModifierKeys.None && !renaming) { BeginRename(); e.Handled = true; }
         };
         return panel;
     }

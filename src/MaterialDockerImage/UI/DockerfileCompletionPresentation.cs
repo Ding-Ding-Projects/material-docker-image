@@ -64,6 +64,18 @@ public static class SuggestionPresentation
     public static string DocChip(SuggestionItem item, Func<SuggestionKind, string> kindName) =>
         item.Detail.Length > 0 ? item.Detail : kindName(item.Kind);
 
+    /// <summary>
+    /// The "Values: shared (default) · private · locked" line of the documentation pane, for options whose values are a
+    /// fixed set in the Dockerfile reference. Empty when the item has no set. <paramref name="translate"/> localizes the
+    /// two words; the values themselves stay literal because they are typed into the file.
+    /// </summary>
+    public static string ValuesLine(SuggestionItem item, Func<string, string>? translate = null)
+    {
+        if (item.Allowed is not { Values.Length: > 0 } allowed) return "";
+        translate ??= text => text;
+        return translate("Values:") + " " + allowed.Line(translate("(default)"));
+    }
+
     /// <summary>Splits a signature hint into runs; placeholders such as target=&lt;path&gt; outside square brackets are required.</summary>
     public static IReadOnlyList<SignaturePart> Signature(string signature)
     {

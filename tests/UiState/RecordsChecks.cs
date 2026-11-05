@@ -160,7 +160,7 @@ public static class RecordsChecks
     }
 
     // -------------------------------------------------- menu shortcut audit
-    static readonly string[] LocalKeys = ["Del", "Enter", "Ctrl+A", "Ctrl+C", "Alt+Up", "Alt+Down"];
+    static readonly string[] LocalKeys = ["Del", "Enter", "F2", "Ctrl+A", "Ctrl+C", "Alt+Up", "Alt+Down"];
 
     static string Canonical(string gesture) => string.Join("+", gesture.Split('+').Select(p => p.Trim()).Select(p => p switch { "Control" => "Ctrl", "Delete" => "Del", _ => p }).OrderBy(p => p switch { "Ctrl" => 0, "Alt" => 1, "Shift" => 2, _ => 3 }));
 

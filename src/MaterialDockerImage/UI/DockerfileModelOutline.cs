@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace MaterialDockerImage.UI;
 
 /// <summary>One row of the Creator's stage outline: the keyword and its one-line argument. InstructionIndex is -1 for the FROM line.</summary>
-public sealed record DockerfileOutlineRow(string Keyword, string Argument, int InstructionIndex);
+/// <remarks>Name is the step's own name ("# step:" comment) when it has one, otherwise empty.</remarks>
+public sealed record DockerfileOutlineRow(string Keyword, string Argument, int InstructionIndex, string Name = "");
 
 /// <summary>Where the draft stands relative to the file it was last saved to.</summary>
 public enum CreatorSaveState { DraftOnly, Saved, UnsavedChanges }
@@ -55,7 +56,7 @@ public static class DockerfileOutline
             var summary = DockerfileModel.Summary(instruction).Replace("\r", "");
             var newline = summary.IndexOf('\n');
             if (newline >= 0) summary = summary[..newline] + " …";
-            rows.Add(new DockerfileOutlineRow(DockerfileModel.Keyword(instruction.Kind), summary, i));
+            rows.Add(new DockerfileOutlineRow(DockerfileModel.Keyword(instruction.Kind), summary, i, DockerfileStepNames.HasName(instruction) ? DockerfileStepNames.Clean(instruction.StepName) : ""));
         }
         return rows;
     }

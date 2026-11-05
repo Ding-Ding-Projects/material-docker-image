@@ -56,7 +56,7 @@
     },
     {
       "path": "docs/features/dockerfile-creator.md",
-      "sha256": "369568fe3baf3d86addcacca80b45a5ec9cffedfc57d135a98e869dc025814c6"
+      "sha256": "6ff827bb387758cd19fe415438613c7d0a2b568718c5afca1558388972d022a9"
     },
     {
       "path": "docs/features/documentation-site.md",
@@ -64,7 +64,7 @@
     },
     {
       "path": "docs/features/editor-suggestions.md",
-      "sha256": "139ae4853765a63a04e989924b319bac2ebb894516b0ffd18ee260e9b7951d60"
+      "sha256": "a91bf0b472bd13431d8751f330c2ab74430fa4f338aa5a4d445464e3dc49d104"
     },
     {
       "path": "docs/features/feature-checklist.md",

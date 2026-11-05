@@ -83,7 +83,7 @@ public static class DockerfileCompletion
                 "chown" => UserItems(s),
                 "checksum" => [Value("sha256:", "SHA-256 of an HTTP source, followed by the hex digest.")],
                 "interval" or "timeout" or "start-period" or "start-interval" => DurationItems(),
-                _ => (flag?.Values ?? []).Select(v => Value(v, flag!.Doc)).ToList(),
+                _ => (flag?.Offered ?? []).Select(v => Value(v, flag!.Doc) with { Allowed = flag!.Allowed }).ToList(),
             };
             if (flagName == "mount") return Mount(s, valueStart, valueText, sources) with { Signature = "--mount=type=<bind|cache|tmpfs|secret|ssh>[,<option>=<value>...]" };
             return new SuggestionResult(valueStart, caret - valueStart, valueText, values!, flagSignature) { AutoTrigger = true };
@@ -178,7 +178,7 @@ public static class DockerfileCompletion
         {
             var start = s.LineStart + name.Groups[1].Index;
             var items = DockerfileCompletionData.Directives.Where(d => !s.Directives.ContainsKey(d.Name) || d.Name.Equals(name.Groups[1].Value, StringComparison.OrdinalIgnoreCase))
-                .Select(d => new SuggestionItem(d.Name + "=", d.Name + "=", SuggestionKind.Directive, "Parser directive", d.Doc, d.Example, d.MinSyntax) { Retrigger = true }).ToList();
+                .Select(d => new SuggestionItem(d.Name + "=", d.Name + "=", SuggestionKind.Directive, "Parser directive", d.Doc, d.Example, d.MinSyntax) { Retrigger = true, Allowed = DockerfileCompletionData.DirectiveAllowed(d.Name) }).ToList();
             return new SuggestionResult(start, s.Caret - start, name.Groups[1].Value, items, "# <directive>=<value>   Parser directives must come before any other line.") { AutoTrigger = true };
         }
         var value = DirectiveValueRx.Match(s.LineBefore);
@@ -186,7 +186,7 @@ public static class DockerfileCompletion
         var directive = DockerfileCompletionData.Directives.FirstOrDefault(d => d.Name.Equals(value.Groups[1].Value, StringComparison.OrdinalIgnoreCase));
         if (directive.Name == null) return SuggestionResult.Empty;
         var vStart = s.LineStart + value.Groups[2].Index;
-        var values = directive.Values.Select(v => new SuggestionItem(v, v, SuggestionKind.Value, "# " + directive.Name, directive.Doc, "# " + directive.Name + "=" + v)).ToList();
+        var values = directive.Values.Select(v => new SuggestionItem(v, v, SuggestionKind.Value, "# " + directive.Name, directive.Doc, "# " + directive.Name + "=" + v) { Allowed = DockerfileCompletionData.DirectiveAllowed(directive.Name) }).ToList();
         return new SuggestionResult(vStart, s.Caret - vStart, value.Groups[2].Value, values, "# " + directive.Name + "=<value>") { AutoTrigger = true };
     }
 
@@ -204,8 +204,8 @@ public static class DockerfileCompletion
             var used = previous.Select(p => p.Split('=')[0]).ToHashSet(StringComparer.OrdinalIgnoreCase);
             var keys = new List<SuggestionItem>();
             if (type == null && !used.Contains("type"))
-                keys.Add(new SuggestionItem("type=", "type=", SuggestionKind.Key, "Mount type", "bind (default), cache, tmpfs, secret or ssh.", "--mount=type=cache,target=/root/.npm") { Retrigger = true, Rank = -1 });
-            keys.AddRange(options.Where(o => !used.Contains(o.Key)).Select(o => new SuggestionItem(o.Key + "=", o.Key + "=", SuggestionKind.Key, (type ?? "bind") + " option", o.Doc, $"--mount=type={type ?? "bind"},{o.Key}=…") { Retrigger = true }));
+                keys.Add(new SuggestionItem("type=", "type=", SuggestionKind.Key, "Mount type", "bind (default), cache, tmpfs, secret or ssh.", "--mount=type=cache,target=/root/.npm") { Retrigger = true, Rank = -1, Allowed = DockerfileCompletionData.MountTypeSet });
+            keys.AddRange(options.Where(o => !used.Contains(o.Key) && !(o.Aliases ?? []).Any(used.Contains)).Select(o => new SuggestionItem(o.Key + "=", o.Key + "=", SuggestionKind.Key, (type ?? "bind") + " option", o.Doc, $"--mount=type={type ?? "bind"},{o.Key}=…") { Retrigger = true, Allowed = o.Allowed }));
             return new SuggestionResult(partStart, s.Caret - partStart, part, keys) { AutoTrigger = true };
         }
         var key = part[..eq].ToLowerInvariant();
@@ -213,15 +213,15 @@ public static class DockerfileCompletion
         var query = part[(eq + 1)..];
         List<SuggestionItem> values;
         if (key == "type")
-            values = DockerfileCompletionData.MountTypes.Select(t => new SuggestionItem(t.Key, t.Key + ",", SuggestionKind.Value, "Mount type", t.Doc) { Retrigger = true, MinSyntax = "1.2" }).ToList();
+            values = DockerfileCompletionData.MountTypes.Select(t => new SuggestionItem(t.Key, t.Key + ",", SuggestionKind.Value, "Mount type", t.Doc) { Retrigger = true, MinSyntax = "1.2", Allowed = DockerfileCompletionData.MountTypeSet }).ToList();
         else if (key == "from")
             values = StageItems(s, true).Concat(LocalImageItems(sources)).ToList();
         else if (key == "env" && type == "secret")
             values = [];
         else
         {
-            var option = options.FirstOrDefault(o => o.Key == key);
-            values = option == null ? [] : option.Values.Select(v => new SuggestionItem(v, v, SuggestionKind.Value, key, option.Doc)).ToList();
+            var option = DockerfileCompletionData.FindMountOption(type ?? "bind", key);
+            values = option == null ? [] : option.Offered.Select(v => new SuggestionItem(v, v, SuggestionKind.Value, key, option.Doc) { Allowed = option.Allowed }).ToList();
         }
         return new SuggestionResult(vStart, s.Caret - vStart, query, values) { AutoTrigger = true };
     }
@@ -229,7 +229,7 @@ public static class DockerfileCompletion
     // ------------------------------------------------------------------ item builders
 
     private static SuggestionItem FlagItem(DockerfileInstructionInfo info, DockerfileFlagInfo f) =>
-        new("--" + f.Name + (f.TakesValue ? "=" : ""), f.Insert, SuggestionKind.Flag, info.Name + " flag", f.Doc, f.Example, f.MinSyntax) { LabsMinSyntax = f.LabsMin, Retrigger = f.TakesValue };
+        new("--" + f.Name + (f.TakesValue ? "=" : ""), f.Insert, SuggestionKind.Flag, info.Name + " flag", f.Doc, f.Example, f.MinSyntax) { LabsMinSyntax = f.LabsMin, Retrigger = f.TakesValue, Allowed = f.Allowed };
 
     private static SuggestionItem Value(string value, string doc) => new(value, value, SuggestionKind.Value, "Value", doc);
 
@@ -362,15 +362,15 @@ public static class DockerfileCompletion
                         if (offset >= position && offset <= position + part.Length)
                         {
                             var key = part.Split('=')[0];
-                            if (key == "type") return new SuggestionItem("type=" + type, "", SuggestionKind.Key, "Mount type", DockerfileCompletionData.MountTypes.FirstOrDefault(t => t.Key == type)?.Doc ?? "bind, cache, tmpfs, secret or ssh.", "", "1.2");
-                            var option = DockerfileCompletionData.MountOptions(type).FirstOrDefault(o => o.Key == key);
-                            if (option != null) return new SuggestionItem(key, "", SuggestionKind.Key, type + " mount option", option.Doc, "", "1.2");
+                            if (key == "type") return new SuggestionItem("type=" + type, "", SuggestionKind.Key, "Mount type", DockerfileCompletionData.MountTypes.FirstOrDefault(t => t.Key == type)?.Doc ?? "bind, cache, tmpfs, secret or ssh.", "", "1.2") { Allowed = DockerfileCompletionData.MountTypeSet };
+                            var option = DockerfileCompletionData.FindMountOption(type, key);
+                            if (option != null) return new SuggestionItem(key, "", SuggestionKind.Key, type + " mount option", option.Doc, "", "1.2") { Allowed = option.Allowed };
                         }
                         position += part.Length + 1;
                     }
                 }
             }
-            return new SuggestionItem("--" + flag.Name, "", SuggestionKind.Flag, info!.Name + " flag", flag.Doc, flag.Example, flag.MinSyntax) { LabsMinSyntax = flag.LabsMin };
+            return new SuggestionItem("--" + flag.Name, "", SuggestionKind.Flag, info!.Name + " flag", flag.Doc, flag.Example, flag.MinSyntax) { LabsMinSyntax = flag.LabsMin, Allowed = flag.Allowed };
         }
         return null;
     }

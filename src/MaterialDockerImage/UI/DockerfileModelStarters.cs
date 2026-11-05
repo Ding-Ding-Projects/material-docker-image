@@ -12,7 +12,7 @@ public static class DockerfileStarters
 {
     public static readonly IReadOnlyList<DockerfileStarter> All =
     [
-        new("node", "Node.js", "Three stages: deps (npm ci --omit=dev with an npm cache mount), build (npm ci and npm run build) and runtime (node:22-alpine, NODE_ENV=production, USER node, EXPOSE 8080, CMD node dist/server.js).", Node),
+        new("node", "Node.js", "Three stages: deps (npm ci --omit=dev with an npm cache mount), build (npm ci and npm run build) and runtime (node:22-alpine, NODE_ENV=production, USER node, EXPOSE 8080, CMD node dist/server.js). Two RUN steps carry names (# step: comments).", Node),
         new("python", "Python", "Two stages: build (python:3.13-slim, pip wheels from requirements.txt with a pip cache mount) and runtime (installs the wheels, non-root user, EXPOSE 8000, CMD python -m app).", PythonPip),
         new("python-uv", "Python (uv)", "Two stages: build (uv sync --frozen with a uv cache mount from pyproject.toml and uv.lock) and runtime (python:3.13-slim with the virtual environment, non-root user, EXPOSE 8000, CMD uvicorn).", PythonUv),
         new("dotnet", ".NET", "Two stages: build (mcr.microsoft.com/dotnet/sdk:9.0, dotnet restore with a NuGet cache mount, dotnet publish) and runtime (mcr.microsoft.com/dotnet/aspnet:9.0, USER app, EXPOSE 8080, ENTRYPOINT dotnet App.dll).", DotNet),
@@ -33,13 +33,15 @@ public static class DockerfileStarters
     private static DockerInstruction User(string user) => new() { Kind = InstructionKind.User, Value = user };
     private static DockerInstruction Expose(string port) => new() { Kind = InstructionKind.Expose, Port = port, Protocol = "tcp" };
     private static DockerInstruction Exec(InstructionKind kind, params string[] args) => new() { Kind = kind, ExecForm = true, Arguments = args.ToList() };
+    /// <summary>Gives a starter step its name (written as a "# step:" comment above it).</summary>
+    private static DockerInstruction Named(string name, DockerInstruction instruction) { instruction.StepName = name; return instruction; }
     private static DockerInstruction Health(string command) => new() { Kind = InstructionKind.Healthcheck, Interval = "30s", Timeout = "5s", StartPeriod = "10s", Retries = "3", Command = command };
     private static DockerfileStage Stage(string name, string image, params DockerInstruction[] instructions) => new() { Name = name, BaseImage = image, Instructions = instructions.ToList() };
     private static DockerfileDocument Document(string origin, params DockerfileStage[] stages) => new() { SyntaxHeader = true, Syntax = DockerfileModel.DefaultSyntax, Origin = origin, Stages = stages.ToList() };
 
     public static DockerfileDocument Node() => Document("Node.js service starter",
-        Stage("deps", "node:22-alpine", Workdir("/app"), Copy("./", "package.json", "package-lock.json"), Run("npm ci --omit=dev", "/root/.npm")),
-        Stage("build", "deps", Run("npm ci", "/root/.npm"), Copy(".", "."), Run("npm run build")),
+        Stage("deps", "node:22-alpine", Workdir("/app"), Copy("./", "package.json", "package-lock.json"), Named("Install dependencies", Run("npm ci --omit=dev", "/root/.npm"))),
+        Stage("build", "deps", Run("npm ci", "/root/.npm"), Copy(".", "."), Named("Build the app", Run("npm run build"))),
         Stage("runtime", "node:22-alpine", Env(("NODE_ENV", "production")), Workdir("/app"),
             CopyFrom("deps", "/app/node_modules", "./node_modules"), CopyFrom("build", "/app/dist", "./dist", "node:node"),
             Expose("8080"), User("node"), Health("wget -qO- http://localhost:8080/ || exit 1"), Exec(InstructionKind.Cmd, "node", "dist/server.js")));

@@ -65,6 +65,7 @@ public static class CommandDescriptions
         ["creator.import"] = "Parse a Dockerfile from disk into editable stages",
         ["creator.detect"] = "Find the language and build files in a folder and draft a Dockerfile",
         ["creator.buildcommand"] = "Copy the docker buildx build command for this draft",
+        ["creator.step.rename"] = "Name the open Creator step; the name is kept as a # step: comment above it",
         ["creator.tobuild"] = "Send the Creator draft to the Build page",
         ["diagnostics.run"] = "Check the engine connection, versions and health",
         ["diagnostics.report"] = "Preview and save a report with secrets removed",

@@ -30,6 +30,8 @@ public sealed record SuggestionItem(string Label, string Insert, SuggestionKind 
     public string PickerVariant { get; init; } = "";
     /// <summary>True when accepting should immediately ask for the next suggestions (the insert ends in = or / for example).</summary>
     public bool Retrigger { get; init; }
+    /// <summary>The fixed set of values the option takes, shown as a "Values:" line in the documentation pane.</summary>
+    public DockerfileValueSet? Allowed { get; init; }
 }
 
 /// <summary>The completion answer for one caret position.</summary>

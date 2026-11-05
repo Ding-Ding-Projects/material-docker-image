@@ -122,7 +122,8 @@ public sealed partial class CreatorPage : PageBase
         loaded = true;
         try
         {
-            if (!File.Exists(DraftPath)) { RebuildAll(); return Task.CompletedTask; }
+            // Capture mode keeps the starter it applied and never reads the user's own draft into a screenshot.
+            if (Host.IsCapture || !File.Exists(DraftPath)) { RebuildAll(); return Task.CompletedTask; }
             if (new FileInfo(DraftPath).Length > 4 * 1024 * 1024) throw new InvalidDataException("The saved draft is larger than 4 MiB.");
             var json = File.ReadAllText(DraftPath);
             try
@@ -155,7 +156,17 @@ public sealed partial class CreatorPage : PageBase
         yield return new AppCommand { Id = "creator.import", Title = "Creator: open existing Dockerfile…", Group = "Creator", Icon = Icons.FolderOpen, Keywords = "import parse", Run = () => { Host.Navigate("Creator"); PageTasks.Fire(ImportAsync); } };
         yield return new AppCommand { Id = "creator.detect", Title = "Creator: detect project in a folder…", Group = "Creator", Icon = Icons.ManageSearch, Keywords = "docker init detect language package.json go.mod csproj", Run = () => { Host.Navigate("Creator"); PageTasks.Fire(ChooseAndDetectAsync); } };
         yield return new AppCommand { Id = "creator.buildcommand", Title = "Creator: copy as build command", Group = "Creator", Icon = Icons.Terminal, Keywords = "buildx command clipboard secret allow", Run = CopyBuildCommand };
+        yield return new AppCommand { Id = "creator.step.rename", Title = "Creator: rename the open step", Group = "Creator", Icon = Icons.Edit, Keywords = "step name title label comment", Run = RenameOpenStep };
         yield return new AppCommand { Id = "creator.tobuild", Title = "Creator: open draft in Build", Group = "Creator", Icon = Icons.Construction, Keywords = "send build", Run = () => PageTasks.Fire(OpenInBuildAsync) };
+    }
+
+    /// <summary>Palette: names the open step (or the step with keyboard focus); explains what to do when no step is chosen.</summary>
+    private void RenameOpenStep()
+    {
+        Host.Navigate("Creator");
+        var step = expanded ?? highlighted;
+        if (step == null || !DockerfileStepNames.CanBeNamed(step)) { Host.Notify.Info(Loc.T("Open a step in the Creator first, then rename it.")); return; }
+        RenameStep(step);
     }
 
     private void OnKeys(object sender, KeyEventArgs e)
