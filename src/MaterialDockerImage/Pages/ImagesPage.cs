@@ -143,8 +143,7 @@ public sealed partial class ImagesPage : PageBase
             var result = await Host.Read(args, context);
             if (!result.Success) return rows;
             var map = new List<(string Id, string Platform)>();
-            foreach (var line in result.StandardOutput.Split('
-', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            foreach (var line in result.StandardOutput.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
             {
                 var bar = line.LastIndexOf('|');
                 if (bar > 0) map.Add((line[..bar].Replace("sha256:", "", StringComparison.Ordinal), line[(bar + 1)..]));
