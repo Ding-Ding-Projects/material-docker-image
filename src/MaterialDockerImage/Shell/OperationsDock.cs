@@ -112,6 +112,7 @@ public sealed class OperationsDock : Border
 
     public void Append(string line)
     {
+        line = TerminalText.Plain(line);
         transcript.AppendLine(line);
         if (transcript.Length > 400_000) transcript.Remove(0, transcript.Length - 300_000);
         if (search.IsActive) { if (search.Matches(line)) output.AppendText(line + Environment.NewLine); }

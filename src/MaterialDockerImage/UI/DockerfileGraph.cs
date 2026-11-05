@@ -14,8 +14,10 @@ public static class DockerfileGraph
     public static DockerGraph Parse(string source)
     {
         if (System.Text.Encoding.UTF8.GetByteCount(source) > 1024 * 1024) return new(Array.Empty<DockerStage>(), Array.Empty<GraphEdge>(), new[] { "Source-only mode: this Dockerfile exceeds the 1 MiB Canvas analysis limit. The complete source remains in the editor and can still be saved and built; no content was truncated." });
-        if (HasUnsupportedSyntax(source)) return new(Array.Empty<DockerStage>(), Array.Empty<GraphEdge>(), new[] { "Source-only mode: continuations, heredocs or escape directives require the text editor. Original source is retained unchanged." });
-        var lines = source.Replace("\r\n", "\n").Split('\n');
+        if (HasUnreadableSyntax(source)) return new(Array.Empty<DockerStage>(), Array.Empty<GraphEdge>(), new[] { "Source-only mode: heredocs, escape directives or a FROM split over lines require the text editor. Original source is retained unchanged." });
+        // Continued instructions (RUN ... \ and so on) are joined into one logical line that keeps the number of its first
+        // physical line, so stages and COPY --from links read correctly. Visual stage edits still refuse such files.
+        var lines = JoinContinuations(source.Replace("\r\n", "\n").Split('\n'));
         var stages = new List<DockerStage>(); var edges = new List<GraphEdge>(); var warnings = new List<string>();
         var bodies = new List<List<string>>();
         var references = new List<(int Target, string Source, string Kind)>();
@@ -51,7 +53,7 @@ public static class DockerfileGraph
             if (parent != null) edges.Add(new(parent.Index, reference.Target, reference.Kind));
         }
         if (stages.Count == 0) warnings.Add("No supported FROM stage found. Load or write a Dockerfile in Build, then parse it here.");
-        if (lines.Any(x => x.TrimEnd().EndsWith('\\'))) warnings.Add("Continued instructions are shown as source lines. Visual edits are limited to single-line FROM declarations.");
+        if (HasUnsupportedSyntax(source)) warnings.Add("Continued instructions are shown as single steps. Visual stage edits need a file without line continuations; use the text editor.");
         return new(stages, edges, warnings);
     }
     public static string EditStage(string source, DockerStage stage, string newBase, string newName)
@@ -81,6 +83,32 @@ public static class DockerfileGraph
         if (!match.Success) throw new InvalidOperationException("The source span is ambiguous; use the text editor.");
         var replacement = match.Groups[1].Value + newBase + (match.Groups[3].Success ? match.Groups[3].Value[..(match.Groups[3].Value.Length - match.Groups[4].Value.Length)] + newName : " AS " + newName) + match.Groups[5].Value;
         return source[..lineStart] + replacement + source[lineEnd..];
+    }
+    /// <summary>The physical lines with each continued instruction joined onto its first line; absorbed lines become empty,
+    /// so an index is still the physical line number.</summary>
+    private static string[] JoinContinuations(string[] physical)
+    {
+        var lines = (string[])physical.Clone();
+        for (int start = 0; start < lines.Length; start++)
+        {
+            var next = start + 1;
+            while (lines[start].TrimEnd(' ', '\t').EndsWith('\\') && next < lines.Length)
+            {
+                var head = lines[start].TrimEnd(' ', '\t');
+                lines[start] = head[..^1].TrimEnd() + " " + lines[next].Trim();
+                lines[next] = "";
+                next++;
+            }
+            start = next - 1;
+        }
+        return lines;
+    }
+    private static bool HasUnreadableSyntax(string source)
+    {
+        var lines = source.Replace("\r\n", "\n").Split('\n');
+        return source.Contains("<<", StringComparison.Ordinal)
+            || lines.Any(x => x.TrimStart().StartsWith("# escape", StringComparison.OrdinalIgnoreCase))
+            || lines.Any(x => x.TrimStart().StartsWith("FROM", StringComparison.OrdinalIgnoreCase) && x.TrimEnd(' ', '\t').EndsWith('\\'));
     }
     private static bool HasUnsupportedSyntax(string source) => source.Contains("<<", StringComparison.Ordinal) || source.Split('\n').Any(x => x.TrimEnd('\r',' ','\t').EndsWith('\\') || x.TrimStart().StartsWith("# escape", StringComparison.OrdinalIgnoreCase));
 }

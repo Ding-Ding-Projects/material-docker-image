@@ -15,6 +15,7 @@
     <Compile Include="../../src/MaterialDockerImage/UI/ContainerInspectFacts.cs" Link="ContainerInspectFacts.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/Loc.cs" Link="Loc.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/VocabularyDropRules.cs" Link="VocabularyDropRules.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/TerminalText.cs" Link="TerminalText.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/ConsoleLaunch.cs" Link="ConsoleLaunch.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/SegmentWidths.cs" Link="SegmentWidths.cs"/>
     <Compile Include="../../src/MaterialDockerImage/Services/LocStrings*.cs" LinkBase="Loc"/>

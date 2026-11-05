@@ -19,6 +19,17 @@ Reject(()=>DockerfileGraph.EditStage(source,graph.Stages[0],"alpine","final"),"d
 Reject(()=>DockerfileGraph.EditStage(source.Replace("alpine:3.20","ubuntu"),graph.Stages[0],"alpine","base"),"stale source edit rejected");
 foreach(var unsupported in new[]{"FROM alpine \\\n AS base\nFROM base AS final", "FROM alpine\nRUN <<EOF\nFROM imaginary\nEOF", "# escape=`\nFROM alpine"})
  Check(DockerfileGraph.Parse(unsupported).Stages.Count==0,"unsupported grammar remains source only");
+{
+    var continued="FROM alpine AS deps\nRUN apk add \\\n    curl \\\n    git\nENV A=1 \\\n    B=2\nFROM alpine AS final\nCOPY --from=deps \\\n  /app /app\n";
+    var continuedGraph=DockerfileGraph.Parse(continued);
+    Check(continuedGraph.Stages.Count==2 && continuedGraph.Stages[1].Line==6,"continued instructions keep their stages and the physical line of each FROM");
+    Check(continuedGraph.Stages[0].Instructions.Contains("RUN apk add curl git") && continuedGraph.Stages[0].Instructions.Contains("ENV A=1 B=2"),"continued instructions are joined onto their first line");
+    Check(continuedGraph.Edges.Any(e=>e.From==0&&e.To==1&&e.Label=="COPY"),"a continued COPY --from still links its stages");
+    Reject(()=>DockerfileGraph.EditStage(continued,continuedGraph.Stages[0],"ubuntu","deps"),"visual stage edits still refuse files with continuations");
+}
+Check(TerminalText.Plain("[33m1 warning found[0m (use docker --debug)")=="1 warning found (use docker --debug)","colour codes are removed from command output");
+Check(TerminalText.Plain("]8;;https://docs.docker.comlink]8;; and [2K[1Gprogress")=="link and progress","links and cursor codes are removed from command output");
+Check(TerminalText.Plain("plain #21 DONE 0.0s")=="plain #21 DONE 0.0s","output without control codes is unchanged");
 var lf="FROM alpine AS build\nRUN echo preserved\n";
 Check(DockerfileGraph.EditStage(lf,DockerfileGraph.Parse(lf).Stages[0],"ubuntu","build")=="FROM ubuntu AS build\nRUN echo preserved\n","LF preserved");
 Check(SourceSafety.IsCurrentSnapshot("a",1,"a",1),"same snapshot accepted");
