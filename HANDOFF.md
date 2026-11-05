@@ -101,7 +101,7 @@ The second pass added Build v2 with a BuildKit timeline and Bake, image detail t
   - Canvas: elbow connectors with rounded corners and labels, a stage layout that matches the board, and a minimap (click, drag, arrow keys, Page Up/Down, Home; M toggles it; hidden when the graph area is under 420 x 280).
   - Palette: a description under every command (`UI/CommandDescriptions.cs`, checked for completeness), searchable in both languages; titles such as "Go to Containers" translate their destination too.
   - Tables: `TwoLineColumn` (name over a caption, both searchable and exported as two columns), used for container name and image; the checkbox column can be turned off per table.
-  - Capture mode also renders the image detail, the open regex builder and a Creator step.
+  - Capture mode also renders the image detail, the open regex builder and a Creator step. Screenshots replaced with the 81 captures of workflow run 42017259445 at `fcf1a24`, reviewed before promotion.
   - Not exercised with real input: minimap drag and keys, builder pane switching, Creator step navigation, image detail actions. Board details with no real data or setting behind them were left out rather than invented (see ROADMAP).
 - Left on purpose: the information buttons and the regex builder button, which the boards omit but the feature requirements need. Not done: dedicated Images, Creator suggestions and Appearance studio pages from later boards, the three-pane regex builder redesign, the canvas minimap and elbow connectors, per-command palette descriptions, and two-line table cells with an optional checkbox column.
 
