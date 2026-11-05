@@ -124,6 +124,24 @@ Reject(()=>StructuredInputs.Cache("--push"),"unstructured cache option rejected"
 
 // Personal wording overlay: validated in full, never applied partially.
 Check(MaterialDockerImage.Services.Loc.ParseVocabulary("{\"version\":1,\"entries\":{\"Build\":\"Make\"}}")["Build"]=="Make","personal wording file accepted");
+Check(MaterialDockerImage.Services.Loc.ParseVocabulary("{\"schemaVersion\":1,\"entries\":{\"Build\":\"Make\"}}")["Build"]=="Make","personal wording file with schemaVersion, as the shared generator writes it, is accepted");
+foreach (var badHeader in new[] { "{\"entries\":{}}", "{\"schemaVersion\":2,\"entries\":{}}", "{\"schemaVersion\":\"1\",\"entries\":{}}", "{\"schemaVersion\":1,\"version\":2,\"entries\":{}}", "{\"schemaVersion\":1.5,\"entries\":{}}" })
+{
+    var refused = false;
+    try { MaterialDockerImage.Services.Loc.ParseVocabulary(badHeader); } catch (InvalidDataException) { refused = true; }
+    Check(refused, "personal wording file with a missing, wrong or conflicting version is refused: " + badHeader);
+}
+{
+    // The real shared file, when this machine has it: it must load in full through the same path a drop uses.
+    var shared = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Documents", "GitHub", "agent-global-memory", "PERSONAL_VOCABULARY.json");
+    if (File.Exists(shared))
+    {
+        var sharedLoad = MaterialDockerImage.Services.Loc.LoadVocabulary(shared);
+        Check(sharedLoad.Success && sharedLoad.Count > 0, "the shared personal wording file loads through the drop path (" + sharedLoad.Message + ")");
+        MaterialDockerImage.Services.Loc.ClearVocabulary();
+    }
+    else Console.WriteLine("SKIP the shared personal wording file is not on this machine, so its real load was not checked");
+}
 foreach(var bad in new[]{"[]","{\"entries\":{}}","{\"version\":2,\"entries\":{}}","{\"version\":1,\"entries\":{\"a\":1}}","{\"version\":1,\"entries\":{\"a\":\"x\",\"a\":\"y\"}}","{\"version\":1,\"entries\":{\""+new string('k',161)+"\":\"x\"}}","{\"version\":1,\"entries\":{\"k\":\""+new string('v',1001)+"\"}}"})
 { try { MaterialDockerImage.Services.Loc.ParseVocabulary(bad); throw new Exception("Expected refusal: invalid personal wording "+bad[..Math.Min(30,bad.Length)]); } catch(Exception e) when (e is System.Text.Json.JsonException or InvalidDataException) { count++; Console.WriteLine("PASS invalid personal wording rejected"); } }
 // Window-wide drop: an invalid file keeps the previously applied wording, a valid one supplies the celebration headline.

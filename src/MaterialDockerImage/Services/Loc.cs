@@ -204,7 +204,13 @@ public static partial class Loc
         using var document = JsonDocument.Parse(text, new JsonDocumentOptions { MaxDepth = 8 });
         var root = document.RootElement;
         if (root.ValueKind != JsonValueKind.Object) throw new InvalidDataException("The vocabulary must be a JSON object.");
-        if (!root.TryGetProperty("version", out var version) || version.ValueKind != JsonValueKind.Number || version.GetInt32() != 1) throw new InvalidDataException("Unsupported vocabulary version. Use \"version\": 1.");
+        // The shared generator writes "schemaVersion"; files made by hand for this app may say "version". Either must be 1, and a
+        // file that gives both must not disagree.
+        var hasSchema = root.TryGetProperty("schemaVersion", out var schemaVersion);
+        var hasVersion = root.TryGetProperty("version", out var version);
+        static bool IsOne(JsonElement e) => e.ValueKind == JsonValueKind.Number && e.TryGetInt32(out var n) && n == 1;
+        if ((!hasSchema && !hasVersion) || (hasSchema && !IsOne(schemaVersion)) || (hasVersion && !IsOne(version)))
+            throw new InvalidDataException("Unsupported vocabulary version. Use \"schemaVersion\": 1.");
         if (!root.TryGetProperty("entries", out var entries) || entries.ValueKind != JsonValueKind.Object) throw new InvalidDataException("The vocabulary needs an \"entries\" object.");
         var result = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var entry in entries.EnumerateObject())
