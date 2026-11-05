@@ -349,7 +349,8 @@ public sealed partial class SettingsPage
         StudioLock(sizes, "fontsize");
 
         FrameworkElement Group(string title, params UIElement[] content) => Ui.VStack(8, new UIElement[] { Ui.Overline(title) }.Concat(content).ToArray());
-        var grid = new StudioReflow(560, 16, [0, 1, 0], Group("Corner shape", corners, cornerNote), Group("Density", density), Group("Type scale", sizes, percent));
+        // Density needs about 400 px for its three labels next to the other two groups, so the row stacks below 880 px.
+        var grid = new StudioReflow(880, 16, [0, 1, 0], Group("Corner shape", corners, cornerNote), Group("Density", density), Group("Type scale", sizes, percent));
         return StudioPanel(grid);
     }
 }

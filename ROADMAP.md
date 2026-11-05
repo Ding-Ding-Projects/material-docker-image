@@ -45,8 +45,8 @@
 - [x] Show navigation rail labels at every window height (overrides the icon-only rail on the boards)
 - [x] Accept the shared personal wording file (`"version": 1`) when it is dropped on the window
 - [x] Build the later-board pages: full-page image detail, Creator open-step editor with the new Suggestions popups, the Appearance studio, the three-pane regex builder, the Canvas minimap and elbow connectors, palette command descriptions, two-line table cells and an optional checkbox column (checks pass; each view captured from the built app at 1440 x 960 bilingual and 960 x 720 with no cut or overflow)
-- [ ] Board details without a real setting or data source, deliberately not invented: base-image recommendation and layer source notes (Images), spring bounce, transition patterns, wallpaper preset and A/B compare (Appearance), allowed-value lines and named steps (Creator), live second lines in the palette, build-result footers on Canvas cards
-- [ ] Drive the new views with real input in the built window (minimap drag and keys, builder pane switching, Creator step navigation, image detail actions) and record receipts
+- [x] Build the board details from real sources: base image recommendations and layer source notes (Images), transition patterns, spring bounce, wallpaper preset and A/B compare (Appearance), live palette second lines, Canvas build-result footers
+- [x] Drive the new views with real input in the built window (minimap keys and toggle, builder pane switching, Creator step navigation, image detail and recommendations, palette live lines, A/B compare and wallpaper preset) and record a receipt; fix what the run found (`evidence/interactive-2026-11/boards-drive.json`)
 
 ## Delivered and bounded verification
 

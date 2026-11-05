@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "recordedUtc": "2026-11-05T13:05:00Z",
+  "sourceCommit": "0f8dcf0123d32f1aec851750f60fe53f302d84b4",
+  "artifact": {
+    "path": "src/MaterialDockerImage/bin/Release/net10.0-windows10.0.19041.0/win-x64/MaterialDockerImage.dll",
+    "sha256": "41bf8a8349aa8f8d1fe99211ad7f33c407426d0b5bbe9b921816db07fb5308fe",
+    "note": "Release build of the source commit above; earlier steps ran on the builds that preceded each fix listed under findings."
+  },
+  "host": {
+    "os": "Windows 11 Pro 10.0.26200",
+    "displayScale": "150 %",
+    "engine": "Docker Desktop 29.6.1, Linux, context desktop-linux, containerd image store"
+  },
+  "route": "Application launched on a hidden desktop with --software-rendering and --open-dockerfile; actions invoked through UI Automation patterns from a process on the same hidden desktop; keys posted to the window as WM_KEYDOWN messages; window captures through PrintWindow.",
+  "scope": "A three-stage probe Dockerfile with line continuations, built locally to the tag my-image:latest. That image and a second probe image were removed afterwards. Captures are not published because image and container lists also showed unrelated resources on the host.",
+  "steps": [
+    {
+      "action": "Build: Build with the probe Dockerfile",
+      "observed": "BuildKit run completed, exit 0; the operation panel shows plain text (no terminal colour codes)",
+      "result": "pass"
+    },
+    {
+      "action": "Canvas after the build",
+      "observed": "3 stages and 3 links drawn with elbow connectors; stage footers 'cached · from the build at 07:32' and '3.6 MB built image · cached' on the target",
+      "result": "pass"
+    },
+    {
+      "action": "Canvas: Zoom in three times, focus the minimap, arrow keys",
+      "observed": "The view moved down and the minimap's outline box followed",
+      "result": "pass"
+    },
+    {
+      "action": "Canvas: M with the minimap focused",
+      "observed": "The minimap hid and the toggle switched to Show minimap",
+      "result": "pass"
+    },
+    {
+      "action": "Images after a rebuild: select my-image:latest, Open full view",
+      "observed": "The list had reloaded (new image ID); the detail showed 20 history rows with notes 'Base: alpine:3.20', 'Your Dockerfile, line 10 … 15' and 'from stage deps / build'",
+      "result": "pass"
+    },
+    {
+      "action": "Image detail: Get recommendations",
+      "observed": "docker scout recommendations ran (exit 0, 5.7 s): 'No newer base image is recommended. The current base image is up to date. Current base alpine:3.20'",
+      "result": "pass"
+    },
+    {
+      "action": "Images: open the regular expression builder, toggle Tokens and library",
+      "observed": "The builder opened centred on the window with three panes; turning the pane off removed it and the pattern pane widened",
+      "result": "pass"
+    },
+    {
+      "action": "Palette: start from Node.js, then Replace draft",
+      "observed": "The confirmation appeared in the window and the Creator loaded 3 stages and 14 instructions",
+      "result": "pass"
+    },
+    {
+      "action": "Creator: select WORKDIR /app in the outline, Next step twice",
+      "observed": "The open step moved to 'Copy files · Step 4 / 8 · From stage build' and the outline selection followed",
+      "result": "pass"
+    },
+    {
+      "action": "Palette: type 'Go to'",
+      "observed": "Live second lines: Containers '12 running · 25 total' (matching the page), Images '107 images · 86.57 GB'; pages not yet loaded kept their description",
+      "result": "pass"
+    },
+    {
+      "action": "Settings › Appearance: Compare A/B, then Apply B",
+      "observed": "B (Default light) was drawn beside the live theme without changing it; Apply B switched the app to the light scheme as one undoable change",
+      "result": "pass"
+    },
+    {
+      "action": "Settings › Appearance: From wallpaper tile",
+      "observed": "Read the real desktop picture (read only): 'Taken from the desktop picture. Seed #B7CBD8.'; the hue, chroma and tone controls moved to 236°, 0.028 and 83",
+      "result": "pass"
+    },
+    {
+      "action": "Settings › Appearance: Density with the studio at full width",
+      "observed": "After the fix the shape, density and type row stacks below 880 px, so the density labels are no longer cut",
+      "result": "pass"
+    }
+  ],
+  "findings": [
+    "Fixed: a Dockerfile with RUN or ENV continuations made Canvas source-only and the Build editor count 0 stages; continued instructions are now joined for analysis.",
+    "Fixed: BuildKit colour codes appeared as '[33m' in the operation panel; output is reduced to plain text.",
+    "Fixed: docker output was decoded with the console code page, so Scout's box drawing showed as 'â”‚'; output is now read as UTF-8.",
+    "Fixed: tab page content was missing from UI Automation (screen readers saw only tab headers) because the tab template did not name PART_SelectedContentHost.",
+    "Fixed: the Canvas minimap had no automation peer, and M did nothing while the minimap had focus.",
+    "Fixed: an off-screen page kept its list after a build, so a rebuilt image opened as 'No such image'; hidden pages reload after any operation and the image detail falls back to the tag.",
+    "Fixed: the Appearance studio's Density segments were cut to 'Compa…'; the shape, density and type row now stacks below 880 px.",
+    "Not a defect: one capture showed a black band at the bottom; an immediate recapture was complete (paint race of the hidden-desktop capture)."
+  ],
+  "notExercised": [
+    "Pointer click and drag on the minimap: background mouse messages posted to a window on a hidden desktop do not reach WPF (it reads the real cursor), and a foreground drag would need the visible desktop, which is not used for these runs. Keyboard panning, the toggle and the M key were driven; the click-to-position maths has checks in tests/UiState (CanvasRoutingChecks).",
+    "Visible transition and spring animations were not timed; their plans have rule checks (AppearanceMotionChecks)."
+  ],
+  "note": "The host's application data folder was backed up before each run and restored from the pre-session backup afterwards (settings.json SHA-256 equal to the backup). The probe images were removed."
+}
