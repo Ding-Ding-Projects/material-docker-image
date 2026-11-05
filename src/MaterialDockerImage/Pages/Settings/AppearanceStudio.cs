@@ -31,9 +31,12 @@ public sealed partial class SettingsPage
         var presets = StudioPresets(syncs);
         var colour = StudioColourPanel(syncs);
         var motion = StudioMotionPanel(syncs, preview);
+        motionPanel = motion;
         var shape = StudioShapePanel(syncs);
         var editors = Ui.VStack(12, colour, motion, shape);
         var live = StudioPreviewPanel(syncs, preview);
+        comparePanel = StudioComparePanel(syncs);
+        comparePanel.Visibility = Visibility.Collapsed;
 
         // Search: filters the studio panels and the appearance rows below.
         var search = new SearchFilter("Search appearance", 260);
@@ -41,15 +44,16 @@ public sealed partial class SettingsPage
         searchState.Visibility = Visibility.Collapsed;
         var panels = new (FrameworkElement Element, string Words)[]
         {
-            (presets, "Presets preset theme file import save export"), (colour, "Colour color theme light dark system seed hue chroma tone roles contrast palette"),
-            (motion, "Motion animation reduced motion speed easing transition level"), (shape, "Corner shape radius density compact comfortable spacious type scale font size text"),
-            (live, "Live preview contrast reset undo")
+            (presets, "Presets preset theme file import save export wallpaper desktop background"), (colour, "Colour color theme light dark system seed hue chroma tone roles contrast palette"),
+            (motion, "Motion animation reduced motion speed easing transition level pattern shared axis fade through container transform slide spring bounce overshoot"), (shape, "Corner shape radius density compact comfortable spacious type scale font size text"),
+            (live, "Live preview contrast reset undo compare candidate apply"), (comparePanel, "Compare candidate preset seed wallpaper apply")
         };
         void ApplyStudioSearch()
         {
             var hits = 0;
             foreach (var (element, words) in panels)
             {
+                if (element == comparePanel && !search.IsActive) continue; // the comparison stays as the person left it
                 var show = !search.IsActive || search.Matches(words + " " + string.Join(" ", words.Split(' ').Select(Loc.T)));
                 element.Visibility = show ? Visibility.Visible : Visibility.Collapsed;
                 if (show && search.IsActive) hits++;
@@ -101,7 +105,7 @@ public sealed partial class SettingsPage
         body.SizeChanged += (_, e) => Arrange(e.NewSize.Width);
         Arrange(0);
         QueueContrast();
-        return Ui.VStack(12, toolbar, searchState, body);
+        return Ui.VStack(12, toolbar, searchState, body, comparePanel);
     }
 
     /// <summary>Runs the studio's synchronisers without letting their own control updates save anything.</summary>
@@ -193,8 +197,9 @@ public sealed partial class SettingsPage
         syncs.Add(Fill);
         var import = Ui.AsyncButton("Import theme file", Icons.Upload, ButtonKind.Outlined, () => ImportPresetAsync(null));
         import.HorizontalAlignment = HorizontalAlignment.Stretch;
+        var wallpaper = StudioWallpaperTile();
         var problem = AppearanceRuntime.PresetProblem is { } issue ? Ui.Text(Loc.T("appearance-presets.json could not be read, so saving presets is paused:") + " " + issue, 12, null, "Error", true, false) : null;
-        var panel = StudioPanel(Ui.VStack(10, Ui.Overline("Presets"), tiles, problem, import));
+        var panel = StudioPanel(Ui.VStack(10, Ui.Overline("Presets"), tiles, wallpaper, problem, import));
         return panel;
     }
 
@@ -218,9 +223,12 @@ public sealed partial class SettingsPage
         UpdateUndo();
         syncs.Add(UpdateUndo);
         foreach (var b in new[] { reset, undo }) b.HorizontalAlignment = HorizontalAlignment.Stretch;
-        var footer = new StudioColumns(150, 8, 2);
+        var compare = Ui.Button("Compare A/B", Icons.CompareArrows, ButtonKind.Tonal, () => ToggleCompare());
+        compare.ToolTip = Loc.T("Shows your appearance beside a candidate preset or seed without changing anything until you apply it.");
+        compare.HorizontalAlignment = HorizontalAlignment.Stretch;
+        var footer = new StudioColumns(230, 8, 2);
         footer.Add(reset); footer.Add(undo);
         var note = Ui.Caption("Example content drawn with your current appearance. Nothing in it runs.");
-        return StudioPanel(Ui.VStack(12, head, preview, note, footer));
+        return StudioPanel(Ui.VStack(12, head, preview, note, footer, compare));
     }
 }

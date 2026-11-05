@@ -5,6 +5,8 @@
 Settings > Appearance opens the appearance editor with a live preview. Every change applies immediately, is saved, and is recorded in local history; Undo and Redo keep the last 100 changes.
 
 - **Presets**: seven built-in presets plus your own. Apply, save as, rename, delete, export to a file and import from one (validated, 64 KiB limit, unknown fields rejected), and copy or paste a style.
+- **From wallpaper**: a preset tile in the studio that reads the current Windows desktop background and sets the seed colour from it. It asks Windows for the wallpaper path (`SystemParametersInfo`, then `HKCU\Control Panel\Desktop\WallPaper`), decodes the picture at 96 pixels wide and picks the most prominent colourful bucket (4 bits per channel, weighted towards saturated pixels, transparent pixels ignored). With no picture set (a solid colour, or a gap in a slideshow) it uses the solid background colour from `HKCU\Control Panel\Colors\Background`. A missing, oversized (over 64 MiB) or undecodable picture is reported as unreadable and the seed is left alone. It only reads: nothing in the registry or the file is written. The wallpaper is read only when the tile is chosen, never in documentation captures.
+- **Compare A/B**: the studio's **Compare A/B** button opens a comparison below the panes. A is the current appearance; B is a preset, the wallpaper colour or a typed seed. B's colour roles are computed by the same function the theme uses (`Theme.Roles`) into a resource dictionary that belongs to B's preview only, so the live theme does not change. Each side shows its own AA contrast verdict. **Apply B** applies the candidate as one undoable change that keeps your motion settings and every locked value.
 - **Colour**: theme (light, dark, system), seed colour, chroma, surface tint and per-role overrides. The colour picker has a saturation and value field usable with the keyboard, hue and alpha sliders, and editable values in HEX, RGB, HSL, HSV, HWB, CMYK, OKLab and OKLCH with copy buttons. Contrast badges show the WCAG ratio against each role's partner; colours outside sRGB are brought back into range with a warning.
 - **Shape and density**: corner radius scale and density, which change buttons, fields, chips, menus, cards and dialogs.
 - **Typography**: interface and code fonts from a searchable list of installed fonts, each drawn in its own font, plus heading weight.
@@ -29,10 +31,13 @@ Not built: per-element overrides are not yet part of appearance presets, export 
 
 Motion follows Material 3 easing and duration tokens. Choose Off, Reduced, Standard or Expressive and a speed from 0.5x to 2x.
 
-- Moving between rail destinations slides in the direction of the rail; other page changes fade through. Tabs slide.
+- **Transition pattern**: page and tab changes use the pattern chosen in the studio cards or the Transition pattern row: shared axis (the default; moves along the direction of travel in rail or tab order), fade through (fades in while growing slightly), container transform (grows out of a smaller container) or slide (comes in from the side of travel). Choosing a pattern plays it on the live preview. With Off nothing animates; with Reduced, Reduced motion or Low stimulation nothing moves and pages change with a 200 ms fade only.
+- **Spring bounce**: 0% to 100% (default 30%). At the Expressive level the emphasized easing used for movement and scale becomes a spring curve that overshoots its end by up to about 20% before settling; opacity never bounces. The studio's **Spring** easing chip draws the curve for the current bounce. At every other level, and whenever Reduced motion, Low stimulation or the Windows animation setting stops movement, the slider is disabled with the reason shown.
 - Dialogs grow in over a fading scrim, notifications slide in and fade out, and the output panel animates its height.
 - The rail indicator grows from its centre, buttons respond to presses, switches slide and expanders reveal their content.
 - Table rows fade in on first load.
+
+Both new motion values are saved in settings.json (`TransitionPattern`, `SpringBounce`), are part of Undo, local history and the settings export, can be locked like every other appearance value (lock ids `transition` and `springbounce`), are kept when a preset is applied, and are validated in imported presets.
 
 Reduced motion, Low stimulation, the Windows animation setting and capture mode always win over the saved level. Every animation ends on the element's normal state, so an interrupted animation never leaves anything hidden or moved.
 

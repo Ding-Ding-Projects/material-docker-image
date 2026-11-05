@@ -51,15 +51,18 @@ public static class Theme
     public static IReadOnlyList<(SolidColorBrush Brush, Color Base)> AnimatedBrushes => animated;
     private static readonly List<(SolidColorBrush Brush, Color Base)> animated = new();
 
+    /// <summary>Whether a theme name resolves to dark colours right now ("System" reads the Windows app mode).</summary>
+    public static bool ResolvesDark(string theme) => theme switch { "Light" => false, "System" => SystemPrefersDark(), _ => true };
+
     /// <summary>
-    /// Applies every colour role from an appearance: theme palette, seed hue (and chroma for near-grey seeds), surface
-    /// tint, high contrast and per-role overrides. When <paramref name="animateRainbow"/> is set, rainbow roles get
-    /// unfrozen brushes so the runtime can rotate their hue without replacing resources.
+    /// Computes every colour role of an appearance without touching any resource: theme palette, seed hue (and chroma for
+    /// near-grey seeds), surface tint, high contrast and per-role overrides. <c>Rainbow</c> marks roles the animated rainbow
+    /// accent rotates. <see cref="Apply(ResourceDictionary, MaterialDockerImage.UI.AppearanceState, bool, bool)"/> writes exactly these
+    /// colours, so a comparison preview built from this result matches what applying the appearance would show.
     /// </summary>
-    public static void Apply(ResourceDictionary resources, MaterialDockerImage.UI.AppearanceState appearance, bool highContrast, bool animateRainbow = false)
+    public static IReadOnlyList<(string Key, Color Color, bool Rainbow)> Roles(MaterialDockerImage.UI.AppearanceState appearance, bool highContrast, bool isDark)
     {
-        IsDark = appearance.Theme switch { "Light" => false, "System" => SystemPrefersDark(), _ => true };
-        var palette = IsDark ? Dark : Light;
+        var palette = isDark ? Dark : Light;
         double? seedHue = null; var chroma = 1.0;
         if (TryParse(appearance.Seed, out var seedColor)) { var (h, s, _) = Hsl(seedColor); seedHue = h; chroma = Math.Clamp(s / 0.35, 0, 1); }
         Color Base(string key)
@@ -69,12 +72,12 @@ public static class Theme
             return color;
         }
         var primary = Base("Primary");
-        animated.Clear();
+        var result = new List<(string, Color, bool)>(palette.Count);
         foreach (var key in palette.Keys)
         {
             var color = Base(key);
             if (appearance.SurfaceTint > 0 && key.StartsWith("Surface", StringComparison.Ordinal)) color = Mix(color, primary, appearance.SurfaceTint * 0.14);
-            if (highContrast) color = Contrast(key, color);
+            if (highContrast) color = Contrast(key, color, isDark);
             var rainbow = false;
             if (appearance.Roles.TryGetValue(key, out var custom))
             {
@@ -82,6 +85,21 @@ public static class Theme
                 else if (MaterialDockerImage.UI.AppearanceRgba.TryParseStorageHex(custom, out var c)) color = Color.FromArgb(c.A8, c.R8, c.G8, c.B8);
             }
             if (appearance.Rainbow && Array.IndexOf(SeedFollowers, key) >= 0 && !appearance.Roles.ContainsKey(key)) rainbow = true;
+            result.Add((key, color, rainbow));
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Applies every colour role from an appearance (see <see cref="Roles"/>). When <paramref name="animateRainbow"/> is set,
+    /// rainbow roles get unfrozen brushes so the runtime can rotate their hue without replacing resources.
+    /// </summary>
+    public static void Apply(ResourceDictionary resources, MaterialDockerImage.UI.AppearanceState appearance, bool highContrast, bool animateRainbow = false)
+    {
+        IsDark = ResolvesDark(appearance.Theme);
+        animated.Clear();
+        foreach (var (key, color, rainbow) in Roles(appearance, highContrast, IsDark))
+        {
             if (!(rainbow && animateRainbow) && resources.Contains(key) && resources[key] is SolidColorBrush { IsFrozen: true } same && same.Color == color) continue; // unchanged: skip the tree-wide resource update
             var brush = new SolidColorBrush(color);
             if (rainbow && animateRainbow) animated.Add((brush, color)); else brush.Freeze();
@@ -99,11 +117,11 @@ public static class Theme
     /// <summary>Rotates the hue of a rainbow brush's base colour (used by the runtime timer).</summary>
     public static Color RotateHue(Color color, double degrees) { var (h, s, l) = Hsl(color); return FromHsl(h + degrees, s, l, color.A); }
 
-    private static Color Contrast(string role, Color color) => role switch
+    private static Color Contrast(string role, Color color, bool isDark) => role switch
     {
-        "OnSurfaceVariant" or "Outline" => IsDark ? Colors.White : Colors.Black,
-        "OutlineVariant" => IsDark ? Color.FromRgb(0xC4, 0xC6, 0xD0) : Color.FromRgb(0x44, 0x47, 0x4F),
-        "Surface" or "SurfaceLow" or "SurfaceLowest" => IsDark ? Colors.Black : Colors.White,
+        "OnSurfaceVariant" or "Outline" => isDark ? Colors.White : Colors.Black,
+        "OutlineVariant" => isDark ? Color.FromRgb(0xC4, 0xC6, 0xD0) : Color.FromRgb(0x44, 0x47, 0x4F),
+        "Surface" or "SurfaceLow" or "SurfaceLowest" => isDark ? Colors.Black : Colors.White,
         _ => color
     };
 

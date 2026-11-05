@@ -33,7 +33,9 @@ public static class AppearanceLocks
         new("tint", "Surface tint", nameof(AppearanceState.SurfaceTint)),
         new("rainbow", "Rainbow accent", nameof(AppearanceState.Rainbow)),
         new("motionlevel", "Motion level", nameof(AppearanceState.MotionLevel)),
-        new("motionspeed", "Motion speed", nameof(AppearanceState.MotionSpeed))
+        new("motionspeed", "Motion speed", nameof(AppearanceState.MotionSpeed)),
+        new("transition", "Transition pattern", nameof(AppearanceState.TransitionPattern)),
+        new("springbounce", "Spring bounce", nameof(AppearanceState.SpringBounce))
     ];
 
     /// <summary>The element-style properties that can be locked one at a time, with the short key used in their lock ids.</summary>

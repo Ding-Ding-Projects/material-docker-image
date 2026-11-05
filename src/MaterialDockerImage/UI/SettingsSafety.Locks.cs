@@ -28,7 +28,7 @@ public static class ElementLocks
         ["targets"] = ["LargerTargets"], ["uifont"] = ["UiFontFamily"], ["monofont"] = ["MonoFontFamily"], ["fontsize"] = ["FontSize"],
         ["headingweight"] = ["HeadingWeight"], ["railicons"] = ["RailIconStyle"], ["motionlevel"] = ["MotionLevel"],
         ["motionspeed"] = ["MotionSpeed"], ["motion"] = ["ReducedMotion"], ["elevation"] = ["ElevationScale"], ["tint"] = ["SurfaceTint"],
-        ["rainbow"] = ["RainbowAccent"], ["logo"] = ["LogoKind", "LogoSymbol", "LogoImageFile"],
+        ["rainbow"] = ["RainbowAccent"], ["transition"] = ["TransitionPattern"], ["springbounce"] = ["SpringBounce"], ["logo"] = ["LogoKind", "LogoSymbol", "LogoImageFile"],
         ["schedules"] = ["ScheduleRules", "ScheduleSourceFile"],
         ["schedulehttps"] = ["ScheduleHttpsUrl", "ScheduleHttpsPollMinutes"], ["schedulehomeassistant"] = ["ScheduleHaBaseUrl", "ScheduleHaEntity", "ScheduleHaPollMinutes"],
         ["soundvolume"] = ["SoundVolume"], ["quiethours"] = ["QuietHoursEnabled", "QuietHoursStart", "QuietHoursEnd"]

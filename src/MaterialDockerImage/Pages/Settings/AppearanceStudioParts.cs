@@ -254,6 +254,21 @@ internal sealed class StudioEasingCurve : Border
         if (animates) figure.Segments.Add(new BezierSegment(new Point(x0 + w * token.X1, y0 - h * token.Y1), new Point(x0 + w * token.X2, y0 - h * token.Y2), new Point(x0 + w, y0 - h), true));
         else { figure.Segments.Add(new LineSegment(new Point(x0, y0 - h), true)); figure.Segments.Add(new LineSegment(new Point(x0 + w, y0 - h), true)); }
         curve.Data = new PathGeometry([figure]);
+        Canvas.SetTop(end, 12);
+        AutomationProperties.SetName(this, description);
+        ToolTip = description;
+    }
+
+    /// <summary>Draws a sampled curve (the spring easing), scaled down so an overshoot above the end stays inside the box.</summary>
+    public void ShowSamples(IReadOnlyList<(double T, double Value)> samples, string description)
+    {
+        const double x0 = 16, y0 = 104, w = 168, room = 96;
+        var top = Math.Max(1, samples.Count == 0 ? 1 : samples.Max(p => p.Value));
+        var h = room / top;
+        var figure = new PathFigure { StartPoint = new Point(x0, y0) };
+        foreach (var (t, v) in samples.Skip(1)) figure.Segments.Add(new LineSegment(new Point(x0 + w * t, y0 - h * v), true));
+        curve.Data = new PathGeometry([figure]);
+        Canvas.SetTop(end, y0 - h - 4);
         AutomationProperties.SetName(this, description);
         ToolTip = description;
     }

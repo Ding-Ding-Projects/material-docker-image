@@ -87,6 +87,10 @@ public sealed class UserSettings
     // Appearance editor values (see AppearanceState). Ranges are enforced by AppearanceState.Normalize.
     public string MotionLevel { get; set; } = "Standard";
     public double MotionSpeed { get; set; } = 1;
+    /// <summary>Page and tab transition: SharedAxis, FadeThrough, ContainerTransform or Slide (see AppearanceTransitions).</summary>
+    public string TransitionPattern { get; set; } = AppearanceTransitions.Default;
+    /// <summary>Spring overshoot of Expressive motion, 0 to 100 percent. Other motion levels ignore it.</summary>
+    public int SpringBounce { get; set; } = AppearanceSpring.Default;
     public double CornerScale { get; set; } = 1;
     public string UiFontFamily { get; set; } = "";
     public string MonoFontFamily { get; set; } = "";
@@ -141,6 +145,8 @@ public sealed class UserSettings
         ScheduleHaEntity = ScheduleSourceRules.IsValidEntityId(ScheduleHaEntity) ? ScheduleHaEntity : "";
         ScheduleHaPollMinutes = ScheduleSourceRules.ClampPollMinutes(ScheduleHaPollMinutes, ScheduleSourceRules.MinHomeAssistantPollMinutes);
         SoundVolume = Math.Clamp(SoundVolume, 0, 100);
+        if (!AppearanceTransitions.IsKnown(TransitionPattern)) TransitionPattern = AppearanceTransitions.Default;
+        SpringBounce = AppearanceSpring.Clamp(SpringBounce);
         if (!ScheduleEvaluator.TryParseTime(QuietHoursStart, out _)) QuietHoursStart = "22:00";
         if (!ScheduleEvaluator.TryParseTime(QuietHoursEnd, out _)) QuietHoursEnd = "07:00";
     }

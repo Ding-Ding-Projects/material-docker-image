@@ -324,17 +324,16 @@ public partial class MainWindow : Window
     private int shownTab = -1;
 
     /// <summary>
-    /// Material transition for the page host: shared axis X between tabs and between rail destinations (direction from
-    /// their order), fade through otherwise. Snaps instantly when motion is off.
+    /// The page host transition uses the pattern chosen in Appearance (shared axis by default). The direction comes from the
+    /// order of tabs or rail destinations; a destination outside the rail counts as forward. Snaps instantly when motion is off.
     /// </summary>
     private void TransitionPage(string key)
     {
         if (shownKey == null || (shownKey == key && shownTab == currentTab)) { shownKey = key; shownTab = currentTab; return; }
         var rail = Destinations.All.Where(d => d.OnRail).Select(d => d.Key).ToList();
         int from = rail.IndexOf(shownKey), to = rail.IndexOf(key);
-        if (shownTab != currentTab && shownTab >= 0) Motion.SharedAxis(PageHost, MotionAxis.X, currentTab > shownTab);
-        else if (from >= 0 && to >= 0) Motion.SharedAxis(PageHost, MotionAxis.X, to > from);
-        else Motion.FadeThrough(PageHost);
+        var forward = shownTab != currentTab && shownTab >= 0 ? currentTab > shownTab : from < 0 || to < 0 || to > from;
+        Motion.PageTransition(PageHost, forward);
         shownKey = key; shownTab = currentTab;
     }
 
@@ -876,6 +875,18 @@ public partial class MainWindow : Window
         ShowNotifications();
         await Shot("notification-centre");
         host.Overlay.CloseAll();
+        Navigate("Settings");
+        if (Page("Settings") is Pages.SettingsPage motionPage && motionPage.CaptureMotion())
+        {
+            await Task.Delay(400);
+            await Shot("settings-motion");
+        }
+        if (Page("Settings") is Pages.SettingsPage settingsPage && settingsPage.CaptureCompare(true))
+        {
+            await Task.Delay(400);
+            await Shot("settings-compare");
+            settingsPage.CaptureCompare(false);
+        }
         return written;
     }
 
