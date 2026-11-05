@@ -61,6 +61,9 @@ public sealed class EditorSuggestionsList
         signature.Margin = new Thickness(0, 0, 0, 8);
         signature.MaxWidth = 760;
         var stack = new StackPanel { Margin = new Thickness(0, 0, 14, 14) };
+        // A popup inherits from the editor it is anchored to, which uses the monospace font; prose here uses the body font
+        // and the code parts (labels, signature, example) set the monospace font themselves.
+        stack.SetResourceReference(TextElement.FontFamilyProperty, "TextFont");
         stack.Children.Add(signature);
         stack.Children.Add(card);
         Popup = new Popup { Child = stack, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative };

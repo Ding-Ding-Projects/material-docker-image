@@ -21,7 +21,32 @@ public static class CreatorStepChecks
         StepNames();
         StepPatches();
         ValueSets();
+        HintsTranslate();
         return count;
+    }
+
+    /// <summary>Every step hint the starters produce, and every starter name, reads in Cantonese (hints are composed as
+    /// "A · B" and translated phrase by phrase).</summary>
+    static void HintsTranslate()
+    {
+        var before = MaterialDockerImage.Services.Loc.Language;
+        MaterialDockerImage.Services.Loc.Language = "Cantonese";
+        try
+        {
+            var english = new List<string>();
+            foreach (var starter in DockerfileStarters.All)
+            {
+                var document = starter.Create();
+                if (MaterialDockerImage.Services.Loc.T(document.Origin) == document.Origin && document.Origin.Length > 0) english.Add(document.Origin);
+                foreach (var instruction in document.Stages.SelectMany(s => s.Instructions))
+                    foreach (var phrase in DockerfileModel.Hint(instruction).Split(" · ", StringSplitOptions.RemoveEmptyEntries))
+                        if (MaterialDockerImage.Services.Loc.Line(phrase) == phrase && System.Text.RegularExpressions.Regex.IsMatch(phrase, "[a-z]{3}")) english.Add(phrase);
+            }
+            foreach (var chip in new[] { "RUN with cache mount", "RUN heredoc script", "Non-root USER" })
+                if (MaterialDockerImage.Services.Loc.T(chip) == chip) english.Add(chip);
+            Check(english.Count == 0, "every starter step hint and starter name has Cantonese" + (english.Count > 0 ? ": " + string.Join(" | ", english.Distinct()) : ""));
+        }
+        finally { MaterialDockerImage.Services.Loc.Language = before; }
     }
 
     static DockerInstruction FirstRun(DockerfileDocument document) => document.Stages.SelectMany(s => s.Instructions).First(i => i.Kind == InstructionKind.Run);

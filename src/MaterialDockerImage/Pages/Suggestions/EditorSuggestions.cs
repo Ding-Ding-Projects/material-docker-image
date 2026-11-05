@@ -65,6 +65,7 @@ public sealed class EditorSuggestions
         hint = new Popup { Child = hintCard, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative, PlacementTarget = box };
 
         var hoverCard = new Border { Child = hoverBody, CornerRadius = new CornerRadius(10), Padding = new Thickness(12, 8, 12, 10), BorderThickness = new Thickness(1), Margin = new Thickness(0, 0, 12, 12), Effect = Ui.Elevation(12, 3, .3), IsHitTestVisible = false };
+        hoverCard.SetResourceReference(System.Windows.Documents.TextElement.FontFamilyProperty, "TextFont");
         hoverCard.SetResourceReference(Border.BackgroundProperty, "SurfaceHigh");
         hoverCard.SetResourceReference(Border.BorderBrushProperty, "OutlineVariant");
         hover = new Popup { Child = hoverCard, AllowsTransparency = true, StaysOpen = true, Focusable = false, Placement = PlacementMode.Relative, PlacementTarget = box };
@@ -205,6 +206,8 @@ public sealed class EditorSuggestions
         HideHover();
         Position(list.Popup, result.Start, true);
         list.Show(matches, result.Signature, result.Syntax, Language == EditorSuggestionLanguage.Dockerfile);
+        // Placed again once the list is filled and open, so the edge checks use the card's real size, not an empty one.
+        Position(list.Popup, result.Start, true);
         if (list.Selected is { } selected) Announce(Loc.T("Suggestions") + ": " + matches.Count + ". " + EditorSuggestionsList.AccessibleName(selected.Item));
     }
 
@@ -366,22 +369,32 @@ public sealed class EditorSuggestions
         }
         if (rect.IsEmpty) rect = new Rect(8, 8, 1, 16);
         popup.PlacementTarget = Box;
-        popup.Placement = PlacementMode.Relative;
-        var x = Math.Max(0, rect.Left - (alignIcon ? 36 : 0));
-        var y = rect.Bottom + 2;
-        // Keep the popup inside the window: shift it left when it would run past the right edge, and open it above the
-        // caret line when there is not enough room below.
-        if (Window.GetWindow(Box) is { } window && popup.Child is FrameworkElement child && window.Content is UIElement content)
+        var anchor = rect;
+        var left = Math.Max(0, rect.Left - (alignIcon ? 36 : 0));
+        // Custom placement: WPF passes the popup's real rendered size, so the window-edge checks never work from an empty
+        // or stale measure. The card shifts left at the right edge and opens above the line when there is no room below;
+        // with room on neither side it stays inside the window even if it covers the line.
+        popup.Placement = PlacementMode.Custom;
+        popup.HorizontalOffset = 0;
+        popup.VerticalOffset = 0;
+        popup.CustomPopupPlacementCallback = (popupSize, _, _) =>
         {
-            child.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
-            var size = child.DesiredSize;
-            var origin = Box.TranslatePoint(new Point(0, 0), content);
-            var room = content.RenderSize;
-            if (origin.X + x + size.Width > room.Width - 8) x = Math.Max(-origin.X + 8, room.Width - 8 - size.Width - origin.X);
-            if (origin.Y + y + size.Height > room.Height - 8 && origin.Y + rect.Top - 2 - size.Height >= 8) y = rect.Top - 2 - size.Height;
-        }
-        popup.HorizontalOffset = x;
-        popup.VerticalOffset = y;
+            var dpi = System.Windows.Media.VisualTreeHelper.GetDpi(Box);
+            var width = popupSize.Width / dpi.DpiScaleX;
+            var height = popupSize.Height / dpi.DpiScaleY;
+            var x = left;
+            var y = anchor.Bottom + 2;
+            if (Window.GetWindow(Box) is { Content: UIElement content } && content.IsAncestorOf(Box))
+            {
+                var origin = Box.TranslatePoint(new Point(0, 0), content);
+                var room = content.RenderSize;
+                if (origin.X + x + width > room.Width - 8) x = Math.Max(-origin.X + 8, room.Width - 8 - width - origin.X);
+                if (origin.Y + y + height > room.Height - 8)
+                    y = origin.Y + anchor.Top - 2 - height >= 8 ? anchor.Top - 2 - height : Math.Max(-origin.Y + 8, room.Height - 8 - height - origin.Y);
+            }
+            return [new CustomPopupPlacement(new Point(x * dpi.DpiScaleX, y * dpi.DpiScaleY), PopupPrimaryAxis.None)];
+        };
+        if (popup.IsOpen) { popup.HorizontalOffset = 1; popup.HorizontalOffset = 0; }
     }
 
     private void CloseList() { list.Close(); current = null; explicitOpen = false; }

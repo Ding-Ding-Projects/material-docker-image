@@ -124,7 +124,7 @@ public sealed partial class CreatorPage
             if (beforeStart) DockerfileLint.InsertBeforeStart(stage, instruction); else InsertAfterExpanded(stage, instruction);
             expanded = instruction;
             Changed();
-        }, 36, false);
+        }, 36); // Translated: phrases such as "Non-root USER" read in Cantonese; bare keywords have no translation and stay as they are.
 
     private void InsertAfterExpanded(DockerfileStage stage, DockerInstruction instruction)
     {
@@ -334,7 +334,7 @@ public sealed partial class CreatorPage
         foreach (var (instruction, summary, hint, card) in cardViews)
         {
             summary.Text = DockerfileModel.Summary(instruction);
-            hint.Text = Loc.T(DockerfileModel.Hint(instruction));
+            hint.Text = Loc.Line(DockerfileModel.Hint(instruction));
             var invalid = DockerfileModel.Validate(instruction).Count > 0;
             var marked = expanded == instruction || highlighted == instruction;
             card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : marked ? "Primary" : "OutlineVariant");
@@ -354,7 +354,7 @@ public sealed partial class CreatorPage
         chip.VerticalAlignment = VerticalAlignment.Top;
         var summary = Ui.Mono(DockerfileModel.Summary(instruction), 13, "OnSurface", false);
         summary.ToolTip = summary.Text;
-        var hint = Ui.Caption(DockerfileModel.Hint(instruction));
+        var hint = Ui.Caption(Loc.Line(DockerfileModel.Hint(instruction)));
         StackPanel text;
         if (DockerfileStepNames.HasName(instruction))
         {
@@ -518,7 +518,7 @@ public sealed partial class CreatorPage
     private Action? beginRename;
 
     private string StepLine(List<DockerInstruction> list, DockerInstruction instruction) =>
-        $"{Loc.T("Step")} {list.IndexOf(instruction) + 1} / {list.Count}" + (ReferenceEquals(list, doc.Preamble) ? " · " + Loc.T("global") : "") + " · " + Loc.T(DockerfileModel.Hint(instruction));
+        $"{Loc.T("Step")} {list.IndexOf(instruction) + 1} / {list.Count}" + (ReferenceEquals(list, doc.Preamble) ? " · " + Loc.T("global") : "") + " · " + Loc.Line(DockerfileModel.Hint(instruction));
 
     /// <summary>The open step: keyword, title, step position, previous/next, collapse and the step menu, then its form.</summary>
     private FrameworkElement BuildFocused(List<DockerInstruction> list, DockerInstruction instruction)

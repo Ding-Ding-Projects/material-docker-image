@@ -50,6 +50,16 @@ public sealed partial class CreatorPage
         // The outline of the selected stage: one row per line, click to open that step in the centre.
         System.Windows.Automation.AutomationProperties.SetName(outlineList, Loc.T("Instructions"));
         ScrollViewer.SetHorizontalScrollBarVisibility(outlineList, ScrollBarVisibility.Disabled);
+        // F2 on an outline row renames that step, as it does on a card or the open step.
+        outlineList.PreviewKeyDown += (_, e) =>
+        {
+            if (e.Key != System.Windows.Input.Key.F2 || System.Windows.Input.Keyboard.Modifiers != System.Windows.Input.ModifierKeys.None) return;
+            if (outlineList.SelectedItem is not ListBoxItem { Tag: int row } || row < 0 || doc.Stages.Count == 0) return;
+            var instructions = doc.Stages[selectedStage].Instructions;
+            if (row >= instructions.Count) return;
+            RenameStep(instructions[row]);
+            e.Handled = true;
+        };
         outlineList.SelectionChanged += (_, _) =>
         {
             if (syncingOutline || outlineList.SelectedItem is not ListBoxItem { Tag: int index }) return;

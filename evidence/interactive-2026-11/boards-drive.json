@@ -79,6 +79,11 @@
       "action": "Settings › Appearance: Density with the studio at full width",
       "observed": "After the fix the shape, density and type row stacks below 880 px, so the density labels are no longer cut",
       "result": "pass"
+    },
+    {
+      "action": "Creator: select the named step 'Install dependencies' in the outline, F2, type 'Install npm packages', Enter",
+      "observed": "The open step title, the outline row and the source line '# step: Install npm packages' all changed, with a confirmation; F2 from the outline needed a fix first",
+      "result": "pass"
     }
   ],
   "findings": [
@@ -89,7 +94,11 @@
     "Fixed: the Canvas minimap had no automation peer, and M did nothing while the minimap had focus.",
     "Fixed: an off-screen page kept its list after a build, so a rebuilt image opened as 'No such image'; hidden pages reload after any operation and the image detail falls back to the tag.",
     "Fixed: the Appearance studio's Density segments were cut to 'Compa…'; the shape, density and type row now stacks below 880 px.",
-    "Not a defect: one capture showed a black band at the bottom; an immediate recapture was complete (paint race of the hidden-desktop capture)."
+    "Not a defect: one capture showed a black band at the bottom; an immediate recapture was complete (paint race of the hidden-desktop capture).",
+    "Fixed: F2 on an outline row did nothing; it now renames that step.",
+    "Fixed: suggestion documentation inherited the editor's monospace font; prose now uses the body font.",
+    "Fixed: Creator quick-add chips and step hints were English in Cantonese (the chips were created untranslated, hints are composed 'A · B' and needed phrase-by-phrase translation); a check now covers every starter hint and starter name.",
+    "Changed: the suggestions popup is placed through WPF's custom placement with its real size, so it stays inside the window; a capture-time log confirmed the card at 672-1432 px of a 1440 px window. Offscreen captures can still show it outside because the capture window is wider than the monitor's work area there."
   ],
   "notExercised": [
     "Pointer click and drag on the minimap: background mouse messages posted to a window on a hidden desktop do not reach WPF (it reads the real cursor), and a foreground drag would need the visible desktop, which is not used for these runs. Keyboard panning, the toggle and the M key were driven; the click-to-position maths has checks in tests/UiState (CanvasRoutingChecks).",
