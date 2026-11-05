@@ -10,7 +10,7 @@ State on main (4 November 2026, after the built-window drive):
 - Per-element appearance editor and a general authenticator (DPAPI storage, encrypted backups).
 - Regular expression builder: 75 of 83 parity topics implemented, none partial, 8 impossible on .NET; adds a windowless --regex-run automation mode; table filters now match each column, so anchors work.
 - Registry sign-in and sign-out, interactive terminals with a classic console option.
-- Checks: build.bat -Tests passes 23 core, 2,641 UI-state and 24 checklist checks.
+- Checks: build.bat -Tests passes 23 core, 2,647 UI-state and 24 checklist checks.
 - Interactive receipt: evidence/interactive-2026-11/receipt.json, 38 steps through UI Automation on a hidden desktop.
 
 Next:

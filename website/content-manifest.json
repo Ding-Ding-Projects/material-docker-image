@@ -92,7 +92,7 @@
     },
     {
       "path": "docs/features/regex-parity.md",
-      "sha256": "afe7c42b85ebb4feac64109628ec24915d4908c429967493e5ef1b053169fa88"
+      "sha256": "cf34f513a4075b7283ae5f30759c9f4f6b1b60d059c02860263d81946f1978d4"
     },
     {
       "path": "docs/features/resources.md",
@@ -112,7 +112,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "6e7ae292d71da96c44a20f480120fcbfd682cbf321eb3c5207a0bc979a16a8b5"
+      "sha256": "dbfa2c6a9d07f211895ab81d0bee9fdf46560fc71d723b416bbe23d7a0b9d976"
     },
     {
       "path": "ROADMAP.md",
@@ -120,7 +120,7 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "9af510341a7db417805640d38b22e450c75e3a817de917e8b6f6d62a2fed33ae"
+      "sha256": "c1deed8a6541773c023b68e6a79f894ab4218e94cbb20bfe4d0fbc825eb021cd"
     },
     {
       "path": "wiki/Home.md",

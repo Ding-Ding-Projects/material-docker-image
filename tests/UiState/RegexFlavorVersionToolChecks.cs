@@ -88,5 +88,17 @@ public static class RegexFlavorVersionToolChecks
         }
         // The inline form is what the "as the s flag, not inline" remark warns about: current JavaScript still rejects (?s).
         Check(Execute(node, ["-e", NodeProbe], JsonSerializer.Serialize(new { p = "(?s)a.b", f = "", s = "a\nb" })) == "N", "Node still rejects the inline (?s) form, as the remark says");
+
+        // The "ECMAScript 2017 and earlier" side needs an engine of that age, such as Node 8.0.0 (V8 5.8). It is probed only when
+        // REGEX_NODE_ES2017 names one, because no current machine ships it; otherwise this side is reported as skipped.
+        var old = Environment.GetEnvironmentVariable("REGEX_NODE_ES2017");
+        if (old is not { Length: > 0 } || Execute(old, ["-e", "console.log('ok')"], "") != "ok") { Console.WriteLine("SKIP no ECMAScript 2017 engine given in REGEX_NODE_ES2017, so the 2017 rejections were not probed"); return; }
+        foreach (var (id, pattern, flags) in cases)
+        {
+            var construct = RegexFlavors.Construct(id);
+            var expected = Expected(RegexFlavorVersions.Cell(id, "js", "es2017").Support);
+            var actual = Execute(old, ["-e", NodeProbe], JsonSerializer.Serialize(new { p = pattern, f = flags, s = construct.ProbeSubject }));
+            Check(actual == expected, $"an ECMAScript 2017 engine agrees with the 2017 row on {construct.Label} (table {expected}, engine {actual})");
+        }
     }
 }

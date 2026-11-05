@@ -322,5 +322,16 @@
     "a winning whack-a-mole round: on a hidden desktop every UI Automation press arrives about two seconds late and posted mouse or key input does not reach the window, so no driven press lands inside the one-second window of a mole",
     "camera QR registration (opening a camera raises the Windows permission prompt and the camera light on the host)"
   ],
-  "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged)."
+  "note": "The test host's data folders were backed up before these steps and restored byte for byte afterwards (settings.json SHA-256 unchanged).",
+  "declinedByMaintainer": {
+    "date": "2026-11-05",
+    "items": [
+      "Windows Hello passkey prompt",
+      "camera QR registration",
+      "pointer clicks on locked controls",
+      "the default Windows Terminal path of Open terminal",
+      "a winning whack-a-mole round with real pointer input"
+    ],
+    "reason": "Each needs the maintainer's visible desktop; the maintainer chose not to allow that, so these stay unexercised by decision rather than by oversight."
+  }
 }

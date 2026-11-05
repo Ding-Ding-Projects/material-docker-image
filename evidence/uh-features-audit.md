@@ -317,3 +317,8 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 - Checks: `build.bat -Tests` passes 23 core, 2,612 UI-state and 24 checklist checks.
 - Clipboard QR import is now driven in the window: a QR picture on the clipboard became the account "ClipboardCheck · mdi-clipboard", and its next code matched an independent RFC 6238 calculation. Receipt: 37 steps.
 - Build companion: the single-file companion now carries the complete source of its commit and builds from it with no checkout present (driven end to end: Succeeded, exit code 0). Publishing fails unless the executable reports the packed commit. Checks: 2,641 UI-state. Receipt: 38 steps.
+
+## Update, 2026-11-05
+
+- Regular expression parity: the "ECMAScript 2017 and earlier" version remarks are now probed against a real engine when `REGEX_NODE_ES2017` names one; all six agreed with Node 8.0.0 (V8 5.8, checksum-verified). Only Python 3.9 still rests on documentation. Checks: 2,647 UI-state.
+- Declined by the maintainer on 2026-11-05 (recorded in the receipt): the Windows Hello prompt, camera QR registration, pointer clicks on locked controls, the default Windows Terminal path and a winning whack-a-mole round with real pointer input, each of which needs the visible desktop.
