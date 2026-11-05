@@ -79,6 +79,7 @@ internal sealed class SecurityImagePanel : Border
         else if (row.Result is { } ok)
         {
             state.Content = null;
+            findings.FoundIn = string.Join(", ", new[] { row.Reference }.Concat(row.OtherTags));
             findings.Show(ok.Findings, true);
         }
         else

@@ -108,7 +108,7 @@ internal sealed class ScoutFindingsView : Grid
         Children.Add(table.At(1));
 
         var detailScroll = Ui.Scroll(detail);
-        detailScroll.MaxHeight = 300;
+        detailScroll.MaxHeight = 460;
         detailScroll.Margin = new Thickness(0, 10, 0, 0);
         Children.Add(detailScroll.At(2));
         ShowDetail(default);
@@ -143,28 +143,51 @@ internal sealed class ScoutFindingsView : Grid
         detail.Content = Detail(f);
     }
 
-    private static UIElement Detail(ScoutFinding f)
+    /// <summary>The image reference(s) that carry the findings, shown as "Found in" in the detail card.</summary>
+    public string FoundIn { get; set; } = "";
+
+    private UIElement Detail(ScoutFinding f)
     {
-        var top = Ui.Wrap(8, Ui.Badge(f.SeverityText, ScoutSeverityUi.ToneOf(f.Severity), true),
-            f.Score is { } s ? Ui.Badge(Loc.T("CVSS") + " " + s.ToString("0.0", CultureInfo.InvariantCulture), Tone.Neutral) : null,
-            f.Fixable ? Ui.Badge("Fix available", Tone.Success, true) : Ui.Badge("No fix yet", Tone.Neutral, true));
-        var id = Ui.Mono(f.Id, 16, "OnSurface", true);
-        id.FontWeight = FontWeights.SemiBold;
-        var package = Ui.Wrap(8, Ui.Text(f.Package.Length > 0 ? f.Package : "Unknown package", 14, FontWeights.SemiBold, "OnSurface", true, false),
-            f.PackageType.Length > 0 ? Ui.Badge(f.PackageType, Tone.Primary) : null);
-        var versions = Ui.Wrap(8,
-            Ui.Mono(f.InstalledVersion.Length > 0 ? f.InstalledVersion : "version not reported", 13, "OnSurface", true),
-            Ui.Icon(Icons.ArrowForward, 16, false, "OnSurfaceVariant"),
-            Ui.Mono(f.Fixable ? f.FixedVersion : "no fixed version reported", 13, f.Fixable ? "Success" : "OnSurfaceVariant", true));
-        var open = Ui.AsyncButton("Open advisory", Icons.OpenInNew, ButtonKind.Tonal, () => ScoutRunner.OpenAdvisoryAsync(f.Url));
+        var tone = ScoutSeverityUi.ToneOf(f.Severity);
+        var pillText = Loc.T(f.SeverityText) + (f.Score is { } s ? " · " + Loc.T("CVSS") + " " + s.ToString("0.0", CultureInfo.InvariantCulture) : "");
+        var open = Ui.AsyncIconButton(Icons.OpenInNew, "Open advisory in browser", () => ScoutRunner.OpenAdvisoryAsync(f.Url));
         open.IsEnabled = f.Url.StartsWith("https://", StringComparison.OrdinalIgnoreCase);
         if (!open.IsEnabled) open.ToolTip = Loc.T("The report has no https advisory link for this finding.");
-        var stack = Ui.VStack(8,
-            top, id, package, versions,
-            f.AffectedRange.Length > 0 ? PageKit.Fact("Affected range", f.AffectedRange, true) : null,
-            f.Purl.Length > 0 ? PageKit.Fact("Package URL", f.Purl, true) : null,
-            f.Description.Length > 0 ? Ui.Text(f.Description, 13, null, "OnSurfaceVariant", true, false) : Ui.Caption("The report has no description for this finding."),
-            Ui.Wrap(8, open, Ui.Button("Copy ID", Icons.ContentCopy, ButtonKind.Text, () => PageKit.Copy(f.Id, "the vulnerability ID"))));
-        return Ui.Card(stack, 14, "SurfaceContainer", 14);
+        var top = Ui.Columns(8, [0, 1, 0], Ui.Badge(pillText, tone, false), new Border(), open);
+        var id = Ui.Mono(f.Id, 20, "OnSurface", true);
+        id.FontWeight = FontWeights.SemiBold;
+
+        // Key-value grid: Package, Installed, Upgrade (fixed version in green), Found in.
+        var upgrade = Ui.Wrap(6,
+            Ui.Mono(f.InstalledVersion.Length > 0 ? f.InstalledVersion : "—", 12.5, "OnSurface", true),
+            Ui.Icon(Icons.ChevronRight, 16, false, "OnSurfaceVariant"),
+            f.Fixable ? Ui.Mono(f.FixedVersion + " (" + Loc.T("fixed") + ")", 12.5, "Success", true) : Ui.Text("no fixed version reported", 12.5, null, "OnSurfaceVariant"));
+        var grid = Ui.VStack(10,
+            PageKit.Fact("Package", f.Purl.Length > 0 ? f.Purl : f.Package, true),
+            PageKit.Fact("Installed", f.InstalledVersion, true),
+            Ui.Columns(12, [-120, 1], Ui.Text("Upgrade", 13, null, "OnSurfaceVariant"), upgrade),
+            FoundIn.Length > 0 ? PageKit.Fact("Found in", FoundIn) : null,
+            f.AffectedRange.Length > 0 ? PageKit.Fact("Affected range", f.AffectedRange, true) : null);
+
+        var description = Ui.VStack(6, Ui.Overline("Description"),
+            f.Description.Length > 0 ? Ui.Text(f.Description, 13, null, "OnSurface", true, false) : Ui.Caption("The report has no description for this finding."));
+
+        UIElement remediation;
+        if (f.Fixable)
+        {
+            var tb = new TextBlock { TextWrapping = TextWrapping.Wrap, FontSize = 13 };
+            tb.SetResourceReference(TextBlock.ForegroundProperty, "OnSurfaceVariant");
+            void Mono(string t) { var r = new System.Windows.Documents.Run(t) { FontFamily = new System.Windows.Media.FontFamily("Cascadia Mono, Consolas") }; r.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty, "OnSurface"); tb.Inlines.Add(r); }
+            tb.Inlines.Add(Loc.T("Rebuild with a base image that ships") + " "); Mono((f.Package.Length > 0 ? f.Package : "the package") + " " + f.FixedVersion);
+            tb.Inlines.Add(" " + Loc.T("or upgrade the package in the final stage of the Dockerfile."));
+            remediation = Ui.Card(Ui.Columns(10, [-20, 1], Ui.Icon(Icons.CheckCircle, 20, true, "Success"), tb), 12, "SurfaceContainer", 12);
+        }
+        else remediation = Ui.Card(Ui.Columns(10, [-20, 1], Ui.Icon(Icons.Info, 20, false, "OnSurfaceVariant"), Ui.Text("No fix is published for this finding yet. Track the advisory and rebuild when the base image ships one.", 13, null, "OnSurfaceVariant")), 12, "SurfaceContainer", 12);
+
+        var buttons = Ui.Columns(8, [1, 1],
+            Ui.Button("Copy CVE ID", null, ButtonKind.Outlined, () => PageKit.Copy(f.Id, "the vulnerability ID")),
+            Ui.Button("Rebuild image", Icons.Construction, ButtonKind.Filled, () => AppHost.Current.Navigate("Build")));
+        foreach (var b in buttons.Children.OfType<Button>()) b.Height = 40;
+        return Ui.VStack(14, top, id, grid, description, remediation, buttons.Margin(0, 6, 0, 0));
     }
 }

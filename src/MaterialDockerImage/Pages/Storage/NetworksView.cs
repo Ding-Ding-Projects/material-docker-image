@@ -18,14 +18,17 @@ public sealed class NetworksView : Grid
 {
     private static AppHost Host => AppHost.Current;
     private readonly DataTable<NetworkRow> table = new("Networks", "Search networks");
-    private readonly NetworkCreatePanel createPanel = new();
-    private readonly ColumnDefinition panelColumn = new() { Width = new GridLength(0) };
     private readonly Func<string?> context;
     private readonly Func<bool> isCurrent;
     private readonly Action<string> setSummary;
     public Func<Task>? Reload { get; set; }
     /// <summary>Raised after each load with the number of networks.</summary>
     public event Action<int>? CountChanged;
+    /// <summary>Raised after each load with the loaded networks (feeds the compact networks section under the volumes).</summary>
+    public event Action<IReadOnlyList<NetworkRow>>? ItemsChanged;
+    /// <summary>Raised when the Create network button asks for the page's create panel.</summary>
+    public event Action? CreateRequested;
+    public IReadOnlyList<NetworkRow> Items => table.Items;
 
     public NetworksView(Func<string?> boundContext, Func<bool> current, Action<string> summary)
     {
@@ -49,26 +52,21 @@ public sealed class NetworksView : Grid
             .RowAction("Remove…", Icons.Delete, RemoveAsync, "Del", true)
             .BulkAction("Remove selected…", Icons.Delete, BulkRemoveAsync, true);
         table.Activated += n => _ = Guarded(() => InspectAsync(n));
-        createPanel.Closed += () => { panelColumn.Width = new GridLength(0); createPanel.Visibility = Visibility.Collapsed; };
-        createPanel.SetExistingSubnets(() => table.Items.SelectMany(n => n.Subnets).ToList());
-        createPanel.Create = async (args, name) =>
-        {
-            if (Stale()) return false;
-            var result = await Host.Execute("Create network " + name, args, boundContext: context());
-            if (result?.Success != true) return false;
-            if (Reload != null) await Reload();
-            return true;
-        };
-        var create = Ui.Button("Create network", Icons.Add, ButtonKind.Filled, () => { panelColumn.Width = new GridLength(380); createPanel.Visibility = Visibility.Visible; });
+        var create = Ui.Button("Create network", Icons.Add, ButtonKind.Filled, () => CreateRequested?.Invoke());
         var connect = Ui.AsyncButton("Connect container…", Icons.Link, ButtonKind.Tonal, () => table.Focused is { } n ? ConnectAsync(n) : NoSelection());
         var prune = Ui.AsyncButton("Prune…", Icons.CleaningServices, ButtonKind.Outlined, PruneAsync);
         var left = Ui.Rows(8, [0, 1], Ui.Wrap(8, create, connect, prune), table);
-        ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        ColumnDefinitions.Add(panelColumn);
         Children.Add(left);
-        createPanel.Margin = new Thickness(16, 0, 0, 0);
-        createPanel.Visibility = Visibility.Collapsed;
-        Children.Add(createPanel.At(0, 1));
+    }
+
+    /// <summary>Runs <c>docker network create</c> for the page's create panel; true when it succeeded.</summary>
+    public async Task<bool> CreateNetworkAsync(IReadOnlyList<string> args, string name)
+    {
+        if (Stale()) return false;
+        var result = await Host.Execute("Create network " + name, args, boundContext: context());
+        if (result?.Success != true) return false;
+        if (Reload != null) await Reload();
+        return true;
     }
 
     private static Task NoSelection() { Host.Notify.Info("Select a network first."); return Task.CompletedTask; }
@@ -113,6 +111,7 @@ public sealed class NetworksView : Grid
         }).ToList();
         table.SetItems(items);
         CountChanged?.Invoke(items.Count);
+        ItemsChanged?.Invoke(items);
         setSummary(Loc.Line($"{items.Count} network{(items.Count == 1 ? "" : "s")} · {items.Count(i => i.BuiltIn)} built-in · {items.Count(i => !i.BuiltIn && i.Containers.Count == 0)} user-defined without containers"));
     }
 

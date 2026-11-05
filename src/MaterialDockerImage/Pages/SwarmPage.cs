@@ -24,6 +24,8 @@ public sealed class SwarmPage : PageBase
 
     private static UIElement TabContent(string name, string? count) =>
         count == null ? new TextBlock { Text = Loc.T(name) } : Ui.HStack(8, new TextBlock { Text = Loc.T(name) }, Ui.Text(count, 12, null, "OnSurfaceVariant", false, false));
+    private readonly Button deployStack;
+    private readonly Button createService;
     private string tab = "Services";
     private string tabSummary = "";
     private SwarmMembership? state;
@@ -68,8 +70,11 @@ public sealed class SwarmPage : PageBase
         }
         System.Windows.Automation.AutomationProperties.SetName(strip, Loc.T("Swarm sections"));
         tabs = UnderlineTabs.Strip(strip);
+        deployStack = Ui.AsyncButton("Deploy stack", Icons.RocketLaunch, ButtonKind.Outlined, () => ((SwarmStacksView)views["Stacks"]).DeployAsync());
+        createService = Ui.Button("Create service", Icons.Add, ButtonKind.Filled, () => SwarmServiceForm.Show(() => SnapshotContext, () => IsCurrent, () => LoadTabAsync("Services")));
+        deployStack.IsEnabled = createService.IsEnabled = false;
         var header = Ui.Header("Swarm", "Swarm services, stacks, nodes, secrets and configs", out subtitle,
-            Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
+            Ui.AsyncIconButton(Icons.Refresh, "Refresh", RefreshAsync), deployStack, createService);
         Layout(header, host);
         host.Content = Ui.EmptyState(Icons.Hub, "Swarm", "Reading swarm state from the engine…");
     }
@@ -86,6 +91,7 @@ public sealed class SwarmPage : PageBase
     public override async Task RefreshAsync()
     {
         loaded.Clear();
+        deployStack.IsEnabled = createService.IsEnabled = false;
         var r = await Host.Read(["info", "--format", "{{json .Swarm}}"], SnapshotContext);
         if (!r.Success)
         {
@@ -107,6 +113,7 @@ public sealed class SwarmPage : PageBase
         else if (!state.IsManager) host.Content = membership.LimitedView(state);
         else
         {
+            deployStack.IsEnabled = createService.IsEnabled = true;
             // The tab strip and tab host are reused across refreshes, so detach them from the previous layout first.
             if (tabs.Parent is Panel p1) p1.Children.Remove(tabs);
             if (tabHost.Parent is Panel p2) p2.Children.Remove(tabHost);

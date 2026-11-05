@@ -19,6 +19,12 @@ public sealed class ContextsPage : PageBase
     private readonly ContentControl cardsState = new();
     private readonly ContextPluginsPanel plugins = new();
     private readonly ContextActions actions;
+    private readonly ContextCreatePanel createPanel;
+    private readonly ColumnDefinition asideColumn = new() { Width = new GridLength(0) };
+    private readonly ScrollViewer bodyScroll;
+    private Button inspectButton = null!, exportButton = null!, removeButton = null!;
+    private string? selectedName;
+    private const double AsideWidth = 420;
     private List<ContextEntry> entries = new();
     private readonly List<ContextCardView> views = new();
     private readonly Dictionary<string, ContextProbe> probes = new(StringComparer.Ordinal);
@@ -28,21 +34,58 @@ public sealed class ContextsPage : PageBase
     public ContextsPage()
     {
         actions = new ContextActions(RefreshAsync, () => cliCurrent);
+        createPanel = new ContextCreatePanel(RefreshAsync) { Visibility = Visibility.Collapsed, Margin = new Thickness(16, 0, 0, 0) };
+        createPanel.Closed += () => { asideColumn.Width = new GridLength(0); createPanel.Visibility = Visibility.Collapsed; Resize(); };
+        var import = Ui.AsyncButton("Import", Icons.Download, ButtonKind.Outlined, () => actions.ImportAsync());
+        exportButton = Ui.AsyncButton("Export", Icons.Upload, ButtonKind.Outlined, () => Selected() is { } e ? actions.ExportAsync(e) : Task.CompletedTask);
+        inspectButton = Ui.AsyncButton("Inspect", Icons.DataObject, ButtonKind.Outlined, () => Selected() is { } e ? actions.InspectAsync(e) : Task.CompletedTask);
+        removeButton = Ui.AsyncButton("Remove", Icons.Delete, ButtonKind.Outlined, () => Selected() is { } e ? actions.RemoveAsync(e) : Task.CompletedTask);
+        removeButton.SetResourceReference(Control.ForegroundProperty, "Error");
+        foreach (var b in new[] { exportButton, inspectButton, removeButton }) b.IsEnabled = false;
         var header = Ui.Header("Contexts", "Engine contexts and plugins", out subtitle,
-            Ui.Button("Create context", Icons.Add, ButtonKind.Filled, () => ContextForm.ShowCreate(RefreshAsync)),
-            Ui.AsyncButton("Import…", Icons.Download, ButtonKind.Tonal, () => actions.ImportAsync()),
-            Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
+            Ui.AsyncIconButton(Icons.Refresh, "Refresh", RefreshAsync),
+            import, exportButton, inspectButton, removeButton,
+            Ui.Button("Create", Icons.Add, ButtonKind.Filled, OpenCreate));
         search.Changed += RenderCards;
         var cardsHead = new DockPanel { Margin = new Thickness(0, 0, 0, 12) };
         cardsHead.Children.Add(search.Dock(Dock.Left));
-        cardsHead.Children.Add(Ui.Caption("Use in this window switches only this window. The docker CLI's current context and other windows are unchanged.").Margin(16, 0, 0, 0));
+        cardsHead.Children.Add(Ui.Caption("Select a card to act on it with Export, Inspect and Remove. Use in this window switches only this window. The docker CLI's current context and other windows are unchanged.").Margin(16, 0, 0, 0));
         var body = Ui.VStack(20,
             Ui.VStack(0, cardsHead, cards, cardsState),
             plugins,
             ConfigNote());
-        Layout(header, Ui.Scroll(body));
-        // Design: three cards per row that stretch to the row; fewer columns when the window is narrow.
-        SizeChanged += (_, _) => cards.Columns = ActualWidth >= 1000 ? 3 : ActualWidth >= 640 ? 2 : 1;
+        bodyScroll = Ui.Scroll(body);
+        var content = new Grid();
+        content.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        content.ColumnDefinitions.Add(asideColumn);
+        content.Children.Add(bodyScroll.At(0, 0));
+        content.Children.Add(createPanel.At(0, 1));
+        Layout(header, content);
+        // Design: three cards per row that stretch to the row; fewer columns when the window (or the room beside the create panel) is narrow.
+        SizeChanged += (_, _) => Resize();
+    }
+
+    private void Resize()
+    {
+        var room = ActualWidth - (createPanel.Visibility == Visibility.Visible ? AsideWidth + 16 : 0);
+        cards.Columns = room >= 860 ? 3 : room >= 560 ? 2 : 1;
+    }
+
+    /// <summary>Opens the right-hand Create context panel.</summary>
+    private void OpenCreate()
+    {
+        createPanel.Visibility = Visibility.Visible;
+        asideColumn.Width = new GridLength(AsideWidth + 16);
+        Resize();
+        createPanel.FocusName();
+    }
+
+    private ContextEntry? Selected() => entries.FirstOrDefault(e => e.Name == selectedName);
+
+    private void Select(ContextEntry entry)
+    {
+        selectedName = entry.Name;
+        RenderCards();
     }
 
     private static Border ConfigNote()
@@ -96,16 +139,18 @@ public sealed class ContextsPage : PageBase
     {
         cards.Children.Clear(); views.Clear();
         var window = actions.WindowContext;
+        if (selectedName == null || entries.All(e => e.Name != selectedName)) selectedName = entries.FirstOrDefault(e => e.Name == window)?.Name ?? entries.FirstOrDefault()?.Name;
+        foreach (var b in new[] { exportButton, inspectButton, removeButton }) b.IsEnabled = selectedName != null;
         var shown = entries.Where(e => search.Matches(e.SearchText)).ToList();
         foreach (var e in shown)
         {
-            var view = new ContextCardView(e, e.Name == window, actions) { Margin = new Thickness(6, 0, 6, 12) };
+            var view = new ContextCardView(e, e.Name == window, actions, e.Name == selectedName, Select) { Margin = new Thickness(6, 0, 6, 12) };
             if (probes.TryGetValue(e.Name, out var p)) view.SetProbe(p);
             views.Add(view);
             cards.Children.Add(view);
         }
         cardsState.Content = entries.Count == 0
-            ? Ui.EmptyState(Icons.DeviceHub, "No contexts", "The docker CLI listed no contexts. Create one to reach another engine.", Ui.Button("Create context", Icons.Add, ButtonKind.Filled, () => ContextForm.ShowCreate(RefreshAsync)))
+            ? Ui.EmptyState(Icons.DeviceHub, "No contexts", "The docker CLI listed no contexts. Create one to reach another engine.", Ui.Button("Create context", Icons.Add, ButtonKind.Filled, OpenCreate))
             : shown.Count == 0 ? Ui.EmptyState(Icons.FilterList, "No matches", search.Status.Length > 0 ? search.Status : "No context matches the search.") : null;
     }
 
@@ -143,7 +188,7 @@ public sealed class ContextsPage : PageBase
 
     public override IEnumerable<AppCommand> PageCommands() =>
     [
-        new AppCommand { Id = "contexts.create", Title = "Create context…", Group = "Contexts", Icon = Icons.Add, Keywords = "docker context create endpoint tls ssh", Run = () => { Host.Navigate("Contexts"); ContextForm.ShowCreate(RefreshAsync); } },
+        new AppCommand { Id = "contexts.create", Title = "Create context…", Group = "Contexts", Icon = Icons.Add, Keywords = "docker context create endpoint tls ssh", Run = () => { Host.Navigate("Contexts"); OpenCreate(); } },
         new AppCommand { Id = "contexts.import", Title = "Import context…", Group = "Contexts", Icon = Icons.Download, Keywords = "docker context import", Run = () => { Host.Navigate("Contexts"); _ = GuardAsync(actions.ImportAsync); } },
         new AppCommand { Id = "contexts.refresh", Title = "Refresh contexts and plugins", Group = "Contexts", Icon = Icons.Refresh, Keywords = "context ls plugins reachability", Run = () => { Host.Navigate("Contexts"); _ = SafeRefresh(); } },
     ];

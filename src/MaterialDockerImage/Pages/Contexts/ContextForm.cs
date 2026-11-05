@@ -5,7 +5,7 @@ using MaterialDockerImage.UI;
 
 namespace MaterialDockerImage.Pages;
 
-/// <summary>Create and update forms for docker contexts with endpoint presets, TLS file pickers and a live command preview.</summary>
+/// <summary>Update form for docker contexts (creation is the right-hand ContextCreatePanel) with endpoint presets, TLS file pickers and a live command preview.</summary>
 public static class ContextForm
 {
     private static AppHost Host => AppHost.Current;
@@ -55,46 +55,6 @@ public static class ContextForm
         }
 
         public string Spec() => ContextEndpoint.DockerSpec(HostBox.Text, Ca.Text, Cert.Text, Key.Text, SkipVerify);
-    }
-
-    public static void ShowCreate(Func<Task> reload)
-    {
-        var name = Ui.Input("", "Name", true);
-        var description = Ui.Input("", "Description");
-        var endpoint = new EndpointEditor("npipe:////./pipe/docker_engine");
-        var preview = Ui.Mono("", 12, "OnSurfaceVariant", true);
-        List<string> Args()
-        {
-            if (ContextEndpoint.ValidateName(name.Text.Trim()) is { } p) throw new ArgumentException(p);
-            if (description.Text.Any(char.IsControl)) throw new ArgumentException("The description cannot contain control characters.");
-            var args = new List<string> { "context", "create", name.Text.Trim() };
-            if (description.Text.Trim().Length > 0) args.AddRange(["--description", description.Text.Trim()]);
-            args.AddRange(["--docker", endpoint.Spec()]);
-            return args;
-        }
-        void Update()
-        {
-            try { preview.Text = PageKit.Preview(Args(), null); }
-            catch (ArgumentException e) { preview.Text = e.Message; }
-        }
-        name.TextChanged += (_, _) => Update(); description.TextChanged += (_, _) => Update(); endpoint.Changed += Update;
-        var body = Ui.VStack(14,
-            Ui.Field("Name", name, "A unique name in the docker CLI configuration. Commands select it with --context NAME.", "build-server"),
-            Ui.Field("Description", description, "Optional text shown in context lists.", "Linux build host in the lab"),
-            endpoint.View,
-            Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12),
-            Ui.Caption("Creating a context does not switch to it. Use \"Use in this window\" on its card afterwards."));
-        PageKit.Dialog("Create context", "Adds an engine endpoint to the docker CLI configuration.", body, "Create", async () =>
-        {
-            List<string> args;
-            try { args = Args(); } catch (ArgumentException e) { return e.Message; }
-            var result = await Host.Execute("Create context " + args[2], args);
-            if (result?.Success != true) return PageKit.Failure(result);
-            if (!Host.IsCapture) Host.History.Record("context", $"Created context {args[2]} for {endpoint.HostBox.Text.Trim()}");
-            await reload();
-            return null;
-        }, width: 620);
-        Update();
     }
 
     public static void ShowUpdate(ContextEntry entry, Func<Task> reload)

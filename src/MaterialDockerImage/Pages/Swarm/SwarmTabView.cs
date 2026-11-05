@@ -70,4 +70,7 @@ public abstract class SwarmTabView : Grid
         Children.Add(toolbar);
         Children.Add(content.At(1));
     }
+
+    /// <summary>A single content area with no toolbar row (the page header carries the primary actions).</summary>
+    protected void LayoutContent(UIElement content) => Children.Add(content);
 }

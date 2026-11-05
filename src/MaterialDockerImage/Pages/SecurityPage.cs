@@ -25,6 +25,7 @@ public sealed partial class SecurityPage : PageBase
     private readonly SecurityStatTile mediumTile = new("Medium", Icons.Report, "WarningContainer", "OnWarningContainer");
     private readonly SecurityStatTile lowTile = new("Low", Icons.Info, "TertiaryContainer", "OnTertiaryContainer");
     private readonly SecurityStatTile fixableTile = new("Fixable", Icons.CheckCircle, "SuccessContainer", "OnSuccessContainer");
+    private readonly ContentControl signInRow = new();
     private List<SecurityImageRow> baseRows = [];
     private bool loaded;
     private bool reloading;
@@ -71,7 +72,12 @@ public sealed partial class SecurityPage : PageBase
         SizeChanged += (_, _) => bannerScroll.MaxHeight = Math.Max(120, ActualHeight * 0.25);
         severityStrip = SecurityStatTile.Strip(criticalTile, highTile, mediumTile, lowTile, fixableTile);
         var top = Ui.VStack(0, bannerScroll, severityStrip, progressCard);
-        var split = Ui.SplitInspector(table, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
+        var listHost = new Grid();
+        listHost.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+        listHost.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        listHost.Children.Add(table.At(0));
+        listHost.Children.Add(signInRow.At(1));
+        var split = Ui.SplitInspector(listHost, panel, 1250, 480, summary: () => table.Focused is { } f ? $"{f.Reference} · {f.Size}" : null);
         table.FocusedChanged += _ => (split.Tag as Action)?.Invoke();
         var body = new Grid();
         SecurityStatTile.CompactBelow(body, 600, criticalTile, highTile, mediumTile, lowTile, fixableTile);
@@ -141,6 +147,17 @@ public sealed partial class SecurityPage : PageBase
         finally { reloading = false; }
         panel.Show(table.Focused);
         UpdateTiles();
+        UpdateSignInRow(rows.Any(r => r.Result is { State: ScoutState.NotSignedIn }));
+    }
+
+    /// <summary>Info row under the list: shown only when Docker Scout really reported that it is not signed in.</summary>
+    private void UpdateSignInRow(bool notSignedIn)
+    {
+        if (!notSignedIn) { signInRow.Content = null; return; }
+        var message = Ui.Text("Docker Scout is not signed in. Local SBOMs still list packages, but vulnerability data needs a Docker account.", 13, null, "OnSurfaceVariant");
+        var signIn = Ui.Button("Sign in", null, ButtonKind.Outlined, () => Host.Navigate("Registry"));
+        signIn.Height = 32;
+        signInRow.Content = Ui.Card(Ui.Columns(10, [-18, 1, 0], Ui.Icon(Icons.Info, 18, false, "OnSurfaceVariant"), message, signIn), 10, "SurfaceContainer", 12).Margin(12, 8, 12, 12);
     }
 
     private void OnResultUpdated(ScoutScanResult result)

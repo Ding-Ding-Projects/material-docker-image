@@ -24,16 +24,19 @@ public sealed class ContextCardView : Border
     private readonly TextBlock reachDetail = Ui.Text("", 12, null, "OnSurfaceVariant");
     public ContextEntry Entry { get; }
 
-    public ContextCardView(ContextEntry entry, bool usedByWindow, ContextActions actions)
+    public ContextCardView(ContextEntry entry, bool usedByWindow, ContextActions actions, bool selected = false, Action<ContextEntry>? select = null)
     {
         Entry = entry;
         // Design: a radio-style card that stretches with its row. The window's context has a 2 px primary border.
         HorizontalAlignment = HorizontalAlignment.Stretch;
-        Padding = new Thickness(usedByWindow ? 14 : 16);
-        BorderThickness = new Thickness(usedByWindow ? 2 : 0);
+        // The selected card (the target of the header's Export, Inspect and Remove) has the 2 px primary border.
+        Padding = new Thickness(selected ? 14 : 16);
+        BorderThickness = new Thickness(selected ? 2 : 0);
         CornerRadius = new CornerRadius(16);
-        SetResourceReference(BackgroundProperty, usedByWindow ? "SurfaceContainer" : "SurfaceLow");
-        if (usedByWindow) SetResourceReference(BorderBrushProperty, "Primary");
+        SetResourceReference(BackgroundProperty, selected ? "SurfaceContainer" : "SurfaceLow");
+        if (selected) SetResourceReference(BorderBrushProperty, "Primary");
+        // Buttons mark their own clicks as handled, so only a click on the card itself selects it.
+        if (select != null) { MouseLeftButtonUp += (_, _) => select(entry); Cursor = System.Windows.Input.Cursors.Hand; }
         dot.SetResourceReference(System.Windows.Shapes.Shape.FillProperty, "Outline");
         state.Text = Loc.T("Checking…");
         var name = Ui.Text(entry.Name, 16, FontWeights.SemiBold, "OnSurface", false, false);

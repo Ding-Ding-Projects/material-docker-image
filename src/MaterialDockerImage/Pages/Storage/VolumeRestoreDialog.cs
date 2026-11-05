@@ -10,7 +10,7 @@ public static class VolumeRestoreDialog
 {
     private static AppHost Host => AppHost.Current;
 
-    public static void Show(string? targetVolume, IReadOnlyList<string> existing, Func<string?> context, Func<bool> isCurrent, Func<Task> reload)
+    internal static TransferPanel BuildPanel(string? targetVolume, IReadOnlyList<string> existing, Func<string?> context, Func<bool> isCurrent, Func<Task> reload)
     {
         var archive = Ui.Input("", "Archive", true);
         var browse = Ui.IconButton(Icons.FolderOpen, "Choose the archive", () => { if (PageKit.PickOpenPath("Choose a volume archive", "Volume archives|*.tar.gz;*.tgz;*.tar|All files|*.*") is { } p) archive.Text = p; });
@@ -47,10 +47,16 @@ public static class VolumeRestoreDialog
             Ui.Field("Archive", Ui.Columns(8, [1, 0], archive, browse), "A .tar.gz, .tgz or .tar made by Back up or by tar. Its folder is bind-mounted read-only at /backup; the path is resolved on the engine host.", "C:\\Backups\\docker\\pgdata-20261103.tar.gz"),
             Ui.Field("Target volume", target, "Choose an existing volume or type a new name.", "pgdata-restored"), state,
             replaceSwitch,
-            Ui.Field("Helper image", image, "A small image with sh, tar and find that runs once with --rm and no network.", "busybox:1.36"),
-            Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12),
-            Ui.Caption("Stop containers that use the target volume before restoring, so they do not read half-written files."));
-        PageKit.Dialog("Restore volume", "Extracts an archive into a volume through a helper container.", body, "Restore", async () =>
+            new Expander
+            {
+                Header = new TextBlock { Text = Loc.T("Helper image and command") },
+                Content = Ui.VStack(10,
+                    Ui.Field("Helper image", image, "A small image with sh, tar and find that runs once with --rm and no network.", "busybox:1.36"),
+                    Ui.Card(Ui.VStack(4, Ui.Overline("Command"), preview), 12, "SurfaceHigh", 12))
+            },
+            Ui.Card(Ui.Columns(10, [-18, 1], Ui.Icon(Icons.Warning, 18, false, "Warning"), Ui.Text("Pick an archive, choose a new or empty volume, and confirm. Restoring into a volume that has data asks for the full destructive confirmation first. Stop containers that use the target first.", 13, null, "OnSurfaceVariant")), 12, "SurfaceContainerHigh", 12));
+        Update();
+        return new TransferPanel { Body = body, ActionLabel = "Restore", Apply = async status =>
         {
             if (Problem(out var dir, out var file) is { } problem) return problem;
             if (!isCurrent()) return PageKit.StaleMessage(context());
@@ -73,13 +79,13 @@ public static class VolumeRestoreDialog
                 var created = await Host.Execute("Create volume " + name, ["volume", "create", name], boundContext: context());
                 if (created?.Success != true) return PageKit.Failure(created);
             }
+            status(Loc.T("Restoring") + " " + file + " → " + name + "…");
             var result = await Host.Execute("Restore volume " + name, VolumeArchiveCommands.Restore(name, Path.GetFullPath(dir), file, helper, wipe), boundContext: context());
             await reload();
             if (result?.Success != true) return PageKit.Failure(result);
             if (!Host.IsCapture) Host.History.Record("storage", $"Restored {file} into volume {name}" + (wipe ? " (replaced contents)" : isNew ? " (new volume)" : " (merged)"));
             return null;
-        }, width: 640);
-        Update();
+        } };
     }
 
     private static void Dispatcher(Action action) => Application.Current.Dispatcher.BeginInvoke(action);
