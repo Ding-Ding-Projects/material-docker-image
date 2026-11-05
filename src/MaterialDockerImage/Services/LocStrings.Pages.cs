@@ -25,6 +25,7 @@ public static partial class Loc
         foreach (var pair in PageCantoneseRegexSubject()) yield return pair;
         foreach (var pair in PageCantoneseRegexFinish()) yield return pair;
         foreach (var pair in PageCantoneseRegexRest()) yield return pair;
+        foreach (var pair in PageCantoneseParity()) yield return pair;
         foreach (var pair in PageCantoneseRecords()) yield return pair;
         foreach (var pair in CameraQrCantonese()) yield return pair;
     }
