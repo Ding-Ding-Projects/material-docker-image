@@ -211,7 +211,8 @@ public sealed class DataTable<T> : Grid
         row.AppendChild(dot);
         row.AppendChild(label);
         border.AppendChild(row);
-        view.Columns.Add(new GridViewColumn { Header = Loc.T(header), Width = width, CellTemplate = new DataTemplate { VisualTree = border } });
+        // Bilingual chips carry both languages ("Running · 運行中"), so the column grows instead of cutting the second half.
+        view.Columns.Add(new GridViewColumn { Header = Loc.T(header), Width = Loc.Language == "Bilingual" ? Math.Round(width * 1.7) : width, CellTemplate = new DataTemplate { VisualTree = border } });
         return this;
     }
 

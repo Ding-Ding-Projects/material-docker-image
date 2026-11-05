@@ -51,7 +51,7 @@ public sealed partial class ContainersPage : PageBase
         table.Key = c => c.Id;
         table.EmptyTitle = Loc.T("No containers");
         table.EmptyMessage = Loc.T("This engine has no containers. Run one from a local image with Run container, or from Images.");
-        table.ChipColumn("State", c => Loc.T(c.StateLabel), c => c.StateTone, 110)
+        table.ChipColumn("State", c => Loc.State(c.StateLabel), c => c.StateTone, 110)
              .Column("Name", c => c.Name, 180)
              .Column("Image", c => c.Image, 200)
              .Column("Ports", c => c.PortsText, 200, true)

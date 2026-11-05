@@ -131,5 +131,6 @@ public static partial class Loc
         yield return new("inactive", "未啟動");
         yield return new("provenance unavailable", "冇來源資料");
         yield return new("Search commands, resources and settings", "搜尋指令、資源同設定");
+        yield return new("state:Created", "已建立");
     }
 }

@@ -54,6 +54,16 @@ public sealed class CodeEditor : Border
         grid.Children.Add(Box.At(0, 1));
         Child = grid;
 
+        // The gutter starts where the field really draws its first line (border, padding and the template's own margins
+        // all count), measured after layout instead of assumed, so every number sits on its line.
+        Box.LayoutUpdated += (_, _) =>
+        {
+            if (!Box.IsLoaded) return;
+            var first = Box.GetRectFromCharacterIndex(0);
+            if (first.IsEmpty || double.IsInfinity(first.Top)) return;
+            var top = Math.Round(first.Top + Box.VerticalOffset);
+            if (Math.Abs(Canvas.GetTop(numbers) - top) > 0.5) Canvas.SetTop(numbers, top);
+        };
         Box.AddHandler(ScrollViewer.ScrollChangedEvent, new ScrollChangedEventHandler((_, e) => scroll.Y = -e.VerticalOffset));
         Box.TextChanged += (_, _) => UpdateNumbers();
         Box.SelectionChanged += (_, _) => RaiseCaret();

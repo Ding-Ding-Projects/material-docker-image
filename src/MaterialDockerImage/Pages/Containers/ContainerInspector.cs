@@ -167,7 +167,7 @@ internal sealed partial class ContainerInspector : Border
         exec.Height = exec.MinHeight = 36;
         exec.Padding = new Thickness(14, 0, 14, 0);
         exec.VerticalAlignment = VerticalAlignment.Top;
-        return Ui.VStack(0, Ui.Columns(8, [1, 0, 0], title, Ui.Badge(row.StateLabel, row.StateTone).Margin(0, 2, 0, 0), exec), buttons);
+        return Ui.VStack(0, Ui.Columns(8, [1, 0, 0], title, Ui.Badge(Loc.State(row.StateLabel), row.StateTone).Margin(0, 2, 0, 0), exec), buttons);
     }
 
     /// <summary>Shows a tab by name (the header's Exec button uses it) and keeps the tab row in step.</summary>

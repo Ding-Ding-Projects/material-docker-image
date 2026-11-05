@@ -138,6 +138,18 @@ public static partial class Loc
         return language == "Cantonese" ? translated : text + " · " + translated;
     }
 
+    /// <summary>Translates a state word such as "Created", where the state needs other wording than the same English
+    /// word used as a column header ("state:" keys win, the plain key is the fallback).</summary>
+    public static string State(string label)
+    {
+        if (overrides.TryGetValue(label, out var personal)) return personal;
+        var language = SchoolMode ? "English" : Language;
+        if (language == "English") return label;
+        var translated = Translate("state:" + label) ?? Translate(label);
+        if (translated == null) return label;
+        return language == "Cantonese" ? translated : label + " · " + translated;
+    }
+
     /// <summary>Translates a status line made of " · " separated phrases one phrase at a time, so counts and context names stay literal.</summary>
     public static string Line(string composed)
     {

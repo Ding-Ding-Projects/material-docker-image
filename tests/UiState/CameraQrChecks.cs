@@ -129,6 +129,15 @@ public static class CameraQrChecks
             Check(english.All(m => MaterialDockerImage.Services.Loc.T(m) != m), "every camera failure and status message has a Cantonese translation");
         }
         finally { MaterialDockerImage.Services.Loc.Language = before; }
+        // A state chip may need other wording than the same English word as a column header ("Created").
+        MaterialDockerImage.Services.Loc.Language = "Cantonese";
+        try
+        {
+            Check(MaterialDockerImage.Services.Loc.State("Created") == "已建立" && MaterialDockerImage.Services.Loc.T("Created") != "已建立", "the Created state chip uses state wording, not the column header");
+            Check(MaterialDockerImage.Services.Loc.State("Running") == MaterialDockerImage.Services.Loc.T("Running"), "states without their own wording fall back to the plain translation");
+        }
+        finally { MaterialDockerImage.Services.Loc.Language = before; }
+        Check(MaterialDockerImage.Services.Loc.State("Created") == "Created", "English state chips keep their word");
     }
 
     static void Order()
