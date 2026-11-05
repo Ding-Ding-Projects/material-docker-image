@@ -139,7 +139,7 @@ public sealed class DataTable<T> : Grid
         bulkContent.Children.Add(check.Dock(System.Windows.Controls.Dock.Left));
         bulkContent.Children.Add(bulkButtons.Dock(System.Windows.Controls.Dock.Right));
         bulkContent.Children.Add(bulkText);
-        bulkBar = new Border { Child = bulkContent, CornerRadius = new CornerRadius(12), Padding = new Thickness(14, 6, 6, 6), Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
+        bulkBar = new Border { Child = bulkContent, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 0, 8, 0), MinHeight = 52, Margin = new Thickness(0, 0, 0, 8), Visibility = Visibility.Collapsed };
         bulkBar.SetResourceReference(Border.BackgroundProperty, "PrimaryContainer");
         Children.Add(bulkBar.At(1));
         List.View = view;
@@ -229,7 +229,9 @@ public sealed class DataTable<T> : Grid
     public DataTable<T> BulkAction(string label, string? icon, Func<IReadOnlyList<T>, Task> action, bool danger = false)
     {
         bulkActions.Add((label, icon, action, danger));
-        var b = Ui.Button(label, icon, ButtonKind.Text);
+        // Bulk actions are compact text buttons without icons, as in the design's selection bar.
+        var b = Ui.Button(label, null, ButtonKind.Text);
+        b.MinHeight = 36; b.Height = 36; b.FontSize = 13; b.Padding = new Thickness(12, 0, 12, 0);
         b.SetResourceReference(Control.ForegroundProperty, danger ? "Error" : "OnPrimaryContainer");
         b.Click += async (_, _) => await Ui.RunGuarded(b, () => action(Selected));
         bulkButtons.Children.Add(b);
