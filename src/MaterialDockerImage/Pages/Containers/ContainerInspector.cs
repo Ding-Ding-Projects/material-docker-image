@@ -50,14 +50,18 @@ internal sealed partial class ContainerInspector : Border
         tabsBar.Child = tabsGrid;
         foreach (var name in Tabs)
         {
-            var radio = new RadioButton { Template = TabTemplate(), GroupName = group, Content = new TextBlock { Text = Loc.T(name), TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13 }, IsChecked = name == tab, Padding = new Thickness(2, 0, 2, 0), ToolTip = Loc.T(name), Cursor = System.Windows.Input.Cursors.Hand, FocusVisualStyle = null };
+            var radio = new RadioButton { Template = TabTemplate(), GroupName = group, Content = new TextBlock { Text = Loc.T(name), TextTrimming = TextTrimming.CharacterEllipsis, FontSize = 13 }, IsChecked = name == tab, Padding = new Thickness(12, 0, 12, 0), ToolTip = Loc.T(name), Cursor = System.Windows.Input.Cursors.Hand, FocusVisualStyle = null };
             System.Windows.Automation.AutomationProperties.SetName(radio, Loc.T(name));
             radio.Checked += (_, _) => { tab = name; ShowTab(); };
-            tabsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            tabsGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             Grid.SetColumn(radio, tabsGrid.ColumnDefinitions.Count - 1);
             tabsGrid.Children.Add(radio);
         }
         System.Windows.Automation.AutomationProperties.SetName(tabsBar, Loc.T("Container details"));
+        // Seven tabs do not fit 420 px at full width, so they keep their natural width and the row scrolls sideways
+        // instead of cutting labels such as "Overview" short.
+        tabsBar.Child = null;
+        tabsBar.Child = new ScrollViewer { Content = tabsGrid, HorizontalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalScrollBarVisibility = ScrollBarVisibility.Disabled, Focusable = false };
         var tabsScroll = tabsBar;
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         root.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });

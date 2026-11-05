@@ -136,7 +136,7 @@ public sealed partial class ContainersPage
     internal async Task RemoveOneAsync(ContainerRow row)
     {
         if (!EnsureCurrent()) return;
-        if (row.IsRunning || row.IsPaused || row.IsRestarting) { Host.Notify.Warning($"{row.Name} is {row.StateLabel}. Stop it before removing; this app does not force-remove running containers."); return; }
+        if (row.IsRunning || row.IsPaused || row.IsRestarting) { Host.Notify.Warning($"{row.Name} is {row.State}. Stop it before removing; this app does not force-remove running containers."); return; }
         var volumes = Ui.Switch("Also remove anonymous volumes", false, _ => { }, "docker container rm --volumes deletes unnamed volumes created for this container. Their data cannot be recovered. Named volumes are kept.");
         var form = Ui.VStack(12, Ui.Text($"Removes container {row.Name} ({row.ShortId}). Its writable layer is deleted; the image is kept.", 14, null, "OnSurfaceVariant", true, true), volumes);
         PageKit.Dialog(Loc.T("Remove") + " " + row.Name, null, form, "Remove", async () =>

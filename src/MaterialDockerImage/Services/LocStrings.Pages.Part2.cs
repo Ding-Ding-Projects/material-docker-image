@@ -197,6 +197,8 @@ public static partial class Loc
         yield return new("Export context", "匯出環境");
         yield return new("Export destination", "匯出目的地");
         yield return new("Export files", "匯出檔案");
+        yield return new("OCI tar", "OCI 封存檔");
+        yield return new("Local loads the image into this engine. Push publishes every tag to its registry after confirmation. OCI tar writes an OCI archive file. Files exports the final filesystem to a folder (type=local) without creating an image.", "本機會將映像載入呢個引擎。推送會喺你確認之後將每個標籤推去佢嘅 registry。OCI tar 會寫一個 OCI 封存檔。檔案會將最後嘅檔案系統匯出去資料夾（type=local），唔會建立映像。");
         yield return new("Export filesystem of {0}", "匯出 {0} 嘅檔案系統");
         yield return new("Export filesystem…", "匯出檔案系統…");
         yield return new("Export findings", "匯出結果");

@@ -12,7 +12,7 @@ internal sealed record ContainerRow(string Id, string Name, string Image, string
     public bool IsStopped => State is "exited" or "created" or "dead";
     public bool IsRestarting => State == "restarting";
     public string ShortId => Id.Length > 12 ? Id[..12] : Id;
-    public string StateLabel => State.Length == 0 ? "unknown" : State;
+    public string StateLabel => State.Length == 0 ? "Unknown" : char.ToUpperInvariant(State[0]) + State[1..]; // "Running", as the design writes state chips
     public string ComposeProject => Labels.Split(',').Select(l => l.Split('=', 2)).FirstOrDefault(p => p.Length == 2 && p[0] == "com.docker.compose.project")?[1] ?? "";
     public string PortsText => Ports.Length == 0 ? "—" : Ports;
 

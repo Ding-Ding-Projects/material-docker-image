@@ -14,7 +14,8 @@ namespace MaterialDockerImage.Pages;
 public sealed class BuildOptionsPanel : StackPanel
 {
     private static AppHost Host => AppHost.Current;
-    private static readonly string[] DestinationNames = ["Load locally", "Push", "OCI archive", "Export files"];
+    // Short labels fit four segments in the 380 px options column; the field help spells each one out.
+    private static readonly string[] DestinationNames = ["Local", "Push", "OCI tar", "Files"];
     private static readonly string[] CallNames = ["Build", "Check", "Outline", "Targets"];
 
     public TextBox ContextFolder { get; } = Ui.Input("", "Build context", true);
@@ -84,7 +85,7 @@ public sealed class BuildOptionsPanel : StackPanel
             UpdatePlatformNote();
             Changed();
         });
-        destinationField = Ui.Field("Destination", destination, "Load locally puts the image in this engine. Push publishes every tag to its registry after confirmation. OCI archive writes a tar file. Export files writes the final filesystem to a folder (type=local) without creating an image.", null);
+        destinationField = Ui.Field("Destination", destination, "Local loads the image into this engine. Push publishes every tag to its registry after confirmation. OCI tar writes an OCI archive file. Files exports the final filesystem to a folder (type=local) without creating an image.", null);
         var ociBrowse = Ui.IconButton(Icons.FolderOpen, "Choose OCI archive", () =>
         {
             var dialog = new SaveFileDialog { Filter = "OCI tar archive|*.tar", FileName = "image.oci.tar", OverwritePrompt = false };

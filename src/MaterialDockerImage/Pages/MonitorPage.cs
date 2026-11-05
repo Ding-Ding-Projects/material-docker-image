@@ -32,7 +32,7 @@ public sealed class MonitorPage : PageBase
     private readonly TextBlock memDetail = Ui.Text("", 12, null, "OnSurfaceVariant", false, false);
     private readonly TextBlock stateText = Ui.Caption("");
     private readonly SearchFilter search = new("Search containers", 260);
-    private readonly System.Windows.Controls.Primitives.UniformGrid cards = new() { Columns = 2, Margin = new Thickness(-6) };
+    private readonly System.Windows.Controls.Primitives.UniformGrid cards = new() { Columns = 2, Margin = new Thickness(-6, -6, 0, -6) }; // no negative right margin: it pushed the last card past the clip
     private readonly ContentControl cardsEmpty = new();
     private readonly Dictionary<string, ContainerStatCard> cardByName = new(StringComparer.Ordinal);
     private bool live = true;
