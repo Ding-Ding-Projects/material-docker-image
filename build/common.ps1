@@ -5,6 +5,18 @@ function Get-Sha256([string]$Path) {
     finally { $stream.Dispose(); $algorithm.Dispose() }
 }
 function Get-SourceBinding {
+    # The build companion unpacks its own copy of the source, which has no git history; its manifest names the commit it came from.
+    if (-not (Test-Path -LiteralPath '.git') -and (Test-Path -LiteralPath 'EMBEDDED-SOURCE.json')) {
+        $manifest = Get-Content -LiteralPath 'EMBEDDED-SOURCE.json' -Raw | ConvertFrom-Json
+        if ($manifest.source -notmatch '^[0-9a-f]{40}$') { throw 'The packed source manifest has no valid commit.' }
+        $packed = @($manifest.files.path | Where-Object { $_ -like 'src/*' -or $_ -like 'build/*' -or $_ -in @('global.json', 'build.bat', 'build-installer.bat', 'download-dependencies.bat') } | Sort-Object -Unique)
+        if ($packed.Count -eq 0) { throw 'Build input inventory unavailable.' }
+        $entries = @($packed | ForEach-Object {
+            if (-not (Test-Path -LiteralPath $_ -PathType Leaf)) { throw "Build input disappeared: $_" }
+            @{path=$_; sha256=(Get-Sha256 $_)}
+        })
+        return @{source=$manifest.source; inputs=$entries}
+    }
     $source = (& git rev-parse HEAD 2>$null | Out-String).Trim()
     if ($LASTEXITCODE -ne 0) { throw 'A committed source candidate is required.' }
     $paths = @(& git ls-files -co --exclude-standard -- src build global.json build.bat build-installer.bat download-dependencies.bat | Sort-Object -Unique)

@@ -15,4 +15,8 @@
     <!-- The Material Symbols subset is shared with the main application rather than copied. -->
     <Resource Include="..\MaterialDockerImage\Assets\Fonts\MaterialSymbolsRoundedOutline.ttf" Link="Assets\Fonts\MaterialSymbolsRoundedOutline.ttf" />
   </ItemGroup>
+  <ItemGroup Condition="'$(EmbeddedSourceZip)' != ''">
+    <!-- The complete source, packed by build/publish-companion.ps1 so the companion can build without a checkout nearby. -->
+    <EmbeddedResource Include="$(EmbeddedSourceZip)" LogicalName="source.zip" />
+  </ItemGroup>
 </Project>

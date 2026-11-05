@@ -41,8 +41,9 @@ public static class CompanionStrings
         ["phase2"] = ("Compiling and publishing", "編譯及發佈"),
         ["phase3"] = ("Packaging installer", "封裝安裝程式"),
         ["copied"] = ("Log copied", "已複製記錄"),
-        ["pickRepo"] = ("Choose the folder that contains build.bat", "請揀選有 build.bat 嘅資料夾"),
+        ["pickRepo"] = ("Use another copy of the source: choose the folder that contains build.bat", "用另一份原始碼：請揀選有 build.bat 嘅資料夾"),
         ["noRepo"] = ("No repository selected", "未揀選專案資料夾"),
+        ["embeddedSource"] = ("Using the source packed inside this program, unpacked to", "用緊呢個程式入面附帶嘅原始碼，已經解壓到"),
         ["shortcuts"] = ("Ctrl+B build, Ctrl+R build and run, Ctrl+I installer, Esc cancel, Ctrl+Shift+C copy log", "Ctrl+B 建置、Ctrl+R 建置並執行、Ctrl+I 安裝程式、Esc 取消、Ctrl+Shift+C 複製記錄"),
         ["installerNote"] = ("Installer builds are unsigned and may trigger an unknown-publisher warning.", "安裝程式冇簽署，可能會出現未知發佈者警告。"),
     };

@@ -32,7 +32,7 @@
     },
     {
       "path": "docs/features/build-companion.md",
-      "sha256": "d7fe76019be8569f0144250a60e3fc16f724e32f103320cfcb1a3d7a805e1b2f"
+      "sha256": "b2170e621952e037877e4f489ea777324563570e4109497fd99bc1c7ef544cb7"
     },
     {
       "path": "docs/features/canvas.md",
@@ -112,7 +112,7 @@
     },
     {
       "path": "README.md",
-      "sha256": "2041599d4fbc632440cd0b25ffa32f654b28f2886c2684407012383a9003065e"
+      "sha256": "6e7ae292d71da96c44a20f480120fcbfd682cbf321eb3c5207a0bc979a16a8b5"
     },
     {
       "path": "ROADMAP.md",
@@ -120,7 +120,7 @@
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "181bab776f42736ae110804706f3ecca3a64eb48317c1b649ac8b6221a9331ec"
+      "sha256": "9af510341a7db417805640d38b22e450c75e3a817de917e8b6f6d62a2fed33ae"
     },
     {
       "path": "wiki/Home.md",

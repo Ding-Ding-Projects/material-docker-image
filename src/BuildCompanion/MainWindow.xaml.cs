@@ -46,7 +46,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         ticker.Tick += (_, _) => Tick();
         ticker.Start();
-        var lookup = RepoLocator.Find(args, baseDirectory);
+        var lookup = RepoLocator.Find(args, baseDirectory, embedded: EmbeddedSource.UnpackPacked);
+        if (lookup.Source == "embedded" && lookup.Path is not null) Append(new LogLine(false, T("embeddedSource") + " " + lookup.Path));
         repo = lookup.Path;
         if (lookup.Error is not null) Append(new LogLine(true, lookup.Error));
         Loaded += (_, _) => { if (repo is null) PickRepository(); ApplyLanguage(); };

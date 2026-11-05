@@ -299,6 +299,15 @@
       },
       "observed": "A QR code for a test otpauth link (issuer ClipboardCheck, a published demonstration secret) was put on the clipboard as a picture. From the clipboard decoded it and reported \"Account added: ClipboardCheck · mdi-clipboard\". The next code it showed, 750 942 with 10 s left, matched an independent RFC 6238 calculation for the same secret and time. The clipboard was empty before the drive and was cleared afterwards; the app data folder was restored byte for byte.",
       "result": "pass"
+    },
+    {
+      "action": "Build companion copied alone into an empty folder, then Build",
+      "artifact": {
+        "version": "0.93.2 companion published by build/publish-companion.ps1",
+        "source": "main c81458a plus the packed-source change"
+      },
+      "observed": "With no checkout anywhere above it, the companion opened without a folder dialog and logged that it was using the source packed inside it, unpacked to its own folder under local application data (630 files, hashes checked). Build ran that copy's build.bat, which fetched the pinned .NET SDK, kept the packed changelog because the copy has no git history, and finished: Succeeded, exit code 0, 4 min 58 s, with out/publish/MaterialDockerImage.exe and a build receipt naming the packed commit. The unpacked folder and the test copy were removed afterwards.",
+      "result": "pass"
     }
   ],
   "findings": [

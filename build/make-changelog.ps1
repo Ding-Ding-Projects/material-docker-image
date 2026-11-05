@@ -5,6 +5,11 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 if (-not $Output) { $Output = Join-Path $root 'src/MaterialDockerImage/Assets/changelog.json' }
 Set-Location $root
+# The build companion's unpacked source has no git history; it carries the changelog made when the source was packed.
+if (-not (Test-Path -LiteralPath (Join-Path $root '.git')) -and (Test-Path -LiteralPath (Join-Path $root 'EMBEDDED-SOURCE.json')) -and (Test-Path -LiteralPath $Output)) {
+    Write-Host 'Packed source: keeping the changelog made when the source was packed.'
+    return
+}
 
 function Invoke-Git([string[]]$Arguments) {
     $text = & git @Arguments 2>$null

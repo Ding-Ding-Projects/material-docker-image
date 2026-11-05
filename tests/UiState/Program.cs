@@ -960,6 +960,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
     MaterialDockerImage.Services.Loc.SchoolMode = pageLocSchool;
 }
 count += BuildCompanionChecks.Run();
+count += EmbeddedSourceChecks.Run();
 count += RecordsChecks.Run();
 count += LockChecks.Run();
 count += AppearanceAuthChecks.Run();
