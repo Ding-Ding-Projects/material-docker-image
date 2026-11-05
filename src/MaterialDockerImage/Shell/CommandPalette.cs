@@ -73,7 +73,7 @@ public sealed class CommandPalette
         void Fill()
         {
             results.Children.Clear(); runnable.Clear(); selected = 0;
-            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(Loc.T(c.Title) + " " + c.Title + " " + c.Keywords + " " + c.Group, LockOf(c) != null)));
+            var found = host.Commands.All.Where(c => !SchoolHiddenControls.HidesCommand(c.Id, host.Settings.SchoolMode) && search.Matches(LockedResults.SearchText(CommandDescriptions.SearchText(Loc.T(c.Title), c.Title, c.Description is { } d ? Loc.T(d) : null, c.Description, c.Keywords, c.Group), LockOf(c) != null)));
             var shown = LockedResults.Apply(found, c => LockOf(c) != null, host.Settings.HideLockedInSearch, out var hidden);
             note.Text = LockedResults.HiddenStatement(hidden, Loc.T);
             note.Visibility = hidden > 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -125,6 +125,7 @@ public sealed class CommandPalette
                         button.SetResourceReference(Control.BackgroundProperty, "SurfaceContainer");
                         button.SetResourceReference(Control.ForegroundProperty, "OnSurface");
                         System.Windows.Automation.AutomationProperties.SetName(button, Loc.T(command.Title) + (lockId != null ? ", " + Loc.T("locked") : "") + (command.GestureText.Length > 0 ? ", shortcut " + command.GestureText : ""));
+                        System.Windows.Automation.AutomationProperties.SetHelpText(button, sub);
                         var c = command;
                         button.Click += (_, _) => Run(c);
                         runnable.Add((button, command));
@@ -133,6 +134,7 @@ public sealed class CommandPalette
                     else
                     {
                         var card = new Border { Child = row, Padding = new Thickness(12, 6, 12, 6), MinHeight = 52, CornerRadius = new CornerRadius(20) };
+                        System.Windows.Automation.AutomationProperties.SetHelpText(card, sub);
                         results.Children.Add(card);
                     }
                 }
@@ -159,11 +161,14 @@ public sealed class CommandPalette
         }
     }
 
-    /// <summary>Second line under a title: the group, plus the matching keyword when the query hit hidden keywords rather than the title.</summary>
+    /// <summary>
+    /// Second line under a title: the command's one-line description (the group when it has none), plus the matching
+    /// keyword when the query hit hidden keywords rather than the visible title or description.
+    /// </summary>
     private static string SubLine(AppCommand command, SearchFilter search, string titleText)
     {
-        var line = Loc.T(command.Group);
-        if (!search.IsActive || Spans(search, titleText).Count > 0) return line;
+        var line = CommandDescriptions.SubLine(command.Description is { } d ? Loc.T(d) : null, Loc.T(command.Group));
+        if (!search.IsActive || Spans(search, titleText).Count > 0 || Spans(search, line).Count > 0) return line;
         foreach (var word in command.Keywords.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             if (Spans(search, word).Count > 0) return line + " · " + Loc.T("matches") + " “" + word + "”";
         return line;
@@ -187,6 +192,9 @@ public sealed class CommandPalette
     private static TextBlock Highlighted(string text, SearchFilter search, double size, string brush)
     {
         var block = Ui.Text(text, size, null, brush, false, false);
+        // One line each: a long title or description ends in an ellipsis and shows in full as a tooltip.
+        block.TextTrimming = TextTrimming.CharacterEllipsis;
+        block.ToolTip = text;
         var spans = Spans(search, text);
         if (spans.Count == 0) return block;
         block.Text = "";

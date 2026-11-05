@@ -33,6 +33,8 @@
     <Compile Include="../../src/MaterialDockerImage/UI/ComposeCompletion*.cs" LinkBase="Suggestions"/>
     <Compile Include="../../src/BuildCompanion/Logic/*.cs" LinkBase="BuildCompanion"/>
     <Compile Include="../../src/MaterialDockerImage/UI/TableExport.cs" Link="TableExport.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/TableCells.cs" Link="TableCells.cs"/>
+    <Compile Include="../../src/MaterialDockerImage/UI/CommandDescriptions.cs" Link="CommandDescriptions.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/ChangelogModel.cs" Link="ChangelogModel.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/UpdateFeed.cs" Link="UpdateFeed.cs"/>
     <Compile Include="../../src/MaterialDockerImage/UI/InfoGuidance.cs" Link="InfoGuidance.cs"/>

@@ -980,6 +980,7 @@ Check(MaterialDockerImage.UI.DockerfileModel.ExecJson(new[]{"echo","a \"quoted\"
 count += BuildCompanionChecks.Run();
 count += EmbeddedSourceChecks.Run();
 count += RecordsChecks.Run();
+count += PaletteTableChecks.Run();
 count += LockChecks.Run();
 count += AppearanceAuthChecks.Run();
 count += LadderChecks.Run();
