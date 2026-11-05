@@ -16,12 +16,19 @@ public sealed partial class ComposeProjectPanel : Grid
 {
     private static AppHost Host => AppHost.Current;
     private readonly TextBlock title = Ui.Text("", 22, FontWeights.SemiBold, "OnSurface", false, false);
-    private readonly TextBlock meta = Ui.Mono("", 12, "OnSurfaceVariant", true);
+    private readonly TextBlock meta = Ui.Text("", 13, null, "OnSurfaceVariant", true, false);
     private readonly Border status = Ui.Badge("", Tone.Neutral);
-    private readonly WrapPanel actions = new() { HorizontalAlignment = HorizontalAlignment.Right };
+    private readonly WrapPanel actions = new() { HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, -8, 0) };
+    private readonly WrapPanel moreActions = new();
+    private readonly Border moreDrawer;
     private readonly WrapPanel profileChips = new();
     private readonly TextBlock profileNote = Ui.Caption("");
-    private readonly TextBlock runningText = Ui.Caption("");
+    private readonly Border runningBadge = Ui.Badge("", Tone.Neutral, false);
+    private readonly Grid lower = new();
+    private readonly RowDefinition lowerRow = new() { Height = new GridLength(1, GridUnitType.Star), MinHeight = 280 };
+    private readonly Border servicesCard;
+    private UIElement? sourceCard;
+    private bool stacked;
     private readonly DataTable<ComposeServiceRow> services = new("Compose services", "Search services");
     private readonly TextBlock lastAction = Ui.Mono("", 12, "OnSurface", true);
     private readonly TextBlock lastActionTitle = Ui.Overline("Last action");
@@ -41,33 +48,35 @@ public sealed partial class ComposeProjectPanel : Grid
 
     public ComposeProjectPanel()
     {
-        Button Act(string label, string icon, ButtonKind kind, Func<Task> run, bool needsFiles)
+        Button Act(string label, string icon, ButtonKind kind, Func<Task> run, bool needsFiles, bool primary)
         {
             var b = Ui.AsyncButton(label, icon, kind, run);
             if (needsFiles) fileOnly.Add(b);
-            actions.Children.Add(b.Margin(8, 4, 0, 4));
+            if (primary) actions.Children.Add(b.Margin(8, 4, 0, 4));
+            else moreActions.Children.Add(b.Margin(0, 0, 8, 8));
             return b;
         }
-        Act("Logs", Icons.Terminal, ButtonKind.Outlined, () => LogsAsync(null), false);
-        Act("Config", Icons.DataObject, ButtonKind.Text, ConfigAsync, true);
-        Act("Build", Icons.Construction, ButtonKind.Outlined, () => Simple("Build", true, "build"), true);
-        Act("Pull", Icons.CloudDownload, ButtonKind.Outlined, () => Simple("Pull", true, "pull"), true);
-        Act("Start", Icons.PlayArrow, ButtonKind.Text, () => Simple("Start", false, "start"), false);
-        Act("Stop", Icons.Stop, ButtonKind.Text, () => Simple("Stop", false, "stop"), false);
-        Act("Restart", Icons.RestartAlt, ButtonKind.Tonal, () => Simple("Restart", false, "restart"), false);
-        Act("Down", Icons.Stop, ButtonKind.Tonal, DownAsync, false);
-        Act("Up", Icons.PlayArrow, ButtonKind.Filled, () => UpAsync(null), true);
+        Act("Logs", Icons.Terminal, ButtonKind.Outlined, () => LogsAsync(null), false, true);
+        Act("Build", Icons.Construction, ButtonKind.Outlined, () => Simple("Build", true, "build"), true, true);
+        Act("Pull", Icons.CloudDownload, ButtonKind.Outlined, () => Simple("Pull", true, "pull"), true, true);
+        Act("Restart", Icons.RestartAlt, ButtonKind.Tonal, () => Simple("Restart", false, "restart"), false, true);
+        Act("Down", Icons.Stop, ButtonKind.Tonal, DownAsync, false, true);
+        Act("Up", Icons.PlayArrow, ButtonKind.Filled, () => UpAsync(null), true, true);
+        // Less common actions sit behind the overflow button so the header keeps the design's six actions.
+        Act("Config", Icons.DataObject, ButtonKind.Text, ConfigAsync, true, false);
+        Act("Start", Icons.PlayArrow, ButtonKind.Text, () => Simple("Start", false, "start"), false, false);
+        Act("Stop", Icons.Stop, ButtonKind.Text, () => Simple("Stop", false, "stop"), false, false);
         BuildTools();
 
         services.Key = s => s.Service + "/" + s.Container;
         services.EmptyTitle = Loc.T("No services");
         services.EmptyMessage = Loc.T("Compose reported no services for this project.");
-        services.Column("Service", s => s.Service, 140, true)
-            .Column("Image", s => s.Image, 200, true)
-            .ChipColumn("State", s => s.Created ? s.State : "not created", s => s.StateTone, 110)
-            .Column("Ports", s => s.Ports, 200, true)
-            .Column("Health", s => s.Health.Length > 0 ? s.Health : "—", 90)
-            .Column("Status", s => s.Status, 160)
+        services.Column("Service", s => s.Service, 110, true)
+            .Column("Image", s => s.Image, 150, true)
+            .ChipColumn("State", s => s.Created ? s.State : "not created", s => s.StateTone, 100)
+            .Column("Ports", s => s.Ports, 160, true)
+            .Column("Health", s => s.Health.Length > 0 ? s.Health : "—", 70)
+            .Column("Status", s => s.Status, 130)
             .Filter("Running", s => s.State == "running")
             .Filter("Not running", s => s.State != "running")
             .RowAction("Logs", Icons.Terminal, s => LogsAsync(s.Service), "Enter")
@@ -78,32 +87,104 @@ public sealed partial class ComposeProjectPanel : Grid
             .RowAction("Copy container name", Icons.ContentCopy, s => { if (s.Container.Length > 0) ActionSounds.Copy(s.Container); return Task.CompletedTask; });
         services.Activated += s => _ = Ui.RunGuarded(services, () => LogsAsync(s.Service));
 
-        // Actions wrap under the title so every button stays reachable at narrow widths.
-        actions.HorizontalAlignment = HorizontalAlignment.Left;
-        actions.Margin = new Thickness(-8, 4, 0, 0);
-        var header = Ui.VStack(4, Ui.HStack(10, title, status), meta, actions);
-        var headerCard = Ui.Card(header, 16, "SurfaceLow");
+        // Header card: title and the six main actions on one row (the actions wrap under the title when narrow),
+        // then the profile chips with the running count, then the optional drawer behind the overflow button.
+        var more = Ui.IconButton(Icons.MoreVert, "More actions");
+        more.Margin = new Thickness(8, 4, 0, 4);
+        actions.Children.Add(more);
+        var titleRow = Ui.VStack(2, Ui.HStack(10, title, status), meta);
+        var topRow = new HeaderPanel(titleRow, actions);
 
-        var profiles = Ui.VStack(6, Ui.HStack(8, Ui.Overline("Profiles"), Ui.InfoButton("Profiles", "Profiles turn on optional services. Services without a profile always run. Selected profiles are passed as --profile to every action of a file-based project.", "--profile observability")), profileChips, profileNote,
-            Ui.HStack(8, Ui.Overline("Environment files"), Ui.InfoButton("Environment files", "Compose substitutes ${VARIABLES} in the file from .env in the project directory. Choosing env files replaces that default with --env-file for every action.", "--env-file .env.staging")).Margin(0, 6, 0, 0), envChips,
+        var profileLabel = Ui.HStack(8, Ui.Overline("Profiles"), Ui.InfoButton("Profiles", "Profiles turn on optional services. Services without a profile always run. Selected profiles are passed as --profile to every action of a file-based project.", "--profile observability"));
+        profileLabel.Margin = new Thickness(0, 0, 8, 0);
+        profileLabel.VerticalAlignment = VerticalAlignment.Top;
+        var profileRow = new DockPanel();
+        runningBadge.Margin = new Thickness(8, 0, 0, 0);
+        runningBadge.VerticalAlignment = VerticalAlignment.Top;
+        profileRow.Children.Add(runningBadge.Dock(Dock.Right));
+        profileRow.Children.Add(profileLabel.Dock(Dock.Left));
+        profileRow.Children.Add(profileChips);
+        profileNote.Visibility = Visibility.Collapsed;
+
+        var drawer = Ui.VStack(6,
+            moreActions,
+            Ui.HStack(8, Ui.Overline("Environment files"), Ui.InfoButton("Environment files", "Compose substitutes ${VARIABLES} in the file from .env in the project directory. Choosing env files replaces that default with --env-file for every action.", "--env-file .env.staging")), envChips,
             Ui.HStack(8, Ui.Overline("Inspect and tools")).Margin(0, 6, 0, 0), tools);
-        var servicesHeader = new DockPanel();
-        servicesHeader.Children.Add(runningText.Dock(Dock.Right));
-        servicesHeader.Children.Add(Ui.Text("Services", 14, FontWeights.SemiBold));
+        moreDrawer = new Border { Child = drawer, Visibility = Visibility.Collapsed, Padding = new Thickness(0, 10, 0, 0) };
+        more.Click += (_, _) =>
+        {
+            moreDrawer.Visibility = moreDrawer.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
+            System.Windows.Automation.AutomationProperties.SetHelpText(more, moreDrawer.Visibility == Visibility.Visible ? "expanded" : "collapsed");
+        };
+        var headerCard = Ui.Card(Ui.VStack(12, topRow, profileRow, profileNote, moreDrawer), 16, "SurfaceLow");
+        headerCard.Padding = new Thickness(20, 16, 16, 14);
+
+        // Services card: 48 px header, the table, then the last action's real output inside the same card.
+        var servicesTitle = Ui.Text("Services", 14, FontWeights.SemiBold).Margin(16, 0, 16, 0);
+        servicesTitle.VerticalAlignment = VerticalAlignment.Center;
+        var servicesHeader = new Grid { Height = 48 };
+        servicesHeader.Children.Add(servicesTitle);
         lastActionCard = Ui.Card(Ui.VStack(6, lastActionTitle, new ScrollViewer { Content = lastAction, MaxHeight = 140, VerticalScrollBarVisibility = ScrollBarVisibility.Auto }), 12, "SurfaceContainer", 12);
+        lastActionCard.Margin = new Thickness(16, 12, 16, 12);
         lastActionCard.Visibility = Visibility.Collapsed;
+        var servicesBody = new Grid();
+        servicesBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        servicesBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        servicesBody.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 160 });
+        servicesBody.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        servicesBody.Children.Add(servicesHeader);
+        servicesBody.Children.Add(Ui.Divider().At(1));
+        servicesBody.Children.Add(services.At(2).Margin(12, 8, 12, 0));
+        servicesBody.Children.Add(lastActionCard.At(3));
+        servicesCard = Ui.Card(servicesBody, 0, "SurfaceLow");
+
         RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
         RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
-        RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
-        RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-        RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 220 });
-        RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        RowDefinitions.Add(lowerRow);
         Children.Add(headerCard);
-        Children.Add(profiles.At(2));
-        Children.Add(servicesHeader.At(4).Margin(0, 0, 0, 8));
-        Children.Add(services.At(5));
-        Children.Add(lastActionCard.At(6).Margin(0, 12, 0, 0));
+        Children.Add(lower.At(2));
+        lower.Children.Add(servicesCard);
+        ApplyLowerLayout();
+    }
+
+    /// <summary>Places the Compose source card beside the services (460 px wide) or under them when the page is narrow.</summary>
+    public void SetSource(UIElement source)
+    {
+        if (sourceCard != null) lower.Children.Remove(sourceCard);
+        sourceCard = source;
+        lower.Children.Add(source);
+        ApplyLowerLayout();
+    }
+
+    /// <summary>Narrow pages stack the services over the source with fixed heights and let the caller scroll.</summary>
+    public bool Stacked
+    {
+        get => stacked;
+        set { if (stacked == value) return; stacked = value; ApplyLowerLayout(); }
+    }
+
+    private void ApplyLowerLayout()
+    {
+        lower.RowDefinitions.Clear();
+        lower.ColumnDefinitions.Clear();
+        if (stacked)
+        {
+            lowerRow.Height = GridLength.Auto; lowerRow.MinHeight = 0;
+            lower.RowDefinitions.Add(new RowDefinition { Height = new GridLength(520) });
+            lower.RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
+            lower.RowDefinitions.Add(new RowDefinition { Height = new GridLength(480) });
+            Grid.SetRow(servicesCard, 0); Grid.SetColumn(servicesCard, 0);
+            if (sourceCard != null) { Grid.SetRow(sourceCard, 2); Grid.SetColumn(sourceCard, 0); }
+        }
+        else
+        {
+            lowerRow.Height = new GridLength(1, GridUnitType.Star); lowerRow.MinHeight = 280;
+            lower.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 320 });
+            lower.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+            lower.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(460) });
+            Grid.SetRow(servicesCard, 0); Grid.SetColumn(servicesCard, 0);
+            if (sourceCard != null) { Grid.SetRow(sourceCard, 0); Grid.SetColumn(sourceCard, 2); }
+        }
     }
 
     public ComposeEntry? Entry => entry;
@@ -164,7 +245,15 @@ public sealed partial class ComposeProjectPanel : Grid
         services.EmptyMessage = psError != null ? "docker compose ps failed: " + psError : "Compose reported no services for this project.";
         if (psError != null) services.Apply();
         var running = rows.Count(r => r.State == "running");
-        runningText.Text = psError != null ? Loc.T("State unavailable") : $"{running} of {rows.Count} running";
+        if (psError != null) SetBadge(runningBadge, Loc.T("State unavailable"), Tone.Neutral);
+        else SetBadge(runningBadge, $"{running} of {rows.Count} running", rows.Count == 0 || running == 0 ? Tone.Neutral : running == rows.Count ? Tone.Success : Tone.Warning);
+    }
+
+    private static void SetBadge(Border target, string text, Tone tone)
+    {
+        var replacement = Ui.Badge(text, tone, false);
+        var child = replacement.Child; replacement.Child = null; target.Child = child;
+        target.SetResourceReference(Border.BackgroundProperty, Ui.ToneKeys(tone).Background);
     }
 
     private async Task SafeLoadDetails()
@@ -179,6 +268,7 @@ public sealed partial class ComposeProjectPanel : Grid
     {
         profileChips.Children.Clear();
         profileNote.Text = note ?? "";
+        profileNote.Visibility = Visibility.Visible;
         if (names == null || names.Count == 0)
         {
             if (note == null) profileNote.Text = Loc.T("This project defines no profiles.");

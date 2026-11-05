@@ -23,29 +23,33 @@ public sealed partial class BakePage : PageBase
     private readonly TextBlock emptyMessage = Ui.Text("", 14, null, "OnSurfaceVariant");
     private readonly WrapPanel fileChips = new();
     private readonly TextBlock sourceCaption = Ui.Caption("");
-    private readonly WrapPanel groupChips = new();
+    private readonly FrameworkElement sourceRow;
+    private readonly TextBox pathBox, overrideBox;
+    private readonly StackPanel groupList = new();
     private readonly SearchFilter targetSearch = new("Search targets", 260);
     private readonly StackPanel targetList = new();
     private readonly TextBlock listNote = Ui.Caption("");
     private readonly TextBlock selectionText = Ui.Caption("");
-    private readonly BakeTargetDetail detail = new();
-    private readonly BuildKeyValueRows overrides;
+    private readonly BakeTargetDetail detail;
+    private readonly Border outputChoice;
+    private readonly Grid split = new();
+    private readonly Border leftCard, rightCard;
     private readonly BuildTimelineView timeline;
     private readonly BuildRunner runner;
-    private readonly TabControl tabs = new();
-    private readonly TabItem definitionTab, runTab;
     private readonly Button buildSelected, buildGroup, printPlan;
     private BakeOutput output = BakeOutput.Load;
+    private string? splitMode;
+    private List<(string Key, string Value)> lastOverrides = [];
 
     private enum BakeOutput { Load, Push, AsDefined }
 
     public BakePage()
     {
-        var openFolder = Ui.Button("Open folder", Icons.FolderOpen, ButtonKind.Outlined, () => PageTasks.Fire(ChooseFolderAsync));
-        var openFile = Ui.Button("Open bake file", Icons.Description, ButtonKind.Outlined, () => PageTasks.Fire(ChooseFileAsync));
-        printPlan = Ui.AsyncButton("Print plan", Icons.Refresh, ButtonKind.Tonal, LoadPlanAsync);
+        printPlan = Ui.AsyncButton("Print plan", Icons.Description, ButtonKind.Outlined, LoadPlanAsync);
         printPlan.ToolTip = Loc.T("Runs docker buildx bake --print to resolve every group and target again. Nothing is built.");
-        var header = Ui.Header("Bake", "Bake files: list, inspect and build targets", out subtitle, openFolder, openFile, printPlan);
+        buildGroup = Ui.AsyncButton("Build group", Icons.DoneAll, ButtonKind.Tonal, BuildGroupAsync);
+        buildSelected = Ui.AsyncButton("Build selected", Icons.Construction, ButtonKind.Filled, BuildSelectedAsync);
+        var header = Ui.Header("Bake", "Bake files: list, inspect and build targets", out subtitle, printPlan, buildGroup, buildSelected);
 
         // Empty state
         var emptyIcon = Ui.Icon(Icons.Workspaces, 40, false, "Outline");
@@ -58,45 +62,56 @@ public sealed partial class BakePage : PageBase
         emptyStack.MaxWidth = 480; emptyStack.HorizontalAlignment = HorizontalAlignment.Center; emptyStack.VerticalAlignment = VerticalAlignment.Center;
         emptyState = emptyStack;
 
-        // Left: source, groups and targets
+        // Bake file bar: path, --set overrides and the browse, reload and open-in-editor icon buttons.
+        pathBox = Ui.Input("", "Bake file", true);
+        pathBox.KeyDown += (_, e) => { if (e.Key == System.Windows.Input.Key.Enter) { e.Handled = true; PageTasks.Fire(ApplyPathAsync); } };
+        overrideBox = Ui.Input("", "Overrides (--set)", true);
+        overrideBox.ToolTip = Loc.T("target.key=value, separated by spaces. Quote a value that contains spaces.");
+        var pathField = Ui.Field("Bake file", pathBox, "A bake file (HCL, JSON or Compose) or a folder that holds docker-bake.hcl, docker-bake.json or compose.yaml. Press Enter to load it.", "C:\\Projects\\app\\docker-bake.hcl");
+        var overrideField = Ui.Field("Overrides (--set)", overrideBox, "Overrides a target attribute for this run only (--set target.key=value), separated by spaces. Use * for every target. Keys include args.NAME, platform, tags, target, no-cache, cache-from and output. Quote a value that contains spaces.", "*.args.VERSION=1.4.0 app.platform=linux/arm64");
+        var browse = Ui.IconButton(Icons.FolderOpen, "Browse for bake file");
+        var browseMenu = new ContextMenu();
+        browseMenu.Items.Add(Ui.MenuItem("Open bake file", Icons.Description, () => PageTasks.Fire(ChooseFileAsync)));
+        browseMenu.Items.Add(Ui.MenuItem("Open folder", Icons.FolderOpen, () => PageTasks.Fire(ChooseFolderAsync)));
+        browse.Click += (_, _) => { browseMenu.PlacementTarget = browse; browseMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; browseMenu.IsOpen = true; };
+        var reload = Ui.AsyncIconButton(Icons.Refresh, "Reload bake file", LoadPlanAsync);
+        var openEditor = Ui.AsyncIconButton(Icons.OpenInNew, "Open bake file in editor", OpenInEditorAsync);
+        var barButtons = Ui.HStack(8, browse, reload, openEditor);
+        foreach (var b in new[] { browse, reload, openEditor }) b.SetResourceReference(Control.BackgroundProperty, "SurfaceContainer");
+        barButtons.VerticalAlignment = VerticalAlignment.Bottom;
+        var bar = Ui.Columns(8, [3, 1, 0], pathField, overrideField, barButtons);
+        sourceRow = Ui.Wrap(8, Ui.Overline("Files bake reads"), fileChips, sourceCaption);
+        sourceRow.Visibility = Visibility.Collapsed;
+        var barCard = Ui.Card(Ui.VStack(8, bar, sourceRow), 16, "SurfaceLow", 16);
+        barCard.Padding = new Thickness(16, 12, 16, 12);
+
+        // Left: groups, targets and the destination
+        targetSearch.Width = double.NaN;
         targetSearch.Changed += RenderTargets;
-        var selectAll = Ui.Button("Select shown", Icons.SelectAll, ButtonKind.Text, () => SetShownChecked(true));
-        var clear = Ui.Button("Clear", Icons.Deselect, ButtonKind.Text, () => SetShownChecked(false));
-        var targetsHead = new DockPanel { Margin = new Thickness(0, 0, 0, 8) };
+        var selectAll = Ui.IconButton(Icons.SelectAll, "Select shown targets", () => SetShownChecked(true));
+        var clear = Ui.IconButton(Icons.Deselect, "Clear shown targets", () => SetShownChecked(false));
+        var targetsHead = new DockPanel { Margin = new Thickness(0, 0, 0, 4) };
         targetsHead.Children.Add(Ui.HStack(4, selectAll, clear).Dock(System.Windows.Controls.Dock.Right));
         targetsHead.Children.Add(targetSearch);
         var left = Ui.VStack(14,
-            Ui.VStack(6, Ui.Overline("Files bake reads"), fileChips, sourceCaption),
-            Ui.VStack(6, Ui.Field("Groups", groupChips, "Groups from the bake file. Choose one to highlight its targets and enable Build group.", "group \"default\" { targets = [\"app\", \"worker\"] }")),
-            Ui.VStack(6, Ui.Overline("Targets"), targetsHead, listNote, targetList));
-        var leftCard = Ui.Card(Ui.Scroll(left), 16, "SurfaceLow", 16);
+            Ui.Field("Groups", groupList, "Groups from the bake file. Click a group to highlight its targets and enable Build group; its own Build button builds just that group.", "group \"default\" { targets = [\"app\", \"worker\"] }"),
+            Ui.VStack(8, Ui.Overline("Targets"), targetsHead, listNote, targetList));
+        outputChoice = Ui.Segmented(OutputNames, OutputNames[0], option => { output = (BakeOutput)Array.IndexOf(OutputNames, option); UpdateNotice(); });
+        var destination = Ui.VStack(6, Ui.Field("Destination", outputChoice, "Load locally adds --load so images appear in this engine (one platform per target). Push adds --push and asks first. As defined keeps the outputs written in the bake file.", "--load"), selectionText);
+        leftCard = Ui.Card(Ui.Rows(12, [1, 0], Ui.Scroll(left), destination), 16, "SurfaceLow", 16);
 
-        // Right: options, actions, definition and run
-        overrides = new BuildKeyValueRows(new List<NameValue>(), "target.key", "Value", "Add override", BakePlan.ValidateSetKey, () => { });
-        var outputChoice = Ui.Segmented(OutputNames, OutputNames[0], option => output = (BakeOutput)Array.IndexOf(OutputNames, option));
-        buildSelected = Ui.AsyncButton("Build selected", Icons.Construction, ButtonKind.Filled, BuildSelectedAsync);
-        buildGroup = Ui.AsyncButton("Build group", Icons.Workspaces, ButtonKind.Tonal, BuildGroupAsync);
-        var actions = Ui.Wrap(8, buildSelected, buildGroup);
-        var optionsBody = Ui.VStack(12,
-            Ui.Field("Destination", outputChoice, "Load locally adds --load so images appear in this engine (one platform per target). Push adds --push and asks first. As defined keeps the outputs written in the bake file.", "--load"),
-            new Expander
-            {
-                Header = Loc.T("Overrides (--set)"),
-                Content = Ui.Field("Overrides", overrides, "Overrides a target attribute for this run only (--set target.key=value). Use * for every target. Keys include args.NAME, platform, tags, target, no-cache, cache-from and output.", "app.platform = linux/arm64\n*.args.VERSION = 1.4.0\napp.tags = registry.example.com/team/app:dev")
-            },
-            Ui.Columns(12, [1, 0], selectionText, actions));
-        var optionsCard = Ui.Card(optionsBody, 16, "SurfaceContainer", 16);
-
+        // Right: the inspector with its Resolved, HCL source and Build run views
         timeline = new BuildTimelineView("Build a target or group to see each BuildKit step with its status, cache use and duration.");
         runner = new BuildRunner(timeline);
-        definitionTab = new TabItem { Header = Loc.T("Definition"), Content = detail };
-        runTab = new TabItem { Header = Loc.T("Build run"), Content = timeline };
-        tabs.Items.Add(definitionTab); tabs.Items.Add(runTab);
-        var right = new DockPanel();
-        right.Children.Add(optionsCard.Dock(System.Windows.Controls.Dock.Top).Margin(0, 0, 0, 12));
-        right.Children.Add(Ui.Card(tabs, 16, "SurfaceLow", 16));
+        detail = new BakeTargetDetail(timeline) { HclSource = target => BakeHclSource.Read(BakeFilePaths(), target.Name) };
+        detail.LoadLocallyRequested += () => SelectOutput(BakeOutput.Load);
+        rightCard = Ui.Card(detail, 0, "SurfaceLow", 16);
 
-        workspace = Ui.SplitInspector(leftCard, right, 1100, 560, 16);
+        split.Children.Add(leftCard);
+        split.Children.Add(rightCard);
+        split.SizeChanged += (_, _) => ArrangeSplit();
+        ArrangeSplit();
+        workspace = Ui.Rows(12, [0, 1], barCard, split);
         root.Children.Add(emptyState);
         root.Children.Add(workspace);
         Layout(header, root);
@@ -104,6 +119,63 @@ public sealed partial class BakePage : PageBase
         ShowEmpty("No bake file chosen", "Choose a folder that contains docker-bake.hcl, docker-bake.json or compose.yaml, or open a bake file directly. Bake resolves every group and target without building anything until you ask.");
         UpdateActions();
     }
+
+    /// <summary>Groups and targets sit in a 460 px column beside the inspector; narrow pages stack them.</summary>
+    private void ArrangeSplit()
+    {
+        var wide = split.ActualWidth <= 0 || split.ActualWidth >= 1100;
+        var mode = wide ? "wide" : "stacked";
+        if (mode == splitMode) return;
+        splitMode = mode;
+        split.ColumnDefinitions.Clear();
+        split.RowDefinitions.Clear();
+        if (wide)
+        {
+            split.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(460) });
+            split.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(12) });
+            split.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            leftCard.At(0, 0); rightCard.At(0, 2);
+        }
+        else
+        {
+            split.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 280 });
+            split.RowDefinitions.Add(new RowDefinition { Height = new GridLength(12) });
+            split.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star), MinHeight = 260 });
+            leftCard.At(0, 0); rightCard.At(2, 0);
+        }
+    }
+
+    private void SelectOutput(BakeOutput value)
+    {
+        if (outputChoice.Child is Panel panel && panel.Children.OfType<RadioButton>().ElementAtOrDefault((int)value) is { } radio) radio.IsChecked = true;
+    }
+
+    /// <summary>Warns when the chosen destination or the shown target's own output pushes to a registry.</summary>
+    private void UpdateNotice()
+    {
+        string? text = null;
+        var focused = plan?.Targets.FirstOrDefault(t => t.Name == focusedTarget);
+        if (output == BakeOutput.Push)
+            text = Loc.T("Destination Push sends the built targets to their registries. Sign in to each registry first, or switch to load locally.");
+        else if (output == BakeOutput.AsDefined && focused != null && focused.Outputs.Any(o => o.Contains("type=registry", StringComparison.OrdinalIgnoreCase)))
+        {
+            var host = RegistryHost(focused);
+            text = Loc.T("Output type=registry pushes on build.") + " " + (host != null ? Loc.T("Sign in to") + " " + host + " " + Loc.T("first, or switch output to load locally.") : Loc.T("Sign in to the registry first, or switch output to load locally."));
+        }
+        detail.SetNotice(text);
+    }
+
+    private static string? RegistryHost(BakeTarget target)
+    {
+        foreach (var tag in target.Tags)
+        {
+            var slash = tag.IndexOf('/');
+            if (slash > 0 && (tag[..slash].Contains('.') || tag[..slash].Contains(':'))) return tag[..slash];
+        }
+        return null;
+    }
+
+    private IEnumerable<string> BakeFilePaths() => bakeFile.Length > 0 ? [bakeFile] : DefaultFilesIn(folder).Select(name => Path.Combine(folder, name));
 
     public override IEnumerable<AppCommand> PageCommands() =>
     [

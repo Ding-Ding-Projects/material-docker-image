@@ -18,7 +18,6 @@ public sealed class ComposePage : PageBase, IDirtyAware
     private readonly ComposeSourceEditor source = new();
     private readonly TextBlock subtitle;
     private readonly ContentControl detail = new();
-    private readonly Grid detailGrid;
     private readonly FrameworkElement noSelection;
     private readonly ScrollViewer narrowScroll = Ui.Scroll(null!);
     private string? selectKey;
@@ -44,13 +43,12 @@ public sealed class ComposePage : PageBase, IDirtyAware
         var header = Ui.Header("Compose", "Compose projects, services and source", out subtitle,
             Ui.Button("Open Compose file…", Icons.FolderOpen, ButtonKind.Tonal, projects.Browse),
             Ui.AsyncButton("Refresh", Icons.Refresh, ButtonKind.Tonal, RefreshAsync));
-        source.MinWidth = 320;
-        detailGrid = Ui.Columns(16, [3, 2], panel, Ui.Card(source, 16, "SurfaceLow"));
+        panel.SetSource(Ui.Card(source, 0, "SurfaceLow"));
         noSelection = Ui.EmptyState(Icons.Stacks, "Select a project", "Choose a project on the left, or open a Compose file to edit and run it.",
             Ui.Button("Open Compose file…", Icons.FolderOpen, ButtonKind.Filled, projects.Browse));
         detail.Content = noSelection;
         projects.MinWidth = 240;
-        var body = Ui.Columns(16, [-300, 1], projects, detail);
+        var body = Ui.Columns(12, [-300, 1], projects, detail);
         Layout(header, body);
         SizeChanged += (_, _) => Reflow();
     }
@@ -59,31 +57,13 @@ public sealed class ComposePage : PageBase, IDirtyAware
     private void Reflow()
     {
         var narrow = ActualWidth > 0 && ActualWidth < 1280;
-        var editor = detailGrid.Children[1];
-        if (narrow && detailGrid.ColumnDefinitions.Count == 3)
-        {
-            detailGrid.ColumnDefinitions.Clear();
-            detailGrid.RowDefinitions.Clear();
-            detailGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(620) });
-            detailGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(16) });
-            detailGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(480) });
-            Grid.SetColumn(editor, 0); Grid.SetRow(editor, 2);
-        }
-        else if (!narrow && detailGrid.RowDefinitions.Count == 3)
-        {
-            detailGrid.RowDefinitions.Clear();
-            detailGrid.ColumnDefinitions.Clear();
-            detailGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(3, GridUnitType.Star) });
-            detailGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(16) });
-            detailGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(2, GridUnitType.Star) });
-            Grid.SetRow(editor, 0); Grid.SetColumn(editor, 2);
-        }
+        panel.Stacked = narrow;
         if (detail.Content == noSelection) return;
-        var wanted = narrow ? (object)narrowScroll : detailGrid;
+        var wanted = narrow ? (object)narrowScroll : panel;
         if (detail.Content == wanted) return;
         narrowScroll.Content = null;
         detail.Content = null;
-        if (narrow) narrowScroll.Content = detailGrid;
+        if (narrow) narrowScroll.Content = panel;
         detail.Content = wanted;
     }
 
@@ -175,7 +155,7 @@ public sealed class ComposePage : PageBase, IDirtyAware
             }
             if (detail.Content == noSelection) detail.Content = null;
             Reflow();
-            if (detail.Content == null) detail.Content = detailGrid;
+            if (detail.Content == null) detail.Content = panel;
             await panel.ShowAsync(entry);
             if (file != null)
             {
