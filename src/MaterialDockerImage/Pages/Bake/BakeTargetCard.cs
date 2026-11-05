@@ -26,20 +26,28 @@ public sealed class BakeTargetCard : Border
         check.Checked += (_, _) => SelectionChanged?.Invoke();
         check.Unchecked += (_, _) => SelectionChanged?.Invoke();
 
-        var title = Ui.HStack(8, Ui.Mono(target.Name, 14, "OnSurface"), target.Stage.Length > 0 ? Ui.Badge("stage " + target.Stage, Tone.Neutral) : null);
-        var source = Ui.Mono((target.Context.Length > 0 ? target.Context : ".") + "  ·  " + (target.Dockerfile.Length > 0 ? target.Dockerfile : "Dockerfile"), 12, "OnSurfaceVariant");
-        var chips = new WrapPanel { Margin = new Thickness(0, 4, 0, 0) };
-        foreach (var tag in target.Tags.Take(4)) chips.Children.Add(Ui.Badge(tag, Tone.Primary).Margin(0, 0, 6, 6));
-        if (target.Tags.Count > 4) chips.Children.Add(Ui.Badge($"+{target.Tags.Count - 4}", Tone.Primary).Margin(0, 0, 6, 6));
-        foreach (var platform in target.Platforms) chips.Children.Add(Ui.Badge(platform, Tone.Tertiary).Margin(0, 0, 6, 6));
-        if (target.Args.Count > 0) chips.Children.Add(Ui.Badge($"{target.Args.Count} {Loc.T(target.Args.Count == 1 ? "arg" : "args")}").Margin(0, 0, 6, 6));
-        if (target.Tags.Count == 0) chips.Children.Add(Ui.Badge(Loc.T("no tags")).Margin(0, 0, 6, 6));
+        var dockerfile = target.Dockerfile.Length > 0 ? target.Dockerfile : "Dockerfile";
+        var sourcePath = target.Context.Length > 0 && target.Context != "." ? target.Context.TrimEnd('/', Path.DirectorySeparatorChar) + "/" + dockerfile : dockerfile;
+        var source = Ui.Text(sourcePath, 12, null, "OnSurfaceVariant", false, false);
+        var title = new DockPanel();
+        title.Children.Add(source.Dock(System.Windows.Controls.Dock.Right));
+        var name = Ui.HStack(8, Ui.Mono(target.Name, 14, "OnSurface"), target.Stage.Length > 0 ? Ui.Badge("stage " + target.Stage, Tone.Neutral) : null);
+        title.Children.Add(name);
+        // Platforms are small mono chips; tags are summarised as a count and listed in the tooltip and the definition.
+        var chips = new WrapPanel { Margin = new Thickness(0, 0, 0, 0) };
+        foreach (var platform in target.Platforms) chips.Children.Add(PlatformChip(platform));
+        var summary = new List<string> { target.Tags.Count == 0 ? Loc.T("no tags") : $"{target.Tags.Count} {Loc.T(target.Tags.Count == 1 ? "tag" : "tags")}" };
+        if (target.Args.Count > 0) summary.Add($"{target.Args.Count} {Loc.T(target.Args.Count == 1 ? "arg" : "args")}");
+        var counts = Ui.Text(string.Join(" · ", summary), 12, null, "OnSurfaceVariant", false, false);
+        counts.Margin = new Thickness(4, 0, 0, 6);
+        if (target.Tags.Count > 0) counts.ToolTip = string.Join(Environment.NewLine, target.Tags);
+        chips.Children.Add(counts);
 
         var body = new DockPanel();
         body.Children.Add(check.Dock(System.Windows.Controls.Dock.Left));
-        body.Children.Add(Ui.VStack(4, title, source, chips));
+        body.Children.Add(Ui.VStack(8, title, chips));
         Child = body;
-        Padding = new Thickness(12, 10, 12, 6);
+        Padding = new Thickness(12, 12, 12, 6);
         CornerRadius = new CornerRadius(12);
         Margin = new Thickness(0, 0, 0, 8);
         BorderThickness = new Thickness(1);
@@ -70,8 +78,17 @@ public sealed class BakeTargetCard : Border
 
     private void Paint()
     {
-        SetResourceReference(BackgroundProperty, focused ? "SecondaryContainer" : hover || IsKeyboardFocused ? "SurfaceHighest" : "SurfaceHigh");
-        SetResourceReference(BorderBrushProperty, inGroup ? "Primary" : focused ? "SecondaryContainer" : hover || IsKeyboardFocused ? "SurfaceHighest" : "SurfaceHigh");
+        SetResourceReference(BackgroundProperty, focused || hover || IsKeyboardFocused ? "SurfaceHigh" : "SurfaceContainer");
+        SetResourceReference(BorderBrushProperty, inGroup || focused ? "Primary" : hover || IsKeyboardFocused ? "SurfaceHigh" : "SurfaceContainer");
+    }
+
+    private static Border PlatformChip(string platform)
+    {
+        var label = Ui.Mono(platform, 12, "OnSecondaryContainer");
+        var chip = new Border { Child = label, Height = 24, CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 0, 8, 0), Margin = new Thickness(0, 0, 6, 6) };
+        label.VerticalAlignment = VerticalAlignment.Center;
+        chip.SetResourceReference(BackgroundProperty, "SecondaryContainer");
+        return chip;
     }
 
     private static bool IsInside(DependencyObject element, DependencyObject container)

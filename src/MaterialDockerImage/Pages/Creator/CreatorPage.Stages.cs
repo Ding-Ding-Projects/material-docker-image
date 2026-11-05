@@ -29,7 +29,8 @@ public sealed partial class CreatorPage
             UpdateStageButtons();
         };
 
-        var add = Ui.Button("Add stage", Icons.Add, ButtonKind.Tonal, AddStage);
+        var add = Ui.Button("Add stage", Icons.Add, ButtonKind.Text, AddStage);
+        add.Height = 36; add.MinHeight = 36; add.Padding = new Thickness(6, 0, 12, 0);
         stageUp = Ui.IconButton(Icons.ExpandLess, "Move stage up", () => MoveStage(-1));
         stageDown = Ui.IconButton(Icons.ExpandMore, "Move stage down", () => MoveStage(1));
         stageDuplicate = Ui.IconButton(Icons.FilterNone, "Duplicate stage", DuplicateStage);
@@ -40,14 +41,14 @@ public sealed partial class CreatorPage
         var starters = new WrapPanel();
         foreach (var starter in DockerfileStarters.All)
         {
-            var b = Ui.Button(starter.Label, null, ButtonKind.Outlined, () => PageTasks.Fire(() => ApplyStarterAsync(starter)), false);
+            var b = CreatorChips.Action(starter.Label, () => PageTasks.Fire(() => ApplyStarterAsync(starter)), 32, false);
             b.ToolTip = starter.Description;
-            b.MinHeight = 32; b.Height = 32; b.Padding = new Thickness(12, 0, 12, 0); b.Margin = new Thickness(0, 0, 6, 6);
+            b.Margin = new Thickness(0, 0, 6, 6);
             starters.Children.Add(b);
         }
 
         var stack = Ui.VStack(10,
-            Ui.Text("Stages", 16, FontWeights.SemiBold),
+            Ui.Overline("Stages"),
             stageSearch, stageList, actions, add,
             Ui.Divider().Margin(0, 6, 0, 0),
             Ui.Wrap(0, Ui.Overline("Start from"), Ui.InfoButton("Starters", "A starter builds a complete draft for a common stack. Hover a starter to see exactly what it creates.", "Node.js: deps, build and runtime stages with npm cache mounts, USER node and EXPOSE 8080.")),
@@ -73,9 +74,9 @@ public sealed partial class CreatorPage
                 var baseText = DockerfileLintHelpers.IsStageReference(doc, i) ? Loc.T("from") + " " + stage.BaseImage.Trim() : stage.BaseImage.Trim();
                 var meta = $"{baseText} · {stage.Instructions.Count} {Loc.T(stage.Instructions.Count == 1 ? "step" : "steps")}" + (i == target ? " · " + Loc.T("target") : "");
                 if (!stageSearch.Matches(name + " " + meta)) continue;
-                var content = Ui.Columns(10, [0, 1], Ui.Icon(Icons.Layers, 20, i == target, i == target ? "Primary" : "OnSurfaceVariant"),
+                var content = Ui.Columns(10, [0, 1], Ui.Icon(Icons.DragIndicator, 18, false, i == target ? "Primary" : "OnSurfaceVariant"),
                     Ui.VStack(0, Ui.Text(name, 14, FontWeights.SemiBold, "OnSurface", false, false), Ui.Text(meta, 12, null, "OnSurfaceVariant", false, false)));
-                var item = new ListBoxItem { Content = content, Tag = i };
+                var item = new ListBoxItem { Content = content, Tag = i, MinHeight = 52, Padding = new Thickness(10, 0, 10, 0) };
                 System.Windows.Automation.AutomationProperties.SetName(item, $"{name}, {meta}");
                 stageList.Items.Add(item);
                 if (i == selectedStage) stageList.SelectedItem = item;

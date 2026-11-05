@@ -53,6 +53,7 @@ public sealed partial class CreatorPage
     private readonly List<(DockerInstruction Instruction, TextBlock Summary, TextBlock Hint, Border Card)> cardViews = new();
     private bool syncingStage;
     private Button? addInstruction;
+    private Border footer = null!;
     private readonly TextBox checkDirective = Ui.Input("", "Check directive", true);
     private readonly TextBox escapeDirective = Ui.Input("", "Escape directive", true);
     private FrameworkElement escapeField = null!;
@@ -82,6 +83,7 @@ public sealed partial class CreatorPage
         preambleSection = BuildGlobalCard();
 
         addInstruction = Ui.Button("Add instruction", Icons.Add, ButtonKind.Tonal, () => OpenAddMenu(addInstruction!));
+        addInstruction.Height = 36; addInstruction.MinHeight = 36; addInstruction.Padding = new Thickness(14, 0, 14, 0);
         addInstruction.ToolTip = Loc.T("Choose an instruction to add after the open card, or at the end.");
         var quick = Ui.Wrap(6,
             QuickChip("RUN with cache mount", () => new DockerInstruction { Kind = InstructionKind.Run, Command = "echo build", Mounts = { new RunMount { Type = RunMounts.Cache, Target = "/root/.cache" } } }, false),
@@ -90,22 +92,26 @@ public sealed partial class CreatorPage
             QuickChip("Non-root USER", () => new DockerInstruction { Kind = InstructionKind.User, Value = "10001" }, true),
             QuickChip("EXPOSE", () => DockerfileModel.Create(InstructionKind.Expose), true));
         var addRow = Ui.Wrap(8, addInstruction, quick);
+        footer = new Border { Child = addRow, Padding = new Thickness(0, 10, 0, 0), BorderThickness = new Thickness(0, 1, 0, 0) };
+        footer.SetResourceReference(Border.BorderBrushProperty, "SurfaceHigh");
 
         noStage = Ui.EmptyState(Icons.Layers, "No stages yet", "Pick a starter on the left, open an existing Dockerfile, or add a stage.",
             Ui.Button("Add stage", Icons.Add, ButtonKind.Filled, AddStage));
         noStage.Visibility = Visibility.Collapsed;
 
-        var stack = Ui.VStack(14, preambleSection, stageFields, Ui.Divider(), cards, addRow);
+        var stack = Ui.VStack(14, preambleSection, stageFields, Ui.Divider(), cards);
         var grid = new Grid();
         editorScroll = Ui.Scroll(stack);
-        grid.Children.Add(editorScroll);
+        var host = new DockPanel();
+        host.Children.Add(footer.Dock(System.Windows.Controls.Dock.Bottom));
+        host.Children.Add(editorScroll);
+        grid.Children.Add(host);
         grid.Children.Add(noStage);
         return grid;
     }
 
-    private Button QuickChip(string label, Func<DockerInstruction> create, bool beforeStart)
-    {
-        var b = Ui.Button(label, Icons.Add, ButtonKind.Outlined, () =>
+    private System.Windows.Controls.Primitives.ToggleButton QuickChip(string label, Func<DockerInstruction> create, bool beforeStart) =>
+        CreatorChips.Action(label, () =>
         {
             if (doc.Stages.Count == 0) { Host.Notify.Warning("Add a stage first."); return; }
             FlushCommit();
@@ -114,10 +120,7 @@ public sealed partial class CreatorPage
             if (beforeStart) DockerfileLint.InsertBeforeStart(stage, instruction); else InsertAfterExpanded(stage, instruction);
             expanded = instruction;
             Changed();
-        });
-        b.MinHeight = 32; b.Height = 32; b.Padding = new Thickness(12, 0, 12, 0);
-        return b;
-    }
+        }, 36, false);
 
     private void InsertAfterExpanded(DockerfileStage stage, DockerInstruction instruction)
     {
@@ -266,6 +269,7 @@ public sealed partial class CreatorPage
         var has = doc.Stages.Count > 0;
         noStage.Visibility = has ? Visibility.Collapsed : Visibility.Visible;
         editorScroll.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
+        footer.Visibility = has ? Visibility.Visible : Visibility.Collapsed;
         cards.Children.Clear(); preambleCards.Children.Clear(); cardViews.Clear();
         for (var i = 0; i < doc.Preamble.Count; i++) preambleCards.Children.Add(Card(doc.Preamble, i, -1));
         syncingStage = true;
@@ -298,8 +302,10 @@ public sealed partial class CreatorPage
             summary.Text = DockerfileModel.Summary(instruction);
             hint.Text = Loc.T(DockerfileModel.Hint(instruction));
             var invalid = DockerfileModel.Validate(instruction).Count > 0;
-            card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : expanded == instruction || highlighted == instruction ? "Primary" : "OutlineVariant");
-            card.BorderThickness = new Thickness(expanded == instruction || highlighted == instruction ? 2 : 1);
+            var marked = expanded == instruction || highlighted == instruction;
+            card.SetResourceReference(Border.BorderBrushProperty, invalid ? "Error" : marked ? "Primary" : "OutlineVariant");
+            card.BorderThickness = new Thickness(marked ? 2 : invalid ? 1 : 0);
+            summary.ToolTip = summary.Text;
         }
     }
 
@@ -311,10 +317,10 @@ public sealed partial class CreatorPage
         var instruction = list[index];
         var isOpen = expanded == instruction;
         var keyword = DockerfileModel.Keyword(instruction.Kind);
-        var chip = new Border { Child = Ui.Mono(keyword, 12, "OnTertiaryContainer"), CornerRadius = new CornerRadius(6), Padding = new Thickness(8, 2, 8, 2), VerticalAlignment = VerticalAlignment.Top, Margin = new Thickness(0, 2, 0, 0), MinWidth = 64 };
-        chip.SetResourceReference(Border.BackgroundProperty, instruction.Kind is InstructionKind.Comment or InstructionKind.Raw ? "SurfaceHighest" : "TertiaryContainer");
-        ((TextBlock)chip.Child).TextAlignment = TextAlignment.Center;
-        var summary = Ui.Mono(DockerfileModel.Summary(instruction), 13, "OnSurface", true);
+        var chip = KeywordPill(keyword, instruction.Kind is InstructionKind.Comment or InstructionKind.Raw);
+        chip.VerticalAlignment = VerticalAlignment.Top;
+        var summary = Ui.Mono(DockerfileModel.Summary(instruction), 13, "OnSurface", false);
+        summary.ToolTip = summary.Text;
         var hint = Ui.Caption(DockerfileModel.Hint(instruction));
         var text = Ui.VStack(2, summary, hint);
 
@@ -335,28 +341,31 @@ public sealed partial class CreatorPage
         var delete = Ui.IconButton(Icons.Delete, "Delete (Del)", () => { FlushCommit(); list.RemoveAt(index); if (expanded == instruction) expanded = null; Changed(); Host.Notify.Info(Loc.T("Instruction deleted. Undo restores it.")); });
         var asText = Ui.IconButton(Icons.Code, "Edit as text", () => EditAsText(instruction));
         asText.Visibility = instruction.Kind == InstructionKind.Raw ? Visibility.Visible : Visibility.Collapsed;
-        foreach (var b in new[] { up, down, edit, duplicate, delete, asText }) { b.Width = b.Height = b.MinHeight = 32; b.FontSize = 18; }
-        var actions = Ui.HStack(0, asText, up, down, duplicate, edit, delete);
-        actions.VerticalAlignment = VerticalAlignment.Top;
+        // One overflow button replaces the row of icon buttons; every action stays in the menu below (and on the keyboard).
+        var more = Ui.IconButton(Icons.MoreVert, "More step actions");
+        more.Width = more.Height = more.MinHeight = 32; more.FontSize = 18;
+        more.VerticalAlignment = VerticalAlignment.Top;
+        var actions = more;
 
         var top = Ui.Columns(12, [0, 1, 0], chip, text, actions);
         var body = new StackPanel();
         body.Children.Add(top);
         if (isOpen)
         {
-            var form = new InstructionForm(instruction, EarlierStageNames, Touched) { Margin = new Thickness(0, 14, 0, 0) };
-            var done = Ui.Button("Done", null, ButtonKind.Text, () => { FlushCommit(); expanded = null; RebuildStageEditor(); FocusCard(instruction); });
-            done.HorizontalAlignment = HorizontalAlignment.Right;
+            var form = new InstructionForm(instruction, EarlierStageNames, Touched) { Margin = new Thickness(0, 10, 0, 0) };
+            var done = Ui.Button("Done", null, ButtonKind.Filled, () => { FlushCommit(); expanded = null; RebuildStageEditor(); FocusCard(instruction); });
+            done.Height = 32; done.MinHeight = 32; done.Padding = new Thickness(12, 0, 12, 0); done.FontSize = 13;
+            var editHeader = Ui.Columns(8, [0, 1, 0], KeywordPill(keyword, false), Ui.Text($"{Loc.T("Editing step")} {index + 1}", 14, FontWeights.SemiBold), done);
             body.Children.Add(Ui.Divider().Margin(0, 12, 0, 0));
-            body.Children.Add(Ui.Caption($"{Loc.T("Editing step")} {index + 1}").Margin(0, 10, 0, 0));
+            body.Children.Add(editHeader.Margin(0, 10, 0, 0));
             body.Children.Add(form);
-            body.Children.Add(done);
         }
-        var card = new Border { Child = body, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), BorderThickness = new Thickness(isOpen ? 2 : 1), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction };
+        var card = new Border { Child = body, CornerRadius = new CornerRadius(12), Padding = new Thickness(12, 10, 8, 10), BorderThickness = new Thickness(isOpen ? 2 : 0), Margin = new Thickness(0, 0, 0, 8), Focusable = true, Tag = instruction };
         card.SetResourceReference(Border.BackgroundProperty, isOpen ? "SurfaceHigh" : "SurfaceContainer");
         var marked = isOpen || highlighted == instruction;
-        card.BorderThickness = new Thickness(marked ? 2 : 1);
-        card.SetResourceReference(Border.BorderBrushProperty, DockerfileModel.Validate(instruction).Count > 0 ? "Error" : marked ? "Primary" : "OutlineVariant");
+        var invalidNow = DockerfileModel.Validate(instruction).Count > 0;
+        card.BorderThickness = new Thickness(marked ? 2 : invalidNow ? 1 : 0);
+        card.SetResourceReference(Border.BorderBrushProperty, invalidNow ? "Error" : marked ? "Primary" : "OutlineVariant");
         card.GotKeyboardFocus += (_, _) =>
         {
             if (highlighted == instruction) return;
@@ -382,8 +391,20 @@ public sealed partial class CreatorPage
         card.ContextMenu.Items.Add(Ui.MenuItem("Move down", Icons.ExpandMore, () => Move(1), "Alt+Down"));
         card.ContextMenu.Items.Add(Ui.MenuItem("Duplicate", Icons.FilterNone, () => duplicate.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent))));
         card.ContextMenu.Items.Add(Ui.MenuItem("Delete", Icons.Delete, () => delete.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Primitives.ButtonBase.ClickEvent)), "Del", true));
+        more.Click += (_, _) => { card.ContextMenu.PlacementTarget = more; card.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom; card.ContextMenu.IsOpen = true; };
         cardViews.Add((instruction, summary, hint, card));
         return card;
+    }
+
+    /// <summary>The instruction keyword in a 26 px pill (comments and raw lines use the neutral colour).</summary>
+    private static Border KeywordPill(string keyword, bool neutral)
+    {
+        var label = Ui.Mono(keyword, 12, neutral ? "OnSurfaceVariant" : "OnTertiaryContainer");
+        label.FontWeight = FontWeights.SemiBold;
+        var pill = new Border { Child = label, Height = 26, MinWidth = 64, CornerRadius = new CornerRadius(13), Padding = new Thickness(10, 0, 10, 0), HorizontalAlignment = HorizontalAlignment.Left };
+        pill.SetResourceReference(Border.BackgroundProperty, neutral ? "SurfaceHighest" : "TertiaryContainer");
+        label.TextAlignment = TextAlignment.Center;
+        return pill;
     }
 
     private void FocusCard(DockerInstruction instruction) =>

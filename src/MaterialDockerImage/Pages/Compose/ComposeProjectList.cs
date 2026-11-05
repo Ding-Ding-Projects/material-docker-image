@@ -33,7 +33,9 @@ public sealed class ComposeProjectList : Border
         list.Background = System.Windows.Media.Brushes.Transparent;
         list.BorderThickness = new Thickness(0);
         list.KeyDown += (_, e) => { if (e.Key == Key.Delete && Selected is { Recent: true, Listed: false } r) { ForgetRecent(r); e.Handled = true; } };
-        var open = Ui.IconButton(Icons.FolderOpen, "Open Compose file…", Browse);
+        var open = Ui.IconButton(Icons.Add, "Open Compose file…", Browse);
+        open.SetResourceReference(Control.BackgroundProperty, "SecondaryContainer");
+        open.SetResourceReference(Control.ForegroundProperty, "OnSecondaryContainer");
         var title = new DockPanel();
         title.Children.Add(open.Dock(Dock.Right));
         title.Children.Add(Ui.Text("Projects", 16, FontWeights.SemiBold));
@@ -110,7 +112,7 @@ public sealed class ComposeProjectList : Border
         top.Children.Add(Ui.Badge(entry.Status, entry.StatusTone).Dock(Dock.Right));
         top.Children.Add(Ui.Text(entry.Name, 14, FontWeights.SemiBold, "OnSurface", false, false));
         var files = entry.Files.Count == 0 ? "No config files reported" : string.Join(", ", entry.Files);
-        var path = Ui.Mono(files, 11.5, "OnSurfaceVariant");
+        var path = Ui.Mono(files, 11, "OnSurfaceVariant");
         path.ToolTip = files;
         var stack = Ui.VStack(4, top, path);
         if (entry.Files.Count > 0 && !entry.HasLocalFiles) stack.Children.Add(Ui.Caption("Files are not on this computer; actions use the project name."));
