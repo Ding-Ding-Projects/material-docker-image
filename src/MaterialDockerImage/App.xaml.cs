@@ -35,6 +35,18 @@ public partial class App : Application
             return;
         }
         MaterialDockerImage.UI.RegexBuilderPreferences.LoadAtStartup();
+        if (MaterialDockerImage.UI.RegexBuilderAutomation.Requested(e.Args))
+        {
+            // Headless folder search for scripts: no window is created in this mode.
+            var (request, problem) = MaterialDockerImage.UI.RegexBuilderAutomation.Parse(e.Args);
+            if (request == null) { Console.Error.WriteLine(problem); Shutdown(MaterialDockerImage.UI.RegexBuilderAutomation.ExitError); return; }
+            int code;
+            try { code = MaterialDockerImage.UI.RegexBuilderAutomation.Run(request, Console.In, Console.Out, Console.Error, Path.Combine(MaterialDockerImage.UI.UserSettings.DataDirectory, "regex-undo")); }
+            catch (Exception exception) { Console.Error.WriteLine("Unexpected problem: " + exception.Message); code = MaterialDockerImage.UI.RegexBuilderAutomation.ExitError; }
+            Console.Out.Flush(); Console.Error.Flush();
+            Shutdown(code);
+            return;
+        }
         var captureIndex = Array.IndexOf(e.Args, "--capture");
         var capture = captureIndex >= 0 && captureIndex + 1 < e.Args.Length;
         string? Arg(string name) { var i = Array.IndexOf(e.Args, name); return i >= 0 && i + 1 < e.Args.Length ? e.Args[i + 1] : null; }

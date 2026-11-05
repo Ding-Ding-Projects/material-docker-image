@@ -310,3 +310,8 @@ Supersedes the partial and unchanged lists of the previous update where they dif
 - Layout: the probe now asks WPF for each text width in place at the real DPI. The last cut finding was a real one-pixel squeeze of the Dockerfile Creator's `.dockerignore` tab by the default tab panel; tab strips now wrap instead. The final matrix over 264 surfaces has no cut and no overflow.
 - Interactive: whack-a-mole was reached three times through the ladder; every round was graded lost because UI Automation presses arrive about two seconds late on a hidden desktop. The winning path is covered by logic checks only.
 - Checks: `build.bat -Tests` passes 23 core, 2,562 UI-state and 24 checklist checks. Receipt: 36 steps.
+
+## Update, 2026-11-04 (night)
+
+- Regular expression parity: 75 of 83 topics implemented, none partial, 8 impossible on .NET. `flavor.compare` is implemented: its version remarks are probed on Python 3.10, 3.11, 3.13 and 3.14 and on the installed Node on every test run (the ECMAScript 2017 rejections and Python 3.9 rest on documentation). `integration.all` is implemented: `--regex-run ACTION --regex-output RESULTS.json [--regex-apply]` runs the folder search without a window, takes the action on standard input with `-`, writes results that Load results reads back, and applies a replacement only with the dry-run plan, the SHA-256 check and an undo snapshot. The requirement stays open until each row is exercised in the running window.
+- Checks: `build.bat -Tests` passes 23 core, 2,612 UI-state and 24 checklist checks.
