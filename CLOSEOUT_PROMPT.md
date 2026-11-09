@@ -13,7 +13,7 @@ State on main (9 November 2026, after the Self-hosted quick setups):
 - Interactive receipt: evidence/interactive-2026-11/receipt.json (UI Automation on a hidden desktop). Items the maintainer declined are listed there as declinedByMaintainer.
 
 Next:
-0. Docker Desktop on the maintainer host failed at start-up on stale socket files in %LOCALAPPDATA%\Dockerun; once it runs, deploy one Self-hosted app through the window and check its LAN address.
+0. Docker Desktop on the maintainer host failed at start-up on stale socket files in %LOCALAPPDATA%\Docker\run; once it runs, deploy one Self-hosted app through the window and check its LAN address.
 1. Pointer input on the Canvas minimap can only be checked on a visible desktop; keyboard and toggle were driven.
 2. Regex parity: 5 topics partial (flavor comparison, grep conversion, folder search extras, external tool integration, some localization); 8 are impossible on .NET.
 3. Try the https and Home Assistant schedule sources against real servers; scan the lock QR code with a phone authenticator.
