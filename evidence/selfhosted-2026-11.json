@@ -216,5 +216,51 @@
       "Heavier apps (GitLab, Immich, Nextcloud, Open WebUI) were not deployed."
     ],
     "cleanup": "The backup folder and the pulled image (digest e88415a9..., equal to the registry check) were removed afterwards."
+  },
+  "windowDriveActions": {
+    "recorded": "2026-11-09T11:23:00-05:00",
+    "sourceCommit": "d127fa0e245e8179ce275a392dc945f5431b88e9",
+    "artifact": "Release build of that commit for deploy, restart and show compose file; the open in Compose, update and remove steps ran on the rebuilt DLL e88206dff8c119ee... carrying the fix below",
+    "engine": "Docker Desktop, engine 29.6.1, context desktop-linux",
+    "route": "Same as windowDrive: built application on a hidden desktop with software rendering, actions through UI Automation, captures through PrintWindow; application data snapshotted before and restored afterwards (directory comparison equal).",
+    "steps": [
+      {
+        "action": "Set up Uptime Kuma through the wizard (project mdi-verify-kuma) and deploy",
+        "observed": "Header \"1 project, 1 running\"",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Restart",
+        "observed": "Container StartedAt moved from 16:11:39Z to 16:13:11Z, health healthy, operation completed",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Show compose file",
+        "observed": "Viewer titled with the project name and path, 23 lines, equal to the 23-line compose.yaml on disk",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Open in Compose",
+        "observed": "Compose opened with the first engine project (another, unrelated project) selected instead of mdi-verify-kuma (fixed, then the rebuilt application selected mdi-verify-kuma with its compose.yaml loaded and reported valid)",
+        "result": "pass after fix"
+      },
+      {
+        "action": "Row actions > Update..., then Update in the confirmation",
+        "observed": "Pulled louislam/uptime-kuma:2.5.9, then up -d reported the container Running; exit 0; the container was not recreated because the pinned image did not change",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Remove... with Also delete data, both keys and the confirmation slider",
+        "observed": "No container, volume, network or project folder left",
+        "result": "pass"
+      }
+    ],
+    "findings": [
+      "Fixed: Open in Compose selected the first listed project on the first visit to Compose, because the page looked up the handed-over file before its project list had loaded; it now loads the list first (ComposeSelection.ForFile, with a UI-state check)."
+    ],
+    "notExercised": [
+      "Open in browser was not invoked: it opens the default browser, which would appear on the visible desktop rather than the hidden one. The address it opens is the one shown in the Address column (http://localhost:3001 in this run)."
+    ],
+    "cleanup": "The pulled image was removed afterwards; application data was restored from the snapshot."
   }
 }

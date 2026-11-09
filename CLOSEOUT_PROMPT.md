@@ -13,7 +13,7 @@ State on main (9 November 2026, after the Self-hosted quick setups):
 - Interactive receipt: evidence/interactive-2026-11/receipt.json (UI Automation on a hidden desktop). Items the maintainer declined are listed there as declinedByMaintainer.
 
 Next:
-0. Self-hosted: drive restart, update, show compose file, open in Compose and open in browser in the built window, and deploy the heavier apps (GitLab, Immich, Nextcloud, Open WebUI).
+0. Self-hosted: drive open in browser in the built window, and deploy the heavier apps (GitLab, Immich, Nextcloud, Open WebUI). Restart, update, show compose file and open in Compose are recorded in windowDriveActions.
 1. Pointer input on the Canvas minimap can only be checked on a visible desktop; keyboard and toggle were driven.
 2. Regex parity: 5 topics partial (flavor comparison, grep conversion, folder search extras, external tool integration, some localization); 8 are impossible on .NET.
 3. Try the https and Home Assistant schedule sources against real servers; scan the lock QR code with a phone authenticator.

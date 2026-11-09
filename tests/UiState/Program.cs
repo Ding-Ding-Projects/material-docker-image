@@ -31,6 +31,9 @@ Check(TerminalText.Plain("[33m1 warning found[0m (use docker --debug)")=="1 wa
 Check(TerminalText.Plain("]8;;https://docs.docker.comlink]8;; and [2K[1Gprogress")=="link and progress","links and cursor codes are removed from command output");
 Check(TerminalText.Plain("plain #21 DONE 0.0s")=="plain #21 DONE 0.0s","output without control codes is unchanged");
 Check(string.Join("|", TerminalText.Lines("app-1  | \u001B[36m2026-11-09T08:45:06\u001B[0m [\u001B[32mSERVER\u001B[0m] Env: production\r\n\r\napp-1  | Welcome\n"))=="app-1  | 2026-11-09T08:45:06 [SERVER] Env: production|app-1  | Welcome","streamed log lines reach the viewer as plain non-empty lines");
+var handed=new (string Name,bool Listed,IReadOnlyList<string> Files)[]{("job-2027-hosted-v2",true,new[]{@"C:\other\compose.yaml"}),("mdi-verify-kuma",true,new[]{@"C:\Data\selfhosted\mdi-verify-kuma\compose.yaml"})};
+Check(MaterialDockerImage.Pages.ComposeSelection.ForFile(handed,@"c:\data\SELFHOSTED\mdi-verify-kuma\compose.yaml")=="ls:mdi-verify-kuma","a handed-over Compose file selects the engine project that runs it, not the first project");
+Check(MaterialDockerImage.Pages.ComposeSelection.ForFile(handed,@"C:\loose\compose.yaml")==@"file:C:\loose\compose.yaml","a Compose file no engine project runs is selected as a file");
 var lf="FROM alpine AS build\nRUN echo preserved\n";
 Check(DockerfileGraph.EditStage(lf,DockerfileGraph.Parse(lf).Stages[0],"ubuntu","build")=="FROM ubuntu AS build\nRUN echo preserved\n","LF preserved");
 Check(SourceSafety.IsCurrentSnapshot("a",1,"a",1),"same snapshot accepted");

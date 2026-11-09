@@ -12,7 +12,7 @@ public sealed record ComposeEntry(string Name, string Status, IReadOnlyList<stri
     /// <summary>Config files that exist on this computer (remote engines can report paths that are not local).</summary>
     public IReadOnlyList<string> LocalFiles => Files.Where(File.Exists).ToList();
     public bool HasLocalFiles => Files.Count > 0 && Files.All(File.Exists);
-    public string Key => Listed ? "ls:" + Name : "file:" + (Files.FirstOrDefault() ?? Name);
+    public string Key => Listed ? ComposeSelection.ListedKey(Name) : ComposeSelection.FileKey(Files.FirstOrDefault() ?? Name);
     public Tone StatusTone => Status.StartsWith("running", StringComparison.OrdinalIgnoreCase) ? Tone.Success
         : Status.StartsWith("exited", StringComparison.OrdinalIgnoreCase) || Status.StartsWith("dead", StringComparison.OrdinalIgnoreCase) ? Tone.Error
         : Status.StartsWith("paused", StringComparison.OrdinalIgnoreCase) || Status.StartsWith("restarting", StringComparison.OrdinalIgnoreCase) ? Tone.Warning

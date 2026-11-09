@@ -127,8 +127,10 @@ public sealed class ComposePage : PageBase, IDirtyAware
             if (!await source.LoadAsync(full)) return;
         }
         ComposeRecentFiles.Add(full);
-        var listed = projects.Entries.FirstOrDefault(e => e.Listed && e.Files.Contains(full, StringComparer.OrdinalIgnoreCase));
-        selectKey = listed?.Key ?? "file:" + full;
+        // On the first visit the project list is still loading, so an engine project that owns the file is not known yet;
+        // load it first, or the selection falls back to whichever project happens to be listed first.
+        if (!projects.Entries.Any(e => e.Files.Contains(full, StringComparer.OrdinalIgnoreCase))) await ReloadProjectsAsync();
+        selectKey = ComposeSelection.ForFile(projects.Entries.Select(e => (e.Name, e.Listed, e.Files)), full);
         await ReloadProjectsAsync();
     }
 
