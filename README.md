@@ -29,7 +29,7 @@ A native Windows WPF workspace for Docker: build images, create Dockerfiles step
 
 ## Screenshots
 
-All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine, run 42042876831 at source `c2c535c` ([inventory](evidence/inventory.json), [earlier sets](evidence/screenshots-archive.md)). Light-theme and 960 x 720 minimum-size captures of every screen are in [`evidence/screenshots`](evidence/screenshots).
+All captures come from the built application on a Windows Server 2025 runner with a real Windows container engine, run 42575803020 at source `7056a00` ([inventory](evidence/inventory.json), [earlier sets](evidence/screenshots-archive.md)). Light-theme and 960 x 720 minimum-size captures of every screen are in [`evidence/screenshots`](evidence/screenshots).
 
 | | |
 | --- | --- |
@@ -40,6 +40,7 @@ All captures come from the built application on a Windows Server 2025 runner wit
 | ![Settings with the appearance editor and live preview](evidence/screenshots/settings.png) | ![Build workspace in the light theme](evidence/screenshots/build-light.png) |
 | ![Suggestions open inside a cache mount in the Creator source](evidence/screenshots/creator-suggestions.png) | ![Security destination with severity tiles](evidence/screenshots/security-light.png) |
 | ![Engine contexts with reachability](evidence/screenshots/contexts.png) | ![Minecraft servers destination](evidence/screenshots/minecraft-light.png) |
+| ![Self-hosted catalogue of quick setups for web apps](evidence/screenshots/selfhosted-catalogue.png) | ![Self-hosted setup review with the exact compose file and command](evidence/screenshots/selfhosted-review.png) |
 
 ## Build
 

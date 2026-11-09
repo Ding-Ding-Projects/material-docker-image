@@ -1,9 +1,10 @@
 # Earlier screenshot sets
 
-The current captures in `evidence/screenshots/` come from workflow run 42042876831 at source `c2c535cef9fbfe31cdb6521c3d4273c28c443589` (see `evidence/inventory.json`). Earlier sets were replaced in place and remain in the repository history with their own provenance:
+The current captures in `evidence/screenshots/` come from workflow run 42575803020 at source `7056a0037208c8dd16d76e44820ed45a4f61bc31` (see `evidence/inventory.json`). Earlier sets were replaced in place and remain in the repository history with their own provenance:
 
 | Set | Source | Workflow run | Where to find it |
 | --- | --- | --- | --- |
+| Finished board views (90 captures, dark, light and 960 x 720) | `c2c535cef9fbfe31cdb6521c3d4273c28c443589` | 42042876831 | `git show 79b7334:evidence/inventory.json` and `git checkout 79b7334 -- evidence/screenshots` |
 | Later board views (81 captures, dark, light and 960 x 720) | `fcf1a247f29dfcb2633d364aea099fe08e1a03af` | 42017259445 | `git show 450e000:evidence/inventory.json` and `git checkout 450e000 -- evidence/screenshots` |
 | Design parity pass (72 captures, dark, light and 960 x 720) | `e2195b2aca6f17440a7b5ed00081577e18643313` | 42007146276 | `git show b12f177:evidence/inventory.json` and `git checkout b12f177 -- evidence/screenshots` |
 | Polish pass (72 captures, dark, light and 960 x 720) | `4a17021e24b96b60ee1ea8f128f9028ab4f83b08` | 41846028015 | `git show d07d756:evidence/inventory.json` and `git checkout d07d756 -- evidence/screenshots` |
