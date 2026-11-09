@@ -61,7 +61,7 @@ public sealed class ResourceTextViewer : Grid
     public void SetText(string text)
     {
         lines.Clear();
-        lines.AddRange(text.Replace("\r\n", "\n").Split('\n'));
+        lines.AddRange(TerminalText.Plain(text).Replace("\r\n", "\n").Split('\n'));
         if (lines.Count > 0 && lines[^1].Length == 0) lines.RemoveAt(lines.Count - 1);
         Trim();
         Render();
@@ -69,7 +69,7 @@ public sealed class ResourceTextViewer : Grid
 
     public void Append(string chunk)
     {
-        foreach (var part in chunk.Replace("\r\n", "\n").Split('\n')) if (part.Length > 0) lines.Add(part);
+        lines.AddRange(TerminalText.Lines(chunk));
         Trim();
         Render();
     }

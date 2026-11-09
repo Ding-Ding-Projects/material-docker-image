@@ -17,4 +17,8 @@ public static class TerminalText
         try { return Sequences.Replace(text, "").Replace("\x1B", ""); }
         catch (RegexMatchTimeoutException) { return text.Replace("\x1B", ""); }
     }
+
+    /// <summary>Plain, non-empty lines of a chunk of streamed output, as shown by the log and text viewers.</summary>
+    public static IEnumerable<string> Lines(string chunk) =>
+        Plain(chunk).Replace("\r\n", "\n").Split('\n').Where(l => l.Length > 0);
 }

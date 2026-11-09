@@ -30,6 +30,7 @@ foreach(var unsupported in new[]{"FROM alpine \\\n AS base\nFROM base AS final",
 Check(TerminalText.Plain("[33m1 warning found[0m (use docker --debug)")=="1 warning found (use docker --debug)","colour codes are removed from command output");
 Check(TerminalText.Plain("]8;;https://docs.docker.comlink]8;; and [2K[1Gprogress")=="link and progress","links and cursor codes are removed from command output");
 Check(TerminalText.Plain("plain #21 DONE 0.0s")=="plain #21 DONE 0.0s","output without control codes is unchanged");
+Check(string.Join("|", TerminalText.Lines("app-1  | \u001B[36m2026-11-09T08:45:06\u001B[0m [\u001B[32mSERVER\u001B[0m] Env: production\r\n\r\napp-1  | Welcome\n"))=="app-1  | 2026-11-09T08:45:06 [SERVER] Env: production|app-1  | Welcome","streamed log lines reach the viewer as plain non-empty lines");
 var lf="FROM alpine AS build\nRUN echo preserved\n";
 Check(DockerfileGraph.EditStage(lf,DockerfileGraph.Parse(lf).Stages[0],"ubuntu","build")=="FROM ubuntu AS build\nRUN echo preserved\n","LF preserved");
 Check(SourceSafety.IsCurrentSnapshot("a",1,"a",1),"same snapshot accepted");

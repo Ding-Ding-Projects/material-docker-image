@@ -158,5 +158,63 @@
         "folderDeleted": true
       }
     }
-  ]
+  ],
+  "windowDrive": {
+    "recorded": "2026-11-09T09:00:00-05:00",
+    "sourceCommit": "5b155789432c15a1a30dac0a3fc081d35679741d",
+    "artifact": "Release build of that commit (MaterialDockerImage.dll sha256 44cfe8b7d5c8cb64d932bf833feaa12106e3ea4b4aedd20e95c96a9b1eec98e6); steps after the log fix ran on the rebuilt DLL 88b34e2765ec194e0f8bea7f5c57ba3f334b187a94e9f2ae7a3625315dae28fd with the two fixes below",
+    "engine": "Docker Desktop, engine 29.6.1, context desktop-linux",
+    "route": "Built application on a hidden desktop; actions invoked through UI Automation from a process on the same desktop; captures through PrintWindow. The application data folder was snapshotted before and restored afterwards (settings.json SHA-256 equal).",
+    "steps": [
+      {
+        "action": "Self-hosted > Set up an app > Set up Uptime Kuma; project name mdi-verify-kuma",
+        "observed": "Options step: port 3001 checked against published ports and local listeners, files under %LOCALAPPDATA%",
+        "result": "pass"
+      },
+      {
+        "action": "Next (Secrets, none for this app), Next (Review: Every setting is valid), Deploy",
+        "observed": "docker compose up -d completed in 37.0 s, exit 0; result card \"Uptime Kuma is running. http://127.0.0.1:3001/ answered HTTP 302.\"; addresses listed: localhost and the Wi-Fi LAN IPv4",
+        "result": "pass"
+      },
+      {
+        "action": "LAN address shown by the app, requested from this computer and from another device on the same LAN",
+        "observed": "HTTP 302 from both (Uptime Kuma redirects to its setup page); Windows Firewall did not block the published port",
+        "result": "pass"
+      },
+      {
+        "action": "Back to projects",
+        "observed": "Row \"Running, mdi-verify-kuma, Uptime Kuma, http://localhost:3001, 1 / 1, 0.0 %, 116.5 MB\"; header \"1 project, 1 running\"",
+        "result": "pass"
+      },
+      {
+        "action": "Stop, then Start from the selection bar",
+        "observed": "Container Exited, then Up (healthy)",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Logs",
+        "observed": "Streamed docker compose logs; terminal colour codes appeared as \"[36m\" (fixed, then shown as plain text on the rebuilt application)",
+        "result": "pass after fix"
+      },
+      {
+        "action": "Row actions > Back up data...",
+        "observed": "Confirmation named the destination folder; one tar.gz written whose entries match the volume contents",
+        "result": "pass"
+      },
+      {
+        "action": "Row actions > Remove... with Also delete data, then both keys and the confirmation slider",
+        "observed": "Container, network and volume removed (exit 0); project folder deleted; list shows the empty state",
+        "result": "pass"
+      }
+    ],
+    "findings": [
+      "Fixed: the text and log viewer showed terminal colour codes from docker compose logs; streamed and static text now go through the same plain-text filter as the operation panel (TerminalText.Lines, with a UI-state check seen failing first).",
+      "Fixed: while the deploy result was on screen the header still counted the projects from before the deploy; the page now refreshes after an operation ends while the wizard is open."
+    ],
+    "notExercised": [
+      "Restart, Update, Show compose file, Open in Compose and Open in browser were not invoked in this run.",
+      "Heavier apps (GitLab, Immich, Nextcloud, Open WebUI) were not deployed."
+    ],
+    "cleanup": "The backup folder and the pulled image (digest e88415a9..., equal to the registry check) were removed afterwards."
+  }
 }

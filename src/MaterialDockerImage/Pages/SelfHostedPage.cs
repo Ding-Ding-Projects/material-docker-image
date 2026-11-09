@@ -31,6 +31,8 @@ public sealed class SelfHostedPage : PageBase
     {
         catalogue = new SelfHostedCatalogueView(OpenWizard);
         SetMode("Deployed");
+        // The header counts would otherwise still show the state from before a deploy while its result is on screen.
+        Host.OperationEnded += () => { if (IsVisible && wizard != null) _ = SafeRefresh(); };
         var header = Ui.Header("Self-hosted", "Quick setups for self-hosted web apps that run in Docker", out subtitle,
             mode,
             Ui.AsyncIconButton(Icons.Refresh, "Refresh", SafeRefresh),
