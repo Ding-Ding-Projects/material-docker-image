@@ -181,6 +181,10 @@ public static partial class SelfHostedRules
         return null;
     }
 
+    /// <summary>A memory need in megabytes as shown on cards: "512 MB", "2 GB", "1.5 GB".</summary>
+    public static string MemoryText(int megabytes) =>
+        megabytes < 1024 ? megabytes.ToString(System.Globalization.CultureInfo.InvariantCulture) + " MB" : (megabytes / 1024.0).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture) + " GB";
+
     /// <summary>Bytes from a docker stats size such as "50.5MiB", "12kB" or "1.2GiB"; null when it cannot be read.</summary>
     public static double? ParseSize(string text)
     {

@@ -19,7 +19,7 @@ public static partial class Loc
         yield return new("Reload deployed self-hosted projects and their state", "重新載入已部署嘅自架專案同佢哋嘅狀態");
         yield return new("Open the folder with each project's compose.yaml and .env", "開啟放住每個專案 compose.yaml 同 .env 嘅資料夾");
         yield return new("Self-hosted projects", "自架專案");
-        yield return new("Filter by project, app, state or address", "按專案、應用程式、狀態或位址篩選");
+        yield return new("Filter projects", "篩選專案");
         yield return new("Search self-hosted apps", "搜尋自架應用程式");
         yield return new("No self-hosted apps yet", "未有自架應用程式");
         yield return new("Choose an app in the catalogue to deploy it on this engine. Only Compose projects this page created (labelled", "喺目錄揀一個應用程式部署到呢個引擎。只會列出呢頁建立嘅 Compose 專案（標籤");

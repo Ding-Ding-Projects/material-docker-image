@@ -13,7 +13,7 @@ namespace MaterialDockerImage.Pages;
 public sealed class SelfHostedPage : PageBase
 {
     public override string Key => "Self-hosted";
-    private readonly DataTable<SelfHostedProject> table = new("Self-hosted projects", "Filter by project, app, state or address");
+    private readonly DataTable<SelfHostedProject> table = new("Self-hosted projects", "Filter projects");
     private readonly SelfHostedCatalogueView catalogue;
     private readonly TextBlock subtitle;
     private readonly ContentControl view = new();

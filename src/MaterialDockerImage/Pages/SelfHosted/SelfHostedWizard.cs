@@ -175,7 +175,7 @@ internal sealed class SelfHostedWizard : Grid
         {
             options.Project = project.Text.Trim();
             projectError.Text = SelfHostedRules.ValidateProject(options.Project, Taken) is { } e ? Loc.T(e) : "";
-            projectFiles.Text = Loc.T("Files are written to") + " " + SelfHostedOps.ProjectFolder(options.Project.Length > 0 ? options.Project : "…");
+            projectFiles.Text = Loc.T("Files are written to") + " " + SelfHostedOps.Display(SelfHostedOps.ProjectFolder(options.Project.Length > 0 ? options.Project : "…"));
         }
         project.TextChanged += (_, _) => ProjectChanged();
         ProjectChanged();
@@ -263,7 +263,7 @@ internal sealed class SelfHostedWizard : Grid
     {
         var lines = new List<UIElement>
         {
-            Ui.Text(Loc.T("Needs at least") + " " + Ui.FormatBytes(app.MinMemoryMb * 1024.0 * 1024) + " " + Loc.T("of memory for Docker and") + " " + app.MinDiskGb.ToString(CultureInfo.InvariantCulture) + " GB " + Loc.T("of disk."), 13, null, "OnSurface", true, false),
+            Ui.Text(Loc.T("Needs at least") + " " + SelfHostedRules.MemoryText(app.MinMemoryMb) + " " + Loc.T("of memory for Docker and") + " " + app.MinDiskGb.ToString(CultureInfo.InvariantCulture) + " GB " + Loc.T("of disk."), 13, null, "OnSurface", true, false),
             Ui.Text(Loc.T("Licence:") + " " + app.Licence, 12, null, "OnSurfaceVariant", true, false),
         };
         if (app.Note != null) lines.Add(Ui.Text(app.Note, 12, null, "OnSurfaceVariant"));
@@ -314,7 +314,7 @@ internal sealed class SelfHostedWizard : Grid
             PageKit.Fact("Images", string.Join(Environment.NewLine, images), true),
             PageKit.Fact("Ports", string.Join(", ", app.Ports.Select(p => $"{options.Port(app, p.Key)} → {p.ContainerPort}/{p.Protocol}")), true),
             PageKit.Fact("Data", options.Storage == SelfHostedStorage.Folder ? options.Folder : Loc.T("Named volumes")),
-            PageKit.Fact("Files", folder, true));
+            PageKit.Fact("Files", SelfHostedOps.Display(folder), true));
         var compose = Ui.CodeBox(files.Compose, 260);
         compose.IsReadOnly = true;
         compose.MaxHeight = 520;
@@ -322,7 +322,7 @@ internal sealed class SelfHostedWizard : Grid
         var env = Ui.CodeBox(SelfHostedCompose.MaskedEnv(app, options), 120);
         env.IsReadOnly = true;
         System.Windows.Automation.AutomationProperties.SetName(env, ".env");
-        var command = Ui.Mono(SelfHostedRules.Mask(PageKit.Preview(SelfHostedCompose.ComposeArgs(options.Project, folder, "up", "-d"), context()), options), 12, "OnSurfaceVariant", true);
+        var command = Ui.Mono(SelfHostedOps.Display(SelfHostedRules.Mask(PageKit.Preview(SelfHostedCompose.ComposeArgs(options.Project, folder, "up", "-d"), context()), options)), 12, "OnSurfaceVariant", true);
         var left = Ui.VStack(16,
             MinecraftControls.Section("Check", null, problemList, facts),
             NeedsCard(),
@@ -360,7 +360,7 @@ internal sealed class SelfHostedWizard : Grid
         {
             deploying = false;
             Host.History.Record("selfhosted", $"Deploy of {app.Name} as {options.Project} failed");
-            ShowResult(false, Loc.T("docker compose up did not complete. The output panel has the reason; the files stay in") + " " + folder + ".", folder);
+            ShowResult(false, Loc.T("docker compose up did not complete. The output panel has the reason; the files stay in") + " " + SelfHostedOps.Display(folder) + ".", folder);
             return;
         }
         Host.History.Record("selfhosted", $"Deployed {app.Name} as {options.Project} on context {ctx ?? "default"}");

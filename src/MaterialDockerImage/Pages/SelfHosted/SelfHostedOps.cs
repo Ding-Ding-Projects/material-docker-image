@@ -42,6 +42,13 @@ internal static class SelfHostedOps
     public static string Root => Path.Combine(UserSettings.DataDirectory, "selfhosted");
     public static string ProjectFolder(string project) => Path.Combine(Root, project);
 
+    /// <summary>A path for display with the local application data folder written as %LOCALAPPDATA%, so the account name is not shown on screen or in captures.</summary>
+    public static string Display(string text)
+    {
+        var local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        return local.Length == 0 ? text : text.Replace(local, "%LOCALAPPDATA%", StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>The engine host for URLs: this computer for local contexts, otherwise the host name of the context endpoint.</summary>
     public static async Task<(bool Local, string Host)> EngineHostAsync(string? context)
     {

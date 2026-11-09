@@ -72,7 +72,7 @@ internal sealed class SelfHostedCatalogueView : Grid
         var title = Ui.VStack(4, Ui.Text(app.Name, 15, FontWeights.SemiBold, "OnSurface", true, false), Ui.Badge(app.CategoryText, Tone.Neutral));
         var head = Ui.Columns(12, [0, 1], tile, title);
         var needs = Ui.Wrap(6,
-            Ui.Badge(Loc.T("Memory") + " " + Ui.FormatBytes(app.MinMemoryMb * 1024.0 * 1024), Tone.Neutral, false),
+            Ui.Badge(Loc.T("Memory") + " " + SelfHostedRules.MemoryText(app.MinMemoryMb), Tone.Neutral, false),
             Ui.Badge(Loc.T("Disk") + " " + app.MinDiskGb.ToString(CultureInfo.InvariantCulture) + " GB", Tone.Neutral, false),
             Ui.Badge(Loc.T("Port") + " " + string.Join(", ", app.Ports.Select(p => p.DefaultHostPort.ToString(CultureInfo.InvariantCulture))), Tone.Neutral, false));
         var setUpButton = Ui.Button("Set up", Icons.RocketLaunch, ButtonKind.Filled, () => setUp(app));

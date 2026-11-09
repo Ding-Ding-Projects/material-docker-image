@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/self-hosted.md",
-      "sha256": "3d858f00d156d3f110df8f38d74d8c23ec38201365b44a2864dd57a2826a1400"
+      "sha256": "32cfa27cc17d4c4f5f21b80a2e2c95ba2fd622cf17076a175853981ac8ec600e"
     },
     {
       "path": "docs/features/settings-safety.md",
@@ -297,6 +297,20 @@
       "path": "evidence/screenshots/compose.png",
       "destination": "assets/3d2d04b9028b32085872d25b14ad60965b1c8870e280cc459e296c4b36f57613.png",
       "sha256": "3d2d04b9028b32085872d25b14ad60965b1c8870e280cc459e296c4b36f57613",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/selfhosted-catalogue-1440x960.png",
+      "destination": "assets/da7499ec6c2347e631b5abcda60f2ba07e28a9e7a416c27785609328ff90608f.png",
+      "sha256": "da7499ec6c2347e631b5abcda60f2ba07e28a9e7a416c27785609328ff90608f",
+      "width": 1440,
+      "height": 960
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/selfhosted-review-1440x960.png",
+      "destination": "assets/2864090c2b1f53acb3ed76379fbe18e908364e4b5d95dcab9303d6ce5627fc47.png",
+      "sha256": "2864090c2b1f53acb3ed76379fbe18e908364e4b5d95dcab9303d6ce5627fc47",
       "width": 1440,
       "height": 960
     },
