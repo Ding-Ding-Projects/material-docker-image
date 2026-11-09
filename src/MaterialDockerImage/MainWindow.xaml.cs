@@ -866,6 +866,15 @@ public partial class MainWindow : Window
             imagesPage.CaptureSearch.RegexMode = false;
             Keyboard.ClearFocus();
         }
+        Navigate("Self-hosted");
+        if (Page("Self-hosted") is Pages.SelfHostedPage selfHosted)
+        {
+            // Offline: the catalogue and a filled review page. Capture mode never writes project files or deploys.
+            if (selfHosted.CaptureCatalogue()) { await Task.Delay(400); await Shot("selfhosted-catalogue"); }
+            if (selfHosted.CaptureReview()) { await Task.Delay(600); await Shot("selfhosted-review"); }
+            selfHosted.CaptureReset();
+            Keyboard.ClearFocus();
+        }
         Navigate("Containers");
         OpenPalette();
         await Shot("command-palette");

@@ -1,22 +1,22 @@
 {
   "meaning": "Deterministic source inventory, not application release provenance",
   "features": {
-    "total": 123,
+    "total": 124,
     "required": 109,
     "workflows": 10,
-    "milestones": 4,
+    "milestones": 5,
     "counts": {
       "unverified": 93,
       "planned": 0,
-      "implemented": 30,
+      "implemented": 31,
       "verified": 0
     },
-    "sha256": "b6e2c0b813bd216211d04f9fbd069c1b5ca755df5442ce97cc96fa8278622604"
+    "sha256": "d079584605b6c900dc77cfcb47f66057f2624ad1b948a8098102e9b5e1c04b9e"
   },
   "sources": [
     {
       "path": "docs/features/README.md",
-      "sha256": "f091d7afc181e088347d1115f0658adf079d9a7711d63228a26822a6eb55b05b"
+      "sha256": "1cc4221fd5d767a98c411ad871a7a100c864243a60a1e195761b7f82432b094d"
     },
     {
       "path": "docs/features/advanced-build.md",
@@ -40,7 +40,7 @@
     },
     {
       "path": "docs/features/capability-inventory.md",
-      "sha256": "0697f88207c353ed4698f9b98430786c0ca591b6d65db7d20c820c9daa49f417"
+      "sha256": "dfed666eebe2ef04c6694819952bba8605ebe8b6569a8ccea4ddee887194bf23"
     },
     {
       "path": "docs/features/container-configuration.md",
@@ -103,6 +103,10 @@
       "sha256": "910c50bae335317720fa5324859f9eba3ea7e5b1b5f69ad4d16c416fc97af2e0"
     },
     {
+      "path": "docs/features/self-hosted.md",
+      "sha256": "3d858f00d156d3f110df8f38d74d8c23ec38201365b44a2864dd57a2826a1400"
+    },
+    {
       "path": "docs/features/settings-safety.md",
       "sha256": "e0186a2788115b7de4ea4c3b0384a985a04eb5f30fcb7c915921e61e79e401a8"
     },
@@ -112,15 +116,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "14109ba609d3557579899b0e0359e21785bda878e633d010e8e685663fc615d1"
+      "sha256": "e8c80211541e804e26ad9ae1ee794294de15f9957e8a8e9b1420cd2ce8ade160"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "86c71ec2b457074a7de0c7497e62b5909d9b00a27cd5d1bc5e9d2f6df4460e62"
+      "sha256": "1850a91a9cde7cdea8c10a7b273a8d0f45d6ef0a6ac6adde0fd7c612f7d991e8"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "cfd77da72d7f966e39a7e579df5d4c394c38f8e1131e1fa2085fcbff02a56d00"
+      "sha256": "5ea5f2893e7ccdaaaa0837ee3af6ca4414df31413a88872e1542347759ac86e4"
     },
     {
       "path": "wiki/Home.md",

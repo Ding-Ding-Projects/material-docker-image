@@ -75,6 +75,12 @@ public sealed class ComposePage : PageBase, IDirtyAware
 
     public override async Task RefreshAsync() => await ReloadProjectsAsync();
 
+    /// <summary>Opens a Compose file handed over by another destination (Self-hosted "Open in Compose").</summary>
+    public override void OnShown()
+    {
+        if (Host.HandOff.Remove("Compose.OpenFile", out var value) && value is string path && File.Exists(path)) _ = Guard(() => OpenFileAsync(path));
+    }
+
     private async Task ReloadProjectsAsync()
     {
         var context = SnapshotContext;

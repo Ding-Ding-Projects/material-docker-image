@@ -52,7 +52,7 @@ public static class PaletteTableChecks
         var missing = ids.Where(id => CommandDescriptions.For(id) == null).ToList();
         Check(missing.Count == 0, "every literal palette command has a description" + (missing.Count > 0 ? ": " + string.Join(", ", missing) : ""));
         // Destinations are registered as "go." + key from Pages/Destinations.cs.
-        var destinations = new Regex(@"new\(""(\w+)"", Icons\.").Matches(File.ReadAllText(Path.Combine(root!, "Pages", "Destinations.cs"))).Select(m => m.Groups[1].Value).ToList();
+        var destinations = new Regex(@"new\(""([\w-]+)"", Icons\.").Matches(File.ReadAllText(Path.Combine(root!, "Pages", "Destinations.cs"))).Select(m => m.Groups[1].Value).ToList();
         Check(destinations.Count >= 15 && destinations.All(k => CommandDescriptions.For("go." + k) != null), "every destination has a palette description");
         Check(DockerfileStarters.All.All(s => CommandDescriptions.For(CommandDescriptions.StarterPrefix + s.Id) != null), "every Creator starter has a palette description");
         Check(AppearancePresets.BuiltIn.All(p => CommandDescriptions.For(CommandDescriptions.PresetPrefix + p.Id) != null), "every built-in appearance preset has a palette description");

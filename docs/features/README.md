@@ -11,6 +11,7 @@
 - [Image detail and security](images-and-security.md)
 - [Engine contexts, Swarm, volume backup and Compose tools](contexts-and-swarm.md)
 - [Minecraft servers](minecraft.md)
+- [Self-hosted apps: quick setups for Nextcloud, GitLab and 18 more](self-hosted.md)
 - [Appearance and motion](appearance-and-motion.md)
 - [Container configuration](container-configuration.md)
 - [Canvas](canvas.md)

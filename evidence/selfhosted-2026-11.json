@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "recorded": "2026-11-09T06:42:50.248Z",
+  "summary": "Self-hosted catalogue: registry check of every pinned image tag, and end-to-end deploys of two light apps (Uptime Kuma, FreshRSS) with the application's own rendering code. Docker Desktop could not start on this machine during the run, so the deploys used the Docker Engine inside the Ubuntu WSL distribution; the LAN address probe was refused because WSL NAT networking does not forward the Windows LAN address to WSL. The WPF window itself was not driven.",
+  "dockerDesktop": "Docker Desktop 4.81.0 (context desktop-linux) stopped at start-up with: starting services: initializing Inference manager: remove .../Docker/run/dockerInference: The file cannot be accessed by the system. The engine pipe never appeared, so no deploy could target desktop-linux.",
+  "tagVerification": {
+    "method": "docker buildx imagetools inspect <reference> --format '{{json .Manifest}}' against each registry on 2026-11-09 (no engine needed); the digest is the image index or manifest digest the tag pointed to then. Tags were chosen from each project's latest stable GitHub release or registry tag list.",
+    "checked": {
+      "nextcloud:35.0.2-apache": "sha256:d88929dc8386420b8963f86cabb667fdaf733eef9dcf8fc98e226801a32c023c",
+      "mariadb:11.8.9": "sha256:c4124d1afa875e47f2892edf26b482fa54f796e2f342d3717a04ca091a22a9bd",
+      "postgres:17.11-alpine": "sha256:3540c0362c809df084ffac0ae69fe794515f9de92692f02178bcdce0ef0302ac",
+      "redis:8.8.4-alpine": "sha256:c027ae0f677dcf73d74038256f5b88c9ba7b11ccbfae97e96a9f091208d36125",
+      "gitlab/gitlab-ce:19.5.3-ce.0": "sha256:6863d156a1a477bd6f69fc674b671d0163cd8b06bf63bb17cc4a4a803b78b27c",
+      "codeberg.org/forgejo/forgejo:17.0.1": "sha256:fcd19ff4ebc85fb098a67e8e1d0d5a84d07dd6e8a23edcfdfd5b71a6178953be",
+      "vaultwarden/server:1.37.5": "sha256:4fe17f415f90087377d37c755e0ea3cf189dcc6794e49cdd2a9adbb4937d9e1f",
+      "jellyfin/jellyfin:12.4.20261026-211555": "sha256:fea863d0cd9ec445985d9c75fc6ed64e38a1d2766cf0c250a33d553f4fc1b771",
+      "ghcr.io/immich-app/immich-server:v3.3.6": "sha256:e1981983b1c13f6024b57d72e7ecae3342eed1581201ab09fb248932d86c593a",
+      "ghcr.io/immich-app/immich-machine-learning:v3.3.6": "sha256:14367bfb374b8576ddf49abd67c5ca0190a4c7fcf6303cdad65d7f7bf1a50bc2",
+      "valkey/valkey:9.0.7": "sha256:7e1deda01b64ece3167d370ab5be3452d29734feec22cbcbc69b3a64f6859d6d",
+      "ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0": "sha256:bcf63357191b76a916ae5eb93464d65c07511da41e3bf7a8416db519b40b1c23",
+      "ghcr.io/paperless-ngx/paperless-ngx:3.4.2": "sha256:d704e84f88300eb6ab001ab15720a2330ff99169cf9f94d6b8fcc44b63a84c84",
+      "ghcr.io/home-assistant/home-assistant:2026.11.0": "sha256:c6c1ca9931036bf3a2c4cc088d8db25dfea3b33935a5ecc83c40349462e2f69e",
+      "louislam/uptime-kuma:2.5.9": "sha256:e88415a90dd2f7efecdbc18de0490aff292764a3ac471531bf1d0481725591bd",
+      "adguard/adguardhome:v0.107.80": "sha256:e2e1b48c832f7705be915873f95de0d5114de573736441d7f2923a8a6293027c",
+      "jc21/nginx-proxy-manager:2.16.0": "sha256:4393e642e233e5efd5adeb7f10918d4aaea71c9ed875b94190273fc8e87f9594",
+      "grafana/grafana:13.3.0": "sha256:488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205",
+      "prom/prometheus:v3.16.0": "sha256:e04987641b57704f408e31f6373ba4138ecf27cb4a165d24aabb6c38fddd0f06",
+      "rustfs/rustfs:1.0.4": "sha256:ed9210d6411d77ffceb70d94b964a3cb7d225983368bc25bebe01e995293dcc2",
+      "n8nio/n8n:2.46.6": "sha256:8602f5dfacbe2c931eeafd010de0e68182310e9f309921e780ab69182e92b3ae",
+      "codercom/code-server:4.145.2": "sha256:09565f9e07f5624554e295e8bab0e2fec4a7c533eb3cff459ed6596a4d3d7c1c",
+      "wordpress:7.1.4-apache": "sha256:9001ea7dafd2bc3f05d068e6413b0edd2a116eeed4dfe9e08b6bd718dee4960a",
+      "lscr.io/linuxserver/bookstack:version-v26.09.2": "sha256:33f61a72d9aaa021f7e687987b9fcb992673d9ca3fc08f63f5ddaddf59e94efc",
+      "freshrss/freshrss:1.30.4": "sha256:af44385229541bee24aa9148d0ff8f3b40e095373c63a2c0f74e09a27d3c59df",
+      "syncthing/syncthing:2.1.7": "sha256:2b71da7c0d0a91a6ae5285ad079226fecc0a365d08b27720e1f7037b018f7546",
+      "ghcr.io/open-webui/open-webui:v0.13.3": "sha256:46b59158e6558eeb980bc828e0f1b30238ad24d82ed84d5e5eda1dab2a082f14",
+      "ollama/ollama:0.40.15": "sha256:0e59999e0e8f9fd4e704bd788a89b7e4cad399367fb1365f8c102ac662288761"
+    },
+    "rejected": {
+      "minio/minio:RELEASE.2025-09-07T16-13-09Z": "denied: requested access to the resource is denied (the Docker Hub repository no longer serves community images)",
+      "quay.io/minio/minio:RELEASE.2025-10-15T17-29-55Z": "no such manifest (latest MinIO release on GitHub)",
+      "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z": "no such manifest"
+    }
+  },
+  "deployments": [
+    {
+      "schema": 1,
+      "recorded": "2026-11-09T01:41:24.5806850-05:00",
+      "purpose": "End-to-end deploy of one Self-hosted catalogue entry with the application's own rendering code (UI/SelfHosted*.cs), outside the WPF window.",
+      "app": "uptimekuma",
+      "project": "mdi-verify-uptimekuma",
+      "engine": "wsl:Ubuntu",
+      "engineNote": "Docker Desktop (context desktop-linux) did not start on this machine (its backend reported that a stale socket file in its run folder could not be removed), so the Docker Engine inside the WSL distribution named in 'engine' was used. Ports published there reach Windows through WSL localhost forwarding; LAN addresses of the Windows host are not forwarded to WSL in NAT networking mode.",
+      "hostPorts": {
+        "web": 23001
+      },
+      "envFileRestrictedToCurrentUser": true,
+      "secretsInComposeFile": false,
+      "everyContainerLabelled": true,
+      "health": "HTTP 302 after 4 s",
+      "probes": {
+        "http://localhost:23001/": "HTTP 302 (Location /setup-database)",
+        "http://<LAN IPv4 of this computer>:23001/ (Wi-Fi)": "no response: HttpRequestException: No connection could be made because the target machine actively refused it. (<LAN IPv4 of this computer>:23001)"
+      },
+      "images": {
+        "louislam/uptime-kuma:2.5.9": "[\"louislam/uptime-kuma@sha256:e88415a90dd2f7efecdbc18de0490aff292764a3ac471531bf1d0481725591bd\"]"
+      },
+      "steps": [
+        {
+          "step": "compose config",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-uptimekuma -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/.env config --quiet",
+          "exitCode": 0,
+          "durationMs": 823,
+          "outputTail": ""
+        },
+        {
+          "step": "compose up -d",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-uptimekuma -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/.env up -d",
+          "exitCode": 0,
+          "durationMs": 25937,
+          "outputTail": " Network mdi-verify-uptimekuma_default Created \n Network mdi-verify-uptimekuma_default Created \n Container mdi-verify-uptimekuma-uptime-kuma-1 Creating \n Container mdi-verify-uptimekuma-uptime-kuma-1 Created \n Container mdi-verify-uptimekuma-uptime-kuma-1 Starting \n Container mdi-verify-uptimekuma-uptime-kuma-1 Started "
+        },
+        {
+          "step": "compose ps",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-uptimekuma -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/.env ps --all --format json",
+          "exitCode": 0,
+          "durationMs": 645,
+          "outputTail": "{\"Command\":\"\\\"/usr/bin/dumb-init ΓÇª\\\"\",\"CreatedAt\":\"2026-11-09 01:41:13 -0500 EST\",\"Engine\":\"\",\"ExitCode\":0,\"Health\":\"healthy\",\"ID\":\"c259cedef25f\",\"Image\":\"louislam/uptime-kuma:2.5.9\",\"Labels\":\"com.docker.compose.config-hash=27fe71451093dc268fcdc45de387eaf6b72ec5b9c8151ad47914d33e6a4ea9b7,com.docker.compose.depends_on=,com.docker.compose.oneoff=False,com.docker.compose.project=mdi-verify-uptimekuma,com.docker.compose.project.environment_file=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/.env,com.docker.compose.project.working_dir=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma,org.opencontainers.image.source=https://github.com/louislam/uptime-kuma,com.docker.compose.container-number=1,com.docker.compose.image=sha256:92eb954ce9a68eca749efe76ef9c6dffe43d23a56ed68f35f3866a29f7108b6e,com.docker.compose.project.config_files=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/compose.yaml,com.docker.compose.service=uptime-kuma,com.docker.compose.version=5.6.1,material-docker-image.selfhosted=uptimekuma\",\"LocalVolumes\":\"1\",\"Mounts\":\"mdi-verify-uptΓÇª\",\"Name\":\"mdi-verify-uptimekuma-uptime-kuma-1\",\"Names\":\"mdi-verify-uptimekuma-uptime-kuma-1\",\"Networks\":\"mdi-verify-uptimekuma_default\",\"Ports\":\"0.0.0.0:23001-\\u003e3001/tcp, [::]:23001-\\u003e3001/tcp\",\"Project\":\"mdi-verify-uptimekuma\",\"Publishers\":[{\"URL\":\"0.0.0.0\",\"TargetPort\":3001,\"PublishedPort\":23001,\"Protocol\":\"tcp\"},{\"URL\":\"::\",\"TargetPort\":3001,\"PublishedPort\":23001,\"Protocol\":\"tcp\"}],\"RunningFor\":\"7 seconds ago\",\"Service\":\"uptime-kuma\",\"Size\":\"0B\",\"State\":\"running\",\"Status\":\"Up 6 seconds (healthy)\"}"
+        },
+        {
+          "step": "compose down --volumes",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-uptimekuma -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-uptimekuma/.env down --volumes --remove-orphans",
+          "exitCode": 0,
+          "durationMs": 1320,
+          "outputTail": " Container mdi-verify-uptimekuma-uptime-kuma-1 Removing \n Container mdi-verify-uptimekuma-uptime-kuma-1 Removed \n Volume mdi-verify-uptimekuma_data Removing \n Network mdi-verify-uptimekuma_default Removing \n Volume mdi-verify-uptimekuma_data Removed \n Network mdi-verify-uptimekuma_default Removed "
+        }
+      ],
+      "cleanup": {
+        "containersLeft": "",
+        "volumesLeft": "",
+        "folderDeleted": true
+      }
+    },
+    {
+      "schema": 1,
+      "recorded": "2026-11-09T01:42:30.9446075-05:00",
+      "purpose": "End-to-end deploy of one Self-hosted catalogue entry with the application's own rendering code (UI/SelfHosted*.cs), outside the WPF window.",
+      "app": "freshrss",
+      "project": "mdi-verify-freshrss",
+      "engine": "wsl:Ubuntu",
+      "engineNote": "Docker Desktop (context desktop-linux) did not start on this machine (its backend reported that a stale socket file in its run folder could not be removed), so the Docker Engine inside the WSL distribution named in 'engine' was used. Ports published there reach Windows through WSL localhost forwarding; LAN addresses of the Windows host are not forwarded to WSL in NAT networking mode.",
+      "hostPorts": {
+        "web": 28086
+      },
+      "envFileRestrictedToCurrentUser": true,
+      "secretsInComposeFile": false,
+      "everyContainerLabelled": true,
+      "health": "HTTP 200 after 1 s",
+      "probes": {
+        "http://localhost:28086/": "HTTP 302 (Location /i/?rid=6af16b5004da6)",
+        "http://<LAN IPv4 of this computer>:28086/ (Wi-Fi)": "no response: HttpRequestException: No connection could be made because the target machine actively refused it. (<LAN IPv4 of this computer>:28086)"
+      },
+      "images": {
+        "freshrss/freshrss:1.30.4": "[\"freshrss/freshrss@sha256:af44385229541bee24aa9148d0ff8f3b40e095373c63a2c0f74e09a27d3c59df\"]"
+      },
+      "steps": [
+        {
+          "step": "compose config",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-freshrss -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/.env config --quiet",
+          "exitCode": 0,
+          "durationMs": 1145,
+          "outputTail": ""
+        },
+        {
+          "step": "compose up -d",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-freshrss -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/.env up -d",
+          "exitCode": 0,
+          "durationMs": 7883,
+          "outputTail": " Network mdi-verify-freshrss_default Created \n Network mdi-verify-freshrss_default Created \n Container mdi-verify-freshrss-freshrss-1 Creating \n Container mdi-verify-freshrss-freshrss-1 Created \n Container mdi-verify-freshrss-freshrss-1 Starting \n Container mdi-verify-freshrss-freshrss-1 Started "
+        },
+        {
+          "step": "compose ps",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-freshrss -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/.env ps --all --format json",
+          "exitCode": 0,
+          "durationMs": 1206,
+          "outputTail": "{\"Command\":\"\\\"./Docker/entrypointΓÇª\\\"\",\"CreatedAt\":\"2026-11-09 01:42:22 -0500 EST\",\"Engine\":\"\",\"ExitCode\":0,\"Health\":\"\",\"ID\":\"7e8707a6015f\",\"Image\":\"freshrss/freshrss:1.30.4\",\"Labels\":\"com.docker.compose.image=sha256:a003730e81c89abf86c3ca9c8b263c818804734b574469d59586234364f425b0,com.docker.compose.project.working_dir=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss,com.docker.compose.service=freshrss,com.docker.compose.version=5.6.1,org.opencontainers.image.documentation=https://freshrss.github.io/FreshRSS/,org.opencontainers.image.title=FreshRSS,org.opencontainers.image.vendor=FreshRSS,com.docker.compose.project.environment_file=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/.env,com.docker.compose.config-hash=472e21d48ef2680cdd3baba07a2f8b4f87611b6290bb73392ec75f4fe6e37c2f,com.docker.compose.depends_on=,com.docker.compose.oneoff=False,com.docker.compose.project.config_files=%LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/compose.yaml,material-docker-image.selfhosted=freshrss,org.opencontainers.image.created=2026-10-21T20:46:14.278Z,org.opencontainers.image.licenses=AGPL-3.0,org.opencontainers.image.url=https://freshrss.org/,com.docker.compose.container-number=1,com.docker.compose.project=mdi-verify-freshrss,org.opencontainers.image.description=A free, self-hostable news aggregatorΓÇª,org.opencontainers.image.revision=08f97bd497ace733c151ea1c709d85cd5b65cc53,org.opencontainers.image.source=https://github.com/FreshRSS/FreshRSS,org.opencontainers.image.version=1.30.4\",\"LocalVolumes\":\"2\",\"Mounts\":\"mdi-verify-freΓÇª,mdi-verify-freΓÇª\",\"Name\":\"mdi-verify-freshrss-freshrss-1\",\"Names\":\"mdi-verify-freshrss-freshrss-1\",\"Networks\":\"mdi-verify-freshrss_default\",\"Ports\":\"0.0.0.0:28086-\\u003e80/tcp, [::]:28086-\\u003e80/tcp\",\"Project\":\"mdi-verify-freshrss\",\"Publishers\":[{\"URL\":\"0.0.0.0\",\"TargetPort\":80,\"PublishedPort\":28086,\"Protocol\":\"tcp\"},{\"URL\":\"::\",\"TargetPort\":80,\"PublishedPort\":28086,\"Protocol\":\"tcp\"}],\"RunningFor\":\"5 seconds ago\",\"Service\":\"freshrss\",\"Size\":\"0B\",\"State\":\"running\",\"Status\":\"Up 4 seconds\"}"
+        },
+        {
+          "step": "compose down --volumes",
+          "command": "wsl -d Ubuntu -- docker compose -p mdi-verify-freshrss -f %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/compose.yaml --env-file %LOCALAPPDATA%/DingDingProjects/MaterialDockerImage/selfhosted/mdi-verify-freshrss/.env down --volumes --remove-orphans",
+          "exitCode": 0,
+          "durationMs": 1201,
+          "outputTail": " Volume mdi-verify-freshrss_data Removing \n Volume mdi-verify-freshrss_extensions Removing \n Network mdi-verify-freshrss_default Removing \n Volume mdi-verify-freshrss_extensions Removed \n Volume mdi-verify-freshrss_data Removed \n Network mdi-verify-freshrss_default Removed "
+        }
+      ],
+      "cleanup": {
+        "containersLeft": "",
+        "volumesLeft": "",
+        "folderDeleted": true
+      }
+    }
+  ]
+}

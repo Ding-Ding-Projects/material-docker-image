@@ -17,6 +17,7 @@ public static class Destinations
         new("Contexts", Icons.DeviceHub, "Engine contexts and plugins", () => new ContextsPage(), true),
         new("Swarm", Icons.Hub, "Swarm services, stacks, nodes, secrets and configs", () => new SwarmPage(), true),
         new("Minecraft", Icons.Dataset, "Minecraft servers in containers: create, configure, run and back up", () => new MinecraftPage(), true),
+        new("Self-hosted", Icons.WebAsset, "Quick setups for self-hosted web apps that run in Docker", () => new SelfHostedPage(), true),
         new("Storage", Icons.Database, "Volumes and networks", () => new StoragePage(), true),
         new("Monitor", Icons.Monitoring, "Live CPU, memory, network and disk charts", () => new MonitorPage(), true),
         new("System", Icons.Dns, "Disk usage, cleanup and engine information", () => new SystemPage(), true),

@@ -16,8 +16,8 @@ let passed=0;
 const test=(name,body)=>{body();passed++;console.log('PASS '+name);};
 const reject=(change,pattern)=>{const candidate=structuredClone(inventory);change(candidate);assert.throws(()=>validateInventory(candidate,required),pattern);};
 
-test('All 109 baseline identifiers, 10 existing workflows and four milestones are retained',()=>{
-  assert.equal(inventory.entries.length,123);
+test('All 109 baseline identifiers, 10 existing workflows and five milestones are retained',()=>{
+  assert.equal(inventory.entries.length,124);
   assert.equal(inventorySummary(inventory).required,109);
   assert.equal(inventorySummary(inventory).counts.verified,0);
   assert.ok(inventory.entries.filter(r=>r.kind==='required').every(r=>r.status!=='verified'));
@@ -70,8 +70,8 @@ test('Complete evidence schema accepts one bound candidate and rejects each miss
 });
 test('Rendered entries use native disclosure controls and never editable completion controls',()=>{
   const html=renderChecklist(inventory);
-  assert.equal((html.match(/<details class="feature-row"/g)||[]).length,123);
-  assert.equal((html.match(/data-feature-id=/g)||[]).length,123);
+  assert.equal((html.match(/<details class="feature-row"/g)||[]).length,124);
+  assert.equal((html.match(/data-feature-id=/g)||[]).length,124);
   assert.doesNotMatch(html,/<input|contenteditable/);
   assert.match(html,/role="status" aria-live="polite"/);
   assert.match(html,/尚未驗證/);
@@ -88,13 +88,13 @@ test('Real filter controller combines selectors, reports empty results and reset
   const context={document:{getElementById:id=>elements.get(id),querySelectorAll:()=>rows}};
   vm.runInNewContext(fs.readFileSync(path.join(site,'checklist-client.js'),'utf8'),context);
   const event=(id,value)=>{const el=elements.get(id);el.value=value;el.listeners.change();};
-  assert.match(elements.get('feature-results').textContent,/123 of 123/);
-  event('feature-category','milestones');assert.equal(rows.filter(r=>!r.hidden).length,4);
-  event('feature-status','implemented');assert.equal(rows.filter(r=>!r.hidden).length,4);
-  event('language','zh');assert.match(elements.get('feature-results').textContent,/顯示 123 項中嘅 4 項/);
-  event('language','both');assert.match(elements.get('feature-results').textContent,/4 of 123.*顯示/);
+  assert.match(elements.get('feature-results').textContent,/124 of 124/);
+  event('feature-category','milestones');assert.equal(rows.filter(r=>!r.hidden).length,5);
+  event('feature-status','implemented');assert.equal(rows.filter(r=>!r.hidden).length,5);
+  event('language','zh');assert.match(elements.get('feature-results').textContent,/顯示 124 項中嘅 5 項/);
+  event('language','both');assert.match(elements.get('feature-results').textContent,/5 of 124.*顯示/);
   event('feature-status','verified');assert.equal(rows.filter(r=>!r.hidden).length,0);assert.equal(elements.get('feature-empty').hidden,false);
-  elements.get('feature-clear').listeners.click();assert.equal(rows.filter(r=>!r.hidden).length,123);assert.equal(elements.get('feature-category').focused,true);
+  elements.get('feature-clear').listeners.click();assert.equal(rows.filter(r=>!r.hidden).length,124);assert.equal(elements.get('feature-category').focused,true);
   assert.equal(context.localStorage,undefined);
 });
 test('Existing preparation storage and deterministic embedded documentation remain intact',()=>{
@@ -113,7 +113,7 @@ test('Actual renderer rejects stale HTML, summaries, manifests and evidence byte
     check();
     for(const file of ['website/index.html','website/content-manifest.json','docs/features/capability-inventory.md']) {
       const target=path.join(fixture,file),original=fs.readFileSync(target);
-      const changed=file.includes('capability-inventory')?Buffer.from(original.toString().replace('123 entries retain','124 entries retain')):Buffer.concat([original,Buffer.from('\nstale')]);
+      const changed=file.includes('capability-inventory')?Buffer.from(original.toString().replace('124 entries retain','125 entries retain')):Buffer.concat([original,Buffer.from('\nstale')]);
       fs.writeFileSync(target,changed);assert.throws(check,/stale/);assert.deepEqual(fs.readFileSync(target),changed);fs.writeFileSync(target,original);check();
     }
     const manifest=JSON.parse(fs.readFileSync(path.join(fixture,'website/content-manifest.json'),'utf8'));
@@ -266,4 +266,4 @@ test('Release workflow and entrypoints ship and read back the offline documentat
   for(const needle of ['out/docs/MaterialDockerImageDocs.zip','--offline out/docs/site','remote asset','Assert-SourceBinding','out/receipts/docs.json'])assert.ok(script.includes(needle),needle);
 });
 await Promise.all(pending);
-console.log(`Feature checklist: ${passed} checks passed, including 123 independent missing-entry regressions. Browser interaction and pixels require separate verification.`);
+console.log(`Feature checklist: ${passed} checks passed, including 124 independent missing-entry regressions. Browser interaction and pixels require separate verification.`);

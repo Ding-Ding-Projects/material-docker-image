@@ -7,7 +7,7 @@ export const statusLabels = {
   implemented: {en: 'Implemented, verification pending', zh: '已實作，驗證待完成'},
   verified: {en: 'Fully verified', zh: '完整驗證'},
 };
-const milestones = ['feature-checklist', 'container-health-checks', 'container-device-mappings', 'container-gpu-access'];
+const milestones = ['feature-checklist', 'container-health-checks', 'container-device-mappings', 'container-gpu-access', 'self-hosted-quick-setups'];
 const workflows = ['structured-execution', 'build-workspace', 'run-editor', 'native-canvas', 'resource-management', 'restart-restoration', 'package-release', 'installed-setup', 'native-captures', 'documentation-companions'].map(id => 'workflow-' + id);
 const escape = text => String(text).replace(/[&<>"']/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'}[c]));
 const localized = (value, tag = 'span', attributes = '') => `<${tag} ${attributes} data-en="${escape(value.en)}" data-zh="${escape(value.zh)}">${escape(value.en)}</${tag}>`;

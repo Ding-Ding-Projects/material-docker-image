@@ -38,5 +38,6 @@ public static partial class Loc
         foreach (var pair in PageCantoneseAppearanceStudio()) yield return pair;
         foreach (var pair in PageCantoneseRecords()) yield return pair;
         foreach (var pair in CameraQrCantonese()) yield return pair;
+        foreach (var pair in PageCantoneseSelfHosted()) yield return pair;
     }
 }

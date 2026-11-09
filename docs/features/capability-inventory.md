@@ -21,7 +21,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 
 <!-- Generated from website/feature-inventory.json by website/render.mjs. -->
 
-123 entries retain 109 required identifiers, 10 product workflows and 4 milestones. Fully verified: 0. Implemented with verification pending: 30. Planned: 0. Unverified: 93.
+124 entries retain 109 required identifiers, 10 product workflows and 5 milestones. Fully verified: 0. Implemented with verification pending: 31. Planned: 0. Unverified: 93.
 
 ### Interface and personalization
 
@@ -185,6 +185,7 @@ Implemented controls, focused checks, real native execution and complete accepta
 | `container-health-checks` | Container health checks | Implemented, verification pending | Exercise the editor fields and the live inspector refresh in the built WPF application, bound to the exact source commit and artifact hash, with captures; no GUI interaction was performed yet. |
 | `container-device-mappings` | Container device mappings | Implemented, verification pending | Exercise the device rows and cgroup rule field in the built WPF application with captures, and test a real host device on a supported engine host; no GUI interaction was performed yet. |
 | `container-gpu-access` | Container GPU access | Implemented, verification pending | Verify with a GPU-capable engine host that a container really sees the GPU, and exercise the controls in the built WPF application with captures; neither was performed. |
+| `self-hosted-quick-setups` | Self-hosted app quick setups | Implemented, verification pending | Click through the wizard and every management action in the built window against Docker Desktop, deploy and sign in to each catalogue app, and record receipts; none of that was performed. |
 
 
 ## Known limits

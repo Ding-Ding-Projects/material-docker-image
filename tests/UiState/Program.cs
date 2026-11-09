@@ -1013,6 +1013,7 @@ count += CreatorV2Checks.Run();
 count += CreatorStepChecks.Run();
 count += AppearanceMotionChecks.Run();
 count += LayerSourceRecommendationChecks.Run();
+count += SelfHostedChecks.Run();
 
 {
     // ----- App identity: display name and logo -----

@@ -1,0 +1,303 @@
+namespace MaterialDockerImage.Services;
+
+/// <summary>Cantonese for the Self-hosted destination: catalogue entries, the setup wizard and project management.</summary>
+public static partial class Loc
+{
+    private static IEnumerable<KeyValuePair<string, string>> PageCantoneseSelfHosted()
+    {
+        // Destination, header and views
+        yield return new("Self-hosted", "自架服務");
+        yield return new("Quick setups for self-hosted web apps that run in Docker", "一鍵設定喺 Docker 入面運行嘅自架網頁應用程式");
+        yield return new("Deployed", "已部署");
+        yield return new("Catalogue", "目錄");
+        yield return new("Set up an app", "設定應用程式");
+        yield return new("Set up", "設定");
+        yield return new("Set up a self-hosted app…", "設定自架應用程式…");
+        yield return new("Refresh self-hosted projects", "重新整理自架專案");
+        yield return new("Open self-hosted project files", "開啟自架專案檔案");
+        yield return new("Choose an app such as Nextcloud or GitLab and deploy it with Compose", "揀一個好似 Nextcloud 或 GitLab 嘅應用程式，用 Compose 部署");
+        yield return new("Reload deployed self-hosted projects and their state", "重新載入已部署嘅自架專案同佢哋嘅狀態");
+        yield return new("Open the folder with each project's compose.yaml and .env", "開啟放住每個專案 compose.yaml 同 .env 嘅資料夾");
+        yield return new("Self-hosted projects", "自架專案");
+        yield return new("Filter by project, app, state or address", "按專案、應用程式、狀態或位址篩選");
+        yield return new("Search self-hosted apps", "搜尋自架應用程式");
+        yield return new("No self-hosted apps yet", "未有自架應用程式");
+        yield return new("Choose an app in the catalogue to deploy it on this engine. Only Compose projects this page created (labelled", "喺目錄揀一個應用程式部署到呢個引擎。只會列出呢頁建立嘅 Compose 專案（標籤");
+        yield return new("are listed.", "）。");
+        yield return new("Self-hosted projects could not be listed:", "列唔到自架專案：");
+        yield return new("Could not reach the engine on context", "連唔到呢個環境嘅引擎：");
+        yield return new("{0} projects", "{0} 個專案");
+        yield return new("{0} project", "{0} 個專案");
+        yield return new("{0} apps in the catalogue", "目錄有 {0} 個應用程式");
+        yield return new("{0} of {1} apps", "{0} / {1} 個應用程式");
+        yield return new("Categories", "類別");
+        yield return new("No app matches the search and categories.", "冇應用程式符合搜尋同類別。");
+        yield return new("Upstream documentation", "上游說明文件");
+        yield return new("Disk", "磁碟");
+
+        // Table
+        yield return new("Project", "專案");
+        yield return new("App", "應用程式");
+        yield return new("Containers", "容器");
+        yield return new("Partly running", "部分運行中");
+        yield return new("Open in browser", "喺瀏覽器開啟");
+        yield return new("Update…", "更新…");
+        yield return new("Show compose file", "顯示 compose 檔");
+        yield return new("Open in Compose", "喺 Compose 開啟");
+        yield return new("Back up data…", "備份資料…");
+
+        // Categories
+        yield return new("Files and sync", "檔案同同步");
+        yield return new("Development", "開發");
+        yield return new("Media", "媒體");
+        yield return new("Home and monitoring", "家居同監察");
+        yield return new("Network", "網絡");
+        yield return new("Productivity", "生產力");
+        yield return new("AI", "人工智能");
+
+        // Catalogue descriptions
+        yield return new("File sync and sharing with calendars, contacts and office add-ons.", "檔案同步同分享，仲有日曆、聯絡人同辦公室附加元件。");
+        yield return new("Git hosting with merge requests, issues, CI/CD and a container registry.", "Git 代管，有合併請求、問題追蹤、CI/CD 同容器映像倉庫。");
+        yield return new("Lightweight Git hosting with issues, pull requests and packages (a community fork of Gitea).", "輕量 Git 代管，有問題追蹤、拉取請求同套件（Gitea 嘅社群分支）。");
+        yield return new("Password manager server compatible with the Bitwarden apps and browser extensions.", "密碼管理伺服器，兼容 Bitwarden 應用程式同瀏覽器擴充功能。");
+        yield return new("Media server that streams your films, series and music to apps and browsers.", "媒體伺服器，將你嘅電影、劇集同音樂串流去應用程式同瀏覽器。");
+        yield return new("Photo and video backup with face recognition, maps and mobile apps.", "相片同影片備份，有人面識別、地圖同手機應用程式。");
+        yield return new("Document archive that scans, reads (OCR) and tags your paperwork.", "文件庫，幫你掃描、文字辨識（OCR）同加標籤。");
+        yield return new("Home automation hub for lights, sensors, energy and thousands of devices.", "家居自動化中心，管燈、感應器、能源同幾千種裝置。");
+        yield return new("Uptime monitor for websites, ports and services with status pages and alerts.", "監察網站、埠同服務有冇運作，有狀態頁同警報。");
+        yield return new("Network-wide DNS server that blocks ads and trackers for every device.", "成個網絡用嘅 DNS 伺服器，幫每部裝置擋廣告同追蹤器。");
+        yield return new("Reverse proxy with free Let's Encrypt certificates and a simple web interface.", "反向代理，有免費 Let's Encrypt 憑證同簡單網頁介面。");
+        yield return new("Metrics collection with Prometheus and dashboards with Grafana.", "用 Prometheus 收集指標，用 Grafana 睇儀表板。");
+        yield return new("S3-compatible object storage with a web console, in place of MinIO.", "兼容 S3 嘅物件儲存，有網頁主控台，代替 MinIO。");
+        yield return new("Workflow automation that connects apps and APIs with a visual editor.", "工作流程自動化，用視覺化編輯器連接應用程式同 API。");
+        yield return new("Visual Studio Code in the browser, running in a container.", "喺瀏覽器用 Visual Studio Code，喺容器入面運行。");
+        yield return new("Website and blog platform with themes and plugins.", "網站同網誌平台，有佈景主題同外掛。");
+        yield return new("Wiki for documentation organised as shelves, books, chapters and pages.", "文件 Wiki，用書架、書、章節同頁面整理。");
+        yield return new("Feed reader for RSS and Atom with mobile app support.", "RSS 同 Atom 閱讀器，支援手機應用程式。");
+        yield return new("Peer-to-peer folder synchronisation between your devices.", "喺你嘅裝置之間點對點同步資料夾。");
+        yield return new("Chat with local language models: Ollama runs the models, Open WebUI is the interface.", "同本機語言模型傾偈：Ollama 行模型，Open WebUI 做介面。");
+
+        // First sign-in hints
+        yield return new("Sign in with the administrator name and password from this setup. Nextcloud finishes installing on first start, which takes a few minutes.", "用呢次設定嘅管理員名同密碼登入。Nextcloud 第一次啟動會完成安裝，要幾分鐘。");
+        yield return new("Sign in as root with the generated root password. The first start configures GitLab and takes 5 to 10 minutes.", "用 root 同產生咗嘅 root 密碼登入。第一次啟動要設定 GitLab，大約 5 至 10 分鐘。");
+        yield return new("Open the web address and finish the installation page; the database settings are already filled in. The first account you register becomes the administrator.", "開網頁位址完成安裝頁；資料庫設定已經填好。第一個註冊嘅帳戶會成為管理員。");
+        yield return new("Create your account on the web vault. The /admin page uses the generated admin token. Browsers only allow the web vault over HTTPS or on localhost, so put it behind a reverse proxy with a certificate before using it from other devices.", "喺網頁密碼庫建立帳戶。/admin 頁用產生咗嘅管理權杖。瀏覽器只准經 HTTPS 或 localhost 用網頁密碼庫，所以要喺其他裝置用之前，先放喺有憑證嘅反向代理後面。");
+        yield return new("Open the web address; the setup wizard creates the administrator and adds libraries from /media.", "開網頁位址；設定精靈會建立管理員，再由 /media 加入媒體庫。");
+        yield return new("Open the web address and select Getting started; the first account becomes the administrator.", "開網頁位址揀 Getting started；第一個帳戶會成為管理員。");
+        yield return new("Sign in with the administrator name and password from this setup.", "用呢次設定嘅管理員名同密碼登入。");
+        yield return new("Open the web address; onboarding creates the owner account.", "開網頁位址；新手設定會建立擁有者帳戶。");
+        yield return new("Open the web address; the first page creates the administrator account.", "開網頁位址；第一頁會建立管理員帳戶。");
+        yield return new("Open the first-run setup address and create the administrator. Keep the admin interface on port 80 inside the container so the published web interface port reaches it after setup.", "開首次設定位址建立管理員。管理介面喺容器入面要保持用 80 埠，咁設定完之後發佈咗嘅網頁介面埠先連得到。");
+        yield return new("Sign in on the administration interface with the administrator e-mail and password from this setup.", "用呢次設定嘅管理員電郵同密碼登入管理介面。");
+        yield return new("Sign in to Grafana with the administrator name and password from this setup, then add Prometheus as a data source at http://prometheus:9090.", "用呢次設定嘅管理員名同密碼登入 Grafana，再加 http://prometheus:9090 做 Prometheus 資料來源。");
+        yield return new("Sign in to the web console with the generated access key and secret key; use the same pair in S3 clients against the S3 API port.", "用產生咗嘅存取金鑰同秘密金鑰登入網頁主控台；S3 用戶端連 S3 API 埠都係用同一對。");
+        yield return new("Open the web address; the first page creates the owner account.", "開網頁位址；第一頁會建立擁有者帳戶。");
+        yield return new("Sign in with the generated password.", "用產生咗嘅密碼登入。");
+        yield return new("Open the web address; the installation page asks for the site title and creates the administrator.", "開網頁位址；安裝頁會問網站標題同建立管理員。");
+        yield return new("Sign in as admin@admin.com with the password 'password', then change both immediately in your profile.", "用 admin@admin.com 同密碼「password」登入，跟住即刻喺個人資料改晒兩樣。");
+        yield return new("Open the web address; the installation page sets the language, database (SQLite is fine) and administrator.", "開網頁位址；安裝頁會設定語言、資料庫（用 SQLite 都得）同管理員。");
+        yield return new("Open the web address and set a user name and password under Actions, Settings, GUI; Syncthing warns until you do.", "開網頁位址，喺 Actions、Settings、GUI 設定用戶名同密碼；未設定之前 Syncthing 會一直提你。");
+        yield return new("Open the web address and create an account; the first account becomes the administrator. Download a model from the model selector (for example llama3.2).", "開網頁位址建立帳戶；第一個帳戶會成為管理員。喺模型選擇器下載一個模型（例如 llama3.2）。");
+
+        // Notes
+        yield return new("Other devices can only open Nextcloud through the addresses listed as trusted domains; this setup adds localhost and the computer's LAN addresses.", "其他裝置只可以經信任網域入面嘅位址開 Nextcloud；呢次設定會加入 localhost 同呢部電腦嘅區域網絡位址。");
+        yield return new("GitLab needs at least 4 GB of memory for Docker (8 GB recommended); give Docker Desktop enough memory in its settings before deploying.", "GitLab 要畀 Docker 最少 4 GB 記憶體（建議 8 GB）；部署之前先喺 Docker Desktop 設定畀夠記憶體。");
+        yield return new("Hardware transcoding is not configured; Docker Desktop on Windows has no GPU video acceleration for Linux containers.", "冇設定硬件轉碼；Windows 上嘅 Docker Desktop 冇畀 Linux 容器用 GPU 影片加速。");
+        yield return new("Uses the official multi-service layout of Immich v3.3.6: server, machine learning, Valkey and PostgreSQL with VectorChord.", "用 Immich v3.3.6 官方嘅多服務佈局：伺服器、機器學習、Valkey 同帶 VectorChord 嘅 PostgreSQL。");
+        yield return new("Runs with a published port instead of host networking (Docker Desktop has no host network for LAN devices), so automatic discovery of devices on the LAN is limited.", "用發佈埠代替主機網絡（Docker Desktop 冇畀區域網絡裝置用嘅主機網絡），所以自動搵區域網絡裝置會有限制。");
+        yield return new("Port 53 is often taken on Windows (for example by Internet Connection Sharing); choose another host port if it is in use, and point devices at this computer's address.", "Windows 上 53 埠好多時已經俾人用咗（例如網際網路連線共用）；用緊就揀另一個主機埠，再將裝置指向呢部電腦嘅位址。");
+        yield return new("MinIO stopped publishing community container images in 2025 (its last images are no longer pullable), so this setup uses RustFS, an S3-compatible server with a similar console.", "MinIO 喺 2025 年停咗發佈社群容器映像（最後嗰啲映像已經拉唔到），所以呢個設定用 RustFS，一個兼容 S3、主控台差唔多嘅伺服器。");
+        yield return new("Secure cookies are turned off so the editor works over plain HTTP on the LAN; put n8n behind HTTPS before exposing it further.", "關咗安全 Cookie，等編輯器喺區域網絡用普通 HTTP 都用得；要再開放之前，先將 n8n 放喺 HTTPS 後面。");
+        yield return new("WordPress stores its own address on first install; install it from the address other devices will use.", "WordPress 第一次安裝會記低自己嘅位址；要用其他裝置會用嘅位址嚟安裝。");
+        yield return new("Local discovery broadcasts do not cross the Docker Desktop network; add devices by ID if they do not appear.", "本機探索廣播過唔到 Docker Desktop 網絡；裝置冇出現就用 ID 加入。");
+        yield return new("Models run on the CPU unless Docker Desktop has GPU support enabled; large models need much more memory than the minimum shown.", "除非 Docker Desktop 開咗 GPU 支援，否則模型喺 CPU 行；大模型要嘅記憶體遠多過顯示嘅最低要求。");
+
+        // Port, volume and secret purposes
+        yield return new("Web interface", "網頁介面");
+        yield return new("Git over SSH", "經 SSH 用 Git");
+        yield return new("First-run setup", "首次設定");
+        yield return new("Web interface after setup", "設定後嘅網頁介面");
+        yield return new("DNS service", "DNS 服務");
+        yield return new("Administration interface", "管理介面");
+        yield return new("HTTP proxy", "HTTP 代理");
+        yield return new("HTTPS proxy", "HTTPS 代理");
+        yield return new("Grafana dashboards", "Grafana 儀表板");
+        yield return new("Prometheus metrics", "Prometheus 指標");
+        yield return new("Web console", "網頁主控台");
+        yield return new("S3 API endpoint", "S3 API 端點");
+        yield return new("File transfers", "檔案傳輸");
+        yield return new("Local discovery", "本機探索");
+        yield return new("Nextcloud program files, settings and user files", "Nextcloud 程式檔、設定同用戶檔案");
+        yield return new("Database", "資料庫");
+        yield return new("Configuration and secrets", "設定同機密");
+        yield return new("Logs", "記錄");
+        yield return new("Repositories, uploads and the bundled database", "儲存庫、上載檔同內置資料庫");
+        yield return new("Repositories, settings and attachments", "儲存庫、設定同附件");
+        yield return new("Vault database, attachments and keys", "密碼庫資料庫、附件同金鑰");
+        yield return new("Settings and library database", "設定同媒體庫資料庫");
+        yield return new("Transcoding and image cache", "轉碼同圖片快取");
+        yield return new("Media library (choose a folder to use existing media)", "媒體庫（揀資料夾就用到現有媒體）");
+        yield return new("Uploaded photos and videos", "上載咗嘅相片同影片");
+        yield return new("Machine-learning models", "機器學習模型");
+        yield return new("Index and settings", "索引同設定");
+        yield return new("Stored documents", "已儲存文件");
+        yield return new("Inbox: files placed here are imported", "收件匣：放入嚟嘅檔案會被匯入");
+        yield return new("Exports", "匯出");
+        yield return new("Configuration, automations and history", "設定、自動化同歷史");
+        yield return new("Monitors, history and settings", "監察項目、歷史同設定");
+        yield return new("Query log and statistics", "查詢記錄同統計");
+        yield return new("Configuration", "設定");
+        yield return new("Proxy hosts, settings and database", "代理主機、設定同資料庫");
+        yield return new("Certificates", "憑證");
+        yield return new("Dashboards, users and settings", "儀表板、用戶同設定");
+        yield return new("Metrics data", "指標數據");
+        yield return new("Buckets and objects", "儲存桶同物件");
+        yield return new("Workflows, credentials and settings", "工作流程、憑據同設定");
+        yield return new("Settings and extensions", "設定同擴充功能");
+        yield return new("Project files", "專案檔案");
+        yield return new("WordPress files, themes, plugins and uploads", "WordPress 檔案、佈景主題、外掛同上載檔");
+        yield return new("Uploads, settings and logs", "上載檔、設定同記錄");
+        yield return new("Feeds, users and settings", "訂閱源、用戶同設定");
+        yield return new("Extensions", "擴充功能");
+        yield return new("Synchronised folders and settings", "同步資料夾同設定");
+        yield return new("Chats, users and settings", "對話、用戶同設定");
+        yield return new("Downloaded models", "已下載模型");
+        yield return new("Administrator password", "管理員密碼");
+        yield return new("Database password", "資料庫密碼");
+        yield return new("Database root password", "資料庫 root 密碼");
+        yield return new("Redis password", "Redis 密碼");
+        yield return new("Password of the root account", "root 帳戶密碼");
+        yield return new("Token for the /admin page", "/admin 頁嘅權杖");
+        yield return new("Session signing key", "工作階段簽署金鑰");
+        yield return new("Grafana administrator password", "Grafana 管理員密碼");
+        yield return new("Access key (user name)", "存取金鑰（用戶名）");
+        yield return new("Secret key (password)", "秘密金鑰（密碼）");
+        yield return new("Key that encrypts stored credentials", "加密已儲存憑據嘅金鑰");
+        yield return new("Sign-in password", "登入密碼");
+        yield return new("Application encryption key", "應用程式加密金鑰");
+
+        // Wizard
+        yield return new("Options", "選項");
+        yield return new("Review", "檢查");
+        yield return new("Project name", "專案名稱");
+        yield return new("A Compose project groups the app's containers, network and volumes under one name.", "Compose 專案會將應用程式嘅容器、網絡同磁碟區歸埋一個名下面。");
+        yield return new("Lowercase letters, digits, dashes and underscores. It must not be used by another Compose project on this engine.", "細楷英文字母、數字、連字號同底線。唔可以同呢個引擎上面另一個 Compose 專案撞名。");
+        yield return new("Files are written to", "檔案會寫入");
+        yield return new("Ports", "埠");
+        yield return new("Host ports are published on every network interface of the engine host, so other devices can connect.", "主機埠會喺引擎主機每個網絡介面發佈，咁其他裝置就連得到。");
+        yield return new("Container port", "容器埠");
+        yield return new("service", "服務");
+        yield return new("Checked against ports published on this engine", "已經對照過呢個引擎發佈咗嘅埠");
+        yield return new("and listeners on this computer.", "同呢部電腦嘅監聽埠。");
+        yield return new("Checking ports in use…", "檢查緊用緊嘅埠…");
+        yield return new("Data", "資料");
+        yield return new("Named volumes are managed by Docker and are the most reliable choice; a folder keeps the files where you can see them.", "具名磁碟區由 Docker 管理，最穩陣；用資料夾就可以直接睇到啲檔案。");
+        yield return new("Named volumes", "具名磁碟區");
+        yield return new("Data folder", "資料資料夾");
+        yield return new("Choose the data folder", "揀資料資料夾");
+        yield return new("Each volume gets a subfolder named after the project and the volume. Databases stay in named volumes: on Windows folders they are slow and can fail ownership checks.", "每個磁碟區會有一個用專案同磁碟區命名嘅子資料夾。資料庫會留喺具名磁碟區：放喺 Windows 資料夾會好慢，仲可能過唔到擁有權檢查。");
+        yield return new("Time zone", "時區");
+        yield return new("IANA time zone used for logs and schedules. The default is this computer's time zone.", "記錄同排程用嘅 IANA 時區。預設係呢部電腦嘅時區。");
+        yield return new("Address for links", "連結用嘅位址");
+        yield return new("Host name or IP address the app uses in links it creates (for example GitLab clone URLs). Choose the LAN address other devices use.", "應用程式喺佢整嘅連結入面用嘅主機名或 IP 位址（例如 GitLab 複製網址）。揀其他裝置會用嘅區域網絡位址。");
+        yield return new("Administrator name", "管理員名稱");
+        yield return new("Administrator e-mail", "管理員電郵");
+        yield return new("The app creates this administrator on first start with the generated password.", "應用程式第一次啟動會用產生咗嘅密碼建立呢個管理員。");
+        yield return new("Needs at least", "最少需要");
+        yield return new("of memory for Docker and", "畀 Docker 嘅記憶體同");
+        yield return new("of disk.", "磁碟空間。");
+        yield return new("Licence:", "授權：");
+        yield return new("This app needs no generated secrets; it asks for its administrator account in its own first-run page.", "呢個應用程式唔使產生機密；佢會喺自己嘅首次設定頁問管理員帳戶。");
+        yield return new("These values are shown only during this setup. They are saved only in the project's .env file, which only your Windows account can read, and never in logs, history, notifications or exports. Copy the ones you need into a password manager now.", "呢啲值只會喺今次設定顯示。佢哋只會儲存喺專案嘅 .env 檔，只有你嘅 Windows 帳戶讀到，永遠唔會出現喺記錄、歷史、通知或者匯出。而家就將需要嘅抄去密碼管理器。");
+        yield return new("Show or hide", "顯示或隱藏");
+        yield return new("Generate new values", "產生新嘅值");
+        yield return new("Generated with the system's cryptographic random number generator:", "用系統嘅加密隨機數產生器產生：");
+        yield return new("letters and digits", "個英文字母同數字");
+        yield return new("Every setting is valid.", "所有設定都有效。");
+        yield return new("Images", "映像");
+        yield return new("compose.yaml", "compose.yaml");
+        yield return new("Exactly what is deployed. It holds no password or key; those are referenced from .env.", "就係會部署嘅內容。入面冇任何密碼或金鑰；嗰啲由 .env 引用。");
+        yield return new("Secret values are masked here; the file itself is readable only by your Windows account.", "機密值喺度遮咗；個檔本身只有你嘅 Windows 帳戶讀到。");
+        yield return new("Runs on the selected engine context with the files above. Images are pulled on first deploy, which can take several minutes.", "用上面嘅檔案喺所選引擎環境執行。第一次部署會拉映像，可能要幾分鐘。");
+        yield return new("The project files could not be written:", "寫唔到專案檔案：");
+        yield return new("The .env file could not be limited to your Windows account. Check its permissions before sharing this computer.", ".env 檔限制唔到只畀你嘅 Windows 帳戶用。同人共用呢部電腦之前，先檢查佢嘅權限。");
+        yield return new("Deploying {0}", "部署緊 {0}");
+        yield return new("Pulling images and starting containers. The output panel shows each step.", "拉緊映像同啟動緊容器。輸出面板會顯示每一步。");
+        yield return new("Starting the project…", "啟動緊專案…");
+        yield return new("Stop waiting", "唔再等");
+        yield return new("Elapsed", "已過");
+        yield return new("docker compose up did not complete. The output panel has the reason; the files stay in", "docker compose up 冇完成。輸出面板有原因；檔案留喺");
+        yield return new("Stopped waiting. The containers keep starting; refresh the list to see their state.", "唔再等喇。容器會繼續啟動；重新整理清單睇佢哋嘅狀態。");
+        yield return new("The app did not answer within", "應用程式喺以下時間內冇回應：");
+        yield return new("minutes. It may still be starting; check its logs.", "分鐘。可能仲啟動緊；睇吓佢嘅記錄。");
+        yield return new("{0} is running.", "{0} 運行緊。");
+        yield return new("Addresses", "位址");
+        yield return new("This computer", "呢部電腦");
+        yield return new("Engine host", "引擎主機");
+        yield return new("LAN", "區域網絡");
+        yield return new("No LAN address was found on a physical network adapter that is up, so only this computer can open the app.", "喺已啟用嘅實體網絡卡搵唔到區域網絡位址，所以只有呢部電腦開到個應用程式。");
+        yield return new("Docker Desktop publishes ports on every interface. Windows Firewall may still need to allow the port before other devices can connect.", "Docker Desktop 會喺每個介面發佈埠。其他裝置要連之前，Windows 防火牆可能仲要容許呢個埠。");
+        yield return new("The engine runs on", "引擎喺呢度運行：");
+        yield return new(", so the app is reached through that host, not this computer.", "，所以要經嗰部主機去用個應用程式，唔係呢部電腦。");
+        yield return new("First sign-in", "第一次登入");
+        yield return new("Back to projects", "返去專案");
+        yield return new("Copy URL", "複製網址");
+        yield return new("Step {0}: {1}", "第 {0} 步：{1}");
+
+        // Validation messages
+        yield return new("Enter a project name.", "請輸入專案名稱。");
+        yield return new("Use lowercase letters, digits, dashes and underscores, starting with a letter or digit (at most 63 characters).", "請用細楷英文字母、數字、連字號同底線，開頭要係字母或數字（最多 63 個字元）。");
+        yield return new("A Compose project with this name already exists on this engine.", "呢個引擎已經有同名嘅 Compose 專案。");
+        yield return new("Enter an e-mail address for the administrator.", "請輸入管理員嘅電郵地址。");
+        yield return new("Use 2 to 64 letters, digits, dots, dashes, underscores or @, starting with a letter.", "請用 2 至 64 個英文字母、數字、句點、連字號、底線或 @，開頭要係字母。");
+        yield return new("Enter an IANA time zone such as Europe/London or Asia/Hong_Kong.", "請輸入 IANA 時區，例如 Europe/London 或 Asia/Hong_Kong。");
+        yield return new("Enter a host name or IPv4 address.", "請輸入主機名或 IPv4 位址。");
+        yield return new("Choose a folder for the data.", "請揀一個放資料嘅資料夾。");
+        yield return new("Use a full path such as D:\\Docker data.", "請用完整路徑，例如 D:\\Docker data。");
+        yield return new("The folder path cannot contain quotes, $ or line breaks.", "資料夾路徑唔可以有引號、$ 或者換行。");
+        yield return new("Project name: {0}", "專案名稱：{0}");
+        yield return new("Data folder: {0}", "資料資料夾：{0}");
+        yield return new("Time zone: {0}", "時區：{0}");
+        yield return new("Administrator: {0}", "管理員：{0}");
+        yield return new("Address: {0}", "位址：{0}");
+        yield return new("Database: choose one of the supported databases.", "資料庫：請揀一個支援嘅資料庫。");
+        yield return new("Secrets: {0} has not been generated.", "機密：{0} 未產生。");
+        yield return new("{0}: {1} is not a port between 1 and 65535.", "{0}：{1} 唔係 1 至 65535 之間嘅埠。");
+        yield return new("{0}: port {1} is already used by {2} in this setup.", "{0}：埠 {1} 喺今次設定已經俾「{2}」用咗。");
+        yield return new("{0}: port {1} is already in use on this engine or computer.", "{0}：埠 {1} 喺呢個引擎或者呢部電腦已經有人用緊。");
+
+        // Health messages
+        yield return new("{0} answered HTTP {1}.", "{0} 回應咗 HTTP {1}。");
+        yield return new("{0} answered HTTP {1}; waiting for the app to finish starting.", "{0} 回應咗 HTTP {1}；等緊應用程式完成啟動。");
+        yield return new("No answer from {0} yet; waiting for the app to start.", "{0} 仲未回應；等緊應用程式啟動。");
+        yield return new("The {0} container reports unhealthy. Open its logs for the reason.", "{0} 容器報告唔健康。開佢嘅記錄睇原因。");
+        yield return new("The {0} container stopped ({1}). Open its logs for the reason.", "{0} 容器停咗（{1}）。開佢嘅記錄睇原因。");
+
+        // Management
+        yield return new("This project publishes no web port that the app knows about. Start it, or open it from Compose.", "呢個專案冇發佈應用程式知道嘅網頁埠。啟動佢，或者喺 Compose 開啟。");
+        yield return new("The compose file is not on this computer:", "compose 檔唔喺呢部電腦：");
+        yield return new("The project's settings file is missing, so it cannot be updated from the catalogue:", "專案嘅設定檔唔見咗，所以唔可以用目錄更新：");
+        yield return new("Every image already uses the tag pinned in this version of the app. Update pulls them again (in case the registry republished a tag) and recreates changed containers.", "所有映像已經用緊呢個版本固定嘅標籤。更新會再拉一次（以防映像倉庫重新發佈咗個標籤），再重建有變嘅容器。");
+        yield return new("The project moves to these images. Read each app's release notes before upgrading across major versions; take a backup first.", "專案會轉用以下映像。跨大版本升級之前請先睇每個應用程式嘅發佈說明，並且先備份。");
+        yield return new("The compose file could not be written:", "寫唔到 compose 檔：");
+        yield return new("Backups write archives to a folder on this computer, but this engine runs on", "備份會將封存檔寫去呢部電腦嘅資料夾，但呢個引擎喺以下位置運行：");
+        yield return new("Use Storage › Volumes with a path on that host instead.", "請改用「儲存與網絡 › 磁碟區」，用嗰部主機上面嘅路徑。");
+        yield return new("This project has no named volumes. Data kept in a folder can be copied with File Explorer.", "呢個專案冇具名磁碟區。放喺資料夾嘅資料可以用檔案總管複製。");
+        yield return new("Stop the project during the backup", "備份期間停止專案");
+        yield return new("Recommended: databases copied while running can be inconsistent. The project is started again afterwards.", "建議開：資料庫一路行一路複製可能會唔一致。備份完會再啟動專案。");
+        yield return new("Copies each named volume into a tar.gz archive in", "將每個具名磁碟區複製做 tar.gz 封存檔，放喺");
+        yield return new("Backup saved to", "備份已儲存到");
+        yield return new("{0} of {1} volumes were backed up", "備份咗 {0} / {1} 個磁碟區");
+        yield return new("the output panel has the details", "輸出面板有詳情");
+        yield return new("Also delete data", "連資料一齊刪除");
+        yield return new("Off by default. Leave it off to keep the volumes and the project files so the app can be deployed again with its data.", "預設關閉。保持關閉就會保留磁碟區同專案檔案，之後可以連資料重新部署。");
+        yield return new("Off by default. Leave it off to keep the volumes, the data folder and the project files so the app can be deployed again with its data.", "預設關閉。保持關閉就會保留磁碟區、資料資料夾同專案檔案，之後可以連資料重新部署。");
+        yield return new("Stops and removes the containers and network of this project.", "停止並移除呢個專案嘅容器同網絡。");
+        yield return new("Volumes:", "磁碟區：");
+        yield return new("none", "冇");
+        yield return new("Remove self-hosted project", "移除自架專案");
+        yield return new("Removes the project and permanently deletes its data. This cannot be undone.", "移除專案並永久刪除佢嘅資料。呢個動作冇得還原。");
+        yield return new("Removes the project's containers and network. Volumes and files are kept.", "移除專案嘅容器同網絡。磁碟區同檔案會保留。");
+        yield return new("Some files could not be deleted:", "有啲檔案刪除唔到：");
+    }
+}

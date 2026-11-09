@@ -38,6 +38,15 @@
 - [x] Add tab and tab group locks (pinned, open and rail regions), appearance value locks (every editor value, each colour role, presets and each property of a customized element), the disabled-click authentication prompt, locked labels in the palette, the tab search and the New tab catalog with an optional hide, bulk-close exclusion and the keypad PIN entry (rule checks pass and were seen failing first; the window code builds, but nothing was driven in the built window)
 - [ ] Drive the tab and group locks, the appearance locks, the click-to-unlock prompt, the locked palette rows and the PIN keypad in the built window, and add a keypad to the PIN wizard
 - [ ] Add other schedulable settings and the API and Home Assistant schedule sources
+
+## Self-hosted apps (November 2026)
+
+- [x] Add a Self-hosted destination with a catalogue of 20 apps pinned to registry-checked tags, a four-step setup wizard (options, secrets, review, deploy) and management of labelled projects (rule checks pass and were seen failing first; `docker compose config` accepts every rendered variant)
+- [x] Deploy one light catalogue app end to end with the same rendering code and record the result (evidence/selfhosted-2026-11.json)
+- [ ] Click through the wizard and every management action in the built window against Docker Desktop and record receipts
+- [ ] Deploy and sign in to each catalogue app at least once, and confirm the first sign-in hints
+- [ ] Offer Gitea beside Forgejo, an HTTPS reverse-proxy option for Vaultwarden and GPU options for Jellyfin, Immich and Ollama
+- [ ] Re-check pinned tags against the registries before each release
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)
 - [ ] Drive the schedule editor, both network sources (with a real https endpoint and a real Home Assistant), the volume slider and quiet hours in the built window and record receipts
 - [x] Add lock credential policies (PIN, password, authenticator and their combinations)

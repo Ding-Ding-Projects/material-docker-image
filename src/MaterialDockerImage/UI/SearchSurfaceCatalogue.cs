@@ -115,6 +115,11 @@ public static class SearchSurfaceCatalogue
         C("images.manifest", "Images", "Pages/Images/ImagePlatformsTab.cs", "PageKit.ShowText", "\"Manifest of \" + reference"),
         F("images.platforms", "Images", "Pages/Images/ImagePlatformsTab.cs", "Search platforms and digests"),
         T("images.sbom", "Images", "Pages/Images/ImageSbomTab.cs", "SBOM packages"),
+        // Self-hosted
+        T("selfhosted.projects", "Self-hosted", "Pages/SelfHostedPage.cs", "Self-hosted projects"),
+        F("selfhosted.catalogue", "Self-hosted", "Pages/SelfHosted/SelfHostedCatalogueView.cs", "Search self-hosted apps"),
+        C("selfhosted.logs", "Self-hosted", "Pages/SelfHostedPage.cs", "ResourceTextViewer.ShowStream", "\"Logs · \" + p.Name"),
+        C("selfhosted.compose-file", "Self-hosted", "Pages/SelfHostedPage.cs", "ResourceTextViewer.Show", "\"Compose file · \" + p.Name"),
         // Minecraft
         T("minecraft.servers", "Minecraft", "Pages/MinecraftPage.cs", "Minecraft servers"),
         C("minecraft.logs", "Minecraft", "Pages/MinecraftPage.cs", "ResourceTextViewer.ShowStream", "\"Logs: \" + s.Name"),
