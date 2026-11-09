@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/self-hosted.md",
-      "sha256": "e84a2c77b47d8f2f4488637a53678de136b3df910407453f97951afd7d1b18e2"
+      "sha256": "96e47f7ad029daa5f6d4bd48d3bd339a37832afe4b680d4470dc547f5612b072"
     },
     {
       "path": "docs/features/settings-safety.md",
@@ -120,11 +120,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "e60ebcccd87e8bd6d963738ed3b0a95cd66e29580d9e69374cbe4d141915d453"
+      "sha256": "0ba19a213b01cfceb9e10392f181eb3b8ae39f737f7708c4dc6256e7a6984503"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "e78212bed2a058b66317bcc0c2a6ceff3f99f89a7c3d025e385e14f7936f2bea"
+      "sha256": "d975fedd8b6a9f213103c0731827be84e953ac0e531ccd29186a8405ed826105"
     },
     {
       "path": "wiki/Home.md",

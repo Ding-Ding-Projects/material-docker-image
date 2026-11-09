@@ -262,5 +262,55 @@
       "Open in browser was not invoked: it opens the default browser, which would appear on the visible desktop rather than the hidden one. The address it opens is the one shown in the Address column (http://localhost:3001 in this run)."
     ],
     "cleanup": "The pulled image was removed afterwards; application data was restored from the snapshot."
+  },
+  "windowDriveNextcloud": {
+    "recorded": "2026-11-09T11:37:00-05:00",
+    "sourceCommit": "43b34326d8f621b1a0d1f36aaaf56f91ef491686",
+    "artifact": "Release build of that commit (MaterialDockerImage.dll sha256 prefix e88206dff8c119ee)",
+    "engine": "Docker Desktop, engine 29.6.1, context desktop-linux, 32 CPUs and 31 GiB memory available to Docker",
+    "route": "Same as windowDrive. Generated secrets were never read into the automation log; the sign-in check read them from .env inside one shell command without printing them.",
+    "steps": [
+      {
+        "action": "Set up Nextcloud, project mdi-verify-nextcloud, MariaDB, named volumes",
+        "observed": "Host port 8080 was already in use by a local listener, so the wizard proposed 8081",
+        "result": "pass"
+      },
+      {
+        "action": "Secrets step",
+        "observed": "Administrator, database, database root and Redis passwords generated; .env access list held only the current account",
+        "result": "pass"
+      },
+      {
+        "action": "Review, then Deploy",
+        "observed": "\"Every setting is valid\"; deploy completed in 42.7 s, exit 0; \"Nextcloud is running. http://127.0.0.1:8081/status.php answered HTTP 200\"; app, db (healthy) and redis (healthy) containers up",
+        "result": "pass"
+      },
+      {
+        "action": "status.php",
+        "observed": "installed true, maintenance false, version 35.0.2",
+        "result": "pass"
+      },
+      {
+        "action": "Login page requested from another device on the same LAN through the LAN address the app listed",
+        "observed": "Nextcloud login page (not the untrusted-domain page), so the LAN address was added to the trusted domains",
+        "result": "pass"
+      },
+      {
+        "action": "Administrator sign-in through the OCS user API with the generated password, and with a wrong password",
+        "observed": "Status 100 and id admin with the generated password; status 997 with the wrong one",
+        "result": "pass"
+      },
+      {
+        "action": "Remove... with Also delete data, both keys and the confirmation slider",
+        "observed": "No container, volume, network or project folder left",
+        "result": "pass"
+      }
+    ],
+    "findings": [],
+    "notExercised": [
+      "The browser sign-in itself was not performed in a browser; the API sign-in uses the same account and password.",
+      "GitLab, Immich and Open WebUI were not deployed."
+    ],
+    "cleanup": "The three pulled images (nextcloud:35.0.2-apache, mariadb:11.8.9, redis:8.8.4-alpine, all tagged by this deploy) were removed; application data was restored from the snapshot."
   }
 }
