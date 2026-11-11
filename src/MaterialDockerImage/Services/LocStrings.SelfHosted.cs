@@ -64,6 +64,7 @@ public static partial class Loc
         yield return new("Photo and video backup with face recognition, maps and mobile apps.", "相片同影片備份，有人面識別、地圖同手機應用程式。");
         yield return new("Document archive that scans, reads (OCR) and tags your paperwork.", "文件庫，幫你掃描、文字辨識（OCR）同加標籤。");
         yield return new("Home automation hub for lights, sensors, energy and thousands of devices.", "家居自動化中心，管燈、感應器、能源同幾千種裝置。");
+        yield return new("Home Assistant with a Material Design 3 interface, published as one ready image.", "用 Material Design 3 介面嘅 Home Assistant，打包成一個即用映像發佈。");
         yield return new("Uptime monitor for websites, ports and services with status pages and alerts.", "監察網站、埠同服務有冇運作，有狀態頁同警報。");
         yield return new("Network-wide DNS server that blocks ads and trackers for every device.", "成個網絡用嘅 DNS 伺服器，幫每部裝置擋廣告同追蹤器。");
         yield return new("Reverse proxy with free Let's Encrypt certificates and a simple web interface.", "反向代理，有免費 Let's Encrypt 憑證同簡單網頁介面。");

@@ -219,6 +219,19 @@ public static class SelfHostedCatalogue
         },
         new()
         {
+            Id = "homeassistantmaterial", Name = "Home Assistant Material", Category = SelfHostedCategory.HomeAndMonitoring,
+            Description = "Home Assistant with a Material Design 3 interface, published as one ready image.",
+            MinMemoryMb = 1024, MinDiskGb = 5,
+            Ports = [Web("home-assistant-material", 8123, 8123)],
+            Volumes = [new("config", "home-assistant-material", "/config", "Configuration, automations and history")],
+            HealthPort = "web", HealthPath = "/manifest.json",
+            FirstLogin = "Open the web address; onboarding creates the owner account.",
+            DocsUrl = "https://ding-ding-projects.github.io/home-assistant-material/", Licence = "Apache-2.0",
+            Note = "Runs with a published port instead of host networking (Docker Desktop has no host network for LAN devices), so automatic discovery of devices on the LAN is limited.",
+            Services = _ => [new() { Name = "home-assistant-material", Image = "ghcr.io/ding-ding-projects/home-assistant-material:2026.11.1.118", Environment = [E("TZ", R("TZ"))] }],
+        },
+        new()
+        {
             Id = "uptimekuma", Name = "Uptime Kuma", Category = SelfHostedCategory.HomeAndMonitoring,
             Description = "Uptime monitor for websites, ports and services with status pages and alerts.",
             MinMemoryMb = 256, MinDiskGb = 1,

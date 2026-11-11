@@ -312,5 +312,55 @@
       "GitLab, Immich and Open WebUI were not deployed."
     ],
     "cleanup": "The three pulled images (nextcloud:35.0.2-apache, mariadb:11.8.9, redis:8.8.4-alpine, all tagged by this deploy) were removed; application data was restored from the snapshot."
+  },
+  "windowDriveHomeAssistantMaterial": {
+    "recorded": "2026-11-11T18:19:00-05:00",
+    "sourceCommit": "deb3a5bc1abc8e366477235f6aa67371e031273e plus the uncommitted Home Assistant Material catalogue entry recorded in this same change",
+    "artifact": "Release build from build.bat (MaterialDockerImage.dll sha256 prefix b57f12f01aa40d52), started with --software-rendering so PrintWindow captures are not black on the hidden desktop",
+    "engine": "Docker Desktop, engine 29.6.1, context desktop-linux, 32 CPUs and 31 GiB memory available to Docker",
+    "route": "Same as windowDrive. The application data folder was snapshotted before and restored afterwards (settings.json SHA-256 equal).",
+    "steps": [
+      {
+        "action": "Self-hosted > Set up an app > Set up Home Assistant Material; project name mdi-verify-ha-material",
+        "observed": "Catalogue header reported 21 apps; host port 8123 was already published by another container, so the wizard proposed 8124",
+        "result": "pass"
+      },
+      {
+        "action": "Next (Secrets: none), Next (Review)",
+        "observed": "\"Every setting is valid\"; image ghcr.io/ding-ding-projects/home-assistant-material:2026.11.1.118, ports 8124 -> 8123/tcp, named volume config at /config, TZ referenced from .env",
+        "result": "pass"
+      },
+      {
+        "action": "Deploy",
+        "observed": "Completed in 81.9 s, exit 0; result card \"Home Assistant Material is running. http://127.0.0.1:8124/manifest.json answered HTTP 200.\"; addresses listed: localhost and the Wi-Fi LAN IPv4",
+        "result": "pass"
+      },
+      {
+        "action": "Health and onboarding requested from this computer",
+        "observed": "/manifest.json HTTP 200 on 127.0.0.1 and on the listed LAN address; / returned the Home Assistant page; /api/onboarding listed the user, core_config and integration steps as not done",
+        "result": "pass"
+      },
+      {
+        "action": "Listed LAN address requested from another device on the same LAN",
+        "observed": "/manifest.json HTTP 200",
+        "result": "pass"
+      },
+      {
+        "action": "Back to projects",
+        "observed": "Row \"Running, mdi-verify-ha-material, Home Assistant Material, http://localhost:8124, 1 / 1, 0.0 %, 653.16 MB\"; header \"1 project, 1 running\"",
+        "result": "pass"
+      }
+    ],
+    "findings": [],
+    "notExercised": [
+      "Onboarding itself (creating the owner account) was not completed; the onboarding API shows it is ready to start.",
+      "Removal was done with the same docker compose down -v command the Remove action runs, not by dragging the confirmation slider in the window."
+    ],
+    "cleanup": "Container, network and the config volume were removed; no mdi-verify container or volume is left. The image was kept because other Home Assistant Material tags on this computer are used by other work.",
+    "captures": [
+      "selfhosted-captures-2026-11/ha-material-review-drive.png",
+      "selfhosted-captures-2026-11/ha-material-deployed-drive.png",
+      "selfhosted-captures-2026-11/ha-material-projects-drive.png"
+    ]
   }
 }

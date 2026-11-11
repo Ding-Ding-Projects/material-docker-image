@@ -10,7 +10,7 @@ const files=execFileSync('git',['ls-files','-co','--exclude-standard','-z'],{enc
 let count=0;
 for(const file of new Set(files)) {
   const bytes=readFileSync(file); if(bytes.includes(0))continue;
-  let content=bytes.toString('utf8').replace(/Ding[- ]Ding[- ]Projects/g,'');
+  let content=bytes.toString('utf8').replace(/Ding[- ]Ding[- ]Projects/gi,'');
   // Published labels can hide inside code spans or hyphenated identifiers.
   // Review distinctive multiword phrases there too, without rewriting any source.
   const identifierText=content.replace(/https?:\/\/[^\s<>"')]+/g,'').replace(/[-_]+/g,' ');

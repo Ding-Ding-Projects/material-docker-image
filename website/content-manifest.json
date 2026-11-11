@@ -11,7 +11,7 @@
       "implemented": 31,
       "verified": 0
     },
-    "sha256": "d079584605b6c900dc77cfcb47f66057f2624ad1b948a8098102e9b5e1c04b9e"
+    "sha256": "4944a612c2d2e9a1ab947bc8059d68d05b57ccdf5a7e535575eef5b7b6285061"
   },
   "sources": [
     {
@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/self-hosted.md",
-      "sha256": "96e47f7ad029daa5f6d4bd48d3bd339a37832afe4b680d4470dc547f5612b072"
+      "sha256": "649a570ad41210d1dc5afbbeca9eba1befc5859467a4c41e1981a64b5fab461e"
     },
     {
       "path": "docs/features/settings-safety.md",
@@ -116,15 +116,15 @@
     },
     {
       "path": "README.md",
-      "sha256": "977f7e2480bbc3e60a73ca4d1211744d36d804a707291df097150c0f7bde673c"
+      "sha256": "f116c65f5112244d779539443153e05d225539a91e8cb4d34d36cf22737c3f0c"
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "0ba19a213b01cfceb9e10392f181eb3b8ae39f737f7708c4dc6256e7a6984503"
+      "sha256": "2faa14860102706cf2b03cbfa1a28c6661afd4590316717c2b1a73c3419b12ef"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "d975fedd8b6a9f213103c0731827be84e953ac0e531ccd29186a8405ed826105"
+      "sha256": "608abde0f5cb19ebd8951f55feb1afe4e6c4bdab55dbb6e84985ced1a809cffc"
     },
     {
       "path": "wiki/Home.md",
@@ -299,6 +299,27 @@
       "sha256": "6eee0d727298aeb4ed181b4f20d5fb68398e0ef63513a7593bfee2289fe5f751",
       "width": 1440,
       "height": 960
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/ha-material-review-drive.png",
+      "destination": "assets/061efec53b9303b417ff809123f4ea45a2f84c6186ec6bf2769f07c23273fbbd.png",
+      "sha256": "061efec53b9303b417ff809123f4ea45a2f84c6186ec6bf2769f07c23273fbbd",
+      "width": 2160,
+      "height": 1180
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/ha-material-deployed-drive.png",
+      "destination": "assets/743dd6271a7beee7012cf5e7234a91007f86b3eac6ae93c369ded338c07786cf.png",
+      "sha256": "743dd6271a7beee7012cf5e7234a91007f86b3eac6ae93c369ded338c07786cf",
+      "width": 2160,
+      "height": 470
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/ha-material-projects-drive.png",
+      "destination": "assets/a4f54d99b44a88e5d8fa48bb2a140a12a84a0aeb85949d44def655e7eb4eb062.png",
+      "sha256": "a4f54d99b44a88e5d8fa48bb2a140a12a84a0aeb85949d44def655e7eb4eb062",
+      "width": 2160,
+      "height": 1440
     },
     {
       "path": "evidence/selfhosted-captures-2026-11/selfhosted-catalogue-1440x960.png",

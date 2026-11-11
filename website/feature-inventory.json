@@ -3601,8 +3601,8 @@
       },
       "status": "implemented",
       "summary": {
-        "en": "A Self-hosted destination offers 20 apps (Nextcloud, GitLab CE, Forgejo, Vaultwarden, Jellyfin, Immich, Paperless-ngx, Home Assistant and more) pinned to registry-checked tags, with a wizard for ports, storage, time zone and generated secrets kept in a private .env file, a review of the exact compose.yaml, a health wait with local and LAN addresses, and start, stop, update, logs, backup and removal of labelled projects. Rule checks pass and docker compose config accepts every rendered variant; one app was deployed end to end with the same rendering code.",
-        "zh": "自架服務頁提供 20 個應用程式（Nextcloud、GitLab CE、Forgejo、Vaultwarden、Jellyfin、Immich、Paperless-ngx、Home Assistant 等），映像標籤已經對照映像倉庫固定；精靈會設定埠、儲存、時區同產生機密（只放喺私人 .env 檔），再檢查準確嘅 compose.yaml、等健康檢查、顯示本機同區域網絡位址，並可以啟動、停止、更新、睇記錄、備份同移除有標籤嘅專案。規則檢查通過，docker compose config 接受所有輸出組合；用同一套輸出程式碼實際部署咗一個應用程式。"
+        "en": "A Self-hosted destination offers 21 apps (Nextcloud, GitLab CE, Forgejo, Vaultwarden, Jellyfin, Immich, Paperless-ngx, Home Assistant, Home Assistant Material and more) pinned to registry-checked tags, with a wizard for ports, storage, time zone and generated secrets kept in a private .env file, a review of the exact compose.yaml, a health wait with local and LAN addresses, and start, stop, update, logs, backup and removal of labelled projects. Rule checks pass and docker compose config accepts every rendered variant; one app was deployed end to end with the same rendering code.",
+        "zh": "自架服務頁提供 21 個應用程式（Nextcloud、GitLab CE、Forgejo、Vaultwarden、Jellyfin、Immich、Paperless-ngx、Home Assistant、Home Assistant Material 等），映像標籤已經對照映像倉庫固定；精靈會設定埠、儲存、時區同產生機密（只放喺私人 .env 檔），再檢查準確嘅 compose.yaml、等健康檢查、顯示本機同區域網絡位址，並可以啟動、停止、更新、睇記錄、備份同移除有標籤嘅專案。規則檢查通過，docker compose config 接受所有輸出組合；用同一套輸出程式碼實際部署咗一個應用程式。"
       },
       "remaining": {
         "en": "Click through the wizard and every management action in the built window against Docker Desktop, deploy and sign in to each catalogue app, and record receipts; none of that was performed.",

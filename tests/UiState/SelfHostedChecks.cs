@@ -45,7 +45,7 @@ public static class SelfHostedChecks
     {
         var all = SelfHostedCatalogue.All;
         Check(all.Count >= 20 && all.Select(a => a.Id).Distinct().Count() == all.Count, $"the catalogue has {all.Count} apps with unique ids");
-        string[] required = ["nextcloud", "gitlab", "forgejo", "vaultwarden", "jellyfin", "immich", "paperless", "homeassistant", "uptimekuma", "adguardhome", "nginxproxymanager", "grafana", "n8n", "codeserver", "wordpress", "bookstack", "freshrss", "syncthing", "openwebui", "rustfs"];
+        string[] required = ["nextcloud", "gitlab", "forgejo", "vaultwarden", "jellyfin", "immich", "paperless", "homeassistant", "homeassistantmaterial", "uptimekuma", "adguardhome", "nginxproxymanager", "grafana", "n8n", "codeserver", "wordpress", "bookstack", "freshrss", "syncthing", "openwebui", "rustfs"];
         Check(required.All(id => SelfHostedCatalogue.Find(id) != null), "the catalogue holds every requested app");
         Check(SelfHostedCatalogue.Categories.All(c => all.Any(a => a.Category == c)), "every category has at least one app");
         var images = all.SelectMany(a => a.AllImages()).Distinct().ToList();
@@ -68,6 +68,10 @@ public static class SelfHostedChecks
             if (app.Ports.Any(p => !services.Contains(p.Service)) || app.Volumes.Any(v => !services.Contains(v.Service))) problems.Add("port or volume on an unknown service");
             Check(problems.Count == 0, $"{app.Id}: catalogue entry is complete" + (problems.Count > 0 ? ": " + string.Join(", ", problems) : ""));
         }
+        var haMaterial = SelfHostedCatalogue.Find("homeassistantmaterial")!;
+        Check(haMaterial.AllImages().SequenceEqual(["ghcr.io/ding-ding-projects/home-assistant-material:" + SelfHostedCompose.Tag(haMaterial.AllImages().First())]) && haMaterial.HealthPath == "/manifest.json"
+            && haMaterial.Ports.Single().ContainerPort == 8123 && haMaterial.Volumes.Single().ContainerPath == "/config",
+            "Home Assistant Material runs its published image on port 8123 with /config and the manifest health check");
         Check(SelfHostedCatalogue.Find("gitlab")!.MinMemoryMb >= 4096 && SelfHostedCatalogue.Find("gitlab")!.Note!.Contains("memory"), "GitLab states its memory need");
         var immich = SelfHostedCatalogue.Find("immich")!.AllImages();
         Check(immich.Any(i => i.StartsWith("ghcr.io/immich-app/immich-server:")) && immich.Any(i => i.StartsWith("ghcr.io/immich-app/immich-machine-learning:")) && immich.Any(i => i.Contains("vectorchord")) && immich.Any(i => i.StartsWith("valkey/valkey:")),
