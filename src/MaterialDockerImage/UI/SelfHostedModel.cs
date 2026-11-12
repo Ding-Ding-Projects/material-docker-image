@@ -38,6 +38,8 @@ public sealed class SelfHostedServiceSpec
     public List<string> DependsOnHealthy { get; init; } = [];
     public List<string> DependsOnStarted { get; init; } = [];
     public string? ShmSize { get; init; }
+    /// <summary>When set, Compose builds <see cref="Image"/> from this source (only when that tag is not present yet) instead of pulling it.</summary>
+    public SelfHostedBuild? Build { get; init; }
 }
 
 /// <summary>Values chosen in the setup wizard. Secrets are kept here only until they are written to the .env file.</summary>

@@ -64,7 +64,7 @@ public static partial class Loc
         yield return new("Photo and video backup with face recognition, maps and mobile apps.", "相片同影片備份，有人面識別、地圖同手機應用程式。");
         yield return new("Document archive that scans, reads (OCR) and tags your paperwork.", "文件庫，幫你掃描、文字辨識（OCR）同加標籤。");
         yield return new("Home automation hub for lights, sensors, energy and thousands of devices.", "家居自動化中心，管燈、感應器、能源同幾千種裝置。");
-        yield return new("Home Assistant with a Material Design 3 interface, published as one ready image.", "用 Material Design 3 介面嘅 Home Assistant，打包成一個即用映像發佈。");
+        yield return new("Home Assistant with a Material Design 3 interface, built here from its source repository.", "用 Material Design 3 介面嘅 Home Assistant，喺呢度由佢嘅原始碼儲存庫建置。");
         yield return new("Uptime monitor for websites, ports and services with status pages and alerts.", "監察網站、埠同服務有冇運作，有狀態頁同警報。");
         yield return new("Network-wide DNS server that blocks ads and trackers for every device.", "成個網絡用嘅 DNS 伺服器，幫每部裝置擋廣告同追蹤器。");
         yield return new("Reverse proxy with free Let's Encrypt certificates and a simple web interface.", "反向代理，有免費 Let's Encrypt 憑證同簡單網頁介面。");
@@ -105,6 +105,7 @@ public static partial class Loc
         yield return new("GitLab needs at least 4 GB of memory for Docker (8 GB recommended); give Docker Desktop enough memory in its settings before deploying.", "GitLab 要畀 Docker 最少 4 GB 記憶體（建議 8 GB）；部署之前先喺 Docker Desktop 設定畀夠記憶體。");
         yield return new("Hardware transcoding is not configured; Docker Desktop on Windows has no GPU video acceleration for Linux containers.", "冇設定硬件轉碼；Windows 上嘅 Docker Desktop 冇畀 Linux 容器用 GPU 影片加速。");
         yield return new("Uses the official multi-service layout of Immich v3.3.6: server, machine learning, Valkey and PostgreSQL with VectorChord.", "用 Immich v3.3.6 官方嘅多服務佈局：伺服器、機器學習、Valkey 同帶 VectorChord 嘅 PostgreSQL。");
+        yield return new("The first deploy builds the image from the source repository at a pinned commit (frontend, translations, then core), which takes about 10 to 40 minutes and several GB of build cache. Runs with a published port instead of host networking, so automatic discovery of devices on the LAN is limited.", "第一次部署會由原始碼儲存庫一個固定提交建置映像（前端、翻譯，再到核心），大約要 10 至 40 分鐘，仲會用幾 GB 建置快取。用發佈埠代替主機網絡，所以自動搵區域網絡裝置會有限制。");
         yield return new("Runs with a published port instead of host networking (Docker Desktop has no host network for LAN devices), so automatic discovery of devices on the LAN is limited.", "用發佈埠代替主機網絡（Docker Desktop 冇畀區域網絡裝置用嘅主機網絡），所以自動搵區域網絡裝置會有限制。");
         yield return new("Port 53 is often taken on Windows (for example by Internet Connection Sharing); choose another host port if it is in use, and point devices at this computer's address.", "Windows 上 53 埠好多時已經俾人用咗（例如網際網路連線共用）；用緊就揀另一個主機埠，再將裝置指向呢部電腦嘅位址。");
         yield return new("MinIO stopped publishing community container images in 2025 (its last images are no longer pullable), so this setup uses RustFS, an S3-compatible server with a similar console.", "MinIO 喺 2025 年停咗發佈社群容器映像（最後嗰啲映像已經拉唔到），所以呢個設定用 RustFS，一個兼容 S3、主控台差唔多嘅伺服器。");
@@ -224,6 +225,7 @@ public static partial class Loc
         yield return new("The .env file could not be limited to your Windows account. Check its permissions before sharing this computer.", ".env 檔限制唔到只畀你嘅 Windows 帳戶用。同人共用呢部電腦之前，先檢查佢嘅權限。");
         yield return new("Deploying {0}", "部署緊 {0}");
         yield return new("Pulling images and starting containers. The output panel shows each step.", "拉緊映像同啟動緊容器。輸出面板會顯示每一步。");
+        yield return new("Building the image from its source repository (the first time takes a while), then starting containers. The output panel shows each step.", "由原始碼儲存庫建置緊映像（第一次要等一陣），跟住啟動容器。輸出面板會顯示每一步。");
         yield return new("Starting the project…", "啟動緊專案…");
         yield return new("Stop waiting", "唔再等");
         yield return new("Elapsed", "已過");

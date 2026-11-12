@@ -362,5 +362,48 @@
       "selfhosted-captures-2026-11/ha-material-deployed-drive.png",
       "selfhosted-captures-2026-11/ha-material-projects-drive.png"
     ]
+  },
+  "windowDriveHomeAssistantMaterialSource": {
+    "recorded": "2026-11-12T14:17:35-05:00",
+    "sourceCommit": "d543fc4c95c1efa1b2844cbce4a5d5c46f241d3a plus the source-build change recorded in this same change",
+    "artifact": "Release build from build.bat (out/publish), started with --software-rendering on a hidden desktop",
+    "engine": "Docker Desktop, engine 29.6.1, context desktop-linux, 32 CPUs and 31 GiB memory available to Docker",
+    "route": "Same as windowDriveHomeAssistantMaterial. The application data folder was snapshotted before and restored afterwards (settings.json SHA-256 equal).",
+    "freshBuild": "Before the drive, docker compose build of the same recipe (Git context pinned to 311d3508ad61da723de1ab7a561de1c50f0c8ceb) ran from 18:51:34Z to 19:00:00Z with exit 0; gulp build-app ran 271.5 s; the home-assistant-frontend 20261028.5 dist-info direct_url points at the wheel from stage 1.",
+    "steps": [
+      {
+        "action": "Self-hosted > Set up an app > Set up Home Assistant Material; project name mdi-verify-ha-source; Next; Next",
+        "observed": "Review reported \"Every setting is valid.\"",
+        "result": "pass"
+      },
+      {
+        "action": "Deploy",
+        "observed": "The output panel showed the build stages of the inline recipe (the core stage installing homeassistant==2026.11.1 from file:///usr/src/homeassistant); completed in 36.6 s, exit 0, reusing the build cache of the fresh build; result card \"Home Assistant Material is running. http://127.0.0.1:8124/manifest.json answered HTTP 200.\"",
+        "result": "pass"
+      },
+      {
+        "action": "Image and container checked",
+        "observed": "Image material-docker-image/home-assistant-material:2026.11.1-source.311d3508ad61, revision label 311d3508ad61da723de1ab7a561de1c50f0c8ceb; /OFFICIAL_IMAGE reads source;311d3508ad61da723de1ab7a561de1c50f0c8ceb;material-docker-image;local",
+        "result": "pass"
+      },
+      {
+        "action": "Health and onboarding requested from this computer",
+        "observed": "/manifest.json HTTP 200 on 127.0.0.1 and on the listed LAN address; /api/onboarding listed user, core_config and integration as not done",
+        "result": "pass"
+      }
+    ],
+    "findings": [
+      "The deploy card said \"Pulling images and starting containers\" during a source build. It now says that it is building the image from the source repository; that text is covered by the source checks but was not captured."
+    ],
+    "notExercised": [
+      "A deploy through the window with an empty build cache (the fresh build above used the docker CLI).",
+      "Onboarding itself.",
+      "Removal by the confirmation slider; the same docker compose down -v command was used."
+    ],
+    "cleanup": "Container, network and the config volume were removed. The built image was kept.",
+    "captures": [
+      "selfhosted-captures-2026-11/ha-material-source-building.png",
+      "selfhosted-captures-2026-11/ha-material-source-running.png (cropped above the address list)"
+    ]
   }
 }

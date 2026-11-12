@@ -198,7 +198,7 @@ public sealed class SelfHostedPage : PageBase
             File.WriteAllText(Path.Combine(p.Folder, "selfhosted.json"), System.Text.Json.JsonSerializer.Serialize(SelfHostedCompose.Saved(app, options, saved.Created) , new System.Text.Json.JsonSerializerOptions { WriteIndented = true, Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() } }));
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Host.Notify.Error(Loc.T("The compose file could not be written:") + " " + e.Message); return; }
-        if (await Host.Execute("Pull images for " + p.Name, SelfHostedOps.ProjectArgs(p, "pull"), true, Context) is not { Success: true }) { await SafeRefresh(); return; }
+        if (await Host.Execute("Pull images for " + p.Name, SelfHostedOps.ProjectArgs(p, "pull", "--ignore-buildable"), true, Context) is not { Success: true }) { await SafeRefresh(); return; }
         if (await Host.Execute("Update " + p.Name, SelfHostedOps.ProjectArgs(p, "up", "-d"), true, Context) is { Success: true })
             Host.History.Record("selfhosted", $"Updated {p.Name}" + (changes.Count > 0 ? ": " + string.Join(", ", changes.Select(c => c.Next)) : ""));
         await SafeRefresh();

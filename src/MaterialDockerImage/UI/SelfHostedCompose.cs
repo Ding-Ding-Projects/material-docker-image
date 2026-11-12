@@ -83,6 +83,13 @@ public static class SelfHostedCompose
         {
             sb.Append("  ").Append(s.Name).Append(":\n");
             sb.Append("    image: ").Append(Q(s.Image)).Append('\n');
+            if (s.Build is { } build)
+            {
+                // Compose interpolates $ in the whole file, dockerfile_inline included, so the Dockerfile's own $ are doubled.
+                sb.Append("    build:\n");
+                sb.Append("      context: ").Append(Q(build.Context)).Append('\n');
+                sb.Append("      dockerfile_inline: ").Append(Q(build.Dockerfile.Replace("$", "$$", StringComparison.Ordinal))).Append('\n');
+            }
             sb.Append("    restart: unless-stopped\n");
             sb.Append("    labels:\n");
             sb.Append("      ").Append(SelfHostedRules.Label).Append(": ").Append(Q(app.Id)).Append('\n');

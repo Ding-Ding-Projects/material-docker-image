@@ -17,7 +17,7 @@ The Catalogue view has a search field with its own anchored regular expression b
 | Jellyfin | Media | `jellyfin/jellyfin:12.4.20261026-211555` | 8096 web | 1 GB, 5 GB |
 | Immich | Media | `ghcr.io/immich-app/immich-server:v3.3.6`, `ghcr.io/immich-app/immich-machine-learning:v3.3.6`, `valkey/valkey:9.0.7`, `ghcr.io/immich-app/postgres:14-vectorchord0.4.3-pgvectors0.2.0` | 2283 web | 6 GB, 20 GB |
 | Home Assistant | Home and monitoring | `ghcr.io/home-assistant/home-assistant:2026.11.0` | 8123 web | 1 GB, 5 GB |
-| Home Assistant Material | Home and monitoring | `ghcr.io/ding-ding-projects/home-assistant-material:2026.11.1.118` | 8123 web | 1 GB, 5 GB |
+| Home Assistant Material | Home and monitoring | Built from source: `material-docker-image/home-assistant-material:2026.11.1-source.311d3508ad61` | 8123 web | 8 GB, 20 GB |
 | Uptime Kuma | Home and monitoring | `louislam/uptime-kuma:2.5.9` | 3001 web | 256 MB, 1 GB |
 | Grafana and Prometheus | Home and monitoring | `grafana/grafana:13.3.0`, `prom/prometheus:v3.16.0` | 3002 Grafana, 9090 Prometheus | 1 GB, 5 GB |
 | AdGuard Home | Network | `adguard/adguardhome:v0.107.80` | 3000 first-run setup, 8081 web, 53 DNS tcp+udp | 256 MB, 1 GB |
@@ -100,6 +100,28 @@ The Deployed view lists each labelled project with its state, address, container
 ![Home Assistant Material running after deploy](../../evidence/selfhosted-captures-2026-11/ha-material-deployed-drive.png)
 
 ![Deployed projects list with Home Assistant Material running](../../evidence/selfhosted-captures-2026-11/ha-material-projects-drive.png)
+
+### Home Assistant Material is built from source
+
+Home Assistant Material is the one catalogue entry that is not pulled. Its service carries a Compose `build:` section: the context is the Git repository `https://github.com/Ding-Ding-Projects/home-assistant-material.git` pinned to commit `311d3508ad61da723de1ab7a561de1c50f0c8ceb` (the source of release 2026.11.1.132), and `dockerfile_inline` holds a four-stage recipe that follows the repository's own build files:
+
+1. The Material frontend wheel, built with pnpm and `gulp build-app` from `frontend/` (the repository's `build/frontend.Dockerfile`).
+2. The integration translation files of the matching upstream release (the repository's `build/translations.Dockerfile`; upstream publishes these only inside its image).
+3. The core source tree from `core/`, with the wheel and translations added.
+4. The repository's `core/Dockerfile`, reading from that tree, on the upstream Home Assistant base image. `/OFFICIAL_IMAGE` records the commit and that the image was built locally.
+
+The image tag names the commit and the file sets no `pull_policy`, so Compose builds only when that tag is missing; later starts and updates reuse it. Update runs `docker compose pull --ignore-buildable`, which skips the built service. Compose interpolates `$` everywhere, so every `$` in the inline Dockerfile is written as `$$`. The deploy card says that it is building from the source repository.
+
+What is still downloaded: the Node.js build image, the upstream Home Assistant base and release images (base layer and translation files), the go2rtc binary image, and Python packages from PyPI as the core Dockerfile installs them. No Home Assistant Material image is downloaded.
+
+Verification on 12 November 2026:
+
+- A plain `docker compose build` of the same recipe, with no frontend build cache, finished in about 8.5 minutes on Docker Desktop (32 CPUs, 31 GiB). The frontend compile ran for 272 s. Inside the image, the `home-assistant-frontend` 20261028.5 package records `file:///usr/src/homeassistant/home_assistant_frontend-20261028.5-py3-none-any.whl` as its origin, which is the wheel from stage 1, not the PyPI package.
+- The built window deployed it through the wizard (`windowDriveHomeAssistantMaterialSource` in `evidence/selfhosted-2026-11.json`). It reused that build cache, so the deploy took 36.6 s with exit 0. `/manifest.json` answered HTTP 200 on 127.0.0.1 and on the LAN address, the onboarding API listed its steps as ready, and the running container held the commit in `/OFFICIAL_IMAGE`. The project was removed afterwards.
+
+![Deploy building Home Assistant Material from source in the built window](../../evidence/selfhosted-captures-2026-11/ha-material-source-building.png)
+
+![Home Assistant Material built from source and running](../../evidence/selfhosted-captures-2026-11/ha-material-source-running.png)
 - Captures of the destination, the catalogue and a filled review page come from capture mode, which never writes project files or deploys. The set in `evidence/selfhosted-captures-2026-11/` (1440 x 960, 960 x 720 and Cantonese, each with its layout probe file reporting no cut, overflow or truncated text) was taken from the built application on a hidden desktop with the Docker CLI off the path, so the Deployed view shows its engine error card.
 
 ![Self-hosted catalogue](../../evidence/selfhosted-captures-2026-11/selfhosted-catalogue-1440x960.png)

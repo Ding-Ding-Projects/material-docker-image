@@ -353,7 +353,7 @@ internal sealed class SelfHostedWizard : Grid
         var stopWaiting = Ui.Button("Stop waiting", Icons.Stop, ButtonKind.Tonal, () => healthCancel?.Cancel());
         stopWaiting.HorizontalAlignment = HorizontalAlignment.Left;
         stopWaiting.Visibility = Visibility.Collapsed;
-        body.Content = MinecraftControls.Section(Loc.T("Deploying {0}").Replace("{0}", app.Name), Loc.T("Pulling images and starting containers. The output panel shows each step."), progress, bar, stopWaiting);
+        body.Content = MinecraftControls.Section(Loc.T("Deploying {0}").Replace("{0}", app.Name), Loc.T(app.Services(options).Any(x => x.Build != null) ? "Building the image from its source repository (the first time takes a while), then starting containers. The output panel shows each step." : "Pulling images and starting containers. The output panel shows each step."), progress, bar, stopWaiting);
         progress.Text = Loc.T("Starting the project…");
         var result = await Host.Execute($"Deploy {app.Name} ({options.Project})", SelfHostedCompose.ComposeArgs(options.Project, folder, "up", "-d"), true, ctx);
         if (result is not { Success: true })

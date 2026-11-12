@@ -46,7 +46,9 @@
 - [x] Click through the wizard, deploy, LAN address (checked from another device), stop, start, logs, backup and remove in the built window against Docker Desktop and record a receipt (`windowDrive` in evidence/selfhosted-2026-11.json)
 - [x] Drive restart, update, show compose file and open in Compose in the built window (`windowDriveActions` in evidence/selfhosted-2026-11.json)
 - [ ] Drive open in browser in the built window (needs a browser that opens on the hidden desktop)
-- [ ] Deploy and sign in to each catalogue app at least once, and confirm the first sign-in hints (so far Uptime Kuma and FreshRSS are deployed without a sign-in, and Nextcloud is deployed with an administrator API sign-in, `windowDriveNextcloud`; Home Assistant Material is deployed with onboarding ready but not completed, `windowDriveHomeAssistantMaterial`)
+- [ ] Deploy and sign in to each catalogue app at least once, and confirm the first sign-in hints (so far Uptime Kuma and FreshRSS are deployed without a sign-in, and Nextcloud is deployed with an administrator API sign-in, `windowDriveNextcloud`; Home Assistant Material is deployed with onboarding ready but not completed, `windowDriveHomeAssistantMaterial`, and again built from source, `windowDriveHomeAssistantMaterialSource`)
+- [x] Home Assistant Material builds from its source repository at a pinned commit instead of pulling a published image (verified 12 November 2026)
+- [ ] Deploy Home Assistant Material from source through the window on a computer with an empty build cache
 - [ ] Offer Gitea beside Forgejo, an HTTPS reverse-proxy option for Vaultwarden and GPU options for Jellyfin, Immich and Ollama
 - [ ] Re-check pinned tags against the registries before each release
 - [x] Schedule density, accent colour, font size, motion and display name, add date ranges, an https source and a Home Assistant source, and give action sounds a volume and quiet hours (rule checks pass; nothing driven in the built window, no real server or audio device tried)

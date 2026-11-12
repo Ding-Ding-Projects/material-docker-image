@@ -69,9 +69,25 @@ public static class SelfHostedChecks
             Check(problems.Count == 0, $"{app.Id}: catalogue entry is complete" + (problems.Count > 0 ? ": " + string.Join(", ", problems) : ""));
         }
         var haMaterial = SelfHostedCatalogue.Find("homeassistantmaterial")!;
-        Check(haMaterial.AllImages().SequenceEqual(["ghcr.io/ding-ding-projects/home-assistant-material:" + SelfHostedCompose.Tag(haMaterial.AllImages().First())]) && haMaterial.HealthPath == "/manifest.json"
+        Check(haMaterial.AllImages().SequenceEqual([SelfHostedSourceBuilds.HomeAssistantMaterialImage]) && haMaterial.HealthPath == "/manifest.json"
             && haMaterial.Ports.Single().ContainerPort == 8123 && haMaterial.Volumes.Single().ContainerPath == "/config",
-            "Home Assistant Material runs its published image on port 8123 with /config and the manifest health check");
+            "Home Assistant Material runs on port 8123 with /config and the manifest health check");
+        var haBuild = haMaterial.Services(SelfHostedRules.Defaults(haMaterial, [], "Etc/UTC")).Single().Build;
+        Check(haBuild != null && Regex.IsMatch(haBuild.Context, "^https://github\\.com/Ding-Ding-Projects/home-assistant-material\\.git#[0-9a-f]{40}$")
+            && haMaterial.AllImages().Single().StartsWith("material-docker-image/", StringComparison.Ordinal)
+            && SelfHostedCompose.Tag(haMaterial.AllImages().Single()).EndsWith("-source." + SelfHostedSourceBuilds.HomeAssistantMaterialCommit[..12], StringComparison.Ordinal),
+            "Home Assistant Material is built from its repository at a pinned commit under a local image name, never pulled");
+        var recipe = haBuild?.Dockerfile ?? "";
+        Check(recipe.Contains("COPY frontend/ .", StringComparison.Ordinal) && recipe.Contains("gulp build-app", StringComparison.Ordinal)
+            && recipe.Contains("uv pip install homeassistant/home_assistant_frontend-*.whl", StringComparison.Ordinal)
+            && recipe.Contains("COPY --from=source /homeassistant/ homeassistant/homeassistant/", StringComparison.Ordinal)
+            && !recipe.Contains("ghcr.io/ding-ding-projects", StringComparison.Ordinal),
+            "the Home Assistant Material recipe builds the Material frontend wheel and core from source and downloads no prebuilt Material image");
+        Check(all.Where(a => a.Id != "homeassistantmaterial").All(a => a.Services(SelfHostedRules.Defaults(a, [], "Etc/UTC")).All(s => s.Build == null)), "only Home Assistant Material is built from source");
+        var haCompose = SelfHostedCompose.ComposeYaml(haMaterial, SelfHostedRules.Defaults(haMaterial, [], "Etc/UTC"));
+        Check(haCompose.Contains("    build:\n      context: \"" + haBuild?.Context + "\"\n      dockerfile_inline: \"", StringComparison.Ordinal)
+            && haCompose.Contains("$$(awk", StringComparison.Ordinal) && !Regex.IsMatch(haCompose, @"(?<!\$)\$\((?!\$)") && !haCompose.Contains("pull_policy", StringComparison.Ordinal),
+            "the Compose file builds Home Assistant Material only when its tag is missing, with every $ escaped from Compose interpolation");
         Check(SelfHostedCatalogue.Find("gitlab")!.MinMemoryMb >= 4096 && SelfHostedCatalogue.Find("gitlab")!.Note!.Contains("memory"), "GitLab states its memory need");
         var immich = SelfHostedCatalogue.Find("immich")!.AllImages();
         Check(immich.Any(i => i.StartsWith("ghcr.io/immich-app/immich-server:")) && immich.Any(i => i.StartsWith("ghcr.io/immich-app/immich-machine-learning:")) && immich.Any(i => i.Contains("vectorchord")) && immich.Any(i => i.StartsWith("valkey/valkey:")),
