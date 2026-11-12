@@ -104,7 +104,7 @@
     },
     {
       "path": "docs/features/self-hosted.md",
-      "sha256": "649a570ad41210d1dc5afbbeca9eba1befc5859467a4c41e1981a64b5fab461e"
+      "sha256": "46a1bb331bd4f62b7d238341c56bf307aca7481be933ee021c8116e723a5b0ad"
     },
     {
       "path": "docs/features/settings-safety.md",
@@ -120,11 +120,11 @@
     },
     {
       "path": "ROADMAP.md",
-      "sha256": "2faa14860102706cf2b03cbfa1a28c6661afd4590316717c2b1a73c3419b12ef"
+      "sha256": "5814d2dac19e2f42c2f7d5e5dd2acbd8ca84439b7c7c7858a16466a008f00857"
     },
     {
       "path": "HANDOFF.md",
-      "sha256": "608abde0f5cb19ebd8951f55feb1afe4e6c4bdab55dbb6e84985ced1a809cffc"
+      "sha256": "d14678d76c48349af16f7f10ab660b201403b7b05a0bfef6205a58d331a3ba42"
     },
     {
       "path": "wiki/Home.md",
@@ -320,6 +320,20 @@
       "sha256": "a4f54d99b44a88e5d8fa48bb2a140a12a84a0aeb85949d44def655e7eb4eb062",
       "width": 2160,
       "height": 1440
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/ha-material-source-building.png",
+      "destination": "assets/3c4f4e6ff0b9bdab49b3deaaf3be4785f6e21708b22c8ed372f6dde504f5dd91.png",
+      "sha256": "3c4f4e6ff0b9bdab49b3deaaf3be4785f6e21708b22c8ed372f6dde504f5dd91",
+      "width": 2160,
+      "height": 1440
+    },
+    {
+      "path": "evidence/selfhosted-captures-2026-11/ha-material-source-running.png",
+      "destination": "assets/997b2929521013e88fef388d36f9620ab8644e941ebc9cc764664e5a5934761c.png",
+      "sha256": "997b2929521013e88fef388d36f9620ab8644e941ebc9cc764664e5a5934761c",
+      "width": 2160,
+      "height": 470
     },
     {
       "path": "evidence/selfhosted-captures-2026-11/selfhosted-catalogue-1440x960.png",
